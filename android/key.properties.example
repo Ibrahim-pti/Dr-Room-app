@@ -1,0 +1,14 @@
+# Copy this file to android/key.properties and fill in your real values.
+# key.properties is gitignored — never commit it or the .jks keystore.
+#
+# Generate a keystore with:
+#   keytool -genkey -v -keystore ~/drroom-upload.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# Back the .jks file up somewhere safe. If you lose it you cannot ship an
+# update to an app already published under this key.
+
+storePassword=
+keyPassword=
+keyAlias=upload
+storeFile=/absolute/path/to/drroom-upload.jks

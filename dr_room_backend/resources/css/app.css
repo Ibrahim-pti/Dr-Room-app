@@ -1,0 +1,33 @@
+@import "tailwindcss";
+@source "../views/**/*.blade.php";
+@source "../../app/**/*.php";
+
+@theme {
+  --color-primary: #3B82F6;
+  --font-poppins: 'Poppins', 'Rabar', sans-serif;
+}
+
+@font-face {
+    font-family: 'Rabar';
+    src: url('../../public/fonts/Rabar-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Rabar';
+    src: url('../../public/fonts/Rabar-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Rabar';
+    src: url('../../public/fonts/Rabar-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+body {
+    font-family: 'Poppins', 'Rabar', sans-serif;
+}
