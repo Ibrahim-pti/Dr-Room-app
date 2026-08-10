@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyCyPMG48BMpThAd8v61R4cwE-Yn4LMEnf0</string>
+	<string>AIzaSyAe-AqLTvtk8SewY7SjU2df-HCGCU5m8Tw</string>
 	<key>GCM_SENDER_ID</key>
-	<string>295939547523</string>
+	<string>610061491979</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.drroom.drRoom</string>
 	<key>PROJECT_ID</key>
-	<string>dr-room-app</string>
+	<string>topic-e2c99</string>
 	<key>STORAGE_BUCKET</key>
-	<string>dr-room-app.firebasestorage.app</string>
+	<string>topic-e2c99.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:295939547523:ios:c1933b43c6678b039c56b6</string>
+	<string>1:610061491979:ios:45905e575c5bb65acd4c0e</string>
 </dict>
 </plist>

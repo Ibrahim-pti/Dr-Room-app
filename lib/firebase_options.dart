@@ -50,18 +50,18 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBkNovG58hvZ6z8SdotClDgsv2HQMmRw74',
-    appId: '1:295939547523:android:6a943443e434eece9c56b6',
-    messagingSenderId: '295939547523',
-    projectId: 'dr-room-app',
-    storageBucket: 'dr-room-app.firebasestorage.app',
+    apiKey: 'AIzaSyDTzpOrnTBaKr3VMp4KFjDymOWqqEosAXM',
+    appId: '1:610061491979:android:86126418f708e3d6cd4c0e',
+    messagingSenderId: '610061491979',
+    projectId: 'topic-e2c99',
+    storageBucket: 'topic-e2c99.firebasestorage.app',
   );
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCyPMG48BMpThAd8v61R4cwE-Yn4LMEnf0',
-    appId: '1:295939547523:ios:c1933b43c6678b039c56b6',
-    messagingSenderId: '295939547523',
-    projectId: 'dr-room-app',
-    storageBucket: 'dr-room-app.firebasestorage.app',
+    apiKey: 'AIzaSyAe-AqLTvtk8SewY7SjU2df-HCGCU5m8Tw',
+    appId: '1:610061491979:ios:45905e575c5bb65acd4c0e',
+    messagingSenderId: '610061491979',
+    projectId: 'topic-e2c99',
+    storageBucket: 'topic-e2c99.firebasestorage.app',
     iosBundleId: 'com.drroom.drRoom',
   );
 }
