@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "295939547523",
+    "project_id": "dr-room-app",
+    "storage_bucket": "dr-room-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:295939547523:android:6a943443e434eece9c56b6",
+        "android_client_info": {
+          "package_name": "com.drroom.dr_room"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkNovG58hvZ6z8SdotClDgsv2HQMmRw74"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

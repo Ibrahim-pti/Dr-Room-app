@@ -7,9 +7,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Kreait\Firebase\Contract\Auth as FirebaseAuth;
+use Kreait\Firebase\Exception\Auth\FailedToVerifyToken;
 
 class AuthController extends Controller
 {
+    /**
+     * Iraqi mobile numbers are stored locally as 11 digits starting with 0
+     * (e.g. 07701234567). Firebase Phone Auth deals in E.164, so the leading
+     * 0 is swapped for the +964 country code both ways.
+     */
+    private function toE164(string $localPhone): string
+    {
+        return '+964' . substr($localPhone, 1);
+    }
+
     public function login(Request $request)
     {
         \Log::info('login hit', $request->all());
@@ -38,14 +50,10 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $otp = 1234; // کۆدەکە جێگیر کراوە بۆ تێستکردن
-        $user->otp_code = $otp;
-        $user->otp_expires_at = now()->addMinutes(5);
-        $user->save();
-
+        // Password is correct — the app now sends the real SMS OTP itself via
+        // Firebase Phone Auth. This response just confirms it's clear to do so.
         return response()->json([
-            'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
-            'otp' => $otp, // For dev purposes
+            'message' => 'وشەی تێپەڕ ڕاستە',
             'phone' => $user->phone
         ]);
     }
@@ -59,8 +67,6 @@ class AuthController extends Controller
             'role' => 'nullable|string|in:patient,doctor,nurse,lab,pharmacy,admin'
         ]);
 
-        $otp = 1234; // کۆدەکە جێگیر کراوە بۆ تێستکردن
-        
         $role = $request->role ?? 'patient';
         $status = ($role === 'patient') ? 'approved' : 'pending';
 
@@ -70,31 +76,48 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => $role,
             'status' => $status,
-            'otp_code' => $otp,
-            'otp_expires_at' => now()->addMinutes(5)
         ]);
 
         return response()->json([
-            'message' => 'هەژمارەکەت دروستکرا، تکایە کۆدەکە بنووسە',
-            'otp' => $otp, // For dev purposes
+            'message' => 'هەژمارەکەت دروستکرا',
             'phone' => $user->phone
         ], 201);
     }
 
-    public function verifyOtp(Request $request)
+    /**
+     * Finalizes login/register: the client verifies the SMS code with
+     * Firebase itself, then hands us the resulting ID token. We verify it
+     * server-side and only trust the phone number Firebase attests to.
+     */
+    public function verifyFirebaseOtp(Request $request, FirebaseAuth $firebaseAuth)
     {
-        \Log::info('verifyOtp hit', $request->all());
         $request->validate([
             'phone' => 'required|string',
-            'otp_code' => 'required|string'
+            'firebase_id_token' => 'required|string',
         ]);
 
-        $user = User::where('phone', $request->phone)->first();
-
-        if (!$user || $user->otp_code !== $request->otp_code || now()->gt($user->otp_expires_at)) {
+        try {
+            $verifiedToken = $firebaseAuth->verifyIdToken($request->firebase_id_token);
+        } catch (FailedToVerifyToken $e) {
             return response()->json([
                 'message' => 'کۆدەکە هەڵەیە یان بەسەرچووە'
             ], 400);
+        }
+
+        $tokenPhone = $verifiedToken->claims()->get('phone_number');
+
+        if ($tokenPhone !== $this->toE164($request->phone)) {
+            return response()->json([
+                'message' => 'ژمارە مۆبایلەکە لەگەڵ کۆدەکە ناگونجێت'
+            ], 400);
+        }
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'بەکارهێنەر نەدۆزرایەوە'
+            ], 404);
         }
 
         if ($user->status === 'pending') {
@@ -108,11 +131,6 @@ class AuthController extends Controller
                 'message' => 'هەژمارەکەت بلۆک کراوە.'
             ], 403);
         }
-
-        // Clear OTP
-        $user->otp_code = null;
-        $user->otp_expires_at = null;
-        $user->save();
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
