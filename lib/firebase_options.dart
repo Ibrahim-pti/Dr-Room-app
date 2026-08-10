@@ -56,7 +56,6 @@ class DefaultFirebaseOptions {
     projectId: 'dr-room-app',
     storageBucket: 'dr-room-app.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCyPMG48BMpThAd8v61R4cwE-Yn4LMEnf0',
     appId: '1:295939547523:ios:c1933b43c6678b039c56b6',
