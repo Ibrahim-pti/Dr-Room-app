@@ -11,9 +11,9 @@ class OnboardingScreen extends StatelessWidget {
 
   const OnboardingScreen({super.key, required this.onFinished});
 
-  static const _ink = Color(0xFF16283F);
-  static const _muted = Color(0xFF6B7F96);
-  static const _blue = Color(0xFF3B82F6);
+  static const _ink = Color(0xFF0B1E33);
+  static const _muted = Color(0xFF44586F);
+  static const _blue = Color(0xFF2563EB);
 
   /// Natural aspect ratio of doctor1.png (505 × 768).
   static const _doctorAspect = 505 / 768;
@@ -109,7 +109,7 @@ class OnboardingScreen extends StatelessWidget {
                             style: _font(
                               isRtl: isRtl,
                               fontSize: 15 * scale,
-                              fontWeight: FontWeight.w400,
+                              fontWeight: FontWeight.w500,
                               color: _muted,
                               height: isRtl ? 2.05 : 1.7,
                             ),
@@ -144,7 +144,7 @@ class OnboardingScreen extends StatelessWidget {
     final headline = _font(
       isRtl: isRtl,
       fontSize: 25 * scale,
-      fontWeight: FontWeight.w400,
+      fontWeight: FontWeight.w500,
       color: _ink,
       letterSpacing: tracking,
       height: 1.4,
@@ -181,7 +181,7 @@ class OnboardingScreen extends StatelessWidget {
                   'better'.tr(),
                   style: headline.copyWith(
                     color: _blue,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -249,7 +249,7 @@ class OnboardingScreen extends StatelessWidget {
                       style: _font(
                         isRtl: isRtl,
                         fontSize: 17 * scale,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
                         letterSpacing: isRtl ? 0 : 0.2,
                       ),
