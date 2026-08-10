@@ -7,18 +7,18 @@ import 'dart:ui' as ui;
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/dr_widgets.dart';
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/utils/api_client.dart';
+import '../../core/utils/firebase_auth_service.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
+  final String verificationId;
   final void Function(String role) onVerified;
   final VoidCallback onBack;
 
   const OtpScreen({
     super.key,
     required this.phoneNumber,
+    required this.verificationId,
     required this.onVerified,
     required this.onBack,
   });
@@ -29,18 +29,23 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
   final _pinController = TextEditingController();
+  late String _verificationId;
   int _secondsRemaining = 60;
   Timer? _timer;
   bool _isVerifying = false;
+  bool _isResending = false;
   bool _canResend = false;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+    _verificationId = widget.verificationId;
     _startTimer();
   }
 
   void _startTimer() {
+    _timer?.cancel();
     _secondsRemaining = 60;
     _canResend = false;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -62,51 +67,67 @@ class _OtpScreenState extends State<OtpScreen> {
 
   Future<void> _verifyOtp() async {
     final code = _pinController.text;
-    if (code.length != 4) return;
-    
-    setState(() => _isVerifying = true);
+    if (code.length != 6) return;
+
+    setState(() {
+      _isVerifying = true;
+      _errorMessage = null;
+    });
 
     try {
-      final response = await ApiClient.post('/verify-otp', body: {
-        'phone': widget.phoneNumber,
-        'otp_code': code,
-      });
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final token = data['access_token'];
-        final role = data['user']['role'] ?? 'patient';
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', token);
-        await prefs.setString('user_role', role);
-        await prefs.setString('user_name', data['user']['name'] ?? '');
-        await prefs.setString('user_phone', data['user']['phone'] ?? '');
-
-        widget.onVerified(role);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('کۆدەکە هەڵەیە یان بەسەرچووە')),
-          );
-        }
-      }
+      final role = await FirebaseAuthService.confirmCode(
+        localPhone: widget.phoneNumber,
+        verificationId: _verificationId,
+        smsCode: code,
+      );
+      widget.onVerified(role);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('هەڵە لە پەیوەندیکردن بە سێرڤەر: $e')),
-        );
+        setState(() {
+          _errorMessage = 'otp_invalid'.tr();
+          _pinController.clear();
+        });
       }
     } finally {
       if (mounted) setState(() => _isVerifying = false);
     }
   }
 
+  Future<void> _resendCode() async {
+    setState(() {
+      _isResending = true;
+      _errorMessage = null;
+    });
+
+    await FirebaseAuthService.sendOtp(
+      localPhone: widget.phoneNumber,
+      onCodeSent: (verificationId) {
+        if (!mounted) return;
+        setState(() {
+          _verificationId = verificationId;
+          _isResending = false;
+        });
+        _pinController.clear();
+        _startTimer();
+      },
+      onAutoVerified: (role) {
+        if (mounted) widget.onVerified(role);
+      },
+      onFailed: (message) {
+        if (!mounted) return;
+        setState(() {
+          _isResending = false;
+          _errorMessage = 'otp_send_failed'.tr();
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final defaultPinTheme = PinTheme(
-      width: 54,
-      height: 60,
+      width: 46,
+      height: 56,
       textStyle: AppTypography.headingMd.copyWith(
         color: AppColors.getTextTitle(context),
         fontWeight: FontWeight.w700,
@@ -156,7 +177,10 @@ class _OtpScreenState extends State<OtpScreen> {
                     backgroundColor: AppColors.getSurfaceSecondary(context),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
-                      side: BorderSide(color: AppColors.getBorder(context), width: 1),
+                      side: BorderSide(
+                        color: AppColors.getBorder(context),
+                        width: 1,
+                      ),
                     ),
                   ),
                 ),
@@ -207,7 +231,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 textDirection: ui.TextDirection.ltr,
                 child: Text.rich(
                   TextSpan(
-                    text: 'code_sent_to'.tr() + ' ',
+                    text: '${'code_sent_to'.tr()} ',
                     style: AppTypography.bodyMd.copyWith(
                       color: AppColors.getTextSubtitle(context),
                       height: 1.5,
@@ -215,7 +239,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     ),
                     children: [
                       TextSpan(
-                        text: '+964 ${widget.phoneNumber}',
+                        text: '+964 ${widget.phoneNumber.substring(1)}',
                         style: AppTypography.labelMd.copyWith(
                           color: AppColors.primary,
                         ),
@@ -231,12 +255,12 @@ class _OtpScreenState extends State<OtpScreen> {
               Directionality(
                     textDirection: ui.TextDirection.ltr,
                     child: Pinput(
-                      length: 4,
+                      length: 6,
                       controller: _pinController,
                       defaultPinTheme: defaultPinTheme,
                       focusedPinTheme: focusedPinTheme,
                       submittedPinTheme: submittedPinTheme,
-                      separatorBuilder: (i) => const SizedBox(width: 10),
+                      separatorBuilder: (i) => const SizedBox(width: 8),
                       hapticFeedbackType: HapticFeedbackType.lightImpact,
                       onCompleted: (pin) {
                         _verifyOtp();
@@ -255,6 +279,18 @@ class _OtpScreenState extends State<OtpScreen> {
                   .fadeIn(duration: 400.ms)
                   .slideY(begin: 0.1, end: 0, duration: 400.ms),
 
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  _errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodyMd.copyWith(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ).animate().fadeIn(duration: 250.ms),
+              ],
+
               const SizedBox(height: 36),
 
               // ── Timer ──
@@ -264,18 +300,24 @@ class _OtpScreenState extends State<OtpScreen> {
 
               // ── Resend ──
               TextButton(
-                onPressed: _canResend
-                    ? () {
-                        _startTimer();
-                        _pinController.clear();
-                      }
-                    : null,
-                child: Text(
-                  'resend_code'.tr(),
-                  style: AppTypography.labelMd.copyWith(
-                    color: _canResend ? AppColors.primary : AppColors.textLight,
-                  ),
-                ),
+                onPressed: (_canResend && !_isResending) ? _resendCode : null,
+                child: _isResending
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primary,
+                        ),
+                      )
+                    : Text(
+                        'resend_code'.tr(),
+                        style: AppTypography.labelMd.copyWith(
+                          color: _canResend
+                              ? AppColors.primary
+                              : AppColors.textLight,
+                        ),
+                      ),
               ),
 
               const SizedBox(height: 40),
@@ -284,9 +326,7 @@ class _OtpScreenState extends State<OtpScreen> {
               DrButton(
                 text: 'verify'.tr(),
                 isLoading: _isVerifying,
-                onPressed: _pinController.text.length == 4
-                    ? _verifyOtp
-                    : null,
+                onPressed: _pinController.text.length == 6 ? _verifyOtp : null,
               ).animate(delay: 600.ms).fadeIn(duration: 400.ms),
             ],
           ),
