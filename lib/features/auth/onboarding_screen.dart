@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -10,8 +11,15 @@ class OnboardingScreen extends StatelessWidget {
 
   const OnboardingScreen({super.key, required this.onFinished});
 
-  /// Rabar for Kurdish/Arabic, Inter for Latin — set explicitly here so the
-  /// screen never falls back to the system font.
+  static const _ink = Color(0xFF16283F);
+  static const _muted = Color(0xFF6B7F96);
+  static const _blue = Color(0xFF3B82F6);
+
+  /// Natural aspect ratio of doctor1.png (505 × 768).
+  static const _doctorAspect = 505 / 768;
+
+  /// Rabar for Kurdish/Arabic, Inter for Latin — set explicitly so the screen
+  /// never falls back to the system font.
   TextStyle _font({
     required bool isRtl,
     required double fontSize,
@@ -45,11 +53,10 @@ class OnboardingScreen extends StatelessWidget {
     final size = MediaQuery.sizeOf(context);
     final isRtl = Directionality.of(context) == ui.TextDirection.rtl;
 
-    // Typography scales with the screen instead of being pinned to one device.
-    // Rabar has a small x-height, so Kurdish/Arabic gets an extra bump.
-    final scale = (size.width / 390).clamp(0.85, 1.15) * (isRtl ? 1.12 : 1.0);
-    // Kurdish/Arabic glyphs need room to breathe — no negative tracking.
-    final tracking = isRtl ? 0.0 : -0.5;
+    // Gentle scaling only — the layout stays calm across device sizes.
+    final scale = (size.width / 390).clamp(0.92, 1.06);
+    // Joined Kurdish/Arabic letterforms shouldn't be pulled together.
+    final tracking = isRtl ? 0.0 : -0.4;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -63,11 +70,11 @@ class OnboardingScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF4A9FFF), // Deeper blue at top
-                    Color(0xFF8ABEF9), // Lighter blue
-                    Color(0xFFE6EDF5), // Light grayish blue at the bottom
+                    Color(0xFF57A6FF), // Deeper blue at top
+                    Color(0xFF9CCAFB), // Lighter blue
+                    Color(0xFFF1F5F9), // Almost white at the bottom
                   ],
-                  stops: [0.0, 0.5, 1.0],
+                  stops: [0.0, 0.48, 1.0],
                 ),
               ),
             ),
@@ -75,180 +82,53 @@ class OnboardingScreen extends StatelessWidget {
 
           // Cap the OS text scale so long translations can never overflow.
           MediaQuery.withClampedTextScaling(
-            maxScaleFactor: 1.2,
+            maxScaleFactor: 1.15,
             child: SafeArea(
               top: false,
               child: Column(
                 children: [
-                  // ── Hero: circles + doctor, takes whatever the text leaves ──
+                  // ── Hero: halo + doctor, takes whatever the text leaves ──
                   Expanded(child: _buildHero()),
 
                   // ── Bottom Content ──
                   Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(
-                      28,
-                      0,
-                      28,
-                      24 * scale,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Title: Smarter Health + Better badge
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'smarter_health'.tr(),
-                                style: _font(
-                                  isRtl: isRtl,
-                                  fontSize: 30 * scale,
-                                  fontWeight: FontWeight.w400,
-                                  color: const Color(0xFF1E293B),
-                                  letterSpacing: tracking,
-                                  height: 1.3,
-                                ),
-                              ),
-                              SizedBox(width: 6 * scale),
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 14 * scale,
-                                  vertical: 4 * scale,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white, // White background
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  'better'.tr(),
-                                  style: _font(
-                                    isRtl: isRtl,
-                                    fontSize: 28 * scale,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF3B82F6), // Blue text
-                                    letterSpacing: tracking,
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                            .animate(delay: 300.ms)
-                            .fadeIn(duration: 600.ms)
-                            .slideY(begin: 0.2, end: 0),
+                        _buildHeadline(isRtl, scale, tracking),
 
-                        SizedBox(height: 8 * scale),
+                        SizedBox(height: 16 * scale),
 
-                        // Title: Doctors Everyday
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
+                        // Subtitle — held to a comfortable measure.
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 330),
                           child: Text(
-                            'doctors_everyday'.tr(),
+                            'onboarding_subtitle'.tr(),
+                            textAlign: TextAlign.center,
                             style: _font(
                               isRtl: isRtl,
-                              fontSize: 30 * scale,
+                              fontSize: 15 * scale,
                               fontWeight: FontWeight.w400,
-                              color: const Color(0xFF1E293B),
-                              letterSpacing: tracking,
-                              height: 1.3,
+                              color: _muted,
+                              height: isRtl ? 2.05 : 1.7,
                             ),
                           ),
                         )
-                            .animate(delay: 400.ms)
+                            .animate(delay: 450.ms)
                             .fadeIn(duration: 600.ms)
-                            .slideY(begin: 0.2, end: 0),
+                            .slideY(begin: 0.15, end: 0),
 
-                        SizedBox(height: 14 * scale),
+                        // Wide gap: pushes the text block up and the button down.
+                        SizedBox(height: (size.height * 0.085).clamp(48, 92)),
 
-                        // Subtitle
-                        Text(
-                          'onboarding_subtitle'.tr(),
-                          textAlign: TextAlign.center,
-                          style: _font(
-                            isRtl: isRtl,
-                            fontSize: 17 * scale,
-                            fontWeight: FontWeight.w400,
-                            color: const Color(0xFF64748B),
-                            height: isRtl ? 1.8 : 1.5,
-                          ),
-                        )
-                            .animate(delay: 500.ms)
-                            .fadeIn(duration: 600.ms)
-                            .slideY(begin: 0.2, end: 0),
-
-                        // Breathing room that shrinks on short screens.
-                        SizedBox(height: (size.height * 0.055).clamp(20, 48)),
-
-                        // Get Started Button
-                        Container(
-                          height: (64 * scale).clamp(56, 68),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6), // Bright blue
-                            borderRadius: BorderRadius.circular(32),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF3B82F6)
-                                    .withValues(alpha: 0.25),
-                                blurRadius: 16,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: onFinished,
-                              borderRadius: BorderRadius.circular(32),
-                              child: Padding(
-                                padding: const EdgeInsetsDirectional.only(
-                                  start: 24,
-                                  end: 8,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'get_started'.tr(),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: _font(
-                                          isRtl: isRtl,
-                                          fontSize: 21 * scale,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 12 * scale),
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.north_east,
-                                        color: Color(0xFF3B82F6),
-                                        size: 24,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                            .animate(delay: 600.ms)
-                            .fadeIn(duration: 600.ms)
-                            .slideY(begin: 0.2, end: 0),
+                        _buildButton(isRtl, scale),
                       ],
                     ),
                   ),
+
+                  // Button settles near the bottom edge.
+                  SizedBox(height: (size.height * 0.035).clamp(22, 38)),
                 ],
               ),
             ),
@@ -258,36 +138,186 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 
-  /// Circles + doctor, laid out against the space actually left over rather
-  /// than against fixed fractions of the whole screen.
+  /// Two-line headline: a light first line, a bold second line, and the accent
+  /// word resting in a soft white pill.
+  Widget _buildHeadline(bool isRtl, double scale, double tracking) {
+    final headline = _font(
+      isRtl: isRtl,
+      fontSize: 25 * scale,
+      fontWeight: FontWeight.w400,
+      color: _ink,
+      letterSpacing: tracking,
+      height: 1.4,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text('smarter_health'.tr(), style: headline),
+              SizedBox(width: 8 * scale),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 14 * scale,
+                  vertical: 6 * scale,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1E3A5F).withValues(alpha: 0.08),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'better'.tr(),
+                  style: headline.copyWith(
+                    color: _blue,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        )
+            .animate(delay: 250.ms)
+            .fadeIn(duration: 600.ms)
+            .slideY(begin: 0.15, end: 0),
+
+        SizedBox(height: 8 * scale),
+
+        // Bold second line carries the weight — Rabar-Bold on Kurdish/Arabic.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            'doctors_everyday'.tr(),
+            style: headline.copyWith(fontWeight: FontWeight.w700),
+          ),
+        )
+            .animate(delay: 350.ms)
+            .fadeIn(duration: 600.ms)
+            .slideY(begin: 0.15, end: 0),
+      ],
+    );
+  }
+
+  Widget _buildButton(bool isRtl, double scale) {
+    final height = 58.0 * scale;
+    final knob = height - 16;
+
+    return SizedBox(
+      height: height,
+      width: double.infinity,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF4C8DF6), Color(0xFF2F6FE0)],
+          ),
+          borderRadius: BorderRadius.circular(height / 2),
+          boxShadow: [
+            BoxShadow(
+              color: _blue.withValues(alpha: 0.32),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onFinished,
+            borderRadius: BorderRadius.circular(height / 2),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: 26, end: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'get_started'.tr(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _font(
+                        isRtl: isRtl,
+                        fontSize: 17 * scale,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                        letterSpacing: isRtl ? 0 : 0.2,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12 * scale),
+                  Container(
+                    width: knob,
+                    height: knob,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.north_east,
+                      color: _blue,
+                      size: 20 * scale,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    )
+        .animate(delay: 550.ms)
+        .fadeIn(duration: 600.ms)
+        .slideY(begin: 0.15, end: 0);
+  }
+
+  /// Doctor sized off her own aspect ratio, with concentric halo rings
+  /// centred on her head rather than on arbitrary screen fractions.
   Widget _buildHero() {
     return LayoutBuilder(
       builder: (context, constraints) {
         final h = constraints.maxHeight;
         final w = constraints.maxWidth;
+        final topInset = MediaQuery.paddingOf(context).top;
+
+        // Keep her comfortably inside the frame on both tall and short screens.
+        final imgW = math.min(w * 0.72, (h - topInset) * _doctorAspect);
+        final imgH = imgW / _doctorAspect;
+
+        // Her head sits roughly a fifth down from the top of the artwork.
+        final haloCenterY = h - imgH + imgH * 0.20;
 
         return ClipRect(
           child: Stack(
+            alignment: Alignment.bottomCenter,
             children: [
-              // ── Background Circles (Behind Doctor) ──
-              _circle(top: h * 0.06, inset: -w * 0.1, diameter: w * 1.2, alpha: 0.1),
-              _circle(top: h * 0.14, inset: w * 0.05, diameter: w * 0.9, alpha: 0.15),
-              _circle(top: h * 0.26, inset: w * 0.2, diameter: w * 0.6, alpha: 0.2),
+              _ring(w, haloCenterY, imgW * 1.75, 0.10),
+              _ring(w, haloCenterY, imgW * 1.35, 0.14),
+              _ring(w, haloCenterY, imgW * 0.98, 0.18),
 
               // ── Doctor Image ──
-              PositionedDirectional(
-                top: MediaQuery.paddingOf(context).top + h * 0.02,
-                start: -20,
-                end: -20,
+              Positioned(
                 bottom: 0,
+                width: imgW,
+                height: imgH,
                 child: ShaderMask(
                   shaderCallback: (rect) {
                     return const LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [Colors.black, Colors.black, Colors.transparent],
-                      // Fades out the bottom 25% smoothly
-                      stops: [0.0, 0.75, 1.0],
+                      // Fades out the bottom 22% smoothly
+                      stops: [0.0, 0.78, 1.0],
                     ).createShader(rect);
                   },
                   blendMode: BlendMode.dstIn,
@@ -299,7 +329,7 @@ class OnboardingScreen extends StatelessWidget {
                 )
                     .animate()
                     .fadeIn(duration: 800.ms)
-                    .slideY(begin: 0.1, end: 0, duration: 800.ms),
+                    .slideY(begin: 0.08, end: 0, duration: 800.ms),
               ),
             ],
           ),
@@ -308,18 +338,13 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 
-  Widget _circle({
-    required double top,
-    required double inset,
-    required double diameter,
-    required double alpha,
-  }) {
-    return PositionedDirectional(
-      top: top,
-      start: inset,
-      end: inset,
-      child: Container(
-        height: diameter,
+  Widget _ring(double w, double centerY, double diameter, double alpha) {
+    return Positioned(
+      left: (w - diameter) / 2,
+      top: centerY - diameter / 2,
+      width: diameter,
+      height: diameter,
+      child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: Colors.white.withValues(alpha: alpha),
