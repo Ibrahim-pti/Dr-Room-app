@@ -83,10 +83,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        final otp = data['otp'];
-        debugPrint('OTP is: $otp');
-        widget.onOtpSent(phone);
+        await FirebaseAuthService.sendOtp(
+          localPhone: phone,
+          onCodeSent: (verificationId) {
+            if (mounted) widget.onOtpSent(phone, verificationId);
+          },
+          onAutoVerified: (role) {
+            if (mounted) widget.onVerified(role);
+          },
+          onFailed: (message) {
+            if (mounted) setState(() => _formError = 'otp_send_failed'.tr());
+          },
+        );
       } else {
         final err = jsonDecode(response.body);
         final msg = err['message'] ?? 'register_failed'.tr();
