@@ -254,23 +254,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF1F5F9),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 18,
-                color: darkSlate,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 40),
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),

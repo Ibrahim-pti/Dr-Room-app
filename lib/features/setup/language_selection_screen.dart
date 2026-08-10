@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -31,9 +30,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: ui.TextDirection.ltr,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: bgSurface,
         body: SafeArea(
           child: Column(
@@ -187,8 +184,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildTopHeader({required double progress}) {
