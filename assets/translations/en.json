@@ -93,6 +93,8 @@
   "password_too_short": "Password must be at least 6 characters",
   "passwords_do_not_match": "Passwords do not match",
   "register_failed": "Failed to create account",
+  "otp_send_failed": "Couldn't send the code, please try again",
+  "otp_invalid": "Invalid or expired code",
   "log_in": "Log In",
   "or_continue_with": "or continue with",
   "dont_have_account": "Don't have an account? ",

@@ -4,15 +4,18 @@ import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/firebase_auth_service.dart';
 import 'package:flutter/services.dart';
 
 class RegisterScreen extends StatefulWidget {
-  final void Function(String phone) onOtpSent;
+  final void Function(String phone, String verificationId) onOtpSent;
+  final void Function(String role) onVerified;
   final VoidCallback onLogin;
 
   const RegisterScreen({
     super.key,
     required this.onOtpSent,
+    required this.onVerified,
     required this.onLogin,
   });
 
