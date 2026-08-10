@@ -25,6 +25,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  String? _phoneError;
+  String? _passwordError;
+  String? _formError;
 
   @override
   void dispose() {
@@ -36,18 +39,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     final phone = _phoneController.text.trim();
     final password = _passwordController.text;
-    if (phone.isEmpty || phone.length != 11 || password.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'تکایە دڵنیابە لە داخڵکردنی ١١ ژمارە بۆ مۆبایلەکە وە پاسۆرد',
-            ),
-          ),
-        );
-      }
-      return;
-    }
+
+    setState(() {
+      _phoneError = (phone.isEmpty || phone.length != 11)
+          ? 'phone_invalid'.tr()
+          : null;
+      _passwordError = password.isEmpty ? 'password_required'.tr() : null;
+      _formError = null;
+    });
+
+    if (_phoneError != null || _passwordError != null) return;
 
     setState(() => _isLoading = true);
 
@@ -61,27 +62,15 @@ class _LoginScreenState extends State<LoginScreen> {
         final data = jsonDecode(response.body);
         final otp = data['otp']; // For development
         debugPrint('OTP is: $otp');
-
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('کۆدەکە: $otp')));
-        }
         widget.onOtpSent(phone);
       } else {
         final err = jsonDecode(response.body);
-        final msg = err['message'] ?? 'هەڵە ڕوویدا';
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(msg)));
-        }
+        final msg = err['message'] ?? 'login_failed'.tr();
+        if (mounted) setState(() => _formError = msg);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('هەڵە لە پەیوەندیکردن بە سێرڤەر: $e')),
-        );
+        setState(() => _formError = '${'server_connection_error'.tr()}: $e');
       }
     } finally {
       if (mounted) {
@@ -184,6 +173,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           icon: Icons.phone_android_rounded,
                           controller: _phoneController,
                           isPhone: true,
+                          errorText: _phoneError,
+                          onChanged: (_) {
+                            if (_phoneError != null) {
+                              setState(() => _phoneError = null);
+                            }
+                          },
                         )
                         .animate()
                         .fadeIn(delay: 300.ms)
@@ -197,10 +192,44 @@ class _LoginScreenState extends State<LoginScreen> {
                           icon: Icons.lock_outline_rounded,
                           isPassword: true,
                           controller: _passwordController,
+                          errorText: _passwordError,
+                          onChanged: (_) {
+                            if (_passwordError != null) {
+                              setState(() => _passwordError = null);
+                            }
+                          },
                         )
                         .animate()
                         .fadeIn(delay: 400.ms)
                         .slideY(begin: 0.2, end: 0),
+
+                    if (_formError != null) ...[
+                      const SizedBox(height: 14),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFFFECACA),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          _formError!,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFFDC2626),
+                          ),
+                        ),
+                      ).animate().fadeIn(duration: 250.ms),
+                    ],
 
                     const SizedBox(height: 16),
 
@@ -319,74 +348,101 @@ class _LoginScreenState extends State<LoginScreen> {
     bool isPassword = false,
     bool isPhone = false,
     required TextEditingController controller,
+    String? errorText,
+    void Function(String)? onChanged,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword ? _obscurePassword : false,
-        keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
-        inputFormatters: isPhone
-            ? [FilteringTextInputFormatter.digitsOnly]
-            : null,
-        maxLength: isPhone ? 11 : null,
-        textAlign: TextAlign.end,
-        style: GoogleFonts.poppins(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: const Color(0xFF1E293B),
-          letterSpacing: isPhone ? 1.2 : 0.2,
-        ),
-        decoration: InputDecoration(
-          counterText: '',
-          hintText: hint,
-          hintStyle: GoogleFonts.poppins(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFF94A3B8),
-            letterSpacing: 0.2,
-          ),
-          prefixIconConstraints: const BoxConstraints(
-            minWidth: 0,
-            minHeight: 0,
-          ),
-          prefixIcon: Padding(
-            padding: const EdgeInsetsDirectional.only(start: 14, end: 12),
-            child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
-          ),
-          suffixIcon: isPassword
-              ? GestureDetector(
-                  onTap: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 14),
-                    child: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: const Color(0xFF94A3B8),
-                      size: 20,
-                    ),
-                  ),
-                )
-              : null,
-          border: OutlineInputBorder(
+    final hasError = errorText != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
+            border: Border.all(
+              color: hasError
+                  ? const Color(0xFFEF4444)
+                  : const Color(0xFFE2E8F0),
+              width: hasError ? 1.4 : 1.2,
+            ),
           ),
-          filled: true,
-          fillColor: Colors.transparent,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 4,
+          child: TextField(
+            controller: controller,
+            onChanged: onChanged,
+            obscureText: isPassword ? _obscurePassword : false,
+            keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+            inputFormatters: isPhone
+                ? [FilteringTextInputFormatter.digitsOnly]
+                : null,
+            maxLength: isPhone ? 11 : null,
+            textAlign: TextAlign.end,
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF1E293B),
+              letterSpacing: isPhone ? 1.2 : 0.2,
+            ),
+            decoration: InputDecoration(
+              counterText: '',
+              hintText: hint,
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF94A3B8),
+                letterSpacing: 0.2,
+              ),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 0,
+                minHeight: 0,
+              ),
+              prefixIcon: Padding(
+                padding: const EdgeInsetsDirectional.only(start: 14, end: 12),
+                child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
+              ),
+              suffixIcon: isPassword
+                  ? GestureDetector(
+                      onTap: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 14),
+                        child: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: const Color(0xFF94A3B8),
+                          size: 20,
+                        ),
+                      ),
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 16,
+                horizontal: 4,
+              ),
+            ),
           ),
         ),
-      ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(top: 6, start: 4),
+            child: Text(
+              errorText,
+              textAlign: TextAlign.end,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFFEF4444),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
