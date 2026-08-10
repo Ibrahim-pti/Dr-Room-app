@@ -23,7 +23,8 @@ use App\Http\Controllers\Api\Admin\AdminXRayController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/verify-firebase-otp', [AuthController::class, 'verifyFirebaseOtp']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 // Public User App Routes
 Route::get('/home', [AppController::class, 'home']);

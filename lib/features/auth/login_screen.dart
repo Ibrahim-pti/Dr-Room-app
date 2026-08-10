@@ -4,18 +4,15 @@ import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
-import '../../core/utils/firebase_auth_service.dart';
 import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
-  final void Function(String phone, String verificationId) onOtpSent;
-  final void Function(String role) onVerified;
+  final void Function(String phone) onOtpSent;
   final VoidCallback onSignUp;
 
   const LoginScreen({
     super.key,
     required this.onOtpSent,
-    required this.onVerified,
     required this.onSignUp,
   });
 
@@ -62,18 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.statusCode == 200) {
-        await FirebaseAuthService.sendOtp(
-          localPhone: phone,
-          onCodeSent: (verificationId) {
-            if (mounted) widget.onOtpSent(phone, verificationId);
-          },
-          onAutoVerified: (role) {
-            if (mounted) widget.onVerified(role);
-          },
-          onFailed: (message) {
-            if (mounted) setState(() => _formError = 'otp_send_failed'.tr());
-          },
-        );
+        widget.onOtpSent(phone);
       } else {
         final err = jsonDecode(response.body);
         final msg = err['message'] ?? 'login_failed'.tr();

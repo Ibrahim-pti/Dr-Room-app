@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pinput/pinput.dart';
@@ -7,18 +8,17 @@ import 'dart:ui' as ui;
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/dr_widgets.dart';
-import '../../core/utils/firebase_auth_service.dart';
+import '../../core/utils/api_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
-  final String verificationId;
   final void Function(String role) onVerified;
   final VoidCallback onBack;
 
   const OtpScreen({
     super.key,
     required this.phoneNumber,
-    required this.verificationId,
     required this.onVerified,
     required this.onBack,
   });
@@ -29,7 +29,6 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
   final _pinController = TextEditingController();
-  late String _verificationId;
   int _secondsRemaining = 60;
   Timer? _timer;
   bool _isVerifying = false;
@@ -40,7 +39,6 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   void initState() {
     super.initState();
-    _verificationId = widget.verificationId;
     _startTimer();
   }
 
@@ -67,7 +65,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
   Future<void> _verifyOtp() async {
     final code = _pinController.text;
-    if (code.length != 6) return;
+    if (code.length != 4) return;
 
     setState(() {
       _isVerifying = true;
@@ -75,18 +73,34 @@ class _OtpScreenState extends State<OtpScreen> {
     });
 
     try {
-      final role = await FirebaseAuthService.confirmCode(
-        localPhone: widget.phoneNumber,
-        verificationId: _verificationId,
-        smsCode: code,
+      final response = await ApiClient.post(
+        '/verify-otp',
+        body: {'phone': widget.phoneNumber, 'otp_code': code},
       );
-      widget.onVerified(role);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final token = data['access_token'];
+        final role = data['user']['role'] ?? 'patient';
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', token);
+        await prefs.setString('user_role', role);
+        await prefs.setString('user_name', data['user']['name'] ?? '');
+        await prefs.setString('user_phone', data['user']['phone'] ?? '');
+
+        widget.onVerified(role);
+      } else {
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'otp_invalid'.tr();
+            _pinController.clear();
+          });
+        }
+      }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _errorMessage = 'otp_invalid'.tr();
-          _pinController.clear();
-        });
+        setState(() => _errorMessage = '${'server_connection_error'.tr()}: $e');
       }
     } finally {
       if (mounted) setState(() => _isVerifying = false);
@@ -99,35 +113,30 @@ class _OtpScreenState extends State<OtpScreen> {
       _errorMessage = null;
     });
 
-    await FirebaseAuthService.sendOtp(
-      localPhone: widget.phoneNumber,
-      onCodeSent: (verificationId) {
-        if (!mounted) return;
-        setState(() {
-          _verificationId = verificationId;
-          _isResending = false;
-        });
+    try {
+      final response = await ApiClient.post(
+        '/resend-otp',
+        body: {'phone': widget.phoneNumber},
+      );
+
+      if (response.statusCode == 200) {
         _pinController.clear();
         _startTimer();
-      },
-      onAutoVerified: (role) {
-        if (mounted) widget.onVerified(role);
-      },
-      onFailed: (message) {
-        if (!mounted) return;
-        setState(() {
-          _isResending = false;
-          _errorMessage = 'otp_send_failed'.tr();
-        });
-      },
-    );
+      } else {
+        setState(() => _errorMessage = 'otp_send_failed'.tr());
+      }
+    } catch (e) {
+      if (mounted) setState(() => _errorMessage = 'otp_send_failed'.tr());
+    } finally {
+      if (mounted) setState(() => _isResending = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final defaultPinTheme = PinTheme(
-      width: 46,
-      height: 56,
+      width: 54,
+      height: 60,
       textStyle: AppTypography.headingMd.copyWith(
         color: AppColors.getTextTitle(context),
         fontWeight: FontWeight.w700,
@@ -255,12 +264,12 @@ class _OtpScreenState extends State<OtpScreen> {
               Directionality(
                     textDirection: ui.TextDirection.ltr,
                     child: Pinput(
-                      length: 6,
+                      length: 4,
                       controller: _pinController,
                       defaultPinTheme: defaultPinTheme,
                       focusedPinTheme: focusedPinTheme,
                       submittedPinTheme: submittedPinTheme,
-                      separatorBuilder: (i) => const SizedBox(width: 8),
+                      separatorBuilder: (i) => const SizedBox(width: 10),
                       hapticFeedbackType: HapticFeedbackType.lightImpact,
                       onCompleted: (pin) {
                         _verifyOtp();
@@ -326,7 +335,7 @@ class _OtpScreenState extends State<OtpScreen> {
               DrButton(
                 text: 'verify'.tr(),
                 isLoading: _isVerifying,
-                onPressed: _pinController.text.length == 6 ? _verifyOtp : null,
+                onPressed: _pinController.text.length == 4 ? _verifyOtp : null,
               ).animate(delay: 600.ms).fadeIn(duration: 400.ms),
             ],
           ),

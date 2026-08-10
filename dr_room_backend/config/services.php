@@ -42,4 +42,10 @@ return [
         'key' => env('GEMINI_API_KEY'),
     ],
 
+    // otpiq.com — sends the real login/register OTP as an SMS to Iraqi
+    // numbers. See https://docs.otpiq.com/api-reference/messaging/post
+    'otpiq' => [
+        'key' => env('OTPIQ_API_KEY'),
+    ],
+
 ];

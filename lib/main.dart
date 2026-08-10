@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -35,7 +33,6 @@ final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // A rejected token used to fail silently on every subsequent call. Now it
   // tears the session down and returns the user to login.
@@ -120,7 +117,6 @@ class AppFlow extends StatefulWidget {
 class AppFlowState extends State<AppFlow> {
   _FlowState _state = _FlowState.splash;
   String _phoneNumber = '';
-  String _verificationId = '';
 
   @override
   void initState() {
@@ -132,16 +128,6 @@ class AppFlowState extends State<AppFlow> {
 
   void _goTo(_FlowState state) {
     setState(() => _state = state);
-  }
-
-  /// Shared by the OTP screen and the login/register screens' Firebase
-  /// auto-verification path (instant SMS confirmation with no code typed).
-  void _handleVerified(String role) {
-    if (role == 'admin') {
-      _goTo(_FlowState.admin);
-    } else {
-      _goTo(_FlowState.home);
-    }
   }
 
   @override
@@ -204,24 +190,20 @@ class AppFlowState extends State<AppFlow> {
       case _FlowState.login:
         return LoginScreen(
           key: const ValueKey('login'),
-          onOtpSent: (String phone, String verificationId) {
+          onOtpSent: (String phone) {
             _phoneNumber = phone;
-            _verificationId = verificationId;
             _goTo(_FlowState.otp);
           },
-          onVerified: _handleVerified,
           onSignUp: () => _goTo(_FlowState.register),
         );
 
       case _FlowState.register:
         return RegisterScreen(
           key: const ValueKey('register'),
-          onOtpSent: (String phone, String verificationId) {
+          onOtpSent: (String phone) {
             _phoneNumber = phone;
-            _verificationId = verificationId;
             _goTo(_FlowState.otp);
           },
-          onVerified: _handleVerified,
           onLogin: () => _goTo(_FlowState.login),
         );
 
@@ -229,8 +211,13 @@ class AppFlowState extends State<AppFlow> {
         return OtpScreen(
           key: const ValueKey('otp'),
           phoneNumber: _phoneNumber,
-          verificationId: _verificationId,
-          onVerified: _handleVerified,
+          onVerified: (String role) {
+            if (role == 'admin') {
+              _goTo(_FlowState.admin);
+            } else {
+              _goTo(_FlowState.home);
+            }
+          },
           onBack: () => _goTo(_FlowState.login),
         );
 
