@@ -12,6 +12,9 @@ import 'personal_information_screen.dart';
 import 'help_support_screen.dart';
 import '../health_sync/health_dashboard_screen.dart';
 import '../settings/saved_addresses_screen.dart';
+import '../checkout/payment_history_screen.dart';
+import '../doctors/favorite_doctors_screen.dart';
+import '../records/medical_records_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -351,6 +354,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               MaterialPageRoute(
                                 builder: (context) =>
                                     const SavedAddressesScreen(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        // The three below belong with the patient's own
+                        // account rather than in the menu drawer, which is
+                        // where they used to sit (or, for payments, nowhere).
+                        _buildDivider(context),
+                        _buildListItem(
+                          context,
+                          icon: Iconsax.folder_2,
+                          title: 'medical_records'.tr(),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const MedicalRecordsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        _buildDivider(context),
+                        _buildListItem(
+                          context,
+                          icon: Iconsax.heart,
+                          title: 'favorite_doctors'.tr(),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const FavoriteDoctorsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        _buildDivider(context),
+                        _buildListItem(
+                          context,
+                          icon: Iconsax.receipt_item,
+                          title: 'payment_history'.tr(),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const PaymentHistoryScreen(),
                               ),
                             );
                           },

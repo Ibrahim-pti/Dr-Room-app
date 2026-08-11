@@ -2,9 +2,6 @@ import 'dart:math' as math;
 
 import 'package:dr_room/features/requests/my_requests_screen.dart';
 import 'package:flutter/material.dart';
-import '../doctors/favorite_doctors_screen.dart';
-import '../ai_assistant/ai_symptom_checker_screen.dart';
-import '../body_map/body_map_screen.dart';
 import '../surgery/surgery_timeline_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
@@ -12,11 +9,9 @@ import '../../core/providers/appointment_provider.dart';
 import '../../core/providers/order_provider.dart';
 import '../../core/theme/app_colors.dart';
 import 'home_screen.dart';
-import '../records/medical_records_screen.dart';
 import '../emergency_reels/emergency_reels_screen.dart';
 import '../settings/settings_screen.dart';
 import '../pharmacy/pill_scanner_screen.dart';
-import '../prescriptions/pill_reminder_screen.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -92,25 +87,39 @@ class _MainShellState extends State<MainShell> {
                   ),
                 ],
               ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Five tabs plus the scan button no longer divide evenly, so
+                  // the button is placed over the gap it actually leaves rather
+                  // than at the centre of the bar — at the centre it would sit
+                  // on top of a tab.
+                  const scanSize = 56.0;
+                  const tabsBeforeScan = 2;
+                  final slot =
+                      (constraints.maxWidth - scanSize) / _navIcons.length;
+
+                  return Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      _buildNavItem(0, Iconsax.home_2),
-                      _buildNavItem(_requestsTabIndex, Iconsax.box),
-                      const SizedBox(width: 56),
-                      _buildNavItem(2, Iconsax.document_text),
-                      _buildNavItem(3, Iconsax.user),
+                      Row(
+                        children: [
+                          for (var i = 0; i < _navIcons.length; i++) ...[
+                            // Equal shares rather than sizing to the label, so
+                            // a long translation cannot overflow the bar.
+                            if (i == tabsBeforeScan)
+                              const SizedBox(width: scanSize),
+                            Expanded(child: _buildNavItem(i, _navIcons[i])),
+                          ],
+                        ],
+                      ),
+                      PositionedDirectional(
+                        top: 0,
+                        start: slot * tabsBeforeScan,
+                        child: _buildScanNavItem(),
+                      ),
                     ],
-                  ),
-                  PositionedDirectional(
-                    top: 0,
-                    child: _buildScanNavItem(),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ),
@@ -354,91 +363,21 @@ class _MainShellState extends State<MainShell> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildDrawerItem(
-                    context,
-                    icon: Iconsax.health,
-                    title: 'DrRoom AI Assistant',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AiSymptomCheckerScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildDrawerItem(
-                    context,
-                    icon: Iconsax.folder_2,
-                    title: 'medical_records'.tr(),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MedicalRecordsScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                  // Everything a patient reaches for regularly now lives where
+                  // they already look: the AI assistant, body map and pill
+                  // reminder in the home services row, and medical records,
+                  // favourite doctors and payment history under Profile. What
+                  // is left here is the genuinely occasional.
                   _buildDrawerItem(
                     context,
                     icon: Iconsax.hospital,
-                    title: 'Surgery Timeline',
+                    title: 'surgery_timeline'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const SurgeryTimelineScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildDrawerItem(
-                    context,
-                    icon: Icons.favorite,
-                    title: 'Favorite Doctors',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FavoriteDoctorsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  // My Orders lives in the bottom bar now; the body map moved
-                  // here in its place, since it is looked at once rather than
-                  // returned to daily.
-                  _buildDrawerItem(
-                    context,
-                    icon: Icons.accessibility_new_rounded,
-                    title: 'body_map'.tr(),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BodyMapScreen(
-                            onBack: () => Navigator.pop(context),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildDrawerItem(
-                    context,
-                    imagePath: 'assets/images/medicine.png',
-                    title: 'My Prescriptions',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PillReminderScreen(),
                         ),
                       );
                     },

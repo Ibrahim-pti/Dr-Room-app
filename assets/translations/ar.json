@@ -510,5 +510,11 @@
   "services_section": "الخدمات",
   "appointments_section": "المواعيد",
   "appointment_cancel_failed": "تعذر إلغاء الموعد",
-  "no_appointments_hint": "عندما تحجز موعداً مع طبيب، ستراه هنا"
+  "no_appointments_hint": "عندما تحجز موعداً مع طبيب، ستراه هنا",
+  "payment_history": "سجل المدفوعات",
+  "nav_home": "الرئيسية",
+  "nav_requests": "الطلبات",
+  "nav_body": "الجسم",
+  "nav_articles": "المعلومات",
+  "nav_profile": "حسابي"
 }

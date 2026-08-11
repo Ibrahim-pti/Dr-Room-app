@@ -510,5 +510,11 @@
   "services_section": "Services",
   "appointments_section": "Appointments",
   "appointment_cancel_failed": "Could not cancel the appointment",
-  "no_appointments_hint": "When you book a doctor, you will see it here"
+  "no_appointments_hint": "When you book a doctor, you will see it here",
+  "payment_history": "Payment History",
+  "nav_home": "Home",
+  "nav_requests": "Requests",
+  "nav_body": "Body",
+  "nav_articles": "Articles",
+  "nav_profile": "Profile"
 }

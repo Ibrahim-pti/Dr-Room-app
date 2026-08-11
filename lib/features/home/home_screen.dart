@@ -1,5 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dr_room/features/nursing/nursing_services_screen.dart';
+import '../ai_assistant/ai_symptom_checker_screen.dart';
+import '../body_map/body_map_screen.dart';
+import '../prescriptions/pill_reminder_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' hide Consumer;
 import 'dart:ui';
@@ -2146,6 +2149,43 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(width: 16),
+          // Moved out of the menu drawer: these are things the patient *does*,
+          // and this row is where they look for something to do. The AI
+          // assistant leads because it was the most valuable thing hidden in
+          // there.
+          SizedBox(
+            width: 86,
+            child: _buildGridCard(
+              context,
+              icon: Iconsax.health,
+              titleKey: 'ai_assistant',
+              id: 'ai_assistant',
+              isActive: true,
+            ),
+          ),
+          const SizedBox(width: 16),
+          SizedBox(
+            width: 86,
+            child: _buildGridCard(
+              context,
+              imagePath: 'assets/images/anatomy.png',
+              titleKey: 'body_map',
+              id: 'body_map',
+              isActive: true,
+            ),
+          ),
+          const SizedBox(width: 16),
+          SizedBox(
+            width: 86,
+            child: _buildGridCard(
+              context,
+              icon: Iconsax.clock,
+              titleKey: 'pill_reminder',
+              id: 'pill_reminder',
+              isActive: true,
+            ),
+          ),
+          const SizedBox(width: 16),
           SizedBox(
             width: 86,
             child: _buildGridCard(
@@ -2163,11 +2203,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildGridCard(
     BuildContext context, {
-    required String imagePath,
+    String? imagePath,
+    IconData? icon,
     required String titleKey,
     required String id,
     required bool isActive,
   }) {
+    assert(imagePath != null || icon != null, 'a grid card needs an image or an icon');
     return GestureDetector(
       onTap: () {
         if (!isActive) {
@@ -2207,7 +2249,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: Image.asset(imagePath, fit: BoxFit.cover),
+                        child: imagePath != null
+                            ? Image.asset(imagePath, fit: BoxFit.cover)
+                            : Icon(icon, color: AppColors.primary, size: 38),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -2319,6 +2363,29 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               MaterialPageRoute(builder: (context) => const SosScreen()),
             );
+          } else if (id == 'ai_assistant') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AiSymptomCheckerScreen(),
+              ),
+            );
+          } else if (id == 'body_map') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BodyMapScreen(
+                  onBack: () => Navigator.pop(context),
+                ),
+              ),
+            );
+          } else if (id == 'pill_reminder') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PillReminderScreen(),
+              ),
+            );
           }
         }
       },
@@ -2339,7 +2406,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(18),
                   child: Opacity(
                     opacity: isActive ? 1.0 : 0.6,
-                    child: Image.asset(imagePath, fit: BoxFit.cover),
+                    child: imagePath != null
+                        ? Image.asset(imagePath, fit: BoxFit.cover)
+                        : Container(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            child: Icon(
+                              icon,
+                              color: AppColors.primary,
+                              size: 32,
+                            ),
+                          ),
                   ),
                 ),
               ),
