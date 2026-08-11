@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -104,9 +105,16 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
       _result = null;
     });
 
+    // The backend translates the label into whichever language the app is in,
+    // so the lookup follows the user's chosen locale rather than always
+    // answering in English.
+    final lang = context.locale.languageCode;
+
     try {
       final response = await ApiClient.get(
-        '/medicines/lookup?query=${Uri.encodeQueryComponent(name.trim())}',
+        '/medicines/lookup'
+        '?query=${Uri.encodeQueryComponent(name.trim())}'
+        '&lang=${Uri.encodeQueryComponent(lang)}',
       );
       final data = jsonDecode(response.body);
 
