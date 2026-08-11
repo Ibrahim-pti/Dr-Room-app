@@ -26,13 +26,25 @@ class AuthController extends Controller
      * SMS via otpiq.com. Returns false (without failing the request) if the
      * SMS provider rejects the send, so the caller can surface that to the
      * client instead of leaving them waiting on a code that never arrives.
+     *
+     * When OTP_MANUAL_CODE is set the provider is skipped entirely and that
+     * fixed code is stored instead — the temporary mode used until the SMS
+     * credit is paid for.
      */
     private function sendOtp(User $user): bool
     {
-        $otp = (string) random_int(1000, 9999);
+        $manualCode = config('services.otpiq.manual_code');
+
+        $otp = $manualCode ? (string) $manualCode : (string) random_int(1000, 9999);
         $user->otp_code = $otp;
-        $user->otp_expires_at = now()->addMinutes(5);
+        // A manual code is typed by hand during testing, so it gets a longer
+        // window than a code that lands on the phone within seconds.
+        $user->otp_expires_at = now()->addMinutes($manualCode ? 60 : 5);
         $user->save();
+
+        if ($manualCode) {
+            return true;
+        }
 
         $response = Http::withToken(config('services.otpiq.key'))
             ->post('https://api.otpiq.com/api/sms', [

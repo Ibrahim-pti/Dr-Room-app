@@ -46,6 +46,11 @@ return [
     // numbers. See https://docs.otpiq.com/api-reference/messaging/post
     'otpiq' => [
         'key' => env('OTPIQ_API_KEY'),
+
+        // Temporary manual mode: while the SMS credit is unpaid, no SMS is
+        // sent and this fixed code is what every user types on the OTP screen.
+        // Leave empty to go back to real, randomly generated SMS codes.
+        'manual_code' => env('OTP_MANUAL_CODE'),
     ],
 
 ];
