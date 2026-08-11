@@ -495,5 +495,14 @@
   "dd_no_address": "لم يتم تحديد العنوان",
   "dd_slot_taken": "عذراً، تم حجز هذا الوقت للتو. اختر وقتاً آخر.",
   "dd_you_save": "وفّرت {}",
-  "appointment_cancelled": "تم إلغاء الموعد بنجاح"
+  "appointment_cancelled": "تم إلغاء الموعد بنجاح",
+  "filter_all": "الكل",
+  "no_orders": "لا توجد لديك طلبات بعد",
+  "no_orders_hint": "عندما تطلب فحصاً مخبرياً أو ممرضاً، يمكنك متابعته هنا",
+  "no_orders_in_filter": "لا توجد طلبات بهذه الحالة",
+  "orders_load_failed": "تعذر تحميل طلباتك",
+  "retry": "حاول مرة أخرى",
+  "nursing": "التمريض",
+  "general_service": "خدمة عامة",
+  "order_label": "طلب"
 }

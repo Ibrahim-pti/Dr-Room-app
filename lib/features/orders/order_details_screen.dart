@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/providers/order_provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -30,8 +31,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   void _startPolling() {
-    // Only poll if the order is pending or accepted
-    if (_currentOrder.status.toLowerCase() != 'completed' && _currentOrder.status.toLowerCase() != 'cancelled') {
+    // Only poll while the patient is still waiting on something
+    if (_currentOrder.status.isActive) {
       _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
         if (!mounted) return;
         await context.read<OrderProvider>().fetchOrders();
@@ -48,7 +49,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             });
           }
 
-          if (_currentOrder.status.toLowerCase() == 'completed' || _currentOrder.status.toLowerCase() == 'cancelled') {
+          if (!_currentOrder.status.isActive) {
             _pollingTimer?.cancel();
           }
         }
@@ -161,7 +162,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Current Status',
+                          'order_status'.tr(),
                           style: GoogleFonts.poppins(
                             color: _currentOrder.statusColor.withValues(alpha: 0.8),
                             fontSize: 12,
@@ -169,7 +170,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _currentOrder.status.toUpperCase(),
+                          _currentOrder.statusLabel,
                           style: GoogleFonts.poppins(
                             color: _currentOrder.statusColor,
                             fontSize: 16,
@@ -179,7 +180,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       ],
                     ),
                   ),
-                  if (_currentOrder.status.toLowerCase() == 'pending' || _currentOrder.status.toLowerCase() == 'accepted')
+                  if (_currentOrder.status.isActive)
                     SizedBox(
                       width: 20,
                       height: 20,

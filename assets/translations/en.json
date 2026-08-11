@@ -495,5 +495,14 @@
   "dd_no_address": "No address provided",
   "dd_slot_taken": "Sorry, that time was just taken. Please pick another.",
   "dd_you_save": "You save {}",
-  "appointment_cancelled": "Appointment cancelled successfully"
+  "appointment_cancelled": "Appointment cancelled successfully",
+  "filter_all": "All",
+  "no_orders": "You have no orders yet",
+  "no_orders_hint": "When you request a lab test or a nurse, you can track it here",
+  "no_orders_in_filter": "No orders with this status",
+  "orders_load_failed": "Could not load your orders",
+  "retry": "Try again",
+  "nursing": "Nursing",
+  "general_service": "General service",
+  "order_label": "Order"
 }

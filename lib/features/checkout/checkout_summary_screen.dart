@@ -280,17 +280,16 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                               final orderId = await checkoutProvider.processPayment(cartProvider);
                               
                               if (orderId != null && context.mounted) {
-                                final serviceName = cartProvider.serviceType ?? 'Order';
+                                final serviceName = cartProvider.serviceType ?? '';
                                 final itemsStr = cartProvider.items.map((e) => e.name).join(', ');
 
-                                // Add to OrderProvider locally
+                                // Show it in My Orders right away; the next
+                                // fetch replaces it with the server's copy.
                                 await context.read<OrderProvider>().addOrder(OrderModel(
                                   id: orderId,
-                                  title: '$serviceName: $itemsStr', 
-                                  status: 'Pending',
-                                  statusColor: const Color(0xFFF59E0B),
-                                  icon: Iconsax.health,
-                                  iconColor: const Color(0xFF3B82F6),
+                                  serviceType: serviceName,
+                                  customTitle: itemsStr.isEmpty ? null : itemsStr,
+                                  status: OrderStatus.pending,
                                   price: cartProvider.total,
                                   date: DateTime.now(),
                                 ));

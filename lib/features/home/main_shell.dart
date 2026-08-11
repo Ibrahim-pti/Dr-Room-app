@@ -7,6 +7,8 @@ import '../ai_assistant/ai_symptom_checker_screen.dart';
 import '../body_map/body_map_screen.dart';
 import '../surgery/surgery_timeline_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:provider/provider.dart';
+import '../../core/providers/order_provider.dart';
 import '../../core/theme/app_colors.dart';
 import 'home_screen.dart';
 import '../records/medical_records_screen.dart';
@@ -25,7 +27,22 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
+  static const int _ordersTabIndex = 1;
+
   int _currentIndex = 0;
+
+  /// Lets the shell refresh the orders list whenever its tab is reopened,
+  /// since IndexedStack keeps the screen alive and initState runs only once.
+  final GlobalKey<OrdersScreenState> _ordersKey = GlobalKey<OrdersScreenState>();
+
+  /// Built once and reused, so switching tabs never rebuilds these screens
+  /// from scratch (and never re-runs their startup fetches).
+  late final List<Widget> _screens = [
+    const HomeScreen(),
+    OrdersScreen(key: _ordersKey),
+    const EmergencyReelsScreen(),
+    const SettingsScreen(),
+  ];
 
   Future<void> _openScanner() async {
     await Navigator.push(
@@ -34,16 +51,16 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
+  void _onTabSelected(int index) {
+    setState(() => _currentIndex = index);
+
+    if (index == _ordersTabIndex) {
+      _ordersKey.currentState?.refresh();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screens = [
-      const HomeScreen(),
-      BodyMapScreen(
-        onBack: () => setState(() => _currentIndex = 0),
-      ),
-      const EmergencyReelsScreen(),
-      const SettingsScreen(),
-    ];
 
     return Scaffold(
       backgroundColor: const Color(
@@ -53,7 +70,7 @@ class _MainShellState extends State<MainShell> {
       body: Stack(
         children: [
           // Main Content
-          IndexedStack(index: _currentIndex, children: screens),
+          IndexedStack(index: _currentIndex, children: _screens),
 
           // Floating Bottom Navigation Bar
           PositionedDirectional(
@@ -81,7 +98,7 @@ class _MainShellState extends State<MainShell> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildNavItem(0, Iconsax.home_2),
-                      _buildNavItem(1, Icons.accessibility_new_rounded),
+                      _buildNavItem(_ordersTabIndex, Iconsax.box),
                       const SizedBox(width: 56),
                       _buildNavItem(2, Iconsax.document_text),
                       _buildNavItem(3, Iconsax.user),
@@ -104,13 +121,15 @@ class _MainShellState extends State<MainShell> {
     final isActive = _currentIndex == index;
     final color = isActive ? const Color(0xFF3B82F6) : const Color(0xFF94A3B8);
     return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () => _onTabSelected(index),
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 22),
+          index == _ordersTabIndex
+              ? _buildOrdersIcon(icon, color)
+              : Icon(icon, color: color, size: 22),
           const SizedBox(height: 4),
           Text(
             _getLabelForIndex(index),
@@ -122,6 +141,47 @@ class _MainShellState extends State<MainShell> {
           ),
         ],
       ),
+    );
+  }
+
+  /// The Orders icon carries a count of the orders the patient is still
+  /// waiting on, so a status change is visible without opening the tab.
+  Widget _buildOrdersIcon(IconData icon, Color color) {
+    return Consumer<OrderProvider>(
+      builder: (context, orderProvider, child) {
+        final count = orderProvider.activeOrderCount;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(icon, color: color, size: 22),
+            if (count > 0)
+              PositionedDirectional(
+                top: -4,
+                end: -6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  constraints: const BoxConstraints(minWidth: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  child: Text(
+                    count > 9 ? '9+' : '$count',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -158,8 +218,8 @@ class _MainShellState extends State<MainShell> {
     switch (index) {
       case 0:
         return 'home_tab'.tr();
-      case 1:
-        return 'body_map'.tr();
+      case _ordersTabIndex:
+        return 'orders_tab'.tr();
       case 2:
         return 'medical_articles'.tr();
       case 3:
@@ -346,16 +406,21 @@ class _MainShellState extends State<MainShell> {
                       );
                     },
                   ),
+                  // My Orders lives in the bottom bar now; the body map moved
+                  // here in its place, since it is looked at once rather than
+                  // returned to daily.
                   _buildDrawerItem(
                     context,
-                    imagePath: 'assets/images/drawer_orders.png',
-                    title: 'My Orders',
+                    icon: Icons.accessibility_new_rounded,
+                    title: 'body_map'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const OrdersScreen(),
+                          builder: (context) => BodyMapScreen(
+                            onBack: () => Navigator.pop(context),
+                          ),
                         ),
                       );
                     },
