@@ -503,5 +503,11 @@
   "retry": "دووبارە هەوڵبدەرەوە",
   "nursing": "پەرستاری",
   "general_service": "خزمەتگوزاری گشتی",
-  "order_label": "داواکاری"
+  "order_label": "داواکاری",
+  "my_requests": "داواکارییەکانم",
+  "requests_tab": "داواکارییەکان",
+  "services_section": "خزمەتگوزاری",
+  "appointments_section": "نۆرەکان",
+  "appointment_cancel_failed": "نەکرا نۆرەکە هەڵوەشێنرێتەوە",
+  "no_appointments_hint": "کاتێک نۆرەی پزیشک بگریت، لێرە دەیبینیت"
 }

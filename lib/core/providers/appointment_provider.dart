@@ -26,6 +26,13 @@ class AppointmentProvider extends ChangeNotifier {
   List<Appointment> get upcomingAppointments =>
       _appointments.where((a) => a.isUpcoming).toList();
 
+  /// Appointments the patient is still actually waiting on. Unlike
+  /// [upcomingAppointments] this drops cancelled ones, which are in the future
+  /// by date but are nothing to wait for — it drives the Requests tab badge.
+  int get activeAppointmentCount => _appointments
+      .where((a) => a.isUpcoming && a.status != AppointmentStatus.cancelled)
+      .length;
+
   /// Runs [action], funnelling loading state and errors into the UI.
   /// Returns true when it completed without throwing.
   Future<bool> _run(Future<void> Function() action) async {

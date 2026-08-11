@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:dr_room/features/orders/orders_screen.dart';
+import 'package:dr_room/features/requests/my_requests_screen.dart';
 import 'package:flutter/material.dart';
 import '../doctors/favorite_doctors_screen.dart';
 import '../ai_assistant/ai_symptom_checker_screen.dart';
@@ -8,6 +8,7 @@ import '../body_map/body_map_screen.dart';
 import '../surgery/surgery_timeline_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
+import '../../core/providers/appointment_provider.dart';
 import '../../core/providers/order_provider.dart';
 import '../../core/theme/app_colors.dart';
 import 'home_screen.dart';
@@ -27,19 +28,20 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  static const int _ordersTabIndex = 1;
+  static const int _requestsTabIndex = 1;
 
   int _currentIndex = 0;
 
-  /// Lets the shell refresh the orders list whenever its tab is reopened,
+  /// Lets the shell refresh the requests list whenever its tab is reopened,
   /// since IndexedStack keeps the screen alive and initState runs only once.
-  final GlobalKey<OrdersScreenState> _ordersKey = GlobalKey<OrdersScreenState>();
+  final GlobalKey<MyRequestsScreenState> _requestsKey =
+      GlobalKey<MyRequestsScreenState>();
 
   /// Built once and reused, so switching tabs never rebuilds these screens
   /// from scratch (and never re-runs their startup fetches).
   late final List<Widget> _screens = [
     const HomeScreen(),
-    OrdersScreen(key: _ordersKey),
+    MyRequestsScreen(key: _requestsKey),
     const EmergencyReelsScreen(),
     const SettingsScreen(),
   ];
@@ -54,8 +56,8 @@ class _MainShellState extends State<MainShell> {
   void _onTabSelected(int index) {
     setState(() => _currentIndex = index);
 
-    if (index == _ordersTabIndex) {
-      _ordersKey.currentState?.refresh();
+    if (index == _requestsTabIndex) {
+      _requestsKey.currentState?.refresh();
     }
   }
 
@@ -98,7 +100,7 @@ class _MainShellState extends State<MainShell> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildNavItem(0, Iconsax.home_2),
-                      _buildNavItem(_ordersTabIndex, Iconsax.box),
+                      _buildNavItem(_requestsTabIndex, Iconsax.box),
                       const SizedBox(width: 56),
                       _buildNavItem(2, Iconsax.document_text),
                       _buildNavItem(3, Iconsax.user),
@@ -127,7 +129,7 @@ class _MainShellState extends State<MainShell> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          index == _ordersTabIndex
+          index == _requestsTabIndex
               ? _buildOrdersIcon(icon, color)
               : Icon(icon, color: color, size: 22),
           const SizedBox(height: 4),
@@ -144,12 +146,14 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  /// The Orders icon carries a count of the orders the patient is still
-  /// waiting on, so a status change is visible without opening the tab.
+  /// The Requests icon carries a count of everything the patient is still
+  /// waiting on — open orders plus upcoming appointments — so a status change
+  /// is visible without opening the tab.
   Widget _buildOrdersIcon(IconData icon, Color color) {
-    return Consumer<OrderProvider>(
-      builder: (context, orderProvider, child) {
-        final count = orderProvider.activeOrderCount;
+    return Consumer2<OrderProvider, AppointmentProvider>(
+      builder: (context, orderProvider, appointmentProvider, child) {
+        final count = orderProvider.activeOrderCount +
+            appointmentProvider.activeAppointmentCount;
 
         return Stack(
           clipBehavior: Clip.none,
@@ -218,8 +222,8 @@ class _MainShellState extends State<MainShell> {
     switch (index) {
       case 0:
         return 'home_tab'.tr();
-      case _ordersTabIndex:
-        return 'orders_tab'.tr();
+      case _requestsTabIndex:
+        return 'requests_tab'.tr();
       case 2:
         return 'medical_articles'.tr();
       case 3:

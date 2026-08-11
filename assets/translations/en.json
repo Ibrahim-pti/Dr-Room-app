@@ -504,5 +504,11 @@
   "retry": "Try again",
   "nursing": "Nursing",
   "general_service": "General service",
-  "order_label": "Order"
+  "order_label": "Order",
+  "my_requests": "My Requests",
+  "requests_tab": "Requests",
+  "services_section": "Services",
+  "appointments_section": "Appointments",
+  "appointment_cancel_failed": "Could not cancel the appointment",
+  "no_appointments_hint": "When you book a doctor, you will see it here"
 }

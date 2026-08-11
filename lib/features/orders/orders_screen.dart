@@ -10,7 +10,12 @@ import '../../core/widgets/shimmer_loading_list.dart';
 import 'order_details_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({super.key});
+  /// When true the screen renders only its content, so it can sit inside the
+  /// My Requests tab under that screen's own app bar instead of carrying a
+  /// second one. Opened on its own (from a link) it keeps the full scaffold.
+  final bool embedded;
+
+  const OrdersScreen({super.key, this.embedded = false});
 
   @override
   State<OrdersScreen> createState() => OrdersScreenState();
@@ -47,13 +52,16 @@ class OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final content = _buildContent();
+
+    if (widget.embedded) return content;
+
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        automaticallyImplyLeading: false, // Hidden back button for main shell
         title: Text(
           'my_orders'.tr(),
           style: GoogleFonts.poppins(
@@ -63,7 +71,12 @@ class OrdersScreenState extends State<OrdersScreen> {
           ),
         ),
       ),
-      body: Column(
+      body: content,
+    );
+  }
+
+  Widget _buildContent() {
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 10),
@@ -118,8 +131,7 @@ class OrdersScreenState extends State<OrdersScreen> {
           // Extra space at bottom to ensure it clears the floating bottom nav bar
           const SizedBox(height: 100),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildFilterChips() {

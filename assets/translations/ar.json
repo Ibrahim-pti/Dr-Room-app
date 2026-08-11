@@ -504,5 +504,11 @@
   "retry": "حاول مرة أخرى",
   "nursing": "التمريض",
   "general_service": "خدمة عامة",
-  "order_label": "طلب"
+  "order_label": "طلب",
+  "my_requests": "طلباتي",
+  "requests_tab": "الطلبات",
+  "services_section": "الخدمات",
+  "appointments_section": "المواعيد",
+  "appointment_cancel_failed": "تعذر إلغاء الموعد",
+  "no_appointments_hint": "عندما تحجز موعداً مع طبيب، ستراه هنا"
 }
