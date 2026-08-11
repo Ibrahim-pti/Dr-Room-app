@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class AnatomyController extends Controller
 {
+    private const ORGANS_CACHE_KEY = 'anatomy.organs';
+
     /**
      * Map of 27 detailed anatomical body parts to Wikipedia REST API titles
      */
@@ -47,14 +52,55 @@ class AnatomyController extends Controller
      */
     public function organs(Request $request): JsonResponse
     {
+        // The body map opens on app start, so this used to hold every other API
+        // call behind ~10s of Wikipedia round trips. The summaries barely
+        // change, so a warm cache serves them instantly.
+        $organsData = Cache::get(self::ORGANS_CACHE_KEY);
+
+        if ($organsData === null) {
+            $organsData = $this->fetchOrgansFromWikipedia();
+
+            // A sweep that came back empty means Wikipedia was unreachable, not
+            // that there is no anatomy data — caching that would blank the body
+            // map for a week.
+            if ($organsData !== []) {
+                Cache::put(self::ORGANS_CACHE_KEY, $organsData, now()->addWeek());
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'source' => 'Anatomy Arts USA & Wikipedia REST API (27 Detailed Parts)',
+            'count' => count($organsData),
+            'data' => $organsData
+        ]);
+    }
+
+    /**
+     * Pulls all 27 Wikipedia summaries in a single concurrent pool. Fetching
+     * them one after another took roughly ten seconds; in parallel it is one.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function fetchOrgansFromWikipedia(): array
+    {
+        $responses = Http::pool(fn (Pool $pool) => collect($this->organWikiMap)
+            ->map(fn (string $wikiTitle, string $key) => $pool->as($key)
+                ->withHeaders([
+                    'User-Agent' => 'DrRoomApp/1.0 (https://drroom.app; contact@drroom.app)'
+                ])
+                ->timeout(3)
+                ->get("https://en.wikipedia.org/api/rest_v1/page/summary/{$wikiTitle}"))
+            ->all());
+
         $organsData = [];
 
         foreach ($this->organWikiMap as $key => $wikiTitle) {
-            try {
-                $response = Http::withHeaders([
-                    'User-Agent' => 'DrRoomApp/1.0 (https://drroom.app; contact@drroom.app)'
-                ])->timeout(3)->get("https://en.wikipedia.org/api/rest_v1/page/summary/{$wikiTitle}");
+            $response = $responses[$key] ?? null;
 
+            // A failed request comes back as the exception itself rather than a
+            // response, so anything that is not a Response is simply skipped.
+            if ($response instanceof Response) {
                 if ($response->successful()) {
                     $data = $response->json();
                     $extract = $data['extract'] ?? '';
@@ -84,16 +130,9 @@ class AnatomyController extends Controller
                         ]
                     ];
                 }
-            } catch (\Exception $e) {
-                // If network timeout, skip key
             }
         }
 
-        return response()->json([
-            'status' => 'success',
-            'source' => 'Anatomy Arts USA & Wikipedia REST API (27 Detailed Parts)',
-            'count' => count($organsData),
-            'data' => $organsData
-        ]);
+        return $organsData;
     }
 }
