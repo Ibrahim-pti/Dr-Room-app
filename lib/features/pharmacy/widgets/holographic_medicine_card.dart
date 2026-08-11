@@ -9,6 +9,11 @@ class HolographicMedicineCard extends StatelessWidget {
   final String commonUses;
   final String dosage;
   final String warnings;
+
+  /// Only the openFDA name lookup fills these in — the photo route does not
+  /// return them, so each section is hidden when its text is empty.
+  final String activeIngredient;
+  final String sideEffects;
   final String confidence;
   final VoidCallback onAddPressed;
 
@@ -19,6 +24,8 @@ class HolographicMedicineCard extends StatelessWidget {
     required this.commonUses,
     required this.dosage,
     required this.warnings,
+    this.activeIngredient = '',
+    this.sideEffects = '',
     required this.confidence,
     required this.onAddPressed,
   });
@@ -193,6 +200,22 @@ class HolographicMedicineCard extends StatelessWidget {
                   icon: Icons.medical_information_outlined,
                   title: 'Common uses',
                   value: commonUses,
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (activeIngredient.isNotEmpty) ...[
+                _buildInfoItem(
+                  icon: Iconsax.drop,
+                  title: 'Active ingredient',
+                  value: activeIngredient,
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (sideEffects.isNotEmpty) ...[
+                _buildInfoItem(
+                  icon: Iconsax.warning_2,
+                  title: 'Possible side effects',
+                  value: sideEffects,
                 ),
                 const SizedBox(height: 16),
               ],

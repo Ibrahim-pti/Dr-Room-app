@@ -37,6 +37,9 @@ Route::get('/doctors/{id}/reviews', [\App\Http\Controllers\Api\DoctorReviewContr
 Route::get('/doctors/{id}/availability', [AppointmentBookingController::class, 'availability']);
 Route::get('/global-search', [GlobalSearchController::class, 'search']);
 
+// ─── Medicine reference info (openFDA — free, no API key) ─────────────
+Route::get('/medicines/lookup', [\App\Http\Controllers\Api\MedicineInfoController::class, 'lookup']);
+
 // ─── GetBodySmart Medical Anatomy & Muscular System API ───────────
 Route::get('/anatomy/systems', [\App\Http\Controllers\Api\AnatomyController::class, 'systems']);
 Route::get('/anatomy/organs', [\App\Http\Controllers\Api\AnatomyController::class, 'organs']);

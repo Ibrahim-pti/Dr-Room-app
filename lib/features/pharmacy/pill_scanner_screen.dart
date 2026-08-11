@@ -85,6 +85,52 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
     await _analyze();
   }
 
+  /// Looks a medicine up by name instead of by photo.
+  ///
+  /// The camera route needs the paid Gemini key; this one is backed by the
+  /// free openFDA label database, so it is also the way in when the scanner
+  /// cannot read a box — or when there is no camera at all.
+  Future<void> _lookUpByName() async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => const _MedicineNameDialog(),
+    );
+
+    if (name == null || name.trim().isEmpty || !mounted) return;
+
+    setState(() {
+      _isAnalyzing = true;
+      _errorMessage = null;
+      _result = null;
+    });
+
+    try {
+      final response = await ApiClient.get(
+        '/medicines/lookup?query=${Uri.encodeQueryComponent(name.trim())}',
+      );
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
+        setState(() => _result = data);
+        if (data['identified'] == true && mounted) {
+          _showMedicineDetails(data);
+        }
+      } else {
+        setState(() {
+          _errorMessage = (data is Map ? data['error']?.toString() : null) ??
+              'Could not look up that medicine.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage =
+            'Could not reach the medicine service. Check your connection and try again.';
+      });
+    } finally {
+      if (mounted) setState(() => _isAnalyzing = false);
+    }
+  }
+
   Future<void> _analyze() async {
     if (_image == null) return;
     setState(() {
@@ -134,6 +180,8 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
           commonUses: result['common_uses']?.toString() ?? '',
           dosage: result['typical_dosage']?.toString() ?? '',
           warnings: result['warnings']?.toString() ?? '',
+          activeIngredient: result['active_ingredient']?.toString() ?? '',
+          sideEffects: result['side_effects']?.toString() ?? '',
           confidence: result['confidence']?.toString() ?? 'low',
           onAddPressed: () {
             Navigator.pop(context); // Close sheet
@@ -380,6 +428,21 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  // The name lookup needs no camera and no paid key, so it is
+                  // offered whenever the photo route has not worked out.
+                  TextButton.icon(
+                    onPressed: _isAnalyzing ? null : _lookUpByName,
+                    icon: const Icon(Icons.search, size: 18, color: Colors.white70),
+                    label: Text(
+                      'Search by name instead',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -413,5 +476,86 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
     } else {
       return BorderDirectional(bottom: BorderSide(color: color, width: width), end: BorderSide(color: color, width: width));
     }
+  }
+}
+
+/// Asks for a medicine name to look up. Kept private to the scanner because
+/// that is the only place a name-based lookup starts from today.
+class _MedicineNameDialog extends StatefulWidget {
+  const _MedicineNameDialog();
+
+  @override
+  State<_MedicineNameDialog> createState() => _MedicineNameDialogState();
+}
+
+class _MedicineNameDialogState extends State<_MedicineNameDialog> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final value = _controller.text.trim();
+    if (value.length < 2) return;
+    Navigator.pop(context, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1E293B),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: Text(
+        'Medicine name',
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textInputAction: TextInputAction.search,
+        onSubmitted: (_) => _submit(),
+        style: GoogleFonts.poppins(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: 'e.g. Paracetamol, Augmentin',
+          hintStyle: GoogleFonts.poppins(color: Colors.white38, fontSize: 14),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.white24),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF3B82F6)),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.poppins(color: Colors.white70),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF3B82F6),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          child: Text(
+            'Look up',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
   }
 }
