@@ -3,90 +3,44 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\PillVisionService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class PillIdentifierController extends Controller
 {
     /**
-     * Identify a pill/medicine from a photo using Gemini Vision.
+     * Identify a pill/medicine from a photo.
      *
      * The app sends the photo as base64 (not multipart) because that's the
-     * exact shape Gemini's inline_data expects, so it's forwarded as-is
+     * exact shape the vision APIs expect inline, so it's forwarded as-is
      * instead of being decoded and re-encoded.
+     *
+     * The actual work — and the fallback between AI providers when one runs
+     * out of free quota — lives in PillVisionService.
      */
-    public function identify(Request $request)
+    public function identify(Request $request, PillVisionService $vision): JsonResponse
     {
         $request->validate([
             'image_base64' => 'required|string',
         ]);
 
-        $apiKey = config('services.gemini.key');
-        if (!$apiKey) {
+        if (!$vision->hasConfiguredProvider()) {
             return response()->json([
-                'error' => 'AI service is not configured. Add GEMINI_API_KEY to the backend .env file.',
+                'error' => 'AI service is not configured. Add GEMINI_API_KEY (or GROQ_API_KEY / MISTRAL_API_KEY) to the backend .env file.',
             ], 503);
         }
 
-        $prompt = <<<PROMPT
-You are a pharmaceutical visual identification assistant embedded in a healthcare app.
-Look at the attached photo of a pill, tablet, or medicine box/label and try to identify it.
+        $outcome = $vision->identify($request->input('image_base64'));
 
-Respond with ONLY strict JSON (no markdown fences) matching exactly this shape:
-{
-  "identified": boolean,
-  "name": string,
-  "category": string,
-  "common_uses": string,
-  "typical_dosage": string,
-  "warnings": string,
-  "confidence": "low" | "medium" | "high"
-}
-
-Rules:
-- Never invent a specific medicine name unless you can actually read text on the packaging or clearly recognize the pill's imprint/shape/color combination.
-- If you cannot confidently identify it, set "identified" to false, "confidence" to "low", and use the other string fields to briefly explain why (e.g. "Image is blurry, please retake in better light") instead of guessing.
-- "typical_dosage" and "warnings" must be general reference information only, not a personal prescription.
-PROMPT;
-
-        try {
-            $response = Http::timeout(30)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}",
-                [
-                    'contents' => [[
-                        'parts' => [
-                            ['text' => $prompt],
-                            ['inline_data' => [
-                                'mime_type' => 'image/jpeg',
-                                'data' => $request->input('image_base64'),
-                            ]],
-                        ],
-                    ]],
-                    'generationConfig' => [
-                        'response_mime_type' => 'application/json',
-                        'temperature' => 0.2,
-                    ],
-                ]
-            );
-
-            if (!$response->successful()) {
-                Log::error('Gemini pill identify request failed', ['body' => $response->body()]);
-                return response()->json(['error' => 'The AI service request failed. Please try again.'], 502);
-            }
-
-            $text = $response->json('candidates.0.content.parts.0.text');
-            $parsed = is_string($text) ? json_decode($text, true) : null;
-
-            if (!is_array($parsed)) {
-                Log::error('Gemini pill identify returned unparseable text', ['text' => $text]);
-                return response()->json(['error' => 'The AI returned an unexpected response.'], 502);
-            }
-
-            return response()->json($parsed);
-        } catch (\Throwable $e) {
-            Log::error('Gemini pill identify exception', ['message' => $e->getMessage()]);
-            return response()->json(['error' => 'Could not reach the AI service.'], 502);
+        if ($outcome === null) {
+            return response()->json([
+                'error' => 'The AI services are busy or unavailable right now. Try again, or search the medicine by name.',
+            ], 502);
         }
+
+        // The provider is reported so a wrong answer can be traced back to
+        // whichever model produced it.
+        return response()->json($outcome['result'] + ['provider' => $outcome['provider']]);
     }
 }
