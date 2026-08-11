@@ -528,5 +528,7 @@
   "order_again": "اطلب مرة أخرى",
   "order_details_title": "تفاصيل الطلب",
   "assigned_professional": "الشخص المُعيَّن",
-  "date": "التاريخ"
+  "date": "التاريخ",
+  "medical_professional": "مختص طبي",
+  "order_information": "معلومات الطلب"
 }

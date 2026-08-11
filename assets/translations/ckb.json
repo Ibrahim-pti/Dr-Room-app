@@ -527,5 +527,7 @@
   "order_again": "دووبارە داوابکە",
   "order_details_title": "وردەکاری داواکاری",
   "assigned_professional": "کەسی دیاریکراو",
-  "date": "بەروار"
+  "date": "بەروار",
+  "medical_professional": "پسپۆڕی پزیشکی",
+  "order_information": "زانیاری داواکاری"
 }

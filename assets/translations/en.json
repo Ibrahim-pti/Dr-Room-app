@@ -528,5 +528,7 @@
   "order_again": "Order again",
   "order_details_title": "Order Details",
   "assigned_professional": "Assigned professional",
-  "date": "Date"
+  "date": "Date",
+  "medical_professional": "Medical Professional",
+  "order_information": "Order Information"
 }

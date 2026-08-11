@@ -7,8 +7,12 @@ import '../../core/providers/order_provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import '../../core/providers/cart_provider.dart';
 import '../doctors/chat_screen.dart';
 import '../doctors/video_call_screen.dart';
+import '../lab/lab_order_method_screen.dart';
+import '../nursing/nursing_services_screen.dart';
+import '../pharmacy/screens/pharmacies_screen.dart';
 import 'widgets/order_progress_timeline.dart';
 import '../../core/utils/currency.dart';
 
@@ -78,7 +82,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Order Details',
+          'order_details_title'.tr(),
           style: GoogleFonts.poppins(
             color: AppColors.getTextTitle(context),
             fontSize: 18,
@@ -131,7 +135,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Order ID: #${_currentOrder.id.substring(_currentOrder.id.length >= 6 ? _currentOrder.id.length - 6 : 0)}',
+                          '${'order_id'.tr()}: #${_currentOrder.id.substring(_currentOrder.id.length >= 6 ? _currentOrder.id.length - 6 : 0)}',
                           style: GoogleFonts.poppins(
                             color: AppColors.textLight,
                             fontSize: 14,
@@ -253,7 +257,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Medical Professional',
+                                'medical_professional'.tr(),
                                 style: GoogleFonts.poppins(
                                   color: AppColors.textLight,
                                   fontSize: 13,
@@ -281,7 +285,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               );
                             },
                             icon: const Icon(Iconsax.message, size: 18),
-                            label: Text('Chat', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                            label: Text('chat'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white,
                               backgroundColor: const Color(0xFF3B82F6),
@@ -306,7 +310,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               );
                             },
                             icon: const Icon(Iconsax.call, size: 18),
-                            label: Text('Call', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                            label: Text('call'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                             style: ElevatedButton.styleFrom(
                               foregroundColor: const Color(0xFF3B82F6),
                               backgroundColor: const Color(0xFFEFF6FF),
@@ -327,7 +331,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
             // ── Details Section ──
             Text(
-              'Order Information',
+              'order_information'.tr(),
               style: GoogleFonts.poppins(
                 color: AppColors.getTextTitle(context),
                 fontSize: 18,
@@ -396,7 +400,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final Widget destination = switch (_currentOrder.serviceType.toLowerCase()) {
       final s when s.contains('lab') => const LabOrderMethodScreen(),
       final s when s.contains('nurs') => const NursingServicesScreen(),
-      _ => const PharmaciesScreen(),
+      _ => PharmaciesScreen(),
     };
 
     Navigator.push(
