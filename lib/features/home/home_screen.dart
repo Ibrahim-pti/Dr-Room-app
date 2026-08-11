@@ -17,6 +17,7 @@ import '../pharmacy/models/pharmacy_model.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:shimmer/shimmer.dart';
 import '../doctors/doctor_details_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../lab/lab_order_method_screen.dart';
@@ -674,14 +675,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // ── Banners / Promo Carousel ──
                     if (_isLoading)
-                      const SizedBox(
-                        height: 130,
-                        child: Center(child: CircularProgressIndicator()),
-                      )
+                      _buildBannerSkeleton(context)
                     else
                       PromoCarousel(banners: _banners)
                           .animate()
-                          .fadeIn(duration: 600.ms, delay: 200.ms)
+                          .fadeIn(duration: 400.ms)
                           .slideY(begin: 0.1, end: 0, curve: Curves.easeOut),
 
                     // ── Categories (Grid) ──
@@ -2022,6 +2020,46 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     ).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1, end: 0);
+  }
+
+  /// Placeholder shown while `/home` is in flight. It mirrors the promo
+  /// carousel's exact footprint — card, gap and page dots — so nothing on the
+  /// page jumps when the real banners arrive.
+  Widget _buildBannerSkeleton(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Shimmer.fromColors(
+      baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+      child: Column(
+        children: [
+          Container(
+            height: 130,
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              2,
+              (index) => Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: index == 0 ? 24 : 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCategoryGrid(BuildContext context) {
