@@ -25,6 +25,10 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
   Map<String, dynamic>? _result;
   String? _errorMessage;
 
+  /// Set when opening the camera failed outright, so the screen can explain
+  /// itself and point at the gallery instead of looking broken.
+  bool _cameraUnavailable = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,24 +45,43 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
     super.dispose();
   }
 
-  Future<void> _captureImage() async {
+  Future<void> _captureImage() => _pickImage(ImageSource.camera);
+
+  Future<void> _pickFromGallery() => _pickImage(ImageSource.gallery);
+
+  Future<void> _pickImage(ImageSource source) async {
     setState(() {
       _result = null;
       _errorMessage = null;
     });
 
-    final XFile? photo = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 70,
-      maxWidth: 1024,
-    );
+    XFile? photo;
 
+    try {
+      photo = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+        maxWidth: 1024,
+      );
+    } catch (e) {
+      // Devices without a usable camera — the iOS Simulator above all — throw
+      // here. Staying on the screen with the gallery button visible beats
+      // bouncing the user back with no explanation.
+      debugPrint('Image picker failed: $e');
+      if (mounted) {
+        setState(() => _cameraUnavailable = source == ImageSource.camera);
+      }
+      return;
+    }
+
+    // Cancelling the very first capture means the user never wanted the
+    // scanner; close it. Cancelling a retake leaves the previous photo up.
     if (photo == null) {
       if (mounted && _image == null) Navigator.pop(context);
       return;
     }
 
-    setState(() => _image = File(photo.path));
+    setState(() => _image = File(photo!.path));
     await _analyze();
   }
 
@@ -127,7 +150,8 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     final bool showSuccess = _result != null && _result!['identified'] == true;
-    final bool showProblem = _errorMessage != null || _notConfidentlyIdentified;
+    final bool showProblem =
+        _errorMessage != null || _notConfidentlyIdentified || _cameraUnavailable;
     final Color frameColor = showSuccess
         ? const Color(0xFF10B981)
         : showProblem
@@ -294,11 +318,13 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
                 Text(
                   showSuccess
                       ? 'Medicine Identified!'
-                      : showProblem
-                          ? "Couldn't confidently identify"
-                          : _isAnalyzing
-                              ? 'Analyzing with AI...'
-                              : 'Align the pill or box within the frame',
+                      : _cameraUnavailable
+                          ? 'Camera not available'
+                          : showProblem
+                              ? "Couldn't confidently identify"
+                              : _isAnalyzing
+                                  ? 'Analyzing with AI...'
+                                  : 'Align the pill or box within the frame',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     color: frameColor,
@@ -308,26 +334,51 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  showProblem
-                      ? (_errorMessage ??
-                          _result?['name']?.toString() ??
-                          'Try retaking the photo in better light.')
-                      : 'Powered by Gemini Vision — always confirm with a pharmacist.',
+                  _cameraUnavailable
+                      ? 'This device has no camera available. Pick a photo from the gallery instead.'
+                      : showProblem
+                          ? (_errorMessage ??
+                              _result?['name']?.toString() ??
+                              'Try retaking the photo in better light.')
+                          : 'Powered by Gemini Vision — always confirm with a pharmacist.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
                 ),
                 if (showProblem) ...[
                   const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: _captureImage,
-                    icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                    label: const Text('Retake Photo'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (!_cameraUnavailable) ...[
+                        ElevatedButton.icon(
+                          onPressed: _captureImage,
+                          icon: const Icon(Icons.camera_alt_outlined, size: 18),
+                          label: const Text('Retake Photo'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3B82F6),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      // Always reachable: it is the only way in on a device
+                      // whose camera cannot be opened.
+                      ElevatedButton.icon(
+                        onPressed: _pickFromGallery,
+                        icon: const Icon(Icons.photo_library_outlined, size: 18),
+                        label: const Text('Gallery'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _cameraUnavailable
+                              ? const Color(0xFF3B82F6)
+                              : Colors.white24,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ],
