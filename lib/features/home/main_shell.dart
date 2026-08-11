@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:dr_room/features/requests/my_requests_screen.dart';
 import 'package:flutter/material.dart';
+import '../body_map/body_map_screen.dart';
 import '../surgery/surgery_timeline_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +25,17 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   static const int _requestsTabIndex = 1;
+  static const int _bodyMapTabIndex = 2;
+
+  /// One entry per tab, in bar order. The screens list below follows the same
+  /// order, so an index means the same thing in both.
+  static const List<IconData> _navIcons = [
+    Iconsax.home_2,
+    Iconsax.box,
+    Icons.accessibility_new_rounded,
+    Iconsax.document_text,
+    Iconsax.user,
+  ];
 
   int _currentIndex = 0;
 
@@ -37,6 +49,7 @@ class _MainShellState extends State<MainShell> {
   late final List<Widget> _screens = [
     const HomeScreen(),
     MyRequestsScreen(key: _requestsKey),
+    BodyMapScreen(onBack: () => setState(() => _currentIndex = 0)),
     const EmergencyReelsScreen(),
     const SettingsScreen(),
   ];
@@ -142,12 +155,18 @@ class _MainShellState extends State<MainShell> {
               ? _buildOrdersIcon(icon, color)
               : Icon(icon, color: color, size: 22),
           const SizedBox(height: 4),
-          Text(
-            _getLabelForIndex(index),
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Text(
+              _getLabelForIndex(index),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w600,
+                fontSize: 10,
+              ),
             ),
           ),
         ],
@@ -227,16 +246,20 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
+  /// Short forms on purpose: five labels share the bar's width, so the full
+  /// names ("نەخشەی جەستە", "داواکارییەکان") no longer fit a slot.
   String _getLabelForIndex(int index) {
     switch (index) {
       case 0:
-        return 'home_tab'.tr();
+        return 'nav_home'.tr();
       case _requestsTabIndex:
-        return 'requests_tab'.tr();
-      case 2:
-        return 'medical_articles'.tr();
+        return 'nav_requests'.tr();
+      case _bodyMapTabIndex:
+        return 'nav_body'.tr();
       case 3:
-        return 'profile'.tr();
+        return 'nav_articles'.tr();
+      case 4:
+        return 'nav_profile'.tr();
       default:
         return '';
     }

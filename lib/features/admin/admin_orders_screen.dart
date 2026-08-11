@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/providers/admin_order_provider.dart';
 import 'admin_app_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/utils/currency.dart';
 
 class AdminOrdersScreen extends StatefulWidget {
   const AdminOrdersScreen({super.key});
@@ -298,7 +299,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                             ),
                           ),
                           Text(
-                            '\$$totalPrice',
+                            Currency.format(
+                              num.tryParse('$totalPrice') ?? 0,
+                            ),
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,

@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dr_room/features/nursing/nursing_services_screen.dart';
 import '../ai_assistant/ai_symptom_checker_screen.dart';
-import '../body_map/body_map_screen.dart';
 import '../prescriptions/pill_reminder_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' hide Consumer;
@@ -2164,17 +2163,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(width: 16),
-          SizedBox(
-            width: 86,
-            child: _buildGridCard(
-              context,
-              imagePath: 'assets/images/anatomy.png',
-              titleKey: 'body_map',
-              id: 'body_map',
-              isActive: true,
-            ),
-          ),
-          const SizedBox(width: 16),
+          // The body map has its own tab in the bottom bar now, so it is not
+          // repeated here — one route to a screen, not two.
           SizedBox(
             width: 86,
             child: _buildGridCard(
@@ -2368,15 +2358,6 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => const AiSymptomCheckerScreen(),
-              ),
-            );
-          } else if (id == 'body_map') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => BodyMapScreen(
-                  onBack: () => Navigator.pop(context),
-                ),
               ),
             );
           } else if (id == 'pill_reminder') {

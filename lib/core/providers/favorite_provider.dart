@@ -18,4 +18,10 @@ class FavoriteProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  /// Called on logout — favourites belong to the patient who chose them.
+  void clear() {
+    _favoriteDoctors.clear();
+    notifyListeners();
+  }
 }

@@ -56,9 +56,6 @@ Route::get('/pharmacies/{id}/offers', [\App\Http\Controllers\Api\PharmacyApiCont
 Route::get('/labs', [\App\Http\Controllers\Api\LabApiController::class, 'index']);
 Route::get('/labs/{id}', [\App\Http\Controllers\Api\LabApiController::class, 'show']);
 
-// ─── Patient: Orders (Labs, Pharmacy, Nursing) ──────────────────────────
-Route::post('/orders', [OrderController::class, 'store']); // Moved outside for testing Without Login
-
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
@@ -74,6 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ─── Patient: Orders (Labs, Pharmacy, Nursing) ──────────────────────────
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/orders', [OrderController::class, 'store']);
 
     // ─── Patient: Lab and Nurse Records ─────────────────────────────────────
     Route::get('/lab-results', [\App\Http\Controllers\Api\PatientRecordController::class, 'labResults']);

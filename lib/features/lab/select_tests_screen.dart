@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../checkout/checkout_details_screen.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/cart_provider.dart';
+import '../../core/utils/currency.dart';
 
 class SelectTestsScreen extends StatefulWidget {
   const SelectTestsScreen({super.key});
@@ -14,14 +15,17 @@ class SelectTestsScreen extends StatefulWidget {
 }
 
 class _SelectTestsScreenState extends State<SelectTestsScreen> {
+  // Placeholder catalogue until the lab service list comes from the API.
+  // Prices are dinars, stored as numbers so nothing has to parse a symbol
+  // back out of them.
   final List<Map<String, dynamic>> _tests = [
-    {'name': 'Complete Blood Count (CBC)', 'price': '\$15', 'selected': false},
-    {'name': 'Lipid Profile', 'price': '\$25', 'selected': false},
-    {'name': 'Blood Sugar (Fasting)', 'price': '\$10', 'selected': false},
-    {'name': 'Thyroid Profile (T3, T4, TSH)', 'price': '\$35', 'selected': false},
-    {'name': 'Vitamin D', 'price': '\$40', 'selected': false},
-    {'name': 'Liver Function Test (LFT)', 'price': '\$30', 'selected': false},
-    {'name': 'Kidney Function Test (KFT)', 'price': '\$28', 'selected': false},
+    {'name': 'Complete Blood Count (CBC)', 'price': 15000.0, 'selected': false},
+    {'name': 'Lipid Profile', 'price': 25000.0, 'selected': false},
+    {'name': 'Blood Sugar (Fasting)', 'price': 10000.0, 'selected': false},
+    {'name': 'Thyroid Profile (T3, T4, TSH)', 'price': 35000.0, 'selected': false},
+    {'name': 'Vitamin D', 'price': 40000.0, 'selected': false},
+    {'name': 'Liver Function Test (LFT)', 'price': 30000.0, 'selected': false},
+    {'name': 'Kidney Function Test (KFT)', 'price': 28000.0, 'selected': false},
   ];
 
   @override
@@ -114,7 +118,7 @@ class _SelectTestsScreenState extends State<SelectTestsScreen> {
                       ),
                     ),
                     subtitle: Text(
-                      test['price'],
+                      Currency.format(test['price'] as double),
                       style: GoogleFonts.poppins(
                         color: const Color(0xFF3B82F6),
                         fontSize: 13,
@@ -170,13 +174,13 @@ class _SelectTestsScreenState extends State<SelectTestsScreen> {
                           ? () {
                               final cart = context.read<CartProvider>();
                               cart.clearCart();
-                              cart.setServiceType('Lab Tests', extraFee: 10.00);
+                              cart.setServiceType('Lab Tests', extraFee: 5000.0);
                               
                               for (var t in _tests.where((t) => t['selected'])) {
                                 cart.addItem(CartItem(
                                   id: t['name'],
                                   name: t['name'],
-                                  price: double.parse(t['price'].replaceAll('\$', '')),
+                                  price: t['price'] as double,
                                 ));
                               }
 

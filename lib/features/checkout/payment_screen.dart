@@ -6,6 +6,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/providers/payment_provider.dart';
 import '../../core/models/payment_model.dart';
+import '../../core/utils/currency.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
@@ -225,7 +227,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                           )
                         : Text(
-                            'Pay \$${widget.amount.toStringAsFixed(2)}',
+                            '${'pay'.tr()} ${Currency.format(widget.amount)}',
                             style: AppTypography.button.copyWith(color: Colors.white),
                           ),
                   ),

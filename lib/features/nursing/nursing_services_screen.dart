@@ -238,7 +238,7 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
                                 cart.addItem(CartItem(
                                   id: s['titleKey'],
                                   name: s['titleKey'].toString().tr(),
-                                  price: 25.00, // Default price for nursing services
+                                  price: 25000.0, // Default price for nursing services, in dinars
                                 ));
                               }
 

@@ -120,4 +120,15 @@ class AppointmentProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  /// Drops everything tied to the signed-in patient. Called on logout so the
+  /// next person to use the device cannot see the previous patient's
+  /// appointments — these live in memory and outlive the login screen.
+  void clear() {
+    _appointments = [];
+    _selectedDoctor = null;
+    _lastBooked = null;
+    _error = null;
+    notifyListeners();
+  }
 }

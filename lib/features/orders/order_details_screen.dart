@@ -9,6 +9,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../doctors/chat_screen.dart';
 import '../doctors/video_call_screen.dart';
+import 'widgets/order_progress_timeline.dart';
+import '../../core/utils/currency.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final OrderModel order;
@@ -193,11 +195,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ),
             ).animate(delay: 100.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
 
+            // ── Progress Timeline ──
+            const SizedBox(height: 32),
+            OrderProgressTimeline(status: _currentOrder.status)
+                .animate(delay: 150.ms)
+                .fadeIn(duration: 400.ms)
+                .slideY(begin: 0.1, end: 0),
+
             // ── Assigned Professional Card ──
             if (_currentOrder.assignedNurseId != null && _currentOrder.assignedNurseName != null) ...[
               const SizedBox(height: 32),
               Text(
-                'Assigned Professional',
+                'assigned_professional'.tr(),
                 style: GoogleFonts.poppins(
                   color: AppColors.getTextTitle(context),
                   fontSize: 18,
@@ -336,17 +345,63 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ),
               child: Column(
                 children: [
-                  _buildDetailRow(context, 'Date', '${_currentOrder.date.day}/${_currentOrder.date.month}/${_currentOrder.date.year}'),
+                  _buildDetailRow(context, 'date'.tr(), '${_currentOrder.date.day}/${_currentOrder.date.month}/${_currentOrder.date.year}'),
                   const Divider(height: 32, thickness: 1, color: Color(0xFFE2E8F0)),
-                  _buildDetailRow(context, 'Time', '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}'),
+                  _buildDetailRow(context, 'time'.tr(), '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}'),
                   const Divider(height: 32, thickness: 1, color: Color(0xFFE2E8F0)),
-                  _buildDetailRow(context, 'Total Amount', '\$${_currentOrder.price.toStringAsFixed(2)}', isTotal: true),
+                  _buildDetailRow(context, 'total_amount'.tr(), Currency.format(_currentOrder.price), isTotal: true),
                 ],
               ),
             ).animate(delay: 300.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+
+            // Repeat ordering: a finished request is the most likely thing a
+            // patient with an ongoing condition wants again.
+            if (!_currentOrder.status.isActive) ...[
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: _orderAgain,
+                  icon: const Icon(Iconsax.refresh, size: 20),
+                  label: Text(
+                    'order_again'.tr(),
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                ),
+              ).animate(delay: 350.ms).fadeIn(duration: 400.ms),
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  /// Sends the patient back to the service they ordered last time, with the
+  /// cart cleared, rather than trying to silently re-place a charge.
+  void _orderAgain() {
+    context.read<CartProvider>().clearCart();
+
+    final Widget destination = switch (_currentOrder.serviceType.toLowerCase()) {
+      final s when s.contains('lab') => const LabOrderMethodScreen(),
+      final s when s.contains('nurs') => const NursingServicesScreen(),
+      _ => const PharmaciesScreen(),
+    };
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => destination),
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'core/services/session_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,11 @@ void main() async {
   // A rejected token used to fail silently on every subsequent call. Now it
   // tears the session down and returns the user to login.
   ApiClient.onUnauthorized = () {
+    // The same wipe the logout button performs — an expired token must not
+    // leave the previous patient's orders sitting in memory either.
+    final context = appNavigatorKey.currentContext;
+    if (context != null) SessionService.clearProviders(context);
+
     appNavigatorKey.currentState?.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const AppFlow(startAtLogin: true)),
       (route) => false,

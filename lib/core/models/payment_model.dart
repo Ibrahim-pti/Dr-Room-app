@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import '../utils/currency.dart';
 
 class PaymentMethod {
   final String id;
@@ -106,7 +107,7 @@ class Transaction {
     'failure_reason': failureReason,
   };
 
-  String get formattedAmount => '\$${amount.toStringAsFixed(2)}';
+  String get formattedAmount => Currency.format(amount);
   String get formattedDate => DateFormat('MMM dd, yyyy').format(createdAt);
   String get formattedTime => DateFormat('hh:mm a').format(createdAt);
 }

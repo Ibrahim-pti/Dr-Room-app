@@ -41,7 +41,10 @@ class OrderController extends Controller
             DB::beginTransaction();
 
             $order = Order::create([
-                'patient_id' => Auth::id() ?? 1, // Fallback if auth is incomplete in flutter app for now
+                // No fallback: the route requires authentication, and guessing
+                // an id here once meant every order from a signed-out caller
+                // was filed against user 1.
+                'patient_id' => Auth::id(),
                 'service_type' => $request->service_type,
                 'subtotal' => $request->subtotal,
                 'extra_fee' => $request->extra_fee,

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
+import '../utils/currency.dart';
 
 /// Mirrors the `doctors` table as returned by `GET /api/doctors`.
 ///
@@ -81,7 +82,7 @@ class Doctor {
       ? null
       : ApiClient.getImageUrl(imagePath!);
 
-  String get formattedFee => '\$${consultationFee.toStringAsFixed(0)}';
+  String get formattedFee => Currency.format(consultationFee);
 }
 
 /// Mirrors the `appointments` table.
@@ -161,7 +162,7 @@ class Appointment {
       DateFormat('MMM dd, yyyy').format(appointmentDate);
   String get formattedTime => DateFormat('hh:mm a').format(appointmentDate);
   String get formattedDateTime => '$formattedDate • $formattedTime';
-  String get formattedFee => '\$${fee.toStringAsFixed(2)}';
+  String get formattedFee => Currency.format(fee);
 
   bool get isUpcoming => appointmentDate.isAfter(DateTime.now());
 

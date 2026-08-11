@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../core/providers/order_provider.dart';
 import '../../core/widgets/shimmer_loading_list.dart';
 import 'order_details_screen.dart';
+import '../../core/utils/currency.dart';
 
 class OrdersScreen extends StatefulWidget {
   /// When true the screen renders only its content, so it can sit inside the
@@ -281,7 +282,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '\$${order.price.toStringAsFixed(2)}',
+                    Currency.format(order.price),
                     style: GoogleFonts.poppins(
                       color: const Color(0xFF3B82F6),
                       fontSize: 16,

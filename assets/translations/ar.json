@@ -516,5 +516,17 @@
   "nav_requests": "الطلبات",
   "nav_body": "الجسم",
   "nav_articles": "المعلومات",
-  "nav_profile": "حسابي"
+  "nav_profile": "حسابي",
+  "currency_iqd": "د.ع",
+  "pay": "ادفع",
+  "total_amount": "المبلغ الإجمالي",
+  "order_progress": "تقدم الطلب",
+  "status_placed": "تم إرسال الطلب",
+  "status_processing": "قيد التنفيذ",
+  "status_completed": "مكتمل",
+  "status_cancelled": "ملغى",
+  "order_again": "اطلب مرة أخرى",
+  "order_details_title": "تفاصيل الطلب",
+  "assigned_professional": "الشخص المُعيَّن",
+  "date": "التاريخ"
 }

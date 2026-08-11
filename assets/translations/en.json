@@ -516,5 +516,17 @@
   "nav_requests": "Requests",
   "nav_body": "Body",
   "nav_articles": "Articles",
-  "nav_profile": "Profile"
+  "nav_profile": "Profile",
+  "currency_iqd": "IQD",
+  "pay": "Pay",
+  "total_amount": "Total Amount",
+  "order_progress": "Order progress",
+  "status_placed": "Order placed",
+  "status_processing": "In progress",
+  "status_completed": "Completed",
+  "status_cancelled": "Cancelled",
+  "order_again": "Order again",
+  "order_details_title": "Order Details",
+  "assigned_professional": "Assigned professional",
+  "date": "Date"
 }

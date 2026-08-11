@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -33,7 +34,17 @@ class AuthController extends Controller
      */
     private function sendOtp(User $user): bool
     {
-        $manualCode = config('services.otpiq.manual_code');
+        $configuredCode = config('services.otpiq.manual_code');
+        $isProduction = app()->environment('production');
+
+        if ($configuredCode && $isProduction) {
+            Log::warning('OTP_MANUAL_CODE is set on a production server and was ignored');
+        }
+
+        // Deliberately ignored in production: a fixed code left in the .env by
+        // accident would let anyone sign in as anyone. It is a development
+        // convenience, and it stays one.
+        $manualCode = $isProduction ? null : $configuredCode;
 
         $otp = $manualCode ? (string) $manualCode : (string) random_int(1000, 9999);
         $user->otp_code = $otp;

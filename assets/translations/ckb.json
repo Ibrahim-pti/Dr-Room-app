@@ -515,5 +515,17 @@
   "nav_requests": "داواکاری",
   "nav_body": "جەستە",
   "nav_articles": "زانیاری",
-  "nav_profile": "پرۆفایل"
+  "nav_profile": "پرۆفایل",
+  "currency_iqd": "د.ع",
+  "pay": "پارەدان",
+  "total_amount": "کۆی گشتی",
+  "order_progress": "پێشکەوتنی داواکاری",
+  "status_placed": "داواکاری نێردرا",
+  "status_processing": "لە جێبەجێکردندایە",
+  "status_completed": "تەواو بوو",
+  "status_cancelled": "هەڵوەشێنرایەوە",
+  "order_again": "دووبارە داوابکە",
+  "order_details_title": "وردەکاری داواکاری",
+  "assigned_professional": "کەسی دیاریکراو",
+  "date": "بەروار"
 }
