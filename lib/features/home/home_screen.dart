@@ -442,106 +442,46 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    // Right Action Buttons
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        // SOS Icon Button
-                                        GestureDetector(
-                                          onTap: () => EmergencySosModal.show(context),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFEF4444),
-                                              borderRadius: BorderRadius.circular(14),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: const Color(0xFFEF4444).withValues(alpha: 0.4),
-                                                  blurRadius: 6,
-                                                  offset: const Offset(0, 2),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: const [
-                                                Icon(Icons.emergency, color: Colors.white, size: 14),
-                                                SizedBox(width: 3),
-                                                Text(
-                                                  'SOS',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 11,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
                                         // Cart Icon
                                         Consumer(
                                           builder: (context, ref, child) {
-                                            final cartState = ref.watch(
-                                              cartProvider,
-                                            );
+                                            final cartState = ref.watch(cartProvider);
                                             return GestureDetector(
                                               onTap: () {
                                                 Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const CartScreen(),
+                                                    builder: (context) => const CartScreen(),
                                                   ),
                                                 );
                                               },
                                               child: Stack(
                                                 children: [
                                                   Container(
-                                                    width: 38,
-                                                    height: 38,
+                                                    width: 42,
+                                                    height: 42,
                                                     decoration: BoxDecoration(
-                                                      color: Colors.white
-                                                          .withValues(
-                                                            alpha: 0.2,
-                                                          ),
+                                                      color: Colors.white.withValues(alpha: 0.2),
                                                       shape: BoxShape.circle,
                                                     ),
-                                                    child: const Icon(
-                                                      Iconsax.shopping_cart,
-                                                      color: Colors.white,
-                                                      size: 18,
-                                                    ),
+                                                    child: const Icon(Iconsax.shopping_cart, color: Colors.white, size: 20),
                                                   ),
                                                   if (cartState.totalItems > 0)
                                                     PositionedDirectional(
-                                                      top: 4,
-                                                      end: 4,
+                                                      top: 6,
+                                                      end: 6,
                                                       child: Container(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        decoration:
-                                                            const BoxDecoration(
-                                                              color: Colors
-                                                                  .redAccent,
-                                                              shape: BoxShape
-                                                                  .circle,
-                                                            ),
+                                                        padding: const EdgeInsets.all(4),
+                                                        decoration: const BoxDecoration(
+                                                          color: Colors.redAccent,
+                                                          shape: BoxShape.circle,
+                                                        ),
                                                         child: Text(
-                                                          cartState.totalItems
-                                                              .toString(),
-                                                          style:
-                                                              const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 9,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                              ),
+                                                          cartState.totalItems.toString(),
+                                                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
                                                         ),
                                                       ),
                                                     ),
@@ -550,72 +490,57 @@ class _HomeScreenState extends State<HomeScreen> {
                                             );
                                           },
                                         ),
-                                        const SizedBox(width: 6),
+                                        const SizedBox(width: 8),
                                         // Notification Icon
                                         GestureDetector(
                                           onTap: () {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const NotificationsScreen(),
+                                                builder: (context) => const NotificationsScreen(),
                                               ),
                                             );
                                           },
                                           child: Stack(
                                             children: [
                                               Container(
-                                                width: 38,
-                                                height: 38,
+                                                width: 42,
+                                                height: 42,
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.2),
+                                                  color: Colors.white.withValues(alpha: 0.2),
                                                   shape: BoxShape.circle,
                                                 ),
-                                                child: const Icon(
-                                                  Iconsax.notification,
-                                                  color: Colors.white,
-                                                  size: 18,
-                                                ),
+                                                child: const Icon(Iconsax.notification, color: Colors.white, size: 20),
                                               ),
                                               PositionedDirectional(
-                                                top: 8,
-                                                end: 8,
+                                                top: 10,
+                                                end: 10,
                                                 child: Container(
                                                   width: 7,
                                                   height: 7,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                        color: Colors.redAccent,
-                                                        shape: BoxShape.circle,
-                                                      ),
+                                                  decoration: const BoxDecoration(
+                                                    color: Colors.redAccent,
+                                                    shape: BoxShape.circle,
+                                                  ),
                                                 ),
                                               ),
                                             ],
                                           ),
                                         ),
-                                        const SizedBox(width: 6),
+                                        const SizedBox(width: 8),
                                         // Menu Icon
                                         GestureDetector(
                                           onTap: () {
-                                            Scaffold.of(
-                                              context,
-                                            ).openEndDrawer();
+                                            Scaffold.of(context).openEndDrawer();
                                           },
                                           child: Container(
-                                            width: 38,
-                                            height: 38,
+                                            width: 42,
+                                            height: 42,
                                             decoration: BoxDecoration(
-                                              color: Colors.white.withValues(
-                                                alpha: 0.2,
-                                              ),
+                                              color: Colors.white.withValues(alpha: 0.2),
                                               shape: BoxShape.circle,
                                             ),
-                                            child: const Icon(
-                                              Iconsax.menu_1,
-                                              color: Colors.white,
-                                              size: 22,
-                                            ),
+                                            child: const Icon(Iconsax.menu_1, color: Colors.white, size: 20),
                                           ),
                                         ),
                                       ],
@@ -726,8 +651,96 @@ class _HomeScreenState extends State<HomeScreen> {
                           .fadeIn(duration: 400.ms)
                           .slideY(begin: 0.1, end: 0, curve: Curves.easeOut),
 
+                    // ── Emergency SOS Banner ──
+                    const SizedBox(height: 18),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: GestureDetector(
+                        onTap: () => EmergencySosModal.show(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(22),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                                blurRadius: 14,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.emergency, color: Colors.white, size: 24),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Text(
+                                      'حاڵەتی لەناکاو و فریاکەوتن (SOS)',
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        color: Colors.white,
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'پەیوەندیی دەستبەجێ بە فریاکەوتنی ١٢٢ و نەخۆشخانەکان',
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        color: Colors.white70,
+                                        fontSize: 11.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.call, color: Color(0xFFDC2626), size: 14),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'پەیوەندی',
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        color: Color(0xFFDC2626),
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.05, end: 0),
+
                     // ── Categories (Grid) ──
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 28),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Row(
