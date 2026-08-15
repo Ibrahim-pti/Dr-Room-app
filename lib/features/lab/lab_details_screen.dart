@@ -342,7 +342,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               16,
               4,
               16,
-              (_selectedTabIndex == 0 || _selectedTestIds.isEmpty) ? 30 : 120,
+              (_selectedTabIndex == 0 || _selectedTestIds.isEmpty) ? 16 : 90,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
