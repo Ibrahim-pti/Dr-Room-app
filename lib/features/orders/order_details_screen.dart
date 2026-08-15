@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:dr_room/core/theme/dr_room_fonts.dart';
-import 'package:easy_localization/easy_localization.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/providers/order_provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../../core/providers/order_provider.dart';
 import '../../core/providers/cart_provider.dart';
 import '../doctors/chat_screen.dart';
 import '../doctors/video_call_screen.dart';
@@ -14,7 +12,6 @@ import '../lab/lab_order_method_screen.dart';
 import '../nursing/nursing_services_screen.dart';
 import '../pharmacy/screens/pharmacies_screen.dart';
 import 'widgets/order_progress_timeline.dart';
-import '../../core/utils/currency.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final OrderModel order;
@@ -29,6 +26,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   late OrderModel _currentOrder;
   Timer? _pollingTimer;
 
+  TextStyle _kStyle({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.normal,
+    Color color = const Color(0xFF0F172A),
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: 'Rabar',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -37,19 +49,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   void _startPolling() {
-    // Only poll while the patient is still waiting on something
     if (_currentOrder.status.isActive) {
       _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
         if (!mounted) return;
         await context.read<OrderProvider>().fetchOrders();
-        
+
         if (mounted) {
           final updatedOrder = context.read<OrderProvider>().orders.firstWhere(
             (o) => o.id == _currentOrder.id,
             orElse: () => _currentOrder,
           );
-          
-          if (updatedOrder.status != _currentOrder.status || updatedOrder.assignedNurseId != _currentOrder.assignedNurseId) {
+
+          if (updatedOrder.status != _currentOrder.status ||
+              updatedOrder.assignedNurseId != _currentOrder.assignedNurseId) {
             setState(() {
               _currentOrder = updatedOrder;
             });
@@ -69,76 +81,166 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     super.dispose();
   }
 
+  String _getStatusTitle(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return 'چاوەڕوانی پشتڕاستکردنەوەیە';
+      case OrderStatus.processing:
+        return 'لە قۆناغی جێبەجێکردندایە';
+      case OrderStatus.completed:
+        return 'تەواوکراوە';
+      case OrderStatus.cancelled:
+        return 'هەڵوەشێنراوەتەوە';
+    }
+  }
+
+  String _getStatusDescription(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return 'داواکارییەکەت گەیشت و لەلایەن تاقیگەوە چاوەڕوانی پشتڕاستکردنەوەیە.';
+      case OrderStatus.processing:
+        return 'داواکارییەکەت لە قۆناغی ئەنجامدان و بەدواداچووندایە.';
+      case OrderStatus.completed:
+        return 'هەموو پشکنینەکان بە سەرکەوتوویی تەواو کران.';
+      case OrderStatus.cancelled:
+        return 'ئەم داواکارییە هەڵوەشێنراوەتەوە.';
+    }
+  }
+
+  Color _getStatusColor(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return const Color(0xFFF59E0B);
+      case OrderStatus.processing:
+        return const Color(0xFF3B82F6);
+      case OrderStatus.completed:
+        return const Color(0xFF10B981);
+      case OrderStatus.cancelled:
+        return const Color(0xFFEF4444);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final statusColor = _getStatusColor(_currentOrder.status);
+
     return Scaffold(
-      backgroundColor: AppColors.getBackground(context),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded, size: 20, color: AppColors.getTextTitle(context)),
-          onPressed: () => Navigator.pop(context),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                size: 16,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
         ),
         title: Text(
-          'order_details_title'.tr(),
-          style: GoogleFonts.poppins(
-            color: AppColors.getTextTitle(context),
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+          'وردەکاریی داواکاری',
+          style: _kStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Top Card (Summary) ──
+            // ── Top Summary Card ──
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
+                color: cardBg,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.getBorder(context)),
+                border: Border.all(color: borderColor),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
-                      color: _currentOrder.iconColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Icon(
                       _currentOrder.icon,
-                      color: _currentOrder.iconColor,
-                      size: 32,
+                      color: Colors.white,
+                      size: 26,
                     ),
                   ),
-                  const SizedBox(width: 20),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           _currentOrder.title,
-                          style: GoogleFonts.poppins(
-                            color: AppColors.getTextTitle(context),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                          style: _kStyle(
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${'order_id'.tr()}: #${_currentOrder.id.substring(_currentOrder.id.length >= 6 ? _currentOrder.id.length - 6 : 0)}',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.textLight,
-                            fontSize: 14,
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'کۆدی داواکاری: #${_currentOrder.id}',
+                            style: _kStyle(
+                              color: const Color(0xFF2563EB),
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -146,41 +248,47 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   ),
                 ],
               ),
-            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+            ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.05, end: 0),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            // ── Status Banner ──
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.all(20),
+            // ── Status Banner Card ──
+            Container(
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: _currentOrder.statusColor.withValues(alpha: 0.1),
+                color: statusColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _currentOrder.statusColor.withValues(alpha: 0.3)),
+                border: Border.all(color: statusColor.withValues(alpha: 0.25)),
               ),
               child: Row(
                 children: [
-                  Icon(Iconsax.info_circle, color: _currentOrder.statusColor),
-                  const SizedBox(width: 16),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Iconsax.info_circle, color: statusColor, size: 20),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'order_status'.tr(),
-                          style: GoogleFonts.poppins(
-                            color: _currentOrder.statusColor.withValues(alpha: 0.8),
-                            fontSize: 12,
+                          _getStatusTitle(_currentOrder.status),
+                          style: _kStyle(
+                            color: statusColor,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
-                          _currentOrder.statusLabel,
-                          style: GoogleFonts.poppins(
-                            color: _currentOrder.statusColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          _getStatusDescription(_currentOrder.status),
+                          style: _kStyle(
+                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            fontSize: 11.5,
                           ),
                         ),
                       ],
@@ -188,79 +296,65 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   ),
                   if (_currentOrder.status.isActive)
                     SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: _currentOrder.statusColor,
+                        color: statusColor,
                       ),
                     ),
                 ],
               ),
-            ).animate(delay: 100.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+            ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.05, end: 0),
+
+            const SizedBox(height: 20),
 
             // ── Progress Timeline ──
-            const SizedBox(height: 32),
             OrderProgressTimeline(status: _currentOrder.status)
                 .animate(delay: 150.ms)
-                .fadeIn(duration: 400.ms)
-                .slideY(begin: 0.1, end: 0),
+                .fadeIn()
+                .slideY(begin: 0.05, end: 0),
 
-            // ── Assigned Professional Card ──
+            // ── Assigned Professional Card (if any) ──
             if (_currentOrder.assignedNurseId != null && _currentOrder.assignedNurseName != null) ...[
-              const SizedBox(height: 32),
-              Text(
-                'assigned_professional'.tr(),
-                style: GoogleFonts.poppins(
-                  color: AppColors.getTextTitle(context),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ).animate().fadeIn(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   children: [
                     Row(
                       children: [
                         CircleAvatar(
-                          radius: 28,
+                          radius: 26,
                           backgroundColor: const Color(0xFFEFF6FF),
                           backgroundImage: _currentOrder.assignedNurseAvatar != null
                               ? NetworkImage(_currentOrder.assignedNurseAvatar!)
                               : const AssetImage('assets/images/doc1.png') as ImageProvider,
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 _currentOrder.assignedNurseName!,
-                                style: GoogleFonts.poppins(
-                                  color: AppColors.getTextTitle(context),
-                                  fontSize: 16,
+                                style: _kStyle(
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Text(
-                                'medical_professional'.tr(),
-                                style: GoogleFonts.poppins(
-                                  color: AppColors.textLight,
-                                  fontSize: 13,
+                                'تیمی تەندروستی تاقیگە',
+                                style: _kStyle(
+                                  color: const Color(0xFF64748B),
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -268,7 +362,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
@@ -284,18 +378,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 ),
                               );
                             },
-                            icon: const Icon(Iconsax.message, size: 18),
-                            label: Text('chat'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                            icon: const Icon(Iconsax.message, size: 16),
+                            label: Text('گفتوگۆ', style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
                             style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.white,
                               backgroundColor: const Color(0xFF3B82F6),
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: () {
@@ -309,13 +401,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 ),
                               );
                             },
-                            icon: const Icon(Iconsax.call, size: 18),
-                            label: Text('call'.tr(), style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                            icon: const Icon(Iconsax.call, size: 16, color: Color(0xFF3B82F6)),
+                            label: Text('پەیوەندی', style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF3B82F6))),
                             style: ElevatedButton.styleFrom(
-                              foregroundColor: const Color(0xFF3B82F6),
                               backgroundColor: const Color(0xFFEFF6FF),
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
@@ -324,76 +414,112 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ),
                   ],
                 ),
-              ).animate().scale(curve: Curves.easeOutBack, duration: 500.ms),
+              ),
             ],
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
 
-            // ── Details Section ──
-            Text(
-              'order_information'.tr(),
-              style: GoogleFonts.poppins(
-                color: AppColors.getTextTitle(context),
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ).animate(delay: 200.ms).fadeIn(),
-            const SizedBox(height: 16),
-
+            // ── Order Information Card ──
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
+                color: cardBg,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.getBorder(context)),
-              ),
-              child: Column(
-                children: [
-                  _buildDetailRow(context, 'date'.tr(), '${_currentOrder.date.day}/${_currentOrder.date.month}/${_currentOrder.date.year}'),
-                  const Divider(height: 32, thickness: 1, color: Color(0xFFE2E8F0)),
-                  _buildDetailRow(context, 'time'.tr(), '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}'),
-                  const Divider(height: 32, thickness: 1, color: Color(0xFFE2E8F0)),
-                  _buildDetailRow(context, 'total_amount'.tr(), Currency.format(_currentOrder.price), isTotal: true),
+                border: Border.all(color: borderColor),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
-            ).animate(delay: 300.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Iconsax.receipt, color: Color(0xFF10B981), size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'زانیاریی داواکاری',
+                        style: _kStyle(
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDetailRow(
+                    context,
+                    'بەرواری تۆمارکردن',
+                    '${_currentOrder.date.day}/${_currentOrder.date.month}/${_currentOrder.date.year}',
+                    isDark: isDark,
+                  ),
+                  const Divider(height: 24, thickness: 1, color: Color(0xFFF1F5F9)),
+                  _buildDetailRow(
+                    context,
+                    'کاتی داواکاری',
+                    '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}',
+                    isDark: isDark,
+                  ),
+                  const Divider(height: 24, thickness: 1, color: Color(0xFFF1F5F9)),
+                  _buildDetailRow(
+                    context,
+                    'کۆی گشتی نرخ',
+                    '${NumberFormat('#,###').format(_currentOrder.price)} د.ع',
+                    isTotal: true,
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+            ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.05, end: 0),
 
-            // Repeat ordering: a finished request is the most likely thing a
-            // patient with an ongoing condition wants again.
+            // Order Again Button (if completed or cancelled)
             if (!_currentOrder.status.isActive) ...[
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 52,
                 child: ElevatedButton.icon(
                   onPressed: _orderAgain,
-                  icon: const Icon(Iconsax.refresh, size: 20),
+                  icon: const Icon(Iconsax.refresh, size: 18),
                   label: Text(
-                    'order_again'.tr(),
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                    'دووبارەکردنەوەی داواکاری',
+                    style: _kStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: const Color(0xFF3B82F6),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                 ),
-              ).animate(delay: 350.ms).fadeIn(duration: 400.ms),
+              ).animate(delay: 250.ms).fadeIn(),
             ],
+
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  /// Sends the patient back to the service they ordered last time, with the
-  /// cart cleared, rather than trying to silently re-place a charge.
   void _orderAgain() {
     context.read<CartProvider>().clearCart();
 
@@ -409,24 +535,32 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  Widget _buildDetailRow(BuildContext context, String label, String value, {bool isTotal = false}) {
+  Widget _buildDetailRow(
+    BuildContext context,
+    String label,
+    String value, {
+    bool isTotal = false,
+    required bool isDark,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: GoogleFonts.poppins(
-            color: AppColors.getTextSubtitle(context),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+          style: _kStyle(
+            color: const Color(0xFF64748B),
+            fontSize: isTotal ? 14.5 : 13.5,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
           ),
         ),
         Text(
           value,
-          style: GoogleFonts.poppins(
-            color: isTotal ? const Color(0xFF3B82F6) : AppColors.getTextTitle(context),
-            fontSize: isTotal ? 18 : 14,
-            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
+          style: _kStyle(
+            color: isTotal
+                ? const Color(0xFF2563EB)
+                : (isDark ? Colors.white : const Color(0xFF0F172A)),
+            fontSize: isTotal ? 16 : 13.5,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
           ),
         ),
       ],
