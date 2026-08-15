@@ -122,6 +122,14 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
         if (isKurdish) return 'کراوەیە ئێستا';
         if (isArabic) return 'مفتوح الآن';
         return 'Open Now';
+      case 'closed_now':
+        if (isKurdish) return 'داخراوە';
+        if (isArabic) return 'مغلق';
+        return 'Closed';
+      case 'discount':
+        if (isKurdish) return 'داشکاندن';
+        if (isArabic) return 'خصم';
+        return 'OFF';
       case 'search_labs':
         if (isKurdish) return 'گەڕان بۆ ناوی تاقیگە...';
         if (isArabic) return 'البحث عن المختبر...';
@@ -218,7 +226,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
         final type = lab['type']?.toString().toLowerCase() ?? '';
         final rating =
             double.tryParse(lab['rating']?.toString() ?? '0') ?? 0.0;
-        final isVerified = lab['is_verified'] == true || lab['isVerified'] == true;
+        final isOpen = lab['is_open'] == true;
 
         // Search text
         final matchesQuery = query.isEmpty ||
@@ -231,13 +239,9 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
         if (_selectedFilter == 'top_rated') {
           matchesTopTab = rating >= 4.7;
         } else if (_selectedFilter == 'nearest') {
-          matchesTopTab = isVerified ||
-              city.contains('erbil') ||
-              city.contains('هەولێر');
+          matchesTopTab = city.contains('erbil') || city.contains('هەولێر');
         } else if (_selectedFilter == 'open_now') {
-          matchesTopTab = isVerified ||
-              lab['type'] == 'General' ||
-              lab['type'] == 'Private';
+          matchesTopTab = isOpen;
         }
 
         // City filter from dynamic API cities
@@ -779,6 +783,9 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
   }
 
   Widget _buildPremiumLabCard(dynamic lab, int index) {
+    final bool isOpen = lab['is_open'] == true;
+    final discount = lab['discount'];
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -807,26 +814,60 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Left: Image ──
-            ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: Image.asset(
-                (lab['image'] != null && lab['image'].toString().isNotEmpty)
-                    ? lab['image'].toString()
-                    : 'assets/images/laboratory.jpg',
-                width: 96,
-                height: 96,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(18),
+            // ── Left: Image + Discount Badge ──
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Image.asset(
+                    (lab['image'] != null && lab['image'].toString().isNotEmpty)
+                        ? lab['image'].toString()
+                        : 'assets/images/laboratory.jpg',
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: const Icon(Iconsax.hospital, color: Color(0xFF3B82F6), size: 36),
+                    ),
                   ),
-                  child: const Icon(Iconsax.hospital, color: Color(0xFF3B82F6), size: 36),
                 ),
-              ),
+                if (discount != null)
+                  PositionedDirectional(
+                    top: 6,
+                    start: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        '%$discount ${_tr('discount', context)}',
+                        style: _kurdishStyle(
+                          color: Colors.white,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 14),
 
@@ -835,64 +876,20 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Row: Rating Badge & Reviews Count
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEF9C3),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star_rounded,
-                              color: Color(0xFFEAB308),
-                              size: 14,
-                            ),
-                            const SizedBox(width: 3),
-                            Text(
-                              '${lab['rating'] ?? 4.8}',
-                              style: _kurdishStyle(
-                                color: const Color(0xFFCA8A04),
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '(${lab['reviews'] ?? lab['total_reviews'] ?? 120})',
-                        style: _kurdishStyle(
-                          color: const Color(0xFF94A3B8),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-
-                  // Name in Kurdish Font
+                  // 1. Lab Name
                   Text(
                     '${lab['name'] ?? 'تاقیگە'}',
                     style: _kurdishStyle(
-                      fontSize: 15,
+                      fontSize: 15.5,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF0F172A),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 7),
 
-                  // Location in Kurdish Font
+                  // 2. Middle Row: Location Pin + City + Rating Badge beside it
                   Row(
                     children: [
                       const Icon(
@@ -901,7 +898,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                         size: 14,
                       ),
                       const SizedBox(width: 4),
-                      Expanded(
+                      Flexible(
                         child: Text(
                           _getLocalizedCityName('${lab['city'] ?? 'Erbil'}', context),
                           style: _kurdishStyle(
@@ -913,42 +910,119 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 10),
+
+                      // Rating Pill beside location
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.star_rounded,
+                              color: Color(0xFFD97706),
+                              size: 13,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              '${lab['rating'] ?? 4.8}',
+                              style: _kurdishStyle(
+                                color: const Color(0xFFB45309),
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
 
-                  // Action Row: "زیاتر ببینە" Button
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _tr('view_more', context),
-                            style: _kurdishStyle(
-                              color: const Color(0xFF2563EB),
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.bold,
+                  // Bottom Row: [ Open/Closed Status ] & [ "زیاتر ببینە" Button ]
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Open / Closed Status Pill in the Bottom Row
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isOpen
+                              ? const Color(0xFFECFDF5)
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isOpen
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF94A3B8),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_forward_ios,
-                            color: Color(0xFF2563EB),
-                            size: 9,
-                          ),
-                        ],
+                            const SizedBox(width: 4),
+                            Text(
+                              isOpen
+                                  ? _tr('open_now', context)
+                                  : _tr('closed_now', context),
+                              style: _kurdishStyle(
+                                color: isOpen
+                                    ? const Color(0xFF047857)
+                                    : const Color(0xFF64748B),
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+
+                      // "زیاتر ببینە" Button
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _tr('view_more', context),
+                              style: _kurdishStyle(
+                                color: const Color(0xFF2563EB),
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              color: Color(0xFF2563EB),
+                              size: 9,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

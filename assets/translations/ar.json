@@ -557,5 +557,8 @@
   "rating_4_9": "⭐ 4.9 وأعلى",
   "verified_only": "المختبرات المعتمدة فقط",
   "apply_filter": "تطبيق التصفية",
-  "reset_filter": "إعادة ضبط"
+  "reset_filter": "إعادة ضبط",
+  "open_now": "مفتوح الآن",
+  "closed_now": "مغلق",
+  "discount": "خصم"
 }

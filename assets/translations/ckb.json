@@ -556,5 +556,8 @@
   "rating_4_9": "⭐ ٤.٩ و بەرزتر",
   "verified_only": "تەنها تاقیگەی باوەڕپێکراو",
   "apply_filter": "جێبەجێکردنی فلتەر",
-  "reset_filter": "سڕینەوە"
+  "reset_filter": "سڕینەوە",
+  "open_now": "کراوەیە ئێستا",
+  "closed_now": "داخراوە",
+  "discount": "داشکاندن"
 }

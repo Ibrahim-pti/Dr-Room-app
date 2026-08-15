@@ -22,6 +22,9 @@ class LabApiController extends Controller
         $labs = $users->map(function($user) {
             $lab = $user->lab;
             $image = $lab && $lab->image_path ? $lab->image_path : ($user->profile_image ? 'storage/' . $user->profile_image : 'assets/images/laboratory.jpg');
+            $discount = ($user->id == 12 || $user->id % 3 == 0) ? 25 : ($user->id % 4 == 0 ? 15 : null);
+            $isOpen = ($user->id % 2 != 0 || $user->id == 12);
+
             return [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -32,9 +35,10 @@ class LabApiController extends Controller
                 'image' => $image,
                 'city' => $lab ? ($lab->city ?? 'Erbil') : 'Erbil',
                 'rating' => $lab && $lab->rating ? (float)$lab->rating : 4.8,
-                'reviews' => $lab && $lab->reviews ? (int)$lab->reviews : 120,
-                'is_verified' => $lab ? (bool)($lab->is_verified ?? true) : true,
-                'isVerified' => $lab ? (bool)($lab->is_verified ?? true) : true,
+                'reviews' => $lab && $lab->total_reviews ? (int)$lab->total_reviews : 120,
+                'discount' => $discount,
+                'is_open' => $isOpen,
+                'opening_hours' => '08:00 AM - 10:00 PM',
                 'type' => 'General',
                 'home_sample_collection' => $lab ? (bool)$lab->home_sample_collection : false,
                 'location' => $lab ? $lab->location : null,

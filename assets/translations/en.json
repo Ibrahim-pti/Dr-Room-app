@@ -558,5 +558,8 @@
   "rating_4_9": "⭐ 4.9 & up",
   "verified_only": "Verified Labs Only",
   "apply_filter": "Apply Filter",
-  "reset_filter": "Reset"
+  "reset_filter": "Reset",
+  "open_now": "Open Now",
+  "closed_now": "Closed",
+  "discount": "OFF"
 }
