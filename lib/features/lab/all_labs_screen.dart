@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'lab_details_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -271,6 +270,23 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
     });
   }
 
+  TextStyle _kurdishStyle({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.normal,
+    Color color = const Color(0xFF0F172A),
+    double? height,
+    TextDecoration? decoration,
+  }) {
+    return TextStyle(
+      fontFamily: 'Rabar',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+      decoration: decoration,
+    );
+  }
+
   void _showAdvancedFilterModal() {
     String tempCity = _selectedCity;
     double tempMinRating = _selectedMinRating;
@@ -315,8 +331,8 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                       children: [
                         Text(
                           _tr('filter_labs', context),
-                          style: GoogleFonts.poppins(
-                            fontSize: 19,
+                          style: _kurdishStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF0F172A),
                           ),
@@ -330,10 +346,10 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                           },
                           child: Text(
                             _tr('reset_filter', context),
-                            style: GoogleFonts.poppins(
+                            style: _kurdishStyle(
                               color: const Color(0xFFEF4444),
                               fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -352,9 +368,9 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                         const SizedBox(width: 8),
                         Text(
                           _tr('filter_by_city', context),
-                          style: GoogleFonts.poppins(
+                          style: _kurdishStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                             color: const Color(0xFF1E293B),
                           ),
                         ),
@@ -388,14 +404,14 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                             ),
                             child: Text(
                               _getLocalizedCityName(city, context),
-                              style: GoogleFonts.poppins(
+                              style: _kurdishStyle(
                                 color: isSel
                                     ? Colors.white
                                     : const Color(0xFF334155),
                                 fontWeight: isSel
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                fontSize: 12.5,
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                fontSize: 13,
                               ),
                             ),
                           ),
@@ -415,9 +431,9 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                         const SizedBox(width: 8),
                         Text(
                           _tr('filter_by_rating', context),
-                          style: GoogleFonts.poppins(
+                          style: _kurdishStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                             color: const Color(0xFF1E293B),
                           ),
                         ),
@@ -452,14 +468,14 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                             ),
                             child: Text(
                               _getLocalizedRatingName(minVal, context),
-                              style: GoogleFonts.poppins(
+                              style: _kurdishStyle(
                                 color: isSel
                                     ? Colors.white
                                     : const Color(0xFF334155),
                                 fontWeight: isSel
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                fontSize: 12.5,
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                fontSize: 13,
                               ),
                             ),
                           ),
@@ -490,7 +506,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                         ),
                         child: Text(
                           _tr('apply_filter', context),
-                          style: GoogleFonts.poppins(
+                          style: _kurdishStyle(
                             color: Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -559,7 +575,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                           const SizedBox(height: 24),
                           Text(
                             _tr('no_labs_found', context),
-                            style: GoogleFonts.poppins(
+                            style: _kurdishStyle(
                               color: const Color(0xFF475569),
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -573,7 +589,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                   ListView.builder(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
-                      vertical: 8,
+                      vertical: 12,
                     ),
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -593,7 +609,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
 
   Widget _buildSliverAppBar() {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: 110,
       pinned: true,
       backgroundColor: Colors.white,
       elevation: 0,
@@ -616,9 +632,9 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
         titlePadding: const EdgeInsetsDirectional.only(start: 60, bottom: 16, end: 20),
         title: Text(
           _tr('all_labs', context),
-          style: GoogleFonts.poppins(
+          style: _kurdishStyle(
             color: const Color(0xFF0F172A),
-            fontSize: 18,
+            fontSize: 17,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -639,9 +655,9 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
             children: [
               Expanded(
                 child: Container(
-                  height: 56,
+                  height: 54,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
@@ -658,13 +674,13 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                         child: TextField(
                           controller: _searchCtrl,
                           onChanged: (_) => _filterLabs(),
-                          style: GoogleFonts.poppins(
+                          style: _kurdishStyle(
                             color: const Color(0xFF0F172A),
                             fontSize: 14,
                           ),
                           decoration: InputDecoration(
                             hintText: _tr('search_labs', context),
-                            hintStyle: GoogleFonts.poppins(
+                            hintStyle: _kurdishStyle(
                               color: const Color(0xFF94A3B8),
                               fontSize: 13,
                             ),
@@ -680,14 +696,14 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
               GestureDetector(
                 onTap: _showAdvancedFilterModal,
                 child: Container(
-                  height: 56,
-                  width: 56,
+                  height: 54,
+                  width: 54,
                   decoration: BoxDecoration(
                     color: const Color(0xFF3B82F6),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.28),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -699,7 +715,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
             ],
           ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
           // Filters Row
           SizedBox(
@@ -722,40 +738,34 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? const Color(0xFF3B82F6)
-                          : Colors.white,
+                          : const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(22),
                       border: Border.all(
                         color: isSelected
                             ? const Color(0xFF3B82F6)
                             : const Color(0xFFE2E8F0),
-                        width: 1.5,
+                        width: 1.2,
                       ),
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: const Color(0xFF3B82F6).withValues(alpha: 0.28),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+                                color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
                               ),
                             ]
-                          : [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.02),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                          : null,
                     ),
                     child: Text(
                       filter == 'All' ? _tr('all_labs', context) : _tr(filter, context),
-                      style: GoogleFonts.poppins(
+                      style: _kurdishStyle(
                         color: isSelected
                             ? Colors.white
                             : const Color(0xFF475569),
                         fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w600,
-                        fontSize: 12.5,
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        fontSize: 13,
                       ),
                     ),
                   ),
@@ -777,53 +787,61 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // ── Left: Image ──
-            Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                image: DecorationImage(
-                  image: AssetImage(
-                    (lab['image'] != null && lab['image'].toString().isNotEmpty)
-                        ? lab['image'].toString()
-                        : 'assets/images/laboratory.jpg',
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: Image.asset(
+                (lab['image'] != null && lab['image'].toString().isNotEmpty)
+                    ? lab['image'].toString()
+                    : 'assets/images/laboratory.jpg',
+                width: 96,
+                height: 96,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                  fit: BoxFit.cover,
+                  child: const Icon(Iconsax.hospital, color: Color(0xFF3B82F6), size: 36),
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
 
             // ── Right: Details ──
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Badges
+                  // Top Row: Rating Badge & Reviews Count
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
-                          vertical: 4,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF9C3),
@@ -837,106 +855,100 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                               color: Color(0xFFEAB308),
                               size: 14,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 3),
                             Text(
                               '${lab['rating'] ?? 4.8}',
-                              style: GoogleFonts.poppins(
+                              style: _kurdishStyle(
                                 color: const Color(0xFFCA8A04),
-                                fontSize: 12,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      if (lab['is_verified'] == true || lab['isVerified'] == true)
-                        const Icon(
-                          Icons.verified,
-                          color: Color(0xFF3B82F6),
-                          size: 16,
+                      const SizedBox(width: 8),
+                      Text(
+                        '(${lab['reviews'] ?? lab['total_reviews'] ?? 120})',
+                        style: _kurdishStyle(
+                          color: const Color(0xFF94A3B8),
+                          fontSize: 11,
                         ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
 
-                  // Name
+                  // Name in Kurdish Font
                   Text(
                     '${lab['name'] ?? 'تاقیگە'}',
-                    style: GoogleFonts.poppins(
+                    style: _kurdishStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF0F172A),
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 5),
 
-                  // Location
+                  // Location in Kurdish Font
                   Row(
                     children: [
                       const Icon(
                         Iconsax.location,
-                        color: Color(0xFF94A3B8),
+                        color: Color(0xFF3B82F6),
                         size: 14,
                       ),
                       const SizedBox(width: 4),
-                      Flexible(
+                      Expanded(
                         child: Text(
                           _getLocalizedCityName('${lab['city'] ?? 'Erbil'}', context),
-                          style: GoogleFonts.poppins(
+                          style: _kurdishStyle(
                             color: const Color(0xFF64748B),
                             fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.normal,
                           ),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
 
-                  // Bottom Actions
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${lab['reviews'] ?? lab['total_reviews'] ?? 120} Reviews',
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFF94A3B8),
-                          fontSize: 11,
-                        ),
+                  // Action Row: "زیاتر ببینە" Button
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _tr('view_more', context),
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFF3B82F6),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              color: Color(0xFF3B82F6),
-                              size: 10,
-                            ),
-                          ],
-                        ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _tr('view_more', context),
+                            style: _kurdishStyle(
+                              color: const Color(0xFF2563EB),
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            color: Color(0xFF2563EB),
+                            size: 9,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -944,6 +956,6 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
           ],
         ),
       ),
-    ).animate().fadeIn(delay: (100 * index).ms).slideY(begin: 0.1, end: 0);
+    ).animate().fadeIn(delay: (60 * index).ms).slideY(begin: 0.08, end: 0);
   }
 }
