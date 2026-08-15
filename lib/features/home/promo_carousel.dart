@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../core/utils/api_client.dart';
+
 class PromoCarousel extends StatefulWidget {
   final List<dynamic> banners;
   const PromoCarousel({super.key, this.banners = const []});
@@ -92,110 +92,62 @@ class _PromoCarouselState extends State<PromoCarousel> {
             itemBuilder: (context, index) {
               final isApiData = widget.banners.isNotEmpty;
               final promo = isApiData ? widget.banners[index] : _fallbackPromos[index];
+              final title = isApiData ? _getTranslated(promo, 'title', langCode) : promo['title'];
               
-              if (isApiData && promo['image_path'] != null) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                    image: DecorationImage(
-                      image: NetworkImage(ApiClient.getImageUrl(promo['image_path'])),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      // Dark overlay for text readability
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(24),
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.6),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (promo['title'] != null && promo['title'].toString().isNotEmpty)
-                              Text(
-                                isApiData ? _getTranslated(promo, 'title', langCode) : promo['title'],
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.2,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
+              final gradients = [
+                [const Color(0xFF2563EB), const Color(0xFF1E40AF)],
+                [const Color(0xFF0D9488), const Color(0xFF0F766E)],
+                [const Color(0xFF7C3AED), const Color(0xFF5B21B6)],
+              ];
+              final colors = gradients[index % gradients.length];
+              final rawPath = promo['image_path']?.toString();
 
-              // Fallback UI
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [promo['color1'], promo['color2']],
+                    colors: colors,
                     begin: AlignmentDirectional.topStart,
                     end: AlignmentDirectional.bottomEnd,
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: promo['color1'].withValues(alpha: 0.3),
-                      blurRadius: 15,
+                      color: colors[0].withValues(alpha: 0.3),
+                      blurRadius: 18,
                       offset: const Offset(0, 8),
                     ),
                   ],
                 ),
                 child: Stack(
                   children: [
-                    // Decorative circle 1
+                    // Decorative glow circles
                     PositionedDirectional(
-                      end: -30,
-                      top: -30,
+                      end: -25,
+                      top: -25,
                       child: Container(
-                        width: 120,
-                        height: 120,
+                        width: 110,
+                        height: 110,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: Colors.white.withValues(alpha: 0.12),
                         ),
                       ),
                     ),
-                    // Decorative circle 2
                     PositionedDirectional(
-                      end: 40,
-                      bottom: -40,
+                      end: 45,
+                      bottom: -35,
                       child: Container(
-                        width: 100,
-                        height: 100,
+                        width: 90,
+                        height: 90,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: Colors.white.withValues(alpha: 0.08),
                         ),
                       ),
                     ),
+                    
+                    // Content
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       child: Row(
@@ -206,55 +158,61 @@ class _PromoCarouselState extends State<PromoCarousel> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color: Colors.white.withValues(alpha: 0.22),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Text(
-                                    'PROMO',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.verified_rounded, color: Colors.white, size: 12),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'SPECIAL OFFER',
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 8),
                                 Text(
-                                  promo['title'],
+                                  title,
                                   style: GoogleFonts.poppins(
                                     color: Colors.white,
-                                    fontSize: 18,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    height: 1.2,
+                                    height: 1.3,
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  promo['subtitle'],
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                    fontSize: 12,
-                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
                           ),
-                          if (promo['icon'] != null)
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                promo['icon'],
-                                color: Colors.white,
-                                size: 32,
+                          const SizedBox(width: 12),
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                width: 1.5,
                               ),
                             ),
+                            child: const Icon(
+                              Icons.local_hospital_rounded,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
                         ],
                       ),
                     ),

@@ -805,9 +805,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               final fallbackImage =
                                   fallbackImages[index % fallbackImages.length];
 
-                              final image = (doc['image_path'] != null)
-                                  ? ApiClient.getImageUrl(doc['image_path'])
+                              final rawPath = doc['image_path']?.toString();
+                              final image = (rawPath != null && rawPath.isNotEmpty)
+                                  ? (rawPath.startsWith('assets/')
+                                      ? rawPath
+                                      : ApiClient.getImageUrl(rawPath))
                                   : fallbackImage;
+                              final isNetworkImg = image.startsWith('http');
                               final doctorId = doc['id'];
 
                               return GestureDetector(
@@ -820,9 +824,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         name: name,
                                         specialty: specialty,
                                         image: image,
-                                        // /doctors already returned the whole
-                                        // record — hand it over so the details
-                                        // screen opens with no loading state.
                                         initialDoctor:
                                             Map<String, dynamic>.from(doc),
                                       ),
@@ -830,7 +831,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                 },
                                 child: Container(
-                                  width: 145, // Smaller width
+                                  width: 155,
                                   margin: const EdgeInsetsDirectional.only(
                                     end: 14,
                                     bottom: 4,
@@ -847,7 +848,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         decoration: BoxDecoration(
                                           color: Colors.white.withValues(
                                             alpha: 0.3,
-                                          ), // Transparent effect
+                                          ),
                                           borderRadius: BorderRadius.circular(
                                             20,
                                           ),
@@ -862,23 +863,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                             Padding(
                                               padding: const EdgeInsets.all(
                                                 10,
-                                              ), // Smaller padding
+                                              ),
                                               child: Column(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment.center,
                                                 children: [
                                                   // Image
                                                   Container(
-                                                    width: 70, // Smaller image
+                                                    width: 70,
                                                     height: 70,
                                                     decoration: BoxDecoration(
                                                       shape: BoxShape.circle,
                                                       color: const Color(
                                                         0xFFF8FAFC,
                                                       ),
-                                                      image:
-                                                          doc['image_path'] !=
-                                                              null
+                                                      image: isNetworkImg
                                                           ? DecorationImage(
                                                               image:
                                                                   CachedNetworkImageProvider(
@@ -908,8 +907,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       color: const Color(
                                                         0xFF1E293B,
                                                       ),
-                                                      fontSize:
-                                                          13, // Smaller font
+                                                      fontSize: 13,
                                                       fontWeight:
                                                           FontWeight.w700,
                                                     ),
@@ -926,8 +924,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       color: const Color(
                                                         0xFF64748B,
                                                       ),
-                                                      fontSize:
-                                                          11, // Smaller font
+                                                      fontSize: 11,
                                                       fontWeight:
                                                           FontWeight.w500,
                                                     ),
@@ -1000,7 +997,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           ),
                                                     ),
                                                     child: Text(
-                                                      'Book Now',
+                                                      'book_now'.tr(),
                                                       textAlign:
                                                           TextAlign.center,
                                                       style:
@@ -1705,6 +1702,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                     ),
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
@@ -2100,7 +2098,7 @@ class _HomeScreenState extends State<HomeScreen> {
               imagePath: 'assets/images/doctor.png',
               titleKey: 'cat_doctor',
               id: 'doctor',
-              isActive: false,
+              isActive: true,
             ),
           ),
           const SizedBox(width: 16),
@@ -2111,7 +2109,7 @@ class _HomeScreenState extends State<HomeScreen> {
               imagePath: 'assets/images/medicine.png',
               titleKey: 'cat_pharmacy',
               id: 'pharmacy',
-              isActive: false,
+              isActive: true,
             ),
           ),
           const SizedBox(width: 16),
@@ -2347,6 +2345,11 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AllDoctorsScreen()),
+            );
+          } else if (id == 'pharmacy') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PharmaciesScreen()),
             );
           } else if (id == 'ambulance') {
             Navigator.push(
