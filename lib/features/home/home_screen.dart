@@ -114,7 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   TopPharmaciesSection(topPharmacies: _topPharmacies),
 
-                  const SizedBox(height: 10),
+                  // ── Bottom Padding for Floating MainShell Bar ──
+                  const SizedBox(height: 90),
                 ],
               ),
             ),
