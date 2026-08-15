@@ -293,29 +293,22 @@ class PaymentMethodScreen extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3B82F6),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 0,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'بەردەوامبوون',
-                            style: _kStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
+                      child: Center(
+                        child: Text(
+                          'بەردەوامبوون',
+                          textAlign: TextAlign.center,
+                          style: _kStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            size: 18,
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
