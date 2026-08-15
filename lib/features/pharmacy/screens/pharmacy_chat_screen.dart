@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/pharmacy_model.dart';
 
 class PharmacyChatScreen extends StatefulWidget {
   final Pharmacy pharmacy;
 
-  const PharmacyChatScreen({Key? key, required this.pharmacy}) : super(key: key);
+  const PharmacyChatScreen({super.key, required this.pharmacy});
 
   @override
   State<PharmacyChatScreen> createState() => _PharmacyChatScreenState();
@@ -14,22 +15,29 @@ class PharmacyChatScreen extends StatefulWidget {
 
 class _PharmacyChatScreenState extends State<PharmacyChatScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [
+  final ScrollController _scrollController = ScrollController();
+
+  TextStyle _kStyle({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.normal,
+    Color color = const Color(0xFF0F172A),
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: 'Rabar',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+    );
+  }
+
+  late final List<Map<String, dynamic>> _messages = [
     {
-      'text': 'Hello! How can we help you today?',
+      'text': 'سڵاو لە ئێوەی بەڕێز! چۆن دەتوانین هاوکاریتان بکەین دەربارەی دەرمان یان شێوازی بەکارهێنان؟ 👨‍⚕️',
       'isMe': false,
-      'time': '10:00 AM'
+      'time': '١٠:٠٠ بەیانی'
     },
-    {
-      'text': 'I wanted to ask about the availability of Panadol Extra.',
-      'isMe': true,
-      'time': '10:02 AM'
-    },
-    {
-      'text': 'Yes, it is available. You can add it from our product list.',
-      'isMe': false,
-      'time': '10:05 AM'
-    }
   ];
 
   void _sendMessage() {
@@ -39,64 +47,107 @@ class _PharmacyChatScreenState extends State<PharmacyChatScreen> {
       _messages.add({
         'text': _messageController.text.trim(),
         'isMe': true,
-        'time': TimeOfDay.now().format(context),
+        'time': 'ئێستا',
       });
       _messageController.clear();
     });
 
-    // Mock auto-reply
+    _scrollToBottom();
+
+    // Mock pharmacy response
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
           _messages.add({
-            'text': 'Thank you for your message. We will process your request shortly.',
+            'text': 'سوپاس بۆ پەیامەکەت. دەرمانسازەکەمان لە ماوەیەکی کەمدا بە وردی وەڵامت دەداتەوە.',
             'isMe': false,
-            'time': TimeOfDay.now().format(context),
+            'time': 'ئێستا',
           });
         });
+        _scrollToBottom();
       }
     });
   }
 
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent + 80,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  Future<void> _makeCall() async {
+    final phone = widget.pharmacy.phone ?? '07501234567';
+    final Uri uri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF111827), size: 20),
-          onPressed: () => Navigator.pop(context),
+        centerTitle: false,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                size: 16,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
         ),
         title: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                 image: widget.pharmacy.profileImage != null
                     ? DecorationImage(
-                        image: NetworkImage('http://127.0.0.1:8000/storage/${widget.pharmacy.profileImage}'),
+                        image: NetworkImage(widget.pharmacy.profileImage!),
                         fit: BoxFit.cover,
                       )
-                    : const DecorationImage(
-                        image: AssetImage('assets/images/pharmacy1.jpg'),
-                        fit: BoxFit.cover,
-                      ),
+                    : null,
               ),
+              child: widget.pharmacy.profileImage == null
+                  ? const Icon(Icons.local_pharmacy, color: Color(0xFF3B82F6), size: 20)
+                  : null,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.pharmacy.name,
-                    style: GoogleFonts.inter(
-                      color: const Color(0xFF111827),
-                      fontSize: 16,
+                    style: _kStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      fontSize: 14.5,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
@@ -105,20 +156,20 @@ class _PharmacyChatScreenState extends State<PharmacyChatScreen> {
                   Row(
                     children: [
                       Container(
-                        width: 8,
-                        height: 8,
+                        width: 7,
+                        height: 7,
                         decoration: const BoxDecoration(
-                          color: Colors.green,
+                          color: Color(0xFF10B981),
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Online',
-                        style: GoogleFonts.inter(
-                          color: Colors.green,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                        'دەرمانساز بەردەستە (Online)',
+                        style: _kStyle(
+                          color: const Color(0xFF10B981),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
@@ -129,9 +180,21 @@ class _PharmacyChatScreenState extends State<PharmacyChatScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.call, color: Color(0xFF3B82F6)),
-            onPressed: () {},
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 12),
+            child: GestureDetector(
+              onTap: _makeCall,
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: borderColor),
+                ),
+                child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF10B981), size: 18),
+              ),
+            ),
           ),
         ],
       ),
@@ -139,120 +202,112 @@ class _PharmacyChatScreenState extends State<PharmacyChatScreen> {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.all(16),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
                 final isMe = message['isMe'] as bool;
-                
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Row(
-                    mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-                    children: [
-                      if (!isMe) ...[
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundImage: widget.pharmacy.profileImage != null
-                            ? NetworkImage('http://127.0.0.1:8000/storage/${widget.pharmacy.profileImage}') as ImageProvider
-                            : const AssetImage('assets/images/pharmacy1.jpg'),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.7,
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isMe ? const Color(0xFF3B82F6) : Colors.white,
-                          borderRadius: BorderRadius.circular(16).copyWith(
-                            bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(16),
-                            bottomLeft: !isMe ? const Radius.circular(4) : const Radius.circular(16),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 5,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              message['text'],
-                              style: GoogleFonts.inter(
-                                color: isMe ? Colors.white : const Color(0xFF111827),
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              message['time'],
-                              style: GoogleFonts.inter(
-                                color: isMe ? Colors.white70 : Colors.grey,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
+
+                return Align(
+                  alignment: isMe ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.78,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isMe
+                          ? const Color(0xFF3B82F6)
+                          : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(18),
+                        topRight: const Radius.circular(18),
+                        bottomLeft: Radius.circular(isMe ? 18 : 4),
+                        bottomRight: Radius.circular(isMe ? 4 : 18),
                       ),
-                    ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isMe ? 0.1 : 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          message['text'],
+                          style: _kStyle(
+                            color: isMe ? Colors.white : (isDark ? Colors.white : const Color(0xFF0F172A)),
+                            fontSize: 13.5,
+                            height: 1.45,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: AlignmentDirectional.bottomEnd,
+                          child: Text(
+                            message['time'],
+                            style: _kStyle(
+                              color: isMe ? Colors.white70 : const Color(0xFF94A3B8),
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                );
+                ).animate().fadeIn(duration: 200.ms).slideY(begin: 0.04, end: 0);
               },
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(16).copyWith(
-              bottom: MediaQuery.of(context).padding.bottom + 16,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
             decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                ),
-              ],
+              color: cardBg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border(top: BorderSide(color: borderColor)),
             ),
             child: Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.attach_file, color: Colors.grey),
-                  onPressed: () {},
-                ),
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3F4F6),
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: TextField(
                       controller: _messageController,
+                      style: _kStyle(
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        fontSize: 13.5,
+                      ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: 'Type a message...',
-                        hintStyle: GoogleFonts.inter(color: Colors.grey),
+                        hintText: 'پرسیار یان پەیام بنووسە...',
+                        hintStyle: _kStyle(color: const Color(0xFF94A3B8), fontSize: 13),
                       ),
                       onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 GestureDetector(
                   onTap: _sendMessage,
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    width: 44,
+                    height: 44,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF3B82F6),
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                      ),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.send, color: Colors.white, size: 20),
+                    child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
                   ),
                 ),
               ],
