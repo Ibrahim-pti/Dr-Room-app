@@ -535,7 +535,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               // Phone Icon on start
               const Padding(
-                padding: EdgeInsetsDirectional.only(start: 14, end: 6),
+                padding: EdgeInsetsDirectional.only(start: 14, end: 8),
                 child: Icon(
                   Icons.phone_android_rounded,
                   color: Color(0xFF2563EB),
@@ -543,7 +543,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
 
-              // Phone text field with integrated +964 prefixText
+              // +964 right next to the icon
+              Text(
+                '+964',
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1D4ED8),
+                ),
+              ),
+              const SizedBox(width: 6),
+
+              // Phone text field
               Expanded(
                 child: TextField(
                   controller: _phoneController,
@@ -565,13 +576,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   decoration: InputDecoration(
                     counterText: '',
-                    prefixText: '+964',
-                    prefixStyle: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1D4ED8),
-                    ),
-                    hintText: '7501234567',
+                    hintText: '750 123 4567',
                     hintStyle: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -580,7 +585,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 16,
-                      horizontal: 4,
+                      horizontal: 2,
                     ),
                   ),
                 ),
