@@ -80,7 +80,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: 130,
+          height: 136,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -95,12 +95,11 @@ class _PromoCarouselState extends State<PromoCarousel> {
               final title = isApiData ? _getTranslated(promo, 'title', langCode) : promo['title'];
               
               final gradients = [
-                [const Color(0xFF2563EB), const Color(0xFF1E40AF)],
+                [const Color(0xFF2563EB), const Color(0xFF1D4ED8)],
                 [const Color(0xFF0D9488), const Color(0xFF0F766E)],
-                [const Color(0xFF7C3AED), const Color(0xFF5B21B6)],
+                [const Color(0xFF7C3AED), const Color(0xFF6D28D9)],
               ];
               final colors = gradients[index % gradients.length];
-              final rawPath = promo['image_path']?.toString();
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -110,12 +109,12 @@ class _PromoCarouselState extends State<PromoCarousel> {
                     begin: AlignmentDirectional.topStart,
                     end: AlignmentDirectional.bottomEnd,
                   ),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
-                      color: colors[0].withValues(alpha: 0.3),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
+                      color: colors[0].withValues(alpha: 0.32),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
@@ -149,7 +148,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
                     
                     // Content
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                       child: Row(
                         children: [
                           Expanded(
@@ -172,9 +171,9 @@ class _PromoCarouselState extends State<PromoCarousel> {
                                         'SPECIAL OFFER',
                                         style: GoogleFonts.poppins(
                                           color: Colors.white,
-                                          fontSize: 9,
+                                          fontSize: 9.5,
                                           fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.8,
+                                          letterSpacing: 0.6,
                                         ),
                                       ),
                                     ],
@@ -183,9 +182,10 @@ class _PromoCarouselState extends State<PromoCarousel> {
                                 const SizedBox(height: 8),
                                 Text(
                                   title,
-                                  style: GoogleFonts.poppins(
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
                                     color: Colors.white,
-                                    fontSize: 15,
+                                    fontSize: 14.5,
                                     fontWeight: FontWeight.bold,
                                     height: 1.3,
                                   ),
@@ -197,13 +197,13 @@ class _PromoCarouselState extends State<PromoCarousel> {
                           ),
                           const SizedBox(width: 12),
                           Container(
-                            width: 52,
-                            height: 52,
+                            width: 50,
+                            height: 50,
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.18),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.3),
+                                color: Colors.white.withValues(alpha: 0.35),
                                 width: 1.5,
                               ),
                             ),
@@ -222,21 +222,30 @@ class _PromoCarouselState extends State<PromoCarousel> {
             },
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             itemsCount,
             (index) => AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: _currentPage == index ? 24 : 8,
-              height: 8,
+              duration: const Duration(milliseconds: 250),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: _currentPage == index ? 22 : 6,
+              height: 6,
               decoration: BoxDecoration(
                 color: _currentPage == index
                     ? const Color(0xFF3B82F6)
-                    : const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(4),
+                    : const Color(0xFFCBD5E1).withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(3),
+                boxShadow: _currentPage == index
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
+                    : null,
               ),
             ),
           ),
