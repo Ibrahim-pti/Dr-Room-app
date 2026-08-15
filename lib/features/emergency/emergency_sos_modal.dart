@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../first_aid/first_aid_screen.dart';
 
 class EmergencySosModal {
   static void show(BuildContext context) {
@@ -181,18 +182,51 @@ class _EmergencySosSheet extends StatelessWidget {
             borderColor: borderColor,
             isDark: isDark,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
 
-          _buildEmergencyItem(
-            context,
-            title: 'ڕاوێژی پزیشکی فریاکەوتن (Dr-Room)',
-            subtitle: 'پەیوەندیی دەستبەجێ لەگەڵ پزیشکی نۆبەدار',
-            phone: '07501234567',
-            icon: Iconsax.user_tag,
-            color: const Color(0xFF10B981),
-            cardBg: cardBg,
-            borderColor: borderColor,
-            isDark: isDark,
+          // First-Aid Guide Banner Button
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FirstAidScreen()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.medical_services_outlined, color: Color(0xFF3B82F6), size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ڕێبەری فریاگوزاریی سەرەتایی (First-Aid)',
+                          style: _kStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF2563EB),
+                          ),
+                        ),
+                        Text(
+                          'ڕێنمایی هەنگاو بە هەنگاو بۆ خنکان، سووتان، بێهۆشبوون',
+                          style: _kStyle(fontSize: 11.5, color: const Color(0xFF64748B)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, color: Color(0xFF3B82F6), size: 14),
+                ],
+              ),
+            ),
           ),
         ],
       ),

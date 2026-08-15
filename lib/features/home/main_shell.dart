@@ -13,6 +13,7 @@ import '../settings/settings_screen.dart';
 import '../surgery/surgery_timeline_screen.dart';
 import '../prescriptions/pill_reminder_screen.dart';
 import '../checkout/payment_history_screen.dart';
+import '../first_aid/first_aid_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -22,9 +23,9 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  static const int _requestsTabIndex = 1;
   static const int _aiTabIndex = 2;
   static const int _recordsTabIndex = 3;
+  static const int _requestsTabIndex = 4;
 
   String _userName = '';
   String _userPhone = '';
@@ -67,19 +68,19 @@ class _MainShellState extends State<MainShell> {
 
   late final List<Widget> _screens = [
     const HomeScreen(),
-    MyRequestsScreen(key: _requestsKey),
+    const FirstAidScreen(),
     const AiSymptomCheckerScreen(),
     const MedicalRecordsScreen(),
-    BodyMapScreen(onBack: () => setState(() => _currentIndex = 0)),
+    MyRequestsScreen(key: _requestsKey),
     const SettingsScreen(),
   ];
 
   static const List<Map<String, dynamic>> _navItems = [
     {'title': 'ماڵەوە', 'icon': Iconsax.home_2},
-    {'title': 'داواکاری', 'icon': Iconsax.box},
+    {'title': 'فریاگوزاری', 'icon': Icons.medical_services_outlined},
     {'title': 'AI ڕاوێژکار', 'icon': Iconsax.message_programming, 'isAi': true},
     {'title': 'تۆمارەکان', 'icon': Iconsax.folder_2},
-    {'title': 'جەستە', 'icon': Icons.accessibility_new_rounded},
+    {'title': 'داواکاری', 'icon': Iconsax.box},
     {'title': 'ڕێکخستن', 'icon': Iconsax.setting_2},
   ];
 
@@ -401,6 +402,22 @@ class _MainShellState extends State<MainShell> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const SurgeryTimelineScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.accessibility_new_rounded,
+                    title: 'نەخشەی جەستە (دەستنیشان)',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BodyMapScreen(
+                            onBack: () => Navigator.pop(context),
+                          ),
                         ),
                       );
                     },
