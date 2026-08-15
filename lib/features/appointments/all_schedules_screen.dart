@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -8,13 +7,10 @@ import '../doctors/doctor_details_screen.dart';
 import '../queue/virtual_waiting_room_screen.dart';
 import '../../core/models/appointment_model.dart';
 import '../../core/providers/appointment_provider.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/widgets/shimmer_loading_list.dart';
 
 class AllSchedulesScreen extends StatefulWidget {
-  /// When true the screen renders only its content, so it can sit inside the
-  /// My Requests tab under that screen's own app bar.
   final bool embedded;
 
   const AllSchedulesScreen({super.key, this.embedded = false});
@@ -24,6 +20,21 @@ class AllSchedulesScreen extends StatefulWidget {
 }
 
 class AllSchedulesScreenState extends State<AllSchedulesScreen> {
+  TextStyle _kStyle({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.normal,
+    Color color = const Color(0xFF0F172A),
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: 'Rabar',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -32,8 +43,6 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
     });
   }
 
-  /// Called by the shell when the tab is reopened, so a booking made or
-  /// cancelled elsewhere shows up without a manual pull.
   void refresh() {
     if (mounted) context.read<AppointmentProvider>().fetchAppointments();
   }
@@ -48,23 +57,24 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
       SnackBar(
         content: Text(
           success
-              ? 'appointment_cancelled'.tr()
-              : 'appointment_cancel_failed'.tr(),
+              ? 'چاوپێکەوتنەکە هەڵوەشێنرایەوە'
+              : 'هەڵوەشاندنەوە سەرکەوتوو نەبوو',
+          style: _kStyle(color: Colors.white),
         ),
-        backgroundColor:
-            success ? const Color(0xFF10B981) : AppColors.error,
+        backgroundColor: success ? const Color(0xFF10B981) : const Color(0xFFEF4444),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final content = _buildContent();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final content = _buildContent(isDark);
 
     if (widget.embedded) return content;
 
     return Scaffold(
-      backgroundColor: AppColors.getBackground(context),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -72,17 +82,17 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new,
-            color: AppColors.getTextTitle(context),
-            size: 20,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            size: 18,
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'my_appointments'.tr(),
-          style: GoogleFonts.poppins(
-            color: AppColors.getTextTitle(context),
+          'چاوپێکەوتنەکانم',
+          style: _kStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
@@ -90,11 +100,9 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(bool isDark) {
     return Consumer<AppointmentProvider>(
       builder: (context, provider, child) {
-        // Only a first load takes over the screen; later refreshes leave the
-        // list in place instead of flashing back to skeletons.
         if (provider.isLoading && provider.appointments.isEmpty) {
           return const ShimmerLoadingList();
         }
@@ -105,31 +113,35 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
         if (appointments.isEmpty) {
           return RefreshIndicator(
             onRefresh: () => provider.fetchAppointments(),
-            child: _buildEmptyState(),
+            child: _buildEmptyState(isDark),
           );
         }
 
         return RefreshIndicator(
           onRefresh: () => provider.fetchAppointments(),
           child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 100),
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
             itemCount: appointments.length,
             itemBuilder: (context, index) =>
-                _buildAppointmentCard(appointments[index], index),
+                _buildAppointmentCard(appointments[index], index, isDark),
           ),
         );
       },
     );
   }
 
-  Widget _buildAppointmentCard(Appointment appointment, int index) {
+  Widget _buildAppointmentCard(Appointment appointment, int index, bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
     final image = appointment.doctorImagePath != null
         ? ApiClient.getImageUrl(appointment.doctorImagePath!)
         : 'assets/images/doctor1.png';
 
     return Padding(
-      padding: const EdgeInsetsDirectional.only(bottom: 16),
-      child: GestureDetector(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
         onTap: () {
           Navigator.push(
             context,
@@ -143,21 +155,32 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
             ),
           );
         },
+        borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.getSurface(context),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.getBorder(context)),
+            color: cardBg,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [
               Row(
                 children: [
                   Container(
-                    width: 56,
-                    height: 56,
-                    decoration: const BoxDecoration(shape: BoxShape.circle),
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.2), width: 2),
+                    ),
                     clipBehavior: Clip.hardEdge,
                     child: appointment.doctorImagePath != null
                         ? Image.network(
@@ -175,27 +198,27 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                             alignment: Alignment.topCenter,
                           ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           appointment.doctorName,
-                          style: GoogleFonts.poppins(
-                            color: AppColors.getTextTitle(context),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          style: _kStyle(
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.bold,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
                           appointment.doctorSpecialty,
-                          style: GoogleFonts.poppins(
-                            color: AppColors.getTextSubtitle(context),
-                            fontSize: 13,
+                          style: _kStyle(
+                            color: const Color(0xFF64748B),
+                            fontSize: 12.5,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -207,64 +230,74 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                   _buildStatusChip(appointment.status),
                 ],
               ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Icon(Iconsax.calendar_1,
-                      size: 18, color: AppColors.getTextSubtitle(context)),
-                  const SizedBox(width: 8),
-                  Text(
-                    appointment.formattedDate,
-                    style: GoogleFonts.poppins(
-                      color: AppColors.getTextSubtitle(context),
-                      fontSize: 13,
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Iconsax.calendar_1, size: 16, color: Color(0xFF3B82F6)),
+                        const SizedBox(width: 6),
+                        Text(
+                          appointment.formattedDate,
+                          style: _kStyle(
+                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 24),
-                  Icon(Iconsax.clock,
-                      size: 18, color: AppColors.getTextSubtitle(context)),
-                  const SizedBox(width: 8),
-                  Text(
-                    appointment.formattedTime,
-                    style: GoogleFonts.poppins(
-                      color: AppColors.getTextSubtitle(context),
-                      fontSize: 13,
+                    Row(
+                      children: [
+                        const Icon(Iconsax.clock, size: 16, color: Color(0xFF3B82F6)),
+                        const SizedBox(width: 6),
+                        Text(
+                          appointment.formattedTime,
+                          style: _kStyle(
+                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              // The model already knows when the API would reject a cancel, so
-              // the buttons never offer an action that comes back as an error.
               if (appointment.canCancel) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () => _cancelAppointment(appointment),
-                        child: Container(
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: AppColors.getSurfaceSecondary(context),
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'cancel_appointment'.tr(),
-                              style: GoogleFonts.poppins(
-                                color: AppColors.getTextSubtitle(context),
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
+                      child: OutlinedButton(
+                        onPressed: () => _cancelAppointment(appointment),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: borderColor),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        child: Text(
+                          'هەڵوەشاندنەوە',
+                          style: _kStyle(
+                            color: const Color(0xFFEF4444),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: GestureDetector(
-                        onTap: () {
+                      child: ElevatedButton.icon(
+                        onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -276,30 +309,20 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                             ),
                           );
                         },
-                        child: Container(
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-                            ),
-                            borderRadius: BorderRadius.circular(24),
+                        icon: const Icon(Iconsax.people, color: Colors.white, size: 16),
+                        label: Text(
+                          'چوونەژوورەوە',
+                          style: _kStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Iconsax.people,
-                                  color: Colors.white, size: 18),
-                              const SizedBox(width: 8),
-                              Text(
-                                'join_now'.tr(),
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3B82F6),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                         ),
                       ),
                     ),
@@ -310,7 +333,7 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
           ),
         ),
       ),
-    ).animate().fadeIn(delay: (100 * index).ms).slideY(begin: 0.1, end: 0);
+    ).animate().fadeIn(delay: (60 * index).ms).slideY(begin: 0.05, end: 0);
   }
 
   Widget _buildStatusChip(AppointmentStatus status) {
@@ -324,24 +347,23 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
     final isKurdish = context.locale.languageCode == 'ckb';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         isKurdish ? status.kurdiName : status.displayName,
-        style: GoogleFonts.poppins(
+        style: _kStyle(
           color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  /// Scrollable so pull-to-refresh still works with nothing in the list.
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -351,33 +373,32 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 88,
-                height: 88,
+                width: 80,
+                height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(28),
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
-                child: Icon(Iconsax.calendar_1,
-                    color: AppColors.primary, size: 38),
+                child: const Icon(Iconsax.calendar_1, color: Color(0xFF3B82F6), size: 36),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               Text(
-                'no_appointments'.tr(),
+                'هیچ چاوپێکەوتنێکت نییە',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: AppColors.getTextTitle(context),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                style: _kStyle(
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 48),
+                padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
-                  'no_appointments_hint'.tr(),
+                  'دەتوانیت لە ڕێگەی بەشی پزیشکەکانەوە کاتی چاوپێکەوتن دیاری بکەیت.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    color: AppColors.getTextSubtitle(context),
+                  style: _kStyle(
+                    color: const Color(0xFF94A3B8),
                     fontSize: 13,
                     height: 1.5,
                   ),
