@@ -411,23 +411,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              '${'hello'.tr()}، $_userName',
-                                              style: GoogleFonts.poppins(
-                                                color: AppColors.getSurface(
-                                                  context,
-                                                ),
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
+                                              _userName.isNotEmpty && _userName.toLowerCase() != 'slaw'
+                                                  ? 'سڵاو، $_userName'
+                                                  : 'سڵاو، بەخێربێن',
+                                              style: const TextStyle(
+                                                fontFamily: 'Rabar',
+                                                color: Colors.white,
+                                                fontSize: 16.5,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            Text(
-                                              'good_morning'.tr(),
-                                              style: GoogleFonts.poppins(
-                                                color: Colors.white.withValues(
-                                                  alpha: 0.9,
-                                                ),
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w400,
+                                            const Text(
+                                              'هیوای تەندروستییەکی باشت بۆ دەخوازین',
+                                              style: TextStyle(
+                                                fontFamily: 'Rabar',
+                                                color: Colors.white70,
+                                                fontSize: 12,
                                               ),
                                             ),
                                           ],
