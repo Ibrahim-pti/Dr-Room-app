@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import '../home/main_shell.dart';
 import '../orders/order_details_screen.dart';
@@ -81,7 +82,7 @@ class OrderSuccessScreen extends StatelessWidget {
 
                         // ── Success Title ──
                         Text(
-                          'داواکارییەکەت بە سەرکەوتوویی نێردرا!',
+                          'order_placed'.tr(),
                           textAlign: TextAlign.center,
                           style: _kStyle(
                             color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -109,7 +110,7 @@ class OrderSuccessScreen extends StatelessWidget {
                               const Icon(Iconsax.receipt_1, color: Color(0xFF2563EB), size: 16),
                               const SizedBox(width: 6),
                               Text(
-                                'کۆدی داواکاری: #$orderId',
+                                '${'order_id'.tr()}: #$orderId',
                                 style: _kStyle(
                                   color: const Color(0xFF2563EB),
                                   fontSize: 13,
@@ -152,7 +153,7 @@ class OrderSuccessScreen extends StatelessWidget {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      'لە چاوەڕوانی پشتڕاستکردنەوەدایە',
+                                      'awaiting_confirmation'.tr(),
                                       style: _kStyle(
                                         color: isDark ? Colors.white : const Color(0xFF0F172A),
                                         fontSize: 14,
@@ -164,7 +165,7 @@ class OrderSuccessScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'داواکارییەکەت گەیشت و لەلایەن تاقیگەوە کاری لەسەر دەکرێت. بەم زووانە تیمەکەمان بۆ ڕێکخستنی کات و سەردان پەیوەندیت پێوە دەکات.',
+                                'order_received_desc'.tr(),
                                 style: _kStyle(
                                   color: const Color(0xFF64748B),
                                   fontSize: 12.5,
@@ -183,7 +184,7 @@ class OrderSuccessScreen extends StatelessWidget {
               // ── Bottom Action Buttons ──
               Column(
                 children: [
-                  // Track Order Button
+                  // View Order Button
                   SizedBox(
                     width: double.infinity,
                     height: 52,
@@ -222,10 +223,10 @@ class OrderSuccessScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Iconsax.radar_2, color: Colors.white, size: 18),
+                            const Icon(Iconsax.receipt_2, color: Colors.white, size: 18),
                             const SizedBox(width: 8),
                             Text(
-                              'شوێنپێهەڵگرتنی داواکاری',
+                              'view_order'.tr(),
                               style: _kStyle(
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.bold,
@@ -261,7 +262,7 @@ class OrderSuccessScreen extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'گەڕانەوە بۆ پەڕەی سەرەکی',
+                        'back_to_home'.tr(),
                         style: _kStyle(
                           color: isDark ? Colors.white70 : const Color(0xFF475569),
                           fontSize: 14,
