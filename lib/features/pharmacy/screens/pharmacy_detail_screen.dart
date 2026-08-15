@@ -10,7 +10,6 @@ import '../models/medication_model.dart';
 import '../data/pharmacy_repository.dart';
 import '../providers/cart_provider.dart';
 import 'cart_screen.dart';
-import 'pharmacy_chat_screen.dart';
 
 class PharmacyDetailScreen extends ConsumerStatefulWidget {
   final Pharmacy pharmacy;
@@ -102,48 +101,48 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
   List<Medication> get _fallbackMedications => [
         Medication(
           id: 101,
-          name: 'Panadol Extra (پانادۆڵ ئێکسسترا)',
-          description: 'ئازارشکێن و دابەزێنەری پلەی گەرمی جەستە',
+          name: 'Panadol Extra',
+          description: 'ئازارشکێن و دابەزێنەری پلەی گەرمی',
           price: 2500,
           stock: 45,
           imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400',
         ),
         Medication(
           id: 102,
-          name: 'Amoxicillin 500mg (ئامۆکسیسیلین)',
-          description: 'دژەهەوکردن و ئەنتی بایۆتیکی بەهێز بۆ هەوکردنی قوڕگ و سییەکان',
+          name: 'Amoxicillin 500mg',
+          description: 'دژەهەوکردنی بەهێز بۆ قوڕگ و سییەکان',
           price: 4500,
           stock: 30,
           imageUrl: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=400',
         ),
         Medication(
           id: 103,
-          name: 'Vitamin C 1000mg (ڤیتامین سی تەقێنراو)',
-          description: 'بەهێزکەری بەرگری جەستە و پڕ لە دژەئۆکسان',
+          name: 'Vitamin C 1000mg',
+          description: 'تەقێنراو - بەهێزکەری بەرگری جەستە',
           price: 5000,
           stock: 25,
           imageUrl: 'https://images.unsplash.com/photo-1550572017-ed24c5208f60?w=400',
         ),
         Medication(
           id: 104,
-          name: 'Omeprazole 20mg (ئۆمیپرازۆڵ)',
-          description: 'چارەسەری ترشەڵۆکی گەدە و کەمکردنەوەی سوزشی سنگ',
+          name: 'Omeprazole 20mg',
+          description: 'چارەسەری ترشەڵۆک و کەمکردنەوەی سوزش',
           price: 3500,
           stock: 18,
           imageUrl: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400',
         ),
         Medication(
           id: 105,
-          name: 'Baby Care Milk (شیری منداڵان)',
-          description: 'شیری تەواوکەری خۆراکی دەوڵەمەند بە ڤیتامین و ماددە کانزاییەکان',
+          name: 'Baby Care Milk',
+          description: 'شیری تەواوکەری خۆراکی منداڵان',
           price: 14000,
           stock: 12,
           imageUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400',
         ),
         Medication(
           id: 106,
-          name: 'Ibuprofen 400mg (ئیبۆپرۆفین)',
-          description: 'بۆ ئازاری جومگە، ماسولکە و سەرئێشەی توند',
+          name: 'Ibuprofen 400mg',
+          description: 'بۆ ئازاری جومگە، ماسولکە و سەرئێشە',
           price: 3000,
           stock: 20,
           imageUrl: 'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=400',
@@ -207,11 +206,11 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
           : CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                // 1. Top Carousel Header with Rounded Bottom Radius
+                // 1. Full Grand Top Carousel Header (Radius 32, Height 250)
                 SliverToBoxAdapter(
                   child: Stack(
                     children: [
-                      // Image Carousel
+                      // Carousel Image
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
                         child: Container(
@@ -247,14 +246,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 },
                               ),
 
-                              // Gradient Overlays
+                              // Gradient Overlay
                               Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
                                       Colors.black.withValues(alpha: 0.6),
                                       Colors.transparent,
-                                      Colors.black.withValues(alpha: 0.75),
+                                      Colors.black.withValues(alpha: 0.7),
                                     ],
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
@@ -262,7 +261,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 ),
                               ),
 
-                              // Carousel Indicators (Dots)
+                              // Dots Indicator
                               Positioned(
                                 bottom: 14,
                                 left: 0,
@@ -274,7 +273,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                     return AnimatedContainer(
                                       duration: const Duration(milliseconds: 300),
                                       margin: const EdgeInsets.symmetric(horizontal: 3),
-                                      width: isSel ? 20 : 6,
+                                      width: isSel ? 22 : 6,
                                       height: 6,
                                       decoration: BoxDecoration(
                                         color: isSel ? Colors.white : Colors.white.withValues(alpha: 0.4),
@@ -289,7 +288,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                         ),
                       ),
 
-                      // Top App Bar Buttons (Back)
+                      // Top App Bar (Back Button)
                       SafeArea(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -315,14 +314,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                   ),
                 ),
 
-                // 2. Pharmacy Info, Badges, Location, Phone, Social & Offer
+                // 2. Full Info, Badges, Location, Actions, Offer, Categories & Search
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Pharmacy Name & Rating
+                        // Pharmacy Name & Rating Row
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,7 +364,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
 
                         const SizedBox(height: 10),
 
-                        // Badges Row (Open Status, Verified, Delivery Time)
+                        // Badges Row (Open Status, Verified, Delivery Fee)
                         Row(
                           children: [
                             Container(
@@ -419,7 +418,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           ],
                         ),
 
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
 
                         // Location Row
                         Row(
@@ -440,7 +439,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
 
                         const SizedBox(height: 8),
 
-                        // Delivery & Time Row
+                        // Delivery Time Row
                         Row(
                           children: [
                             const Icon(Icons.delivery_dining_outlined, color: Color(0xFF10B981), size: 18),
@@ -458,7 +457,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
 
                         const SizedBox(height: 14),
 
-                        // Action Chips (Call, Facebook, Chat)
+                        // Action Chips Row (Call, Facebook, Map)
                         Row(
                           children: [
                             // Call Button
@@ -488,7 +487,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                             ),
                             const SizedBox(width: 10),
 
-                            // Facebook / Social Button
+                            // Facebook Button
                             Expanded(
                               child: GestureDetector(
                                 onTap: _openFacebook,
@@ -515,7 +514,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                             ),
                             const SizedBox(width: 10),
 
-                            // Map / Location Button
+                            // Map Button
                             Expanded(
                               child: GestureDetector(
                                 onTap: _openMap,
@@ -701,160 +700,184 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                   ),
                 ),
 
-                // 3. Medicines List
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final med = filteredMeds[index];
-                        final inCartItem = cartState.items.where((i) => i.medication.id == med.id).firstOrNull;
-                        final int qty = inCartItem?.quantity ?? 0;
-
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 14),
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: borderColor),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.02),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
-                                child: Image.network(
-                                  med.imageUrl ?? 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
-                                  width: 72,
-                                  height: 72,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    width: 72,
-                                    height: 72,
-                                    color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                                    child: const Icon(Icons.medication_rounded, color: Color(0xFF3B82F6), size: 30),
-                                  ),
+                // 3. Medicines 2-Column Grid Layout
+                filteredMeds.isEmpty
+                    ? SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Icon(Icons.medication_outlined, size: 50, color: Colors.grey.withValues(alpha: 0.5)),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'هیچ دەرمانێک نەدۆزرایەوە',
+                                  style: _kStyle(color: const Color(0xFF94A3B8), fontSize: 14),
                                 ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      med.name,
-                                      style: _kStyle(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      med.description ?? 'دەرمانی پزیشکی بە کوالێتی بەرز',
-                                      style: _kStyle(fontSize: 11.5, color: const Color(0xFF94A3B8), height: 1.3),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          '${med.price.toInt()} د.ع',
-                                          style: _kStyle(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.bold,
-                                            color: const Color(0xFF3B82F6),
-                                          ),
-                                        ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    : SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        sliver: SliverGrid(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.68,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final med = filteredMeds[index];
+                              final inCartItem = cartState.items.where((i) => i.medication.id == med.id).firstOrNull;
+                              final int qty = inCartItem?.quantity ?? 0;
 
-                                        // Add to Cart Button or Counter
-                                        if (qty == 0)
-                                          GestureDetector(
-                                            onTap: () {
-                                              ref.read(cartProvider.notifier).addItem(med, widget.pharmacy);
-                                            },
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF3B82F6),
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  const Icon(Icons.add, color: Colors.white, size: 15),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'زیادکردن',
-                                                    style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.5),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          )
-                                        else
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                                              borderRadius: BorderRadius.circular(12),
-                                              border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.3)),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    ref.read(cartProvider.notifier).updateQuantity(med.id, qty - 1);
-                                                  },
-                                                  child: Container(
-                                                    padding: const EdgeInsets.all(6),
-                                                    child: const Icon(Icons.remove, size: 14, color: Color(0xFF3B82F6)),
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                                                  child: Text(
-                                                    '$qty',
-                                                    style: _kStyle(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF3B82F6)),
-                                                  ),
-                                                ),
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    ref.read(cartProvider.notifier).updateQuantity(med.id, qty + 1);
-                                                  },
-                                                  child: Container(
-                                                    padding: const EdgeInsets.all(6),
-                                                    child: const Icon(Icons.add, size: 14, color: Color(0xFF3B82F6)),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                      ],
+                              return Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: cardBg,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: borderColor),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.02),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        ).animate().fadeIn(delay: (index * 40).ms).slideY(begin: 0.04, end: 0);
-                      },
-                      childCount: filteredMeds.length,
-                    ),
-                  ),
-                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Image Thumbnail
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(14),
+                                      child: Image.network(
+                                        med.imageUrl ?? 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
+                                        width: double.infinity,
+                                        height: 105,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          width: double.infinity,
+                                          height: 105,
+                                          color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                                          child: const Icon(Icons.medication_rounded, color: Color(0xFF3B82F6), size: 36),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
 
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 100),
-                ),
+                                    // Name
+                                    Text(
+                                      med.name,
+                                      style: _kStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+
+                                    // Description
+                                    Text(
+                                      med.description ?? 'دەرمانی پزیشکی بە کوالێتی بەرز',
+                                      style: _kStyle(
+                                        fontSize: 10.5,
+                                        color: const Color(0xFF94A3B8),
+                                        height: 1.2,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+
+                                    const Spacer(),
+
+                                    // Price
+                                    Text(
+                                      '${med.price.toInt()} د.ع',
+                                      style: _kStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF3B82F6),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+
+                                    // Add to Cart Button or Counter
+                                    if (qty == 0)
+                                      GestureDetector(
+                                        onTap: () {
+                                          ref.read(cartProvider.notifier).addItem(med, widget.pharmacy);
+                                        },
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.symmetric(vertical: 7),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF3B82F6),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              const Icon(Icons.add, color: Colors.white, size: 14),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'زیادکردن',
+                                                style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.5),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    else
+                                      Container(
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.3)),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            GestureDetector(
+                                              onTap: () {
+                                                ref.read(cartProvider.notifier).updateQuantity(med.id, qty - 1);
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.all(5),
+                                                child: const Icon(Icons.remove, size: 14, color: Color(0xFF3B82F6)),
+                                              ),
+                                            ),
+                                            Text(
+                                              '$qty',
+                                              style: _kStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: const Color(0xFF3B82F6)),
+                                            ),
+                                            GestureDetector(
+                                              onTap: () {
+                                                ref.read(cartProvider.notifier).updateQuantity(med.id, qty + 1);
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.all(5),
+                                                child: const Icon(Icons.add, size: 14, color: Color(0xFF3B82F6)),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ).animate().fadeIn(delay: (index * 30).ms).slideY(begin: 0.03, end: 0);
+                            },
+                            childCount: filteredMeds.length,
+                          ),
+                        ),
+                      ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
 
