@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/utils/api_client.dart';
 import 'lab_order_method_screen.dart';
+import 'lab_map_screen.dart';
 
 class LabDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> lab;
@@ -229,23 +230,13 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     }
   }
 
-  void _openMap() async {
-    final lat = _labData['latitude']?.toString() ?? '36.1911';
-    final lng = _labData['longitude']?.toString() ?? '44.0092';
-    final labName = Uri.encodeComponent(_labData['name']?.toString() ?? 'Laboratory');
-    
-    final Uri googleMapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
-    final Uri geoUrl = Uri.parse('geo:$lat,$lng?q=$lat,$lng($labName)');
-    
-    try {
-      if (await canLaunchUrl(googleMapsUrl)) {
-        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-      } else if (await canLaunchUrl(geoUrl)) {
-        await launchUrl(geoUrl, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      debugPrint('Error opening map: $e');
-    }
+  void _openMap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LabMapScreen(lab: _labData),
+      ),
+    );
   }
 
   @override
@@ -291,10 +282,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
                 // ── 6. Available Tests List ──
                 _buildTestsSection(),
-                const SizedBox(height: 24),
-
-                // ── 7. Working Hours & Location Info ──
-                _buildLocationInfoCard(location, openingHours),
               ],
             ),
           ),
@@ -967,109 +954,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               ),
             );
           },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLocationInfoCard(String location, String openingHours) {
-    return Column(
-      children: [
-        // Location Card with Directions
-        GestureDetector(
-          onTap: _openMap,
-          child: Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFEFF6FF),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Iconsax.location, color: Color(0xFF3B82F6), size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _tr('location_address', context),
-                        style: _kStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        location,
-                        style: _kStyle(
-                          fontSize: 12.5,
-                          color: const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.arrow_forward_ios, color: Color(0xFF94A3B8), size: 13),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Working Hours Card
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF0FDF4),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Iconsax.clock, color: Color(0xFF10B981), size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _tr('working_hours', context),
-                      style: _kStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      openingHours,
-                      style: _kStyle(
-                        fontSize: 12.5,
-                        color: const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ],
     );
