@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -23,9 +24,12 @@ class PharmacyDetailScreen extends ConsumerStatefulWidget {
 class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
   final PharmacyRepository _repository = PharmacyRepository();
   final TextEditingController _searchMedController = TextEditingController();
+  final PageController _carouselController = PageController();
+  int _currentCarouselIndex = 0;
+  Timer? _carouselTimer;
+
   List<Medication> _medications = [];
   bool _isLoading = true;
-  String _selectedCategory = 'هەمووی';
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -42,10 +46,38 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     );
   }
 
+  late final List<String> _pharmacyGallery = [
+    widget.pharmacy.profileImage ?? 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800',
+    'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=800',
+    'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=800',
+  ];
+
   @override
   void initState() {
     super.initState();
     _fetchData();
+    _startCarouselTimer();
+  }
+
+  void _startCarouselTimer() {
+    _carouselTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_carouselController.hasClients) {
+        int nextIndex = (_currentCarouselIndex + 1) % _pharmacyGallery.length;
+        _carouselController.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _carouselTimer?.cancel();
+    _carouselController.dispose();
+    _searchMedController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchData() async {
@@ -132,6 +164,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     }
   }
 
+  Future<void> _openMap() async {
+    final address = widget.pharmacy.address ?? 'Erbil Kurdistan';
+    final Uri uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartState = ref.watch(cartProvider);
@@ -152,165 +192,213 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
           : CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                // 1. Top Hero Cover Image with Back & Action Overlay
-                SliverAppBar(
-                  expandedHeight: 220.0,
-                  pinned: true,
-                  backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-                  elevation: 0,
-                  leading: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                  ),
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Iconsax.messages_2, size: 18, color: Colors.white),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => PharmacyChatScreen(pharmacy: widget.pharmacy)),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 8.0, top: 8.0, bottom: 8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.phone_in_talk_rounded, size: 18, color: Colors.white),
-                          onPressed: _makeCall,
-                        ),
-                      ),
-                    ),
-                  ],
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.network(
-                          widget.pharmacy.profileImage ??
-                              'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800',
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: const Color(0xFF3B82F6),
-                            child: const Center(
-                              child: Icon(Icons.local_pharmacy, color: Colors.white, size: 60),
-                            ),
-                          ),
-                        ),
-                        // Gradient Shade
-                        Container(
+                // 1. Top Carousel Header with Rounded Bottom Radius
+                SliverToBoxAdapter(
+                  child: Stack(
+                    children: [
+                      // Image Carousel
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+                        child: Container(
+                          height: 250,
+                          width: double.infinity,
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.black.withValues(alpha: 0.6),
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.7),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
                           ),
-                        ),
-                        // Online & Rating Badge Overlay
-                        PositionedDirectional(
-                          bottom: 16,
-                          start: 16,
-                          child: Row(
+                          child: Stack(
                             children: [
+                              PageView.builder(
+                                controller: _carouselController,
+                                itemCount: _pharmacyGallery.length,
+                                onPageChanged: (idx) => setState(() => _currentCarouselIndex = idx),
+                                itemBuilder: (context, index) {
+                                  return Image.network(
+                                    _pharmacyGallery[index],
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      color: const Color(0xFF3B82F6),
+                                      child: const Center(
+                                        child: Icon(Icons.local_pharmacy, color: Colors.white, size: 60),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              // Gradient Overlays
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: widget.pharmacy.isOpen ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  widget.pharmacy.isOpen ? 'کراوەیە 🟢' : 'داخراوە 🔴',
-                                  style: _kStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.black.withValues(alpha: 0.6),
+                                      Colors.transparent,
+                                      Colors.black.withValues(alpha: 0.75),
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.6),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+
+                              // Carousel Indicators (Dots)
+                              Positioned(
+                                bottom: 14,
+                                left: 0,
+                                right: 0,
                                 child: Row(
-                                  children: [
-                                    const Icon(Icons.star_rounded, color: Color(0xFFFBBF24), size: 14),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      '${widget.pharmacy.rating}',
-                                      style: _kStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(_pharmacyGallery.length, (idx) {
+                                    final isSel = _currentCarouselIndex == idx;
+                                    return AnimatedContainer(
+                                      duration: const Duration(milliseconds: 300),
+                                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                                      width: isSel ? 20 : 6,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        color: isSel ? Colors.white : Colors.white.withValues(alpha: 0.4),
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                    );
+                                  }),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+
+                      // Top App Bar Buttons (Back)
+                      SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.45),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ),
+                              const SizedBox(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-                // 2. Pharmacy Info, Location, Phone, Social & Offer
+                // 2. Pharmacy Info, Badges, Location, Phone, Social & Offer
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Pharmacy Name & Verified Badge
+                        // Pharmacy Name & Rating
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: Text(
                                 widget.pharmacy.name,
                                 style: _kStyle(
-                                  fontSize: 18,
+                                  fontSize: 19,
                                   fontWeight: FontWeight.bold,
                                   color: isDark ? Colors.white : const Color(0xFF0F172A),
                                 ),
                               ),
                             ),
+                            const SizedBox(width: 10),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                color: const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 16),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '${widget.pharmacy.rating}',
+                                    style: _kStyle(
+                                      color: const Color(0xFFD97706),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        // Badges Row (Open Status, Verified, Delivery Time)
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: widget.pharmacy.isOpen
+                                    ? const Color(0xFF10B981).withValues(alpha: 0.12)
+                                    : const Color(0xFFEF4444).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                widget.pharmacy.isOpen ? 'کراوەیە 🟢' : 'داخراوە 🔴',
+                                style: _kStyle(
+                                  color: widget.pharmacy.isOpen ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 13),
+                                  const Icon(Icons.verified_rounded, color: Color(0xFF3B82F6), size: 13),
                                   const SizedBox(width: 4),
                                   Text(
                                     'باوەڕپێکراو',
-                                    style: _kStyle(color: const Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold),
+                                    style: _kStyle(color: const Color(0xFF3B82F6), fontSize: 11, fontWeight: FontWeight.bold),
                                   ),
                                 ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'گەیاندن: ${widget.pharmacy.deliveryFee.toInt()} د.ع',
+                                style: _kStyle(color: const Color(0xFF8B5CF6), fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
@@ -412,15 +500,10 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                             ),
                             const SizedBox(width: 10),
 
-                            // Chat Button
+                            // Map / Location Button
                             Expanded(
                               child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => PharmacyChatScreen(pharmacy: widget.pharmacy)),
-                                  );
-                                },
+                                onTap: _openMap,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 10),
                                   decoration: BoxDecoration(
@@ -431,10 +514,10 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Iconsax.messages_2, color: Color(0xFF3B82F6), size: 16),
+                                      const Icon(Icons.location_on_rounded, color: Color(0xFF3B82F6), size: 16),
                                       const SizedBox(width: 6),
                                       Text(
-                                        'چات',
+                                        'نەخشە',
                                         style: _kStyle(color: const Color(0xFF3B82F6), fontWeight: FontWeight.bold, fontSize: 12),
                                       ),
                                     ],
