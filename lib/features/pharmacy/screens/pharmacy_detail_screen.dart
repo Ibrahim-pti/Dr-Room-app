@@ -725,8 +725,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.68,
+                            mainAxisSpacing: 14,
+                            childAspectRatio: 0.74,
                           ),
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {
@@ -735,140 +735,204 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                               final int qty = inCartItem?.quantity ?? 0;
 
                               return Container(
-                                padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   color: cardBg,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(color: borderColor),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.02),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
+                                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
                                     ),
                                   ],
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Image Thumbnail
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(14),
-                                      child: Image.network(
-                                        med.imageUrl ?? 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
-                                        width: double.infinity,
-                                        height: 105,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(
-                                          width: double.infinity,
-                                          height: 105,
-                                          color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                                          child: const Icon(Icons.medication_rounded, color: Color(0xFF3B82F6), size: 36),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-
-                                    // Name
-                                    Text(
-                                      med.name,
-                                      style: _kStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-
-                                    // Description
-                                    Text(
-                                      med.description ?? 'دەرمانی پزیشکی بە کوالێتی بەرز',
-                                      style: _kStyle(
-                                        fontSize: 10.5,
-                                        color: const Color(0xFF94A3B8),
-                                        height: 1.2,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-
-                                    const Spacer(),
-
-                                    // Price
-                                    Text(
-                                      '${med.price.toInt()} د.ع',
-                                      style: _kStyle(
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF3B82F6),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-
-                                    // Add to Cart Button or Counter
-                                    if (qty == 0)
-                                      GestureDetector(
-                                        onTap: () {
-                                          ref.read(cartProvider.notifier).addItem(med, widget.pharmacy);
-                                        },
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.symmetric(vertical: 7),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF3B82F6),
-                                            borderRadius: BorderRadius.circular(12),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Image Container with dosage badge
+                                      Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(14),
+                                            child: Container(
+                                              height: 110,
+                                              width: double.infinity,
+                                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                              child: Image.network(
+                                                med.imageUrl ?? 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) => Center(
+                                                  child: Icon(
+                                                    Icons.medication_rounded,
+                                                    color: const Color(0xFF3B82F6).withValues(alpha: 0.7),
+                                                    size: 40,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                           ),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                          // Small Quality / Dose Tag
+                                          PositionedDirectional(
+                                            top: 6,
+                                            start: 6,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withValues(alpha: 0.65),
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                'ئۆرجیناڵ ⭐',
+                                                style: _kStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 8),
+
+                                      // Medicine Name
+                                      Text(
+                                        med.name,
+                                        style: _kStyle(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+
+                                      const SizedBox(height: 2),
+
+                                      // Description Subtext
+                                      Text(
+                                        med.description ?? 'دەرمانی باوەڕپێکراو',
+                                        style: _kStyle(
+                                          fontSize: 11,
+                                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                          height: 1.2,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+
+                                      const Spacer(),
+
+                                      // Price and Add/Counter Row
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          // Price in IQD
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              const Icon(Icons.add, color: Colors.white, size: 14),
-                                              const SizedBox(width: 4),
                                               Text(
-                                                'زیادکردن',
-                                                style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11.5),
+                                                '${med.price.toInt()}',
+                                                style: _kStyle(
+                                                  fontSize: 14.5,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: const Color(0xFF2563EB),
+                                                ),
+                                              ),
+                                              Text(
+                                                'دیناری عێراقی',
+                                                style: _kStyle(
+                                                  fontSize: 9.5,
+                                                  color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
+                                                ),
                                               ),
                                             ],
                                           ),
-                                        ),
-                                      )
-                                    else
-                                      Container(
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.3)),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
+
+                                          // Modern Floating Add / Stepper Button
+                                          if (qty == 0)
                                             GestureDetector(
                                               onTap: () {
-                                                ref.read(cartProvider.notifier).updateQuantity(med.id, qty - 1);
+                                                ref.read(cartProvider.notifier).addItem(med, widget.pharmacy);
                                               },
                                               child: Container(
-                                                padding: const EdgeInsets.all(5),
-                                                child: const Icon(Icons.remove, size: 14, color: Color(0xFF3B82F6)),
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF2563EB),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+                                                      blurRadius: 6,
+                                                      offset: const Offset(0, 2),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(Icons.add, color: Colors.white, size: 14),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      'کڕین',
+                                                      style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          else
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.3)),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      ref.read(cartProvider.notifier).updateQuantity(med.id, qty - 1);
+                                                    },
+                                                    child: Container(
+                                                      padding: const EdgeInsets.all(4),
+                                                      decoration: BoxDecoration(
+                                                        color: cardBg,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(Icons.remove, size: 12, color: Color(0xFF2563EB)),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                                                    child: Text(
+                                                      '$qty',
+                                                      style: _kStyle(fontWeight: FontWeight.bold, fontSize: 12, color: const Color(0xFF2563EB)),
+                                                    ),
+                                                  ),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      ref.read(cartProvider.notifier).updateQuantity(med.id, qty + 1);
+                                                    },
+                                                    child: Container(
+                                                      padding: const EdgeInsets.all(4),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color(0xFF2563EB),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(Icons.add, size: 12, color: Colors.white),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            Text(
-                                              '$qty',
-                                              style: _kStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: const Color(0xFF3B82F6)),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                ref.read(cartProvider.notifier).updateQuantity(med.id, qty + 1);
-                                              },
-                                              child: Container(
-                                                padding: const EdgeInsets.all(5),
-                                                child: const Icon(Icons.add, size: 14, color: Color(0xFF3B82F6)),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                        ],
                                       ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ).animate().fadeIn(delay: (index * 30).ms).slideY(begin: 0.03, end: 0);
                             },
