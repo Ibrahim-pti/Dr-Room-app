@@ -855,17 +855,24 @@ class _HomeScreenState extends State<HomeScreen> {
                               final reviews = '($totalReviews)';
 
                               final fallbackImages = [
-                                'assets/images/doctor1.png',
-                                'assets/images/doctor2.png',
-                                'assets/images/doctor3.png',
-                                'assets/images/doctor.png',
+                                'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=80',
+                                'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=80',
+                                'https://images.unsplash.com/photo-1594824813511-236b283d0cfa?w=500&auto=format&fit=crop&q=80',
+                                'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=500&auto=format&fit=crop&q=80',
+                                'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=500&auto=format&fit=crop&q=80',
+                                'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=500&auto=format&fit=crop&q=80',
+                                'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=500&auto=format&fit=crop&q=80',
                               ];
                               final fallbackImage =
                                   fallbackImages[index % fallbackImages.length];
 
                               final rawPath = doc['image_path']?.toString();
-                              final image = (rawPath != null && rawPath.isNotEmpty)
-                                  ? (rawPath.startsWith('assets/')
+                              final isCustomUpload = rawPath != null &&
+                                  rawPath.isNotEmpty &&
+                                  !rawPath.contains('assets/images/doctor') &&
+                                  !rawPath.contains('default');
+                              final image = isCustomUpload
+                                  ? (rawPath.startsWith('http')
                                       ? rawPath
                                       : ApiClient.getImageUrl(rawPath))
                                   : fallbackImage;
@@ -1463,6 +1470,21 @@ class _HomeScreenState extends State<HomeScreen> {
                               final time = pharm['time'] ?? '٢٤ کاتژمێر';
                               final profileImage = pharm['profile_image'];
 
+                              final fallbackPharmacyImages = [
+                                'assets/images/pharmacy1.jpg',
+                                'assets/images/pharmacy2.jpg',
+                                'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=500&auto=format&fit=crop&q=60',
+                                'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=500&auto=format&fit=crop&q=60',
+                                'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=500&auto=format&fit=crop&q=60',
+                                'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=500&auto=format&fit=crop&q=60',
+                              ];
+                              final pharmImg = (profileImage != null && profileImage.toString().isNotEmpty)
+                                  ? (profileImage.toString().startsWith('assets/') || profileImage.toString().startsWith('http')
+                                      ? profileImage.toString()
+                                      : ApiClient.getImageUrl(profileImage.toString()))
+                                  : fallbackPharmacyImages[index % fallbackPharmacyImages.length];
+                              final isNetworkPharm = pharmImg.startsWith('http');
+
                               return GestureDetector(
                                 onTap: () {
                                   Navigator.push(
@@ -1530,9 +1552,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                               height: 92,
                                               width: double.infinity,
                                               color: const Color(0xFFF8FAFC),
-                                              child: profileImage != null
+                                              child: isNetworkPharm
                                                   ? CachedNetworkImage(
-                                                      imageUrl: ApiClient.getImageUrl(profileImage),
+                                                      imageUrl: pharmImg,
                                                       fit: BoxFit.cover,
                                                       errorWidget: (context, url, error) => Image.asset(
                                                         'assets/images/pharmacy1.jpg',
@@ -1540,7 +1562,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       ),
                                                     )
                                                   : Image.asset(
-                                                      'assets/images/pharmacy1.jpg',
+                                                      pharmImg,
                                                       fit: BoxFit.cover,
                                                     ),
                                             ),
@@ -1689,7 +1711,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 120),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),

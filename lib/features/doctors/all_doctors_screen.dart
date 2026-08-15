@@ -92,9 +92,23 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
                     final name = doc['user'] != null ? doc['user']['name'] : 'Doctor';
                     final specialty = doc['specialty'] ?? 'Specialist';
                     final rating = doc['rating']?.toString() ?? '5.0';
-                    final image = (doc['image_path'] != null)
-                        ? ApiClient.getImageUrl(doc['image_path'])
-                        : 'assets/images/doctor1.png'; // Fallback
+                    final fallbackImages = [
+                      'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=80',
+                      'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=80',
+                      'https://images.unsplash.com/photo-1594824813511-236b283d0cfa?w=500&auto=format&fit=crop&q=80',
+                      'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=500&auto=format&fit=crop&q=80',
+                      'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=500&auto=format&fit=crop&q=80',
+                    ];
+                    final rawPath = doc['image_path']?.toString();
+                    final isCustomUpload = rawPath != null &&
+                        rawPath.isNotEmpty &&
+                        !rawPath.contains('assets/images/doctor') &&
+                        !rawPath.contains('default');
+                    final image = isCustomUpload
+                        ? (rawPath.startsWith('http')
+                            ? rawPath
+                            : ApiClient.getImageUrl(rawPath))
+                        : fallbackImages[index % fallbackImages.length];
                     final doctorId = doc['id'];
 
                     return Padding(
