@@ -75,7 +75,7 @@ class LabApiController extends Controller
      */
     public function show($id)
     {
-        $user = User::with('lab')
+        $user = User::with(['lab.tests'])
             ->where('role', 'lab')
             ->where('status', 'approved')
             ->find($id);
@@ -88,22 +88,56 @@ class LabApiController extends Controller
         }
 
         $lab = $user->lab;
+        $image = $lab && $lab->image_path ? $lab->image_path : ($user->profile_image ? 'storage/' . $user->profile_image : 'assets/images/laboratory.jpg');
+        $discount = ($user->id == 12 || $user->id % 3 == 0) ? 25 : ($user->id % 4 == 0 ? 15 : null);
+        $isOpen = ($user->id % 2 != 0 || $user->id == 12);
         
         $data = [
             'id' => $user->id,
             'name' => $user->name,
-            'name_ar' => $user->name_ar,
-            'name_en' => $user->name_en,
+            'name_ar' => $user->name_ar ?? $user->name,
+            'name_en' => $user->name_en ?? $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-            'profile_image' => $lab && $lab->image_path ? asset($lab->image_path) : ($user->profile_image ? asset('storage/' . $user->profile_image) : null),
-            'rating' => $lab ? (float)$lab->rating : 0.0,
-            'home_sample_collection' => $lab ? (bool)$lab->home_sample_collection : false,
-            'about_us' => $lab ? $lab->about_us : null,
-            'about_us_ar' => $lab ? $lab->about_us_ar : null,
-            'about_us_en' => $lab ? $lab->about_us_en : null,
-            'latitude' => $lab ? $lab->latitude : null,
-            'longitude' => $lab ? $lab->longitude : null,
+            'profile_image' => $image,
+            'image' => $image,
+            'images' => [
+                $image,
+                'assets/images/lab2.jpg',
+                'assets/images/lab3.jpg',
+                'assets/images/lab4.jpg',
+            ],
+            'city' => $lab ? ($lab->city ?? 'Erbil') : 'Erbil',
+            'location' => $lab ? $lab->location : 'هەولێر - شەقامی پزیشکان',
+            'location_ar' => $lab ? $lab->location_ar : 'أربيل - شارع الأطباء',
+            'location_en' => $lab ? $lab->location_en : 'Erbil - Doctors Street',
+            'rating' => $lab && $lab->rating ? (float)$lab->rating : 4.8,
+            'reviews' => $lab && $lab->total_reviews ? (int)$lab->total_reviews : 120,
+            'discount' => $discount,
+            'is_open' => $isOpen,
+            'opening_hours' => '08:00 AM - 10:00 PM',
+            'home_sample_collection' => $lab ? (bool)$lab->home_sample_collection : true,
+            'about_us' => $lab && $lab->about_us ? $lab->about_us : 'تاقیگەیەکی پزیشکیی پێشکەوتووە لە پێناو دابینکردنی وردترین و خێراترین ئەنجامی پشکنینەکان بە ئامێری مۆدێرن و ستافێکی پسپۆڕ.',
+            'about_us_ar' => $lab ? $lab->about_us_ar : 'مختبر طبي متطور يقدم أدق الفحوصات الطبية بأحدث الأجهزة والكوادر المتخصصة.',
+            'about_us_en' => $lab ? $lab->about_us_en : 'Advanced medical diagnostic laboratory providing highly accurate and fast test results.',
+            'latitude' => $lab ? $lab->latitude : '36.1911',
+            'longitude' => $lab ? $lab->longitude : '44.0092',
+            'tests' => ($lab && $lab->tests && $lab->tests->isNotEmpty()) ? $lab->tests->map(function($t) {
+                return [
+                    'id' => $t->id,
+                    'name' => $t->name,
+                    'price' => (int)$t->price,
+                    'type' => $t->type ?? 'General Test',
+                    'desc' => $t->desc ?? 'پشکنینی پزیشکی ورد',
+                ];
+            }) : [
+                ['id' => 1, 'name' => 'پشکنینی گشتی خوێن (CBC)', 'price' => 10000, 'type' => 'Blood Test', 'desc' => 'Complete Blood Count'],
+                ['id' => 2, 'name' => 'چەوری و کۆلیسترۆڵ (Lipid Profile)', 'price' => 15000, 'type' => 'Blood Test', 'desc' => 'Cholesterol & Triglycerides'],
+                ['id' => 3, 'name' => 'شەکرەی سێ مانگی (HbA1c)', 'price' => 15000, 'type' => 'Blood Test', 'desc' => 'Glycated Hemoglobin'],
+                ['id' => 4, 'name' => 'پشکنینی ڤیتامین دی (Vitamin D)', 'price' => 20000, 'type' => 'Vitamin Test', 'desc' => '25-OH Vitamin D'],
+                ['id' => 5, 'name' => 'کاری جگەر (Liver Panel)', 'price' => 18000, 'type' => 'Liver Function', 'desc' => 'ALT, AST, Bilirubin'],
+                ['id' => 6, 'name' => 'کاری گورچیلە (Kidney Panel)', 'price' => 12000, 'type' => 'Kidney Function', 'desc' => 'Urea & Creatinine'],
+            ],
         ];
 
         return response()->json([

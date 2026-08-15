@@ -19,4 +19,9 @@ class Lab extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function tests()
+    {
+        return $this->hasMany(LabTest::class);
+    }
 }
