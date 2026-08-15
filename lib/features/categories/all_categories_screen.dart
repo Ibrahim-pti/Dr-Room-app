@@ -5,7 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../doctors/all_doctors_screen.dart';
 import '../pharmacy/screens/pharmacies_screen.dart';
-import '../lab/lab_order_method_screen.dart';
+import '../lab/all_labs_screen.dart';
 import '../nursing/nursing_services_screen.dart';
 
 class AllCategoriesScreen extends StatelessWidget {
@@ -145,7 +145,7 @@ class AllCategoriesScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const LabOrderMethodScreen(),
+                builder: (context) => const AllLabsScreen(),
               ),
             );
           } else if (id == 'nursing') {

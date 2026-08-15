@@ -22,7 +22,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 import '../doctors/doctor_details_screen.dart';
 import '../notifications/notifications_screen.dart';
-import '../lab/lab_order_method_screen.dart';
 import '../lab/all_labs_screen.dart';
 import 'promo_carousel.dart';
 import '../records/medical_records_screen.dart';
@@ -2315,7 +2314,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const LabOrderMethodScreen(),
+                builder: (context) => const AllLabsScreen(),
               ),
             );
           } else if (id == 'nursing') {
