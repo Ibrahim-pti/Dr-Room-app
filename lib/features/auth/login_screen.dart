@@ -572,62 +572,31 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
 
             // ── Register Link ──
-            Padding(
-              padding: const EdgeInsets.only(top: 24, bottom: 28),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'هێشتا هەژمارت نییە؟',
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'هێشتا هەژمارت نییە؟',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    color: Color(0xFF64748B),
+                    fontSize: 13.5,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: widget.onSignUp,
+                  child: const Text(
+                    'دروستکردنی هەژمار',
                     style: TextStyle(
                       fontFamily: 'Rabar',
-                      color: Color(0xFF64748B),
-                      fontSize: 13.5,
+                      color: Color(0xFF2563EB),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: widget.onSignUp,
-                    child: const Text(
-                      'دروستکردنی هەژمار',
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        color: Color(0xFF2563EB),
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Trust Badge ──
-            Padding(
-              padding: const EdgeInsets.only(bottom: 32),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.security_rounded,
-                    size: 15,
-                    color: isDark
-                        ? const Color(0xFF64748B)
-                        : const Color(0xFF94A3B8),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'زانیارییەکانت بە تەواوی پارێزراون لە دکتۆر ڕووم',
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 12,
-                      color: isDark
-                          ? const Color(0xFF64748B)
-                          : const Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
