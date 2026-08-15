@@ -838,7 +838,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             : _fallbackDoctors;
 
                         return SizedBox(
-                          height: 228,
+                          height: 236,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -927,7 +927,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               top: Radius.circular(19),
                                             ),
                                             child: Container(
-                                              height: 98,
+                                              height: 114,
                                               width: double.infinity,
                                               decoration: BoxDecoration(
                                                 gradient: LinearGradient(
@@ -948,7 +948,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ? CachedNetworkImage(
                                                       imageUrl: image,
                                                       fit: BoxFit.cover,
-                                                      alignment: Alignment.topCenter,
+                                                      alignment: const Alignment(0, -0.15),
                                                       errorWidget: (context, url, error) => const Icon(
                                                         Icons.person,
                                                         size: 45,
@@ -958,7 +958,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   : Image.asset(
                                                       image,
                                                       fit: BoxFit.cover,
-                                                      alignment: Alignment.topCenter,
+                                                      alignment: const Alignment(0, -0.15),
                                                     ),
                                             ),
                                           ),
