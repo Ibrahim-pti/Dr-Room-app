@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../core/utils/api_client.dart';
 import 'lab_order_method_screen.dart';
 import 'lab_map_screen.dart';
@@ -28,6 +29,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   Timer? _autoPlayTimer;
   int _imagesCount = 4;
   int _selectedTabIndex = 0; // 0: ناساندن, 1: پشکنینەکان, 2: ئۆفەر و پاکێج
+  YoutubePlayerController? _youtubeController;
 
   final List<Map<String, dynamic>> _packages = [
     {
@@ -69,6 +71,31 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     _initializeTests();
     _fetchLabDetails();
     _startAutoPlay();
+    _initYoutubeVideo();
+  }
+
+  String _extractYoutubeId(String url) {
+    if (url.contains('v=')) return url.split('v=')[1].split('&').first;
+    if (url.contains('youtu.be/')) return url.split('youtu.be/')[1].split('?').first;
+    if (url.contains('/embed/')) return url.split('/embed/')[1].split('?').first;
+    return url;
+  }
+
+  void _initYoutubeVideo() {
+    final rawUrl = _labData['youtube_url']?.toString() ?? 'https://www.youtube.com/watch?v=ScMzIvxBSi4';
+    final videoId = _extractYoutubeId(rawUrl);
+    
+    _youtubeController = YoutubePlayerController.fromVideoId(
+      videoId: videoId.isNotEmpty ? videoId : 'ScMzIvxBSi4',
+      autoPlay: true,
+      params: const YoutubePlayerParams(
+        showFullscreenButton: true,
+        showControls: true,
+        showVideoAnnotations: false,
+        strictRelatedVideos: true,
+        mute: false,
+      ),
+    );
   }
 
   void _startAutoPlay() {
@@ -89,6 +116,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   void dispose() {
     _autoPlayTimer?.cancel();
     _pageController.dispose();
+    _youtubeController?.close();
     super.dispose();
   }
 
@@ -313,6 +341,8 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 // ── 5. Dynamic Tab Content ──
                 if (_selectedTabIndex == 0) ...[
                   // 📋 تاب ١: ناساندن و تایبەتمەندییەکان
+                  _buildVideoSection(),
+                  const SizedBox(height: 18),
                   _buildAboutSection(aboutUs),
                   const SizedBox(height: 18),
                   _buildHighlightFeatures(),
@@ -739,10 +769,10 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     ];
 
     return Container(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
@@ -754,16 +784,16 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               onTap: () => setState(() => _selectedTabIndex = id),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   color: isSelected ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
                           ),
                         ]
                       : null,
@@ -774,16 +804,16 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     Icon(
                       t['icon'] as IconData,
                       color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
-                      size: 14.5,
+                      size: 16.5,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 5),
                     Flexible(
                       child: Text(
                         t['title'] as String,
                         style: _kStyle(
                           color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF64748B),
-                          fontSize: 11.5,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 12.5,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -795,6 +825,54 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildExploreTestsButton() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            _selectedTabIndex = 1; // Switch to Tests Tab
+          });
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF3B82F6),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Iconsax.health, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'بینینی پشکنینەکان و دیاریکردنی نرخ',
+              style: _kStyle(
+                color: Colors.white,
+                fontSize: 14.5,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+          ],
+        ),
       ),
     );
   }
@@ -903,6 +981,75 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               fontSize: 13.5,
               color: const Color(0xFF475569),
               height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Row
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10, left: 4, right: 4),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Iconsax.video_play, color: Color(0xFF2563EB), size: 17),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'ڤیدیۆی ناساندنی تاقیگە',
+                  style: _kStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Video Player Container (Compact & Ultra Rounded)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+            child: AspectRatio(
+              aspectRatio: 16 / 8.5,
+              child: _youtubeController != null
+                  ? YoutubePlayer(
+                      controller: _youtubeController!,
+                      backgroundColor: Colors.black,
+                    )
+                  : Container(
+                      color: Colors.black,
+                      child: const Center(
+                        child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+                      ),
+                    ),
             ),
           ),
         ],
