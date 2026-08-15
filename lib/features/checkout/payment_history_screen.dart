@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
 import '../../core/providers/payment_provider.dart';
 import '../../core/models/payment_model.dart';
 
@@ -14,21 +14,74 @@ class PaymentHistoryScreen extends StatefulWidget {
 }
 
 class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
+  TextStyle _kStyle({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.normal,
+    Color color = const Color(0xFF0F172A),
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: 'Rabar',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PaymentProvider>(context, listen: false)
-          .fetchTransactionHistory();
+      Provider.of<PaymentProvider>(context, listen: false).fetchTransactionHistory();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text('Payment History', style: AppTypography.headingSm),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                size: 16,
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
+        title: Text(
+          'مێژووی پارەدان',
+          style: _kStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: Consumer<PaymentProvider>(
         builder: (context, paymentProvider, _) {
@@ -41,23 +94,34 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Iconsax.receipt_1,
-                    size: 64,
-                    color: AppColors.textMedium,
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Iconsax.receipt_2,
+                      size: 36,
+                      color: Color(0xFF3B82F6),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No transactions yet',
-                    style: AppTypography.labelMd.copyWith(
-                      color: AppColors.textDark,
+                    'هیچ پارەدانێک تۆمار نەکراوە',
+                    style: _kStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
-                    'Your payment history will appear here',
-                    style: AppTypography.bodySm.copyWith(
-                      color: AppColors.textMedium,
+                    'مێژووی پارەدان و پسوولەکانت لێرەدا دەردەکەون',
+                    style: _kStyle(
+                      fontSize: 13,
+                      color: const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -65,12 +129,13 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             itemCount: paymentProvider.transactions.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final transaction = paymentProvider.transactions[index];
-              return _buildTransactionCard(transaction);
+              return _buildTransactionCard(transaction, cardBg, borderColor, isDark);
             },
           );
         },
@@ -78,120 +143,135 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  Widget _buildTransactionCard(Transaction transaction) {
+  Widget _buildTransactionCard(
+    Transaction transaction,
+    Color cardBg,
+    Color borderColor,
+    bool isDark,
+  ) {
+    final statusColor = _getStatusColor(transaction.status);
+    final statusText = _getStatusText(transaction.status);
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.cardBorderLight),
-        borderRadius: BorderRadius.circular(12),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              _getStatusIcon(transaction.status),
+              color: statusColor,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  transaction.description,
+                  style: _kStyle(
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${transaction.formattedDate} • ${transaction.formattedTime}',
+                  style: _kStyle(
+                    color: const Color(0xFF64748B),
+                    fontSize: 11.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              Text(
+                transaction.formattedAmount,
+                style: _kStyle(
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
               Container(
-                width: 48,
-                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(transaction.status).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                child: Icon(
-                  _getStatusIcon(transaction.status),
-                  color: _getStatusColor(transaction.status),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      transaction.description,
-                      style: AppTypography.labelMd.copyWith(
-                        color: AppColors.textDark,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${transaction.formattedDate} • ${transaction.formattedTime}',
-                      style: AppTypography.bodySm.copyWith(
-                        color: AppColors.textMedium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    transaction.formattedAmount,
-                    style: AppTypography.labelMd.copyWith(
-                      color: AppColors.textDark,
-                    ),
+                child: Text(
+                  statusText,
+                  style: _kStyle(
+                    color: statusColor,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(transaction.status).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      transaction.status.displayName,
-                      style: AppTypography.bodySm.copyWith(
-                        color: _getStatusColor(transaction.status),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
-          if (transaction.failureReason != null) ...[
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                transaction.failureReason!,
-                style: AppTypography.bodySm.copyWith(
-                  color: AppColors.error,
-                ),
-              ),
-            ),
-          ],
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 200.ms).slideY(begin: 0.04);
+  }
+
+  String _getStatusText(TransactionStatus status) {
+    switch (status) {
+      case TransactionStatus.succeeded:
+        return 'سەرکەوتوو';
+      case TransactionStatus.failed:
+        return 'شکستخواردوو';
+      case TransactionStatus.pending:
+        return 'چاوەڕوانکراو';
+      case TransactionStatus.processing:
+        return 'لە جێبەجێکردندایە';
+      case TransactionStatus.canceled:
+        return 'هەڵوەشاوە';
+      case TransactionStatus.refunded:
+        return 'گەڕێنراوە';
+    }
   }
 
   Color _getStatusColor(TransactionStatus status) {
     switch (status) {
       case TransactionStatus.succeeded:
-        return AppColors.success;
+        return const Color(0xFF10B981);
       case TransactionStatus.failed:
-        return AppColors.error;
+        return const Color(0xFFEF4444);
       case TransactionStatus.pending:
-        return AppColors.warning;
+        return const Color(0xFFF59E0B);
       case TransactionStatus.processing:
-        return AppColors.info;
+        return const Color(0xFF3B82F6);
       case TransactionStatus.canceled:
-        return AppColors.textMedium;
+        return const Color(0xFF94A3B8);
       case TransactionStatus.refunded:
-        return AppColors.info;
+        return const Color(0xFF6366F1);
     }
   }
 
