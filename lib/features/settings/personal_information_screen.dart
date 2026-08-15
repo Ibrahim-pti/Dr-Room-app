@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/api_client.dart';
 
 class PersonalInformationScreen extends StatefulWidget {
   const PersonalInformationScreen({super.key});
@@ -13,16 +16,110 @@ class PersonalInformationScreen extends StatefulWidget {
 }
 
 class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
-  final TextEditingController _nameController =
-      TextEditingController(text: 'Sara Ahmed');
-  final TextEditingController _emailController =
-      TextEditingController(text: 'sara.ahmed@example.com');
-  final TextEditingController _phoneController =
-      TextEditingController(text: '+964 750 123 4567');
-  final TextEditingController _dobController =
-      TextEditingController(text: '15/08/1995');
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
 
   String _selectedGender = 'Female';
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _nameController.text = prefs.getString('user_name') ?? '';
+      _phoneController.text = prefs.getString('user_phone') ?? '';
+      _emailController.text = prefs.getString('user_email') ?? '';
+      _selectedGender = prefs.getString('guest_gender') ?? 'Female';
+      _dobController.text = prefs.getString('user_dob') ?? '';
+    });
+
+    try {
+      final response = await ApiClient.get('/user');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final u = data['user'];
+        if (mounted && u != null) {
+          setState(() {
+            if ((u['name'] ?? '').toString().isNotEmpty) {
+              _nameController.text = u['name'];
+            }
+            if ((u['phone'] ?? '').toString().isNotEmpty) {
+              _phoneController.text = u['phone'];
+            }
+            if ((u['email'] ?? '').toString().isNotEmpty) {
+              _emailController.text = u['email'];
+            }
+            if ((u['gender'] ?? '').toString().isNotEmpty) {
+              _selectedGender = u['gender'];
+            }
+            if ((u['dob'] ?? '').toString().isNotEmpty) {
+              _dobController.text = u['dob'];
+            }
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveChanges() async {
+    setState(() => _isLoading = true);
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final dob = _dobController.text.trim();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_name', name);
+      await prefs.setString('user_email', email);
+      await prefs.setString('user_dob', dob);
+      await prefs.setString('guest_gender', _selectedGender);
+
+      await ApiClient.put('/user', body: {
+        'name': name,
+        'email': email,
+        'dob': dob,
+        'gender': _selectedGender,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'پڕۆفایلەکەت بە سەرکەوتوویی نوێکرایەوە',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'هەڵەیەک ڕوویدا لە نوێکردنەوەی پڕۆفایل',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -127,6 +224,7 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
               label: 'phone_number'.tr(),
               controller: _phoneController,
               icon: Iconsax.call,
+              readOnly: true,
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 16),
@@ -136,8 +234,16 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
               controller: _dobController,
               icon: Iconsax.calendar_1,
               readOnly: true,
-              onTap: () {
-                // Show date picker
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime(1995, 1, 1),
+                  firstDate: DateTime(1940),
+                  lastDate: DateTime.now(),
+                );
+                if (date != null) {
+                  _dobController.text = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                }
               },
             ),
             const SizedBox(height: 16),
@@ -172,9 +278,7 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: _isLoading ? null : _saveChanges,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6),
                   shape: RoundedRectangleBorder(
@@ -182,14 +286,16 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: Text(
-                  'save_changes'.tr(),
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        'save_changes'.tr(),
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
           ],

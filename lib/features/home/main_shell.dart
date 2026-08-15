@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dr_room/features/requests/my_requests_screen.dart';
 import 'package:flutter/material.dart';
 import '../body_map/body_map_screen.dart';
@@ -26,6 +27,26 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   static const int _requestsTabIndex = 1;
   static const int _bodyMapTabIndex = 2;
+
+  String _userName = '';
+  String _userPhone = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        final un = prefs.getString('user_name') ?? '';
+        _userName = un.isNotEmpty ? un : 'guest_user'.tr();
+        _userPhone = prefs.getString('user_phone') ?? '';
+      });
+    }
+  }
 
   /// One entry per tab, in bar order. The screens list below follows the same
   /// order, so an index means the same thing in both.
@@ -71,7 +92,6 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: const Color(
         0xFFF1F5F9,
@@ -84,10 +104,10 @@ class _MainShellState extends State<MainShell> {
 
           // Floating Bottom Navigation Bar
           PositionedDirectional(
-              start: 20,
-              end: 20,
-              bottom: 30, // Floats above the bottom
-              child: Container(
+            start: 20,
+            end: 20,
+            bottom: 30, // Floats above the bottom
+            child: Container(
               height: 70,
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -180,7 +200,8 @@ class _MainShellState extends State<MainShell> {
   Widget _buildOrdersIcon(IconData icon, Color color) {
     return Consumer2<OrderProvider, AppointmentProvider>(
       builder: (context, orderProvider, appointmentProvider, child) {
-        final count = orderProvider.activeOrderCount +
+        final count =
+            orderProvider.activeOrderCount +
             appointmentProvider.activeAppointmentCount;
 
         return Stack(
@@ -192,7 +213,10 @@ class _MainShellState extends State<MainShell> {
                 top: -4,
                 end: -6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1,
+                  ),
                   constraints: const BoxConstraints(minWidth: 16),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEF4444),
@@ -334,23 +358,25 @@ class _MainShellState extends State<MainShell> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'sara_ahmad'.tr(),
+                  _userName.isNotEmpty ? _userName : 'guest_user'.tr(),
                   textAlign: TextAlign.right,
                   style: GoogleFonts.poppins(
                     color: Colors.white,
-                    fontSize: 22,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '+964 750 123 4567',
-                  textAlign: TextAlign.right,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    fontSize: 13,
+                if (_userPhone.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _userPhone,
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 13,
+                    ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 14),
                 // DrRoom Plus Badge
                 Container(
@@ -427,7 +453,11 @@ class _MainShellState extends State<MainShell> {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          margin: const EdgeInsetsDirectional.only(start: 16, end: 16, bottom: 8),
+          margin: const EdgeInsetsDirectional.only(
+            start: 16,
+            end: 16,
+            bottom: 8,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: AppColors.getSurfaceSecondary(context),

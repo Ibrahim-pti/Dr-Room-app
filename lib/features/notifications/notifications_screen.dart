@@ -170,7 +170,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  notif['title'] as String,
+                                  _getTranslated(notif, 'title', langCode),
                                   style: GoogleFonts.poppins(
                                     color: AppColors.getTextTitle(context),
                                     fontSize: 16,

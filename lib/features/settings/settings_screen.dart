@@ -317,14 +317,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           context,
                           imagePath: 'assets/images/settings_personal.png',
                           title: 'personal_information'.tr(),
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
                                     const PersonalInformationScreen(),
                               ),
                             );
+                            _loadUserInfo();
                           },
                         ),
 

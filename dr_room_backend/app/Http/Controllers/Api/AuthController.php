@@ -229,6 +229,31 @@ class AuthController extends Controller
         ]);
     }
 
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        $request->validate([
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'gender' => 'nullable|string|in:male,female,Male,Female',
+            'dob' => 'nullable|string',
+            'blood_type' => 'nullable|string',
+        ]);
+
+        if ($request->has('name')) $user->name = $request->name;
+        if ($request->has('email')) $user->email = $request->email;
+        if ($request->has('gender')) $user->gender = $request->gender;
+        if ($request->has('dob')) $user->dob = $request->dob;
+        if ($request->has('blood_type')) $user->blood_type = $request->blood_type;
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'پڕۆفایلەکەت بە سەرکەوتوویی نوێکرایەوە',
+            'user' => $user
+        ]);
+    }
+
     public function destroy(Request $request)
     {
         $user = $request->user();
