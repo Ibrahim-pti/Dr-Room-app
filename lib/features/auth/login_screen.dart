@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:dr_room/core/theme/dr_room_fonts.dart';
-import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
-import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function(String phone) onOtpSent;
@@ -71,8 +70,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final normalizedPhone = _normalizeIraqiPhone(phone);
 
     setState(() {
-      _phoneError = !isPhoneValid ? 'phone_invalid'.tr() : null;
-      _passwordError = password.isEmpty ? 'password_required'.tr() : null;
+      _phoneError = !isPhoneValid ? 'تکایە ژمارە مۆبایلێکی عێراقی دروست بنووسە' : null;
+      _passwordError = password.isEmpty ? 'تکایە وشەی نهێنی بنووسە' : null;
       _formError = null;
     });
 
@@ -90,445 +89,426 @@ class _LoginScreenState extends State<LoginScreen> {
         widget.onOtpSent(normalizedPhone);
       } else {
         final err = jsonDecode(response.body);
-        final msg = err['message'] ?? 'login_failed'.tr();
+        final msg = err['message'] ?? 'ژمارە مۆبایل یان وشەی نهێنی هەڵەیە';
         if (mounted) setState(() => _formError = msg);
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _formError = '${'server_connection_error'.tr()}: $e');
+        setState(() => _formError = 'کێشە لە پەیوەندی بە سێرڤەر هەیە: $e');
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 8),
-
-              // ── Back Button ──
-              Align(
-                alignment: AlignmentDirectional.topStart,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(shape: BoxShape.circle),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 20,
-                        color: Color(0xFF0F172A),
-                      ),
+      backgroundColor: bg,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // ── Top Curved Gradient Header ──
+            Stack(
+              children: [
+                Container(
+                  height: 260,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF1E3A8A), Color(0xFF2563EB), Color(0xFF3B82F6)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(36),
                     ),
                   ),
-                ),
-              ),
-
-              const SizedBox(height: 4),
-
-              // ── Doctor Image ──
-              SizedBox(
-                    height: size.height * 0.28,
-                    width: size.width * 0.85,
-                    child: Image.asset(
-                      'assets/images/doctor2.png',
-                      fit: BoxFit.contain,
-                    ),
-                  )
-                  .animate(delay: 100.ms)
-                  .fadeIn(duration: 500.ms)
-                  .slideY(
-                    begin: 0.08,
-                    end: 0,
-                    duration: 500.ms,
-                    curve: Curves.easeOut,
-                  ),
-
-              const SizedBox(height: 12),
-
-              // ── Welcome Text ──
-              Text(
-                'welcome_back'.tr(),
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
-                  height: 1.25,
-                ),
-              ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
-
-              const SizedBox(height: 6),
-
-              Text(
-                'sign_in_continue'.tr(),
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: const Color(0xFF78909C),
-                  height: 1.4,
-                ),
-              ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
-
-              // ── Form Section ──
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 24),
-
-                    // Iraqi Phone Input
-                    _buildPhoneField()
-                        .animate()
-                        .fadeIn(delay: 300.ms)
-                        .slideY(begin: 0.2, end: 0),
-
-                    const SizedBox(height: 14),
-
-                    // Password Input
-                    _buildInputField(
-                          hint: 'password'.tr(),
-                          icon: Icons.lock_outline_rounded,
-                          isPassword: true,
-                          controller: _passwordController,
-                          errorText: _passwordError,
-                          onChanged: (_) {
-                            if (_passwordError != null) {
-                              setState(() => _passwordError = null);
-                            }
-                          },
-                        )
-                        .animate()
-                        .fadeIn(delay: 400.ms)
-                        .slideY(begin: 0.2, end: 0),
-
-                    if (_formError != null) ...[
-                      const SizedBox(height: 14),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: const Color(0xFFFECACA),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          _formError!,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFFDC2626),
-                          ),
-                        ),
-                      ).animate().fadeIn(duration: 250.ms),
-                    ],
-
-                    const SizedBox(height: 14),
-
-                    // Forgot Password
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: GestureDetector(
-                        onTap: () {},
-                        child: Text(
-                          'forgot_password'.tr(),
-                          textAlign: TextAlign.end,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF2563EB),
+                  child: Stack(
+                    children: [
+                      // Decorative Circles
+                      Positioned(
+                        top: -40,
+                        right: -30,
+                        child: Container(
+                          width: 180,
+                          height: 180,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.08),
                           ),
                         ),
                       ),
-                    ).animate().fadeIn(delay: 500.ms),
+                      Positioned(
+                        bottom: 20,
+                        left: -40,
+                        child: Container(
+                          width: 140,
+                          height: 140,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.06),
+                          ),
+                        ),
+                      ),
 
-                    const SizedBox(height: 28),
-
-                    // Login Button
-                    SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleLogin,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1D4ED8),
-                              disabledBackgroundColor: const Color(
-                                0xFF2563EB,
-                              ).withValues(alpha: 0.6),
-                              foregroundColor: Colors.white,
-                              elevation: 3,
-                              shadowColor: const Color(
-                                0xFF2563EB,
-                              ).withValues(alpha: 0.25),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                      strokeWidth: 2.5,
+                      // Header Content
+                      SafeArea(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 64,
+                                height: 64,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.15),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
                                     ),
-                                  )
-                                : Text(
-                                    'log_in'.tr(),
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.local_hospital_rounded,
+                                  color: Color(0xFF2563EB),
+                                  size: 34,
+                                ),
+                              ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'چوونەژوورەوە',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ).animate().fadeIn().slideY(begin: 0.2, end: 0),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'بەخێربێیتەوە بۆ ئەپڵیکەیشنی دکتۆر ڕووم',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 13,
+                                  color: Colors.white70,
+                                ),
+                              ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.2, end: 0),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // ── Form Container ──
+            Transform.translate(
+              offset: const Offset(0, -20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: borderColor),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Error Banner
+                      if (_formError != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 18),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFFCA5A5)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _formError!,
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    color: Color(0xFFDC2626),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().shake(),
+
+                      // Phone Label
+                      const Text(
+                        'ژمارەی مۆبایل',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Phone Field
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF334155).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _phoneError != null
+                                ? const Color(0xFFEF4444)
+                                : borderColor,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            // Flag / Prefix
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFEFF6FF),
+                                borderRadius: const BorderRadiusDirectional.horizontal(
+                                  start: Radius.circular(15),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Text('🇮🇶', style: TextStyle(fontSize: 16)),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    '+964',
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2563EB),
                                     ),
                                   ),
-                          ),
-                        )
-                        .animate()
-                        .fadeIn(delay: 600.ms)
-                        .slideY(begin: 0.2, end: 0),
-
-                    const SizedBox(height: 24),
-
-                    // Sign Up Link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'dont_have_account'.tr(),
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                            color: const Color(0xFF64748B),
-                          ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                textDirection: TextDirection.ltr,
+                                textAlign: TextAlign.left,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(11),
+                                ],
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                ),
+                                decoration: const InputDecoration(
+                                  hintText: '0750 000 0000',
+                                  hintStyle: TextStyle(
+                                    color: Color(0xFF94A3B8),
+                                    fontSize: 14,
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 14),
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 6),
-                        GestureDetector(
-                          onTap: widget.onSignUp,
+                      ),
+                      if (_phoneError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, right: 6),
                           child: Text(
-                            'sign_up'.tr(),
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF2563EB),
+                            _phoneError!,
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              color: Color(0xFFEF4444),
+                              fontSize: 11.5,
                             ),
                           ),
                         ),
-                      ],
-                    ).animate().fadeIn(delay: 900.ms),
 
-                    const SizedBox(height: 24),
-                  ],
+                      const SizedBox(height: 18),
+
+                      // Password Label
+                      const Text(
+                        'وشەی نهێنی',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Password Field
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF334155).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _passwordError != null
+                                ? const Color(0xFFEF4444)
+                                : borderColor,
+                          ),
+                        ),
+                        child: TextField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 15,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                          decoration: InputDecoration(
+                            hintText: '••••••••',
+                            hintStyle: const TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 14,
+                            ),
+                            prefixIcon: const Icon(
+                              Iconsax.lock,
+                              color: Color(0xFF94A3B8),
+                              size: 18,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
+                                color: const Color(0xFF94A3B8),
+                                size: 18,
+                              ),
+                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      if (_passwordError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, right: 6),
+                          child: Text(
+                            _passwordError!,
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              color: Color(0xFFEF4444),
+                              fontSize: 11.5,
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 26),
+
+                      // Submit Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2563EB),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shadowColor: const Color(0xFF2563EB).withValues(alpha: 0.4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    Icon(Iconsax.login_1, size: 20),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'چوونەژوورەوە',
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+
+            // ── Register Link ──
+            Padding(
+              padding: const EdgeInsets.only(bottom: 32, top: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'هێشتا هەژمارت نییە؟',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      color: Color(0xFF64748B),
+                      fontSize: 13.5,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: widget.onSignUp,
+                    child: const Text(
+                      'دروستکردنی هەژمار',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        color: Color(0xFF2563EB),
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPhoneField() {
-    final hasError = _phoneError != null;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(14),
-            border: hasError
-                ? Border.all(color: const Color(0xFFEF4444), width: 1.2)
-                : null,
-          ),
-          child: Row(
-            children: [
-              // Phone Icon on start
-              const Padding(
-                padding: EdgeInsetsDirectional.only(start: 14, end: 8),
-                child: Icon(
-                  Icons.phone_android_rounded,
-                  color: Color(0xFF2563EB),
-                  size: 20,
-                ),
-              ),
-
-              // +964 right next to the icon
-              Text(
-                '+964',
-                style: GoogleFonts.poppins(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1D4ED8),
-                ),
-              ),
-              const SizedBox(width: 6),
-
-              // Phone text field
-              Expanded(
-                child: TextField(
-                  controller: _phoneController,
-                  onChanged: (_) {
-                    if (_phoneError != null) {
-                      setState(() => _phoneError = null);
-                    }
-                  },
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(11),
-                  ],
-                  textAlign: TextAlign.start,
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
-                  ),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    hintText: '750 123 4567',
-                    hintStyle: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF94A3B8),
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 14,
-                      horizontal: 2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-            ],
-          ),
-        ),
-        if (hasError)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(top: 6, start: 4),
-            child: Text(
-              _phoneError!,
-              textAlign: TextAlign.start,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFFEF4444),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildInputField({
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-    required TextEditingController controller,
-    String? errorText,
-    void Function(String)? onChanged,
-  }) {
-    final hasError = errorText != null;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(14),
-            border: hasError
-                ? Border.all(color: const Color(0xFFEF4444), width: 1.2)
-                : null,
-          ),
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 14, end: 8),
-                child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
-              ),
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  onChanged: onChanged,
-                  obscureText: isPassword ? _obscurePassword : false,
-                  textAlign: TextAlign.start,
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF1E293B),
-                  ),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    hintText: hint,
-                    hintStyle: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF94A3B8),
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 14,
-                      horizontal: 4,
-                    ),
-                  ),
-                ),
-              ),
-              if (isPassword)
-                GestureDetector(
-                  onTap: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 14, start: 8),
-                    child: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: const Color(0xFF94A3B8),
-                      size: 20,
-                    ),
-                  ),
-                )
-              else
-                const SizedBox(width: 14),
-            ],
-          ),
-        ),
-        if (hasError)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(top: 6, start: 4),
-            child: Text(
-              errorText,
-              textAlign: TextAlign.start,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFFEF4444),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
