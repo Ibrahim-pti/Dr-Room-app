@@ -532,81 +532,90 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSearchAndFilters(),
-
-                if (_isLoading)
-                  const SizedBox(
-                    height: 300,
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF3B82F6),
-                      ),
-                    ),
-                  )
-                else if (_filteredLabs.isEmpty)
-                  SizedBox(
-                    height: 300,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Iconsax.search_normal_1,
-                              size: 48,
-                              color: Color(0xFF94A3B8),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            _tr('no_labs_found', context),
-                            style: _kurdishStyle(
-                              color: const Color(0xFF475569),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1),
-                    ),
-                  )
-                else
-                  ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _filteredLabs.length,
-                    itemBuilder: (context, index) {
-                      return _buildPremiumLabCard(_filteredLabs[index], index);
-                    },
-                  ),
-                const SizedBox(height: 40),
-              ],
-            ),
+      body: RefreshIndicator(
+        color: const Color(0xFF3B82F6),
+        backgroundColor: Colors.white,
+        displacement: 40,
+        onRefresh: _fetchLabs,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
           ),
-        ],
+          slivers: [
+            _buildSliverAppBar(),
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSearchAndFilters(),
+
+                  if (_isLoading)
+                    const SizedBox(
+                      height: 300,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    )
+                  else if (_filteredLabs.isEmpty)
+                    SizedBox(
+                      height: 300,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Iconsax.search_normal_1,
+                                size: 48,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              _tr('no_labs_found', context),
+                              style: _kurdishStyle(
+                                color: const Color(0xFF475569),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1),
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _filteredLabs.length,
+                      itemBuilder: (context, index) {
+                        return _buildPremiumLabCard(_filteredLabs[index], index);
+                      },
+                    ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
