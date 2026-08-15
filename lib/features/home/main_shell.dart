@@ -96,10 +96,14 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final navBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
       endDrawer: _buildDrawer(context),
       body: Stack(
         children: [
@@ -147,8 +151,12 @@ class _MainShellState extends State<MainShell> {
     final icon = item['icon'] as IconData;
     final title = item['title'] as String;
 
-    final activeColor = isAi ? const Color(0xFF8B5CF6) : const Color(0xFF3B82F6);
-    final inactiveColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final activeColor = isAi
+        ? const Color(0xFF8B5CF6)
+        : const Color(0xFF3B82F6);
+    final inactiveColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
     final color = isActive ? activeColor : inactiveColor;
 
     return GestureDetector(
@@ -160,7 +168,9 @@ class _MainShellState extends State<MainShell> {
         decoration: BoxDecoration(
           color: isActive && !isAi
               ? activeColor.withValues(alpha: 0.1)
-              : (isActive && isAi ? const Color(0xFF8B5CF6).withValues(alpha: 0.15) : Colors.transparent),
+              : (isActive && isAi
+                    ? const Color(0xFF8B5CF6).withValues(alpha: 0.15)
+                    : Colors.transparent),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -171,15 +181,19 @@ class _MainShellState extends State<MainShell> {
             index == _requestsTabIndex
                 ? _buildOrdersIcon(icon, color)
                 : (isAi && isActive
-                    ? Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF8B5CF6),
-                        ),
-                        child: const Icon(Iconsax.message_programming, color: Colors.white, size: 16),
-                      )
-                    : Icon(icon, color: color, size: 20)),
+                      ? Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF8B5CF6),
+                          ),
+                          child: const Icon(
+                            Iconsax.message_programming,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        )
+                      : Icon(icon, color: color, size: 20)),
             const SizedBox(height: 3),
             Text(
               title,
@@ -215,7 +229,10 @@ class _MainShellState extends State<MainShell> {
                 top: -4,
                 end: -8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 1,
+                  ),
                   constraints: const BoxConstraints(minWidth: 15),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEF4444),
@@ -338,7 +355,11 @@ class _MainShellState extends State<MainShell> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Iconsax.star_1, color: Color(0xFF2563EB), size: 14),
+                      const Icon(
+                        Iconsax.star_1,
+                        color: Color(0xFF2563EB),
+                        size: 14,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'ئەندامی تایبەتی Dr-Room',

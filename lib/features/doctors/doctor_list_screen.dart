@@ -44,10 +44,10 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
 
   void _load() {
     context.read<AppointmentProvider>().fetchDoctors(
-          search: _searchController.text,
-          specialty: _specialty,
-          minRating: _minRating,
-        );
+      search: _searchController.text,
+      specialty: _specialty,
+      minRating: _minRating,
+    );
   }
 
   /// Typing refires the query, so wait for a pause rather than hitting the
@@ -121,13 +121,19 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
         decoration: InputDecoration(
           hintText: 'Search by name or specialty',
           hintStyle: AppTypography.bodySm.copyWith(color: AppColors.textMedium),
-          prefixIcon: Icon(Iconsax.search_normal,
-              size: 18, color: AppColors.textMedium),
+          prefixIcon: Icon(
+            Iconsax.search_normal,
+            size: 18,
+            color: AppColors.textMedium,
+          ),
           suffixIcon: _searchController.text.isEmpty
               ? null
               : IconButton(
-                  icon: Icon(Iconsax.close_circle,
-                      size: 18, color: AppColors.textMedium),
+                  icon: Icon(
+                    Iconsax.close_circle,
+                    size: 18,
+                    color: AppColors.textMedium,
+                  ),
                   onPressed: () {
                     _searchController.clear();
                     _load();
@@ -147,8 +153,10 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: AppColors.primary),
           ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
       ),
     );
@@ -160,8 +168,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
     final specialties = {
       ...doctors.map((d) => d.specialty).where((s) => s.isNotEmpty),
       if (_specialty != null) _specialty!,
-    }.toList()
-      ..sort();
+    }.toList()..sort();
 
     if (specialties.isEmpty) return const SizedBox.shrink();
 
@@ -190,7 +197,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
 
   Widget _buildRatingChips() {
     const options = <double?>[null, 3, 4, 4.5];
-     
+
     return _ChipRow(
       children: [
         for (final rating in options)
@@ -218,9 +225,7 @@ class _DoctorCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => DoctorProfileScreen(doctor: doctor),
-        ),
+        MaterialPageRoute(builder: (_) => DoctorProfileScreen(doctor: doctor)),
       ),
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -238,15 +243,18 @@ class _DoctorCard extends StatelessWidget {
                 children: [
                   Text(
                     doctor.name,
-                    style:
-                        AppTypography.labelMd.copyWith(color: AppColors.textDark),
+                    style: AppTypography.labelMd.copyWith(
+                      color: AppColors.textDark,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 3),
                   Text(
                     doctor.specialty,
-                    style: AppTypography.bodySm.copyWith(color: AppColors.primary),
+                    style: AppTypography.bodySm.copyWith(
+                      color: AppColors.primary,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -258,16 +266,18 @@ class _DoctorCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           '${doctor.rating} (${doctor.totalReviews})',
-                          style: AppTypography.bodySm
-                              .copyWith(color: AppColors.textMedium),
+                          style: AppTypography.bodySm.copyWith(
+                            color: AppColors.textMedium,
+                          ),
                         ),
                         const SizedBox(width: 10),
                       ],
                       if (doctor.experienceYears > 0)
                         Text(
                           '${doctor.experienceYears} yrs',
-                          style: AppTypography.bodySm
-                              .copyWith(color: AppColors.textMedium),
+                          style: AppTypography.bodySm.copyWith(
+                            color: AppColors.textMedium,
+                          ),
                         ),
                     ],
                   ),
@@ -330,7 +340,9 @@ class _FilterChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary : AppColors.surfaceLightSecondary,
+            color: selected
+                ? AppColors.primary
+                : AppColors.surfaceLightSecondary,
             border: selected
                 ? null
                 : Border.all(color: AppColors.cardBorderLight),
@@ -340,9 +352,11 @@ class _FilterChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon,
-                    size: 13,
-                    color: selected ? Colors.white : AppColors.warning),
+                Icon(
+                  icon,
+                  size: 13,
+                  color: selected ? Colors.white : AppColors.warning,
+                ),
                 const SizedBox(width: 5),
               ],
               Text(
@@ -393,10 +407,7 @@ class _Message extends StatelessWidget {
               style: AppTypography.bodySm.copyWith(color: AppColors.textMedium),
               textAlign: TextAlign.center,
             ),
-            if (action != null) ...[
-              const SizedBox(height: 20),
-              action!,
-            ],
+            if (action != null) ...[const SizedBox(height: 20), action!],
           ],
         ),
       ),
