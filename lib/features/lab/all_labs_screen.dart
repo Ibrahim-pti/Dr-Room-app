@@ -623,7 +623,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
       backgroundColor: Colors.white,
       elevation: 0,
       scrolledUnderElevation: 0,
-      centerTitle: false,
+      centerTitle: true,
       leadingWidth: 64,
       leading: Padding(
         padding: const EdgeInsetsDirectional.only(start: 16),
@@ -655,6 +655,9 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
           fontWeight: FontWeight.bold,
         ),
       ),
+      actions: const [
+        SizedBox(width: 64),
+      ],
     );
   }
 
