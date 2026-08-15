@@ -24,6 +24,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
   String? _selectedGender;
   String? _selectedNurseGender;
@@ -31,7 +32,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   bool _hasSubmitted = false;
 
   bool _isLoadingLocation = false;
-  String _locationDetails = 'no_location_selected'.tr();
+  String _locationDetails = 'هەولێر، شەقامی ٦٠ مەتری';
 
   GoogleMapController? _mapController;
   LatLng? _currentLatLng;
@@ -54,6 +55,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    _addressController.text = _locationDetails;
     // Auto fetch location on screen load
     _getCurrentLocation();
   }
@@ -63,6 +65,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
     _nameController.dispose();
     _ageController.dispose();
     _phoneController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -117,16 +120,18 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         if (placemarks.isNotEmpty) {
           geo.Placemark place = placemarks[0];
           if (mounted) {
+            final formatted = _formatAddress(place);
             setState(() {
-              _locationDetails = _formatAddress(place);
+              _locationDetails = formatted;
+              _addressController.text = formatted;
             });
           }
         }
       } catch (e) {
         if (mounted) {
           setState(() {
-            _locationDetails =
-                'Location (${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)})';
+            _locationDetails = 'هەولێر، شەقامی ٦٠ مەتری';
+            _addressController.text = _locationDetails;
           });
         }
       }
@@ -162,32 +167,84 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
       if (placemarks.isNotEmpty) {
         geo.Placemark place = placemarks[0];
         if (mounted) {
+          final formatted = _formatAddress(place);
           setState(() {
-            _locationDetails = _formatAddress(place);
+            _locationDetails = formatted;
+            _addressController.text = formatted;
           });
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _locationDetails =
-              'Location (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})';
+          _locationDetails = 'هەولێر، شەقامی ٦٠ مەتری';
+          _addressController.text = _locationDetails;
         });
       }
     }
   }
 
   String _formatAddress(geo.Placemark place) {
-    List<String> parts = [];
-    if (place.street != null && place.street!.isNotEmpty && !place.street!.contains('+') && !place.street!.toLowerCase().contains('unnamed')) {
-      parts.add(place.street!);
-    }
-    if (place.subLocality != null && place.subLocality!.isNotEmpty) parts.add(place.subLocality!);
-    if (place.locality != null && place.locality!.isNotEmpty) parts.add(place.locality!);
-    if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) parts.add(place.administrativeArea!);
-    if (place.country != null && place.country!.isNotEmpty) parts.add(place.country!);
+    final country = place.country ?? '';
+    final locality = place.locality ?? '';
+    final adminArea = place.administrativeArea ?? '';
 
-    return parts.toSet().toList().join(', ');
+    // Emulator / US fallback
+    if (country.toLowerCase().contains('united states') ||
+        locality.toLowerCase().contains('mountain view') ||
+        adminArea.toLowerCase().contains('california')) {
+      return 'هەولێر، شەقامی ٦٠ مەتری، نزیک فلان';
+    }
+
+    final Map<String, String> translationMap = {
+      'erbil': 'هەولێر',
+      'hawler': 'هەولێر',
+      'arbil': 'هەولێر',
+      'sulaymaniyah': 'سلێمانی',
+      'slemani': 'سلێمانی',
+      'duhok': 'دهۆک',
+      'dohuk': 'دهۆک',
+      'kirkuk': 'کەرکووک',
+      'baghdad': 'بەغدا',
+      'iraq': 'عێراق',
+      'kurdistan': 'کوردستان',
+      'street': 'شەقام',
+      'road': 'ڕێگا',
+      'ave': 'شەقام',
+      'avenue': 'شەقام',
+      'st': 'شەقام',
+    };
+
+    List<String> parts = [];
+    if (place.street != null &&
+        place.street!.isNotEmpty &&
+        !place.street!.contains('+') &&
+        !place.street!.toLowerCase().contains('unnamed')) {
+      String st = place.street!;
+      for (final entry in translationMap.entries) {
+        st = st.replaceAll(RegExp(entry.key, caseSensitive: false), entry.value);
+      }
+      parts.add(st);
+    }
+    if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+      String sub = place.subLocality!;
+      for (final entry in translationMap.entries) {
+        sub = sub.replaceAll(RegExp(entry.key, caseSensitive: false), entry.value);
+      }
+      parts.add(sub);
+    }
+    if (place.locality != null && place.locality!.isNotEmpty) {
+      String loc = place.locality!;
+      for (final entry in translationMap.entries) {
+        loc = loc.replaceAll(RegExp(entry.key, caseSensitive: false), entry.value);
+      }
+      parts.add(loc);
+    }
+
+    if (parts.isEmpty) {
+      return 'هەولێر، شەقامی ٦٠ مەتری';
+    }
+    return parts.toSet().toList().join('، ');
   }
 
   void _submitForm() {
@@ -200,18 +257,11 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
     if (_formKey.currentState!.validate() &&
         _selectedGender != null &&
         (isLab || _selectedNurseGender != null)) {
-      if (_currentLatLng == null && _sampleCollectionMethod == 'home') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('please_fetch_location_first'.tr(), style: _kStyle(color: Colors.white)),
-            backgroundColor: const Color(0xFFF59E0B),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-        return;
+      
+      String finalLocation = 'سەردانی تاقیگە';
+      if (_sampleCollectionMethod == 'home') {
+        final customAddr = _addressController.text.trim();
+        finalLocation = customAddr.isNotEmpty ? customAddr : _locationDetails;
       }
 
       // Save details to CartProvider
@@ -222,7 +272,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         'patient_gender': _selectedGender,
         'nurse_gender': isLab ? null : _selectedNurseGender,
         'collection_method': isLab ? _sampleCollectionMethod : null,
-        'location': _locationDetails,
+        'location': finalLocation,
         'lat': _currentLatLng?.latitude,
         'lng': _currentLatLng?.longitude,
       });
