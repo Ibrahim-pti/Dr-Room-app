@@ -1,21 +1,18 @@
-import 'dart:math' as math;
-
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:dr_room/features/requests/my_requests_screen.dart';
 import 'package:flutter/material.dart';
-import '../body_map/body_map_screen.dart';
-import '../surgery/surgery_timeline_screen.dart';
-import '../records/medical_records_screen.dart';
-import '../ai_assistant/ai_symptom_checker_screen.dart';
-import '../prescriptions/pill_reminder_screen.dart';
-import '../checkout/payment_history_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/appointment_provider.dart';
 import '../../core/providers/order_provider.dart';
 import 'home_screen.dart';
+import '../requests/my_requests_screen.dart';
+import '../ai_assistant/ai_symptom_checker_screen.dart';
+import '../records/medical_records_screen.dart';
+import '../body_map/body_map_screen.dart';
 import '../settings/settings_screen.dart';
-import '../pharmacy/pill_scanner_screen.dart';
+import '../surgery/surgery_timeline_screen.dart';
+import '../prescriptions/pill_reminder_screen.dart';
+import '../checkout/payment_history_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -26,11 +23,15 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   static const int _requestsTabIndex = 1;
-  static const int _bodyMapTabIndex = 2;
-  static const int _settingsTabIndex = 3;
+  static const int _aiTabIndex = 2;
+  static const int _recordsTabIndex = 3;
 
   String _userName = '';
   String _userPhone = '';
+  int _currentIndex = 0;
+
+  final GlobalKey<MyRequestsScreenState> _requestsKey =
+      GlobalKey<MyRequestsScreenState>();
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -64,31 +65,23 @@ class _MainShellState extends State<MainShell> {
     }
   }
 
-  static const List<IconData> _navIcons = [
-    Iconsax.home_2,
-    Iconsax.box,
-    Icons.accessibility_new_rounded,
-    Iconsax.setting_2,
-  ];
-
-  int _currentIndex = 0;
-
-  final GlobalKey<MyRequestsScreenState> _requestsKey =
-      GlobalKey<MyRequestsScreenState>();
-
   late final List<Widget> _screens = [
     const HomeScreen(),
     MyRequestsScreen(key: _requestsKey),
+    const AiSymptomCheckerScreen(),
+    const MedicalRecordsScreen(),
     BodyMapScreen(onBack: () => setState(() => _currentIndex = 0)),
     const SettingsScreen(),
   ];
 
-  Future<void> _openScanner() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const PillScannerScreen()),
-    );
-  }
+  static const List<Map<String, dynamic>> _navItems = [
+    {'title': 'ماڵەوە', 'icon': Iconsax.home_2},
+    {'title': 'داواکاری', 'icon': Iconsax.box},
+    {'title': 'AI ڕاوێژکار', 'icon': Iconsax.message_programming, 'isAi': true},
+    {'title': 'تۆمارەکان', 'icon': Iconsax.folder_2},
+    {'title': 'جەستە', 'icon': Icons.accessibility_new_rounded},
+    {'title': 'ڕێکخستن', 'icon': Iconsax.setting_2},
+  ];
 
   void _onTabSelected(int index) {
     setState(() => _currentIndex = index);
@@ -101,59 +94,44 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       endDrawer: _buildDrawer(context),
       body: Stack(
         children: [
-          // Main Content
+          // Main Active Screen Content
           IndexedStack(index: _currentIndex, children: _screens),
 
-          // Floating Bottom Navigation Bar
+          // Modern Bottom Navigation Bar
           PositionedDirectional(
-            start: 20,
-            end: 20,
-            bottom: 20,
+            start: 14,
+            end: 14,
+            bottom: 18,
             child: Container(
-              height: 70,
+              height: 68,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                ),
+                color: navBg,
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(color: borderColor),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  // Symmetrical Nav Items Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(child: _buildNavItem(0, _navIcons[0])),
-                      Expanded(child: _buildNavItem(1, _navIcons[1])),
-                      const SizedBox(width: 60), // Center gap for scanner
-                      Expanded(child: _buildNavItem(2, _navIcons[2])),
-                      Expanded(child: _buildNavItem(3, _navIcons[3])),
-                    ],
-                  ),
-
-                  // Center Scanner Button
-                  Positioned(
-                    top: -12,
-                    child: _buildScanNavItem(),
-                  ),
-                ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(_navItems.length, (index) {
+                  return Expanded(
+                    child: _buildNavItem(index, _navItems[index], isDark),
+                  );
+                }),
               ),
             ),
           ),
@@ -162,14 +140,28 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon) {
+  Widget _buildNavItem(int index, Map<String, dynamic> item, bool isDark) {
     final isActive = _currentIndex == index;
-    final color = isActive ? const Color(0xFF3B82F6) : const Color(0xFF94A3B8);
+    final isAi = item['isAi'] == true;
+    final icon = item['icon'] as IconData;
+    final title = item['title'] as String;
+
+    final activeColor = isAi ? const Color(0xFF8B5CF6) : const Color(0xFF3B82F6);
+    final inactiveColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final color = isActive ? activeColor : inactiveColor;
 
     return GestureDetector(
       onTap: () => _onTabSelected(index),
       behavior: HitTestBehavior.opaque,
-      child: Center(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: isActive && !isAi
+              ? activeColor.withValues(alpha: 0.1)
+              : (isActive && isAi ? const Color(0xFF8B5CF6).withValues(alpha: 0.15) : Colors.transparent),
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -177,17 +169,26 @@ class _MainShellState extends State<MainShell> {
           children: [
             index == _requestsTabIndex
                 ? _buildOrdersIcon(icon, color)
-                : Icon(icon, color: color, size: 22),
+                : (isAi && isActive
+                    ? Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF8B5CF6),
+                        ),
+                        child: const Icon(Iconsax.message_programming, color: Colors.white, size: 16),
+                      )
+                    : Icon(icon, color: color, size: 20)),
             const SizedBox(height: 3),
             Text(
-              _getLabelForIndex(index),
+              title,
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: _kStyle(
                 color: color,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                fontSize: 11,
+                fontSize: 10,
               ),
             ),
           ],
@@ -207,30 +208,27 @@ class _MainShellState extends State<MainShell> {
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            Icon(icon, color: color, size: 22),
+            Icon(icon, color: color, size: 20),
             if (count > 0)
               PositionedDirectional(
                 top: -4,
                 end: -8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1,
-                  ),
-                  constraints: const BoxConstraints(minWidth: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  constraints: const BoxConstraints(minWidth: 15),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEF4444),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white, width: 1.5),
+                    border: Border.all(color: Colors.white, width: 1.2),
                   ),
                   child: Text(
                     count > 9 ? '9+' : '$count',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      height: 1.3,
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
                     ),
                   ),
                 ),
@@ -239,52 +237,6 @@ class _MainShellState extends State<MainShell> {
         );
       },
     );
-  }
-
-  Widget _buildScanNavItem() {
-    return GestureDetector(
-      onTap: _openScanner,
-      behavior: HitTestBehavior.opaque,
-      child: Transform.rotate(
-        angle: math.pi / 4,
-        child: Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-            ),
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Transform.rotate(
-            angle: -math.pi / 4,
-            child: const Icon(Iconsax.scan, color: Colors.white, size: 26),
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _getLabelForIndex(int index) {
-    switch (index) {
-      case 0:
-        return 'ماڵەوە';
-      case _requestsTabIndex:
-        return 'داواکاری';
-      case _bodyMapTabIndex:
-        return 'نەخشەی جەستە';
-      case _settingsTabIndex:
-        return 'ڕێکخستن';
-      default:
-        return '';
-    }
   }
 
   Widget _buildDrawer(BuildContext context) {
@@ -413,12 +365,7 @@ class _MainShellState extends State<MainShell> {
                     title: 'یاریدەدەری زیرەکی دەستکرد (AI)',
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AiSymptomCheckerScreen(),
-                        ),
-                      );
+                      setState(() => _currentIndex = _aiTabIndex);
                     },
                   ),
                   _buildDrawerItem(
@@ -427,12 +374,7 @@ class _MainShellState extends State<MainShell> {
                     title: 'تۆماری پزیشکی',
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MedicalRecordsScreen(),
-                        ),
-                      );
+                      setState(() => _currentIndex = _recordsTabIndex);
                     },
                   ),
                   _buildDrawerItem(
@@ -490,7 +432,6 @@ class _MainShellState extends State<MainShell> {
   Widget _buildDrawerItem(
     BuildContext context, {
     IconData? icon,
-    String? imagePath,
     required String title,
     required VoidCallback onTap,
   }) {
