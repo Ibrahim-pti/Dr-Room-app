@@ -211,25 +211,29 @@ class OrderSuccessScreen extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3B82F6),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 0,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Iconsax.radar_2, color: Colors.white, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            'شوێنپێهەڵگرتنی داواکاری',
-                            style: _kStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Iconsax.radar_2, color: Colors.white, size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              'شوێنپێهەڵگرتنی داواکاری',
+                              style: _kStyle(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1, end: 0),
