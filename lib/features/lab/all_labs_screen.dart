@@ -599,10 +599,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                     )
                   else
                     ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _filteredLabs.length,
@@ -610,7 +607,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                         return _buildPremiumLabCard(_filteredLabs[index], index);
                       },
                     ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
