@@ -85,9 +85,10 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   void _initYoutubeVideo() {
     final rawUrl = _labData['youtube_url']?.toString() ?? 'https://www.youtube.com/watch?v=ScMzIvxBSi4';
     final videoId = _extractYoutubeId(rawUrl);
+    final validId = videoId.isNotEmpty ? videoId : 'ScMzIvxBSi4';
     
     _youtubeController = YoutubePlayerController.fromVideoId(
-      videoId: videoId.isNotEmpty ? videoId : 'ScMzIvxBSi4',
+      videoId: validId,
       autoPlay: true,
       params: const YoutubePlayerParams(
         showFullscreenButton: true,
@@ -95,8 +96,18 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         showVideoAnnotations: false,
         strictRelatedVideos: true,
         mute: false,
+        loop: true,
       ),
     );
+
+    _youtubeController?.listen((state) {
+      if (state.playerState == PlayerState.ended) {
+        _youtubeController?.seekTo(seconds: 0);
+        _youtubeController?.playVideo();
+      }
+    });
+
+    _isVideoPlaying = true;
   }
 
   void _startAutoPlay() {
@@ -307,7 +318,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     final String name = _labData['name'] ?? 'تاقیگەی پزیشکی';
     final String location = _labData['location'] ?? 'هەولێر - شەقامی پزیشکان';
     final String rating = '${_labData['rating'] ?? 4.8}';
-    final bool isOpen = _labData['is_open'] == true;
     final discount = _labData['discount'];
     final String openingHours = _labData['opening_hours'] ?? '08:00 AM - 10:00 PM';
     final String aboutUs = _labData['about_us'] ??
@@ -324,7 +334,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── 1. Hero Image Banner Carousel ──
-                _buildHeroBanner(discount, isOpen),
+                _buildHeroBanner(discount),
                 const SizedBox(height: 12),
 
                 // ── 2. Lab Main Identity Card ──
@@ -449,7 +459,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     );
   }
 
-  Widget _buildHeroBanner(dynamic discount, bool isOpen) {
+  Widget _buildHeroBanner(dynamic discount) {
     List<String> images = [];
     if (_labData['images'] is List && (_labData['images'] as List).isNotEmpty) {
       images = List<String>.from((_labData['images'] as List).map((e) => e.toString()));
@@ -462,14 +472,14 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     _imagesCount = images.length;
 
     return Container(
-      height: 165,
+      height: 190,
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
+            blurRadius: 18,
             offset: const Offset(0, 6),
           ),
         ],
@@ -479,7 +489,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         children: [
           // 1. Swipable Carousel
           ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(22),
             child: PageView.builder(
               controller: _pageController,
               itemCount: images.length,
@@ -505,7 +515,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -522,15 +532,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
           // 3. Discount Badge (Top Start)
           if (discount != null)
             PositionedDirectional(
-              top: 10,
-              start: 10,
+              top: 12,
+              start: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(9),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFFEF4444).withValues(alpha: 0.4),
@@ -548,7 +558,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                       '%$discount ${_tr('discount', context)}',
                       style: _kStyle(
                         color: Colors.white,
-                        fontSize: 10.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -557,48 +567,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               ),
             ),
 
-          // 4. Open/Closed Status (Top End)
-          PositionedDirectional(
-            top: 10,
-            end: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: isOpen
-                    ? const Color(0xFFECFDF5).withValues(alpha: 0.95)
-                    : const Color(0xFFF1F5F9).withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isOpen ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
-                  width: 0.8,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isOpen ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    isOpen ? _tr('open_now', context) : _tr('closed_now', context),
-                    style: _kStyle(
-                      color: isOpen ? const Color(0xFF047857) : const Color(0xFF64748B),
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // 6. Animated Dots Indicator (Bottom Center)
+          // 4. Animated Dots Indicator (Bottom Center)
           Positioned(
             bottom: 12,
             left: 0,
@@ -942,9 +911,10 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   void _startYoutubeVideo() {
     final rawUrl = _labData['youtube_url']?.toString() ?? 'https://www.youtube.com/watch?v=ScMzIvxBSi4';
     final videoId = _extractYoutubeId(rawUrl);
+    final validId = videoId.isNotEmpty ? videoId : 'ScMzIvxBSi4';
     
     _youtubeController = YoutubePlayerController.fromVideoId(
-      videoId: videoId.isNotEmpty ? videoId : 'ScMzIvxBSi4',
+      videoId: validId,
       autoPlay: true,
       params: const YoutubePlayerParams(
         showFullscreenButton: true,
@@ -952,8 +922,17 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         showVideoAnnotations: false,
         strictRelatedVideos: true,
         mute: false,
+        loop: true,
       ),
     );
+
+    _youtubeController?.listen((state) {
+      if (state.playerState == PlayerState.ended) {
+        _youtubeController?.seekTo(seconds: 0);
+        _youtubeController?.playVideo();
+      }
+    });
+
     setState(() {
       _isVideoPlaying = true;
     });
