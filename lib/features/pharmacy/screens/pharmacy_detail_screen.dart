@@ -267,8 +267,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
             : (((med.price / 2) / 250).round() * 250.0).clamp(500.0, med.price);
 
         final double pieceOriginalPrice = (boxOriginalPrice > 2500)
-            ? (((boxOriginalPrice / 3) / 250).round() * 250.0).clamp(500.0, boxOriginalPrice)
-            : (((boxOriginalPrice / 2) / 250).round() * 250.0).clamp(500.0, boxOriginalPrice);
+            ? (((boxOriginalPrice / 3) / 250).round() * 250.0).clamp(
+                500.0,
+                boxOriginalPrice,
+              )
+            : (((boxOriginalPrice / 2) / 250).round() * 250.0).clamp(
+                500.0,
+                boxOriginalPrice,
+              );
 
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -278,10 +284,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                 ? const Color(0xFF334155)
                 : const Color(0xFFE2E8F0);
             final unitPrice = (selectedUnit == 'پاکەت') ? boxPrice : piecePrice;
-            final unitOriginalPrice = (selectedUnit == 'پاکەت') ? boxOriginalPrice : pieceOriginalPrice;
+            final unitOriginalPrice = (selectedUnit == 'پاکەت')
+                ? boxOriginalPrice
+                : pieceOriginalPrice;
             final totalPrice = unitPrice * quantity;
             final totalOriginalPrice = unitOriginalPrice * quantity;
-            final double totalSavings = (totalOriginalPrice > totalPrice) ? (totalOriginalPrice - totalPrice) : 0;
+            final double totalSavings = (totalOriginalPrice > totalPrice)
+                ? (totalOriginalPrice - totalPrice)
+                : 0;
 
             return Container(
               decoration: BoxDecoration(
@@ -426,12 +436,18 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                       ),
                                       decoration: BoxDecoration(
                                         color: isOut
-                                            ? const Color(0xFFEF4444).withValues(alpha: 0.15)
-                                            : const Color(0xFF10B981).withValues(alpha: 0.12),
+                                            ? const Color(
+                                                0xFFEF4444,
+                                              ).withValues(alpha: 0.15)
+                                            : const Color(
+                                                0xFF10B981,
+                                              ).withValues(alpha: 0.12),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
-                                        isOut ? 'نەماوە ❌' : 'بەردەستە (${med.stock})',
+                                        isOut
+                                            ? 'نەماوە ❌'
+                                            : 'بەردەستە (${med.stock})',
                                         style: _kStyle(
                                           color: isOut
                                               ? const Color(0xFFEF4444)
@@ -469,10 +485,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                          color: const Color(
+                            0xFFEF4444,
+                          ).withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                            color: const Color(
+                              0xFFEF4444,
+                            ).withValues(alpha: 0.25),
                           ),
                         ),
                         child: Row(
@@ -501,7 +521,10 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                     if (med.hasDiscount && !isOut) ...[
                       const SizedBox(height: 14),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
@@ -511,7 +534,9 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           ),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                            color: const Color(
+                              0xFFEF4444,
+                            ).withValues(alpha: 0.25),
                           ),
                         ),
                         child: Row(
@@ -543,9 +568,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                       style: _kStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? Colors.white
-                            : const Color(0xFF0F172A),
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -571,23 +594,28 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: isOut
-                                    ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9))
+                                    ? (isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFF1F5F9))
                                     : (selectedUnit == 'پاکەت'
-                                        ? const Color(0xFF3B82F6).withValues(alpha: 0.12)
-                                        : sheetBg),
+                                          ? const Color(
+                                              0xFF3B82F6,
+                                            ).withValues(alpha: 0.12)
+                                          : sheetBg),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: selectedUnit == 'پاکەت' && !isOut
                                       ? const Color(0xFF3B82F6)
                                       : borderColor,
-                                  width: selectedUnit == 'پاکەت' && !isOut ? 1.8 : 1,
+                                  width: selectedUnit == 'پاکەت' && !isOut
+                                      ? 1.8
+                                      : 1,
                                 ),
                               ),
                               child: Column(
                                 children: [
                                   Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
                                         Icons.inventory_2_outlined,
@@ -605,10 +633,12 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                           color: isOut
                                               ? Colors.grey
                                               : (selectedUnit == 'پاکەت'
-                                                  ? const Color(0xFF3B82F6)
-                                                  : (isDark
-                                                      ? Colors.white
-                                                      : const Color(0xFF0F172A))),
+                                                    ? const Color(0xFF3B82F6)
+                                                    : (isDark
+                                                          ? Colors.white
+                                                          : const Color(
+                                                              0xFF0F172A,
+                                                            ))),
                                         ),
                                       ),
                                     ],
@@ -620,12 +650,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                       if (med.hasDiscount) ...[
                                         Text(
                                           '${boxOriginalPrice.toInt()} د.ع',
-                                          style: _kStyle(
-                                            fontSize: 10.5,
-                                            color: const Color(0xFF94A3B8),
-                                          ).copyWith(
-                                            decoration: TextDecoration.lineThrough,
-                                          ),
+                                          style:
+                                              _kStyle(
+                                                fontSize: 10.5,
+                                                color: const Color(0xFF94A3B8),
+                                              ).copyWith(
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                              ),
                                         ),
                                         const SizedBox(width: 5),
                                       ],
@@ -637,8 +669,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                           color: isOut
                                               ? Colors.grey
                                               : (selectedUnit == 'پاکەت'
-                                                  ? const Color(0xFF2563EB)
-                                                  : const Color(0xFF64748B)),
+                                                    ? const Color(0xFF2563EB)
+                                                    : const Color(0xFF64748B)),
                                         ),
                                       ),
                                     ],
@@ -668,23 +700,28 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: isOut
-                                    ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9))
+                                    ? (isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFF1F5F9))
                                     : (selectedUnit == 'دانە / شریت'
-                                        ? const Color(0xFF3B82F6).withValues(alpha: 0.12)
-                                        : sheetBg),
+                                          ? const Color(
+                                              0xFF3B82F6,
+                                            ).withValues(alpha: 0.12)
+                                          : sheetBg),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: selectedUnit == 'دانە / شریت' && !isOut
                                       ? const Color(0xFF3B82F6)
                                       : borderColor,
-                                  width: selectedUnit == 'دانە / شریت' && !isOut ? 1.8 : 1,
+                                  width: selectedUnit == 'دانە / شریت' && !isOut
+                                      ? 1.8
+                                      : 1,
                                 ),
                               ),
                               child: Column(
                                 children: [
                                   Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
                                         Icons.medication_liquid_rounded,
@@ -702,10 +739,12 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                           color: isOut
                                               ? Colors.grey
                                               : (selectedUnit == 'دانە / شریت'
-                                                  ? const Color(0xFF3B82F6)
-                                                  : (isDark
-                                                      ? Colors.white
-                                                      : const Color(0xFF0F172A))),
+                                                    ? const Color(0xFF3B82F6)
+                                                    : (isDark
+                                                          ? Colors.white
+                                                          : const Color(
+                                                              0xFF0F172A,
+                                                            ))),
                                         ),
                                       ),
                                     ],
@@ -717,12 +756,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                       if (med.hasDiscount) ...[
                                         Text(
                                           '${pieceOriginalPrice.toInt()} د.ع',
-                                          style: _kStyle(
-                                            fontSize: 10.5,
-                                            color: const Color(0xFF94A3B8),
-                                          ).copyWith(
-                                            decoration: TextDecoration.lineThrough,
-                                          ),
+                                          style:
+                                              _kStyle(
+                                                fontSize: 10.5,
+                                                color: const Color(0xFF94A3B8),
+                                              ).copyWith(
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                              ),
                                         ),
                                         const SizedBox(width: 5),
                                       ],
@@ -734,8 +775,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                           color: isOut
                                               ? Colors.grey
                                               : (selectedUnit == 'دانە / شریت'
-                                                  ? const Color(0xFF2563EB)
-                                                  : const Color(0xFF64748B)),
+                                                    ? const Color(0xFF2563EB)
+                                                    : const Color(0xFF64748B)),
                                         ),
                                       ),
                                     ],
@@ -791,8 +832,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                     decoration: BoxDecoration(
                                       color: quantity > 1
                                           ? (isDark
-                                              ? const Color(0xFF334155)
-                                              : Colors.white)
+                                                ? const Color(0xFF334155)
+                                                : Colors.white)
                                           : Colors.transparent,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -801,8 +842,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                       size: 16,
                                       color: quantity > 1
                                           ? (isDark
-                                              ? Colors.white
-                                              : const Color(0xFF0F172A))
+                                                ? Colors.white
+                                                : const Color(0xFF0F172A))
                                           : const Color(0xFF94A3B8),
                                     ),
                                   ),
@@ -827,12 +868,18 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                     if (quantity < med.stock) {
                                       setModalState(() => quantity++);
                                     } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
-                                          backgroundColor: const Color(0xFFE11D48),
+                                          backgroundColor: const Color(
+                                            0xFFE11D48,
+                                          ),
                                           behavior: SnackBarBehavior.floating,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
                                           content: Text(
                                             'تەنها ${med.stock} دانە لە کۆگادا بەردەستە',
@@ -929,9 +976,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                             if (totalSavings > 0) ...[
                               const SizedBox(height: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                  color: const Color(
+                                    0xFF10B981,
+                                  ).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
@@ -970,7 +1022,9 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                         onPressed: isOut
                             ? null
                             : () {
-                                ref.read(cartProvider.notifier).addItem(
+                                ref
+                                    .read(cartProvider.notifier)
+                                    .addItem(
                                       med,
                                       widget.pharmacy,
                                       quantity: quantity,
@@ -999,10 +1053,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                               },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isOut
-                              ? (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))
+                              ? (isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFCBD5E1))
                               : const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
-                          disabledBackgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          disabledBackgroundColor: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
                           disabledForegroundColor: const Color(0xFF94A3B8),
                           elevation: isOut ? 0 : 3,
                           shadowColor: const Color(
@@ -1016,8 +1074,12 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              isOut ? Icons.block_rounded : Iconsax.shopping_cart,
-                              color: isOut ? const Color(0xFF94A3B8) : Colors.white,
+                              isOut
+                                  ? Icons.block_rounded
+                                  : Iconsax.shopping_cart,
+                              color: isOut
+                                  ? const Color(0xFF94A3B8)
+                                  : Colors.white,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
@@ -1028,7 +1090,9 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                               style: _kStyle(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.bold,
-                                color: isOut ? const Color(0xFF94A3B8) : Colors.white,
+                                color: isOut
+                                    ? const Color(0xFF94A3B8)
+                                    : Colors.white,
                               ),
                             ),
                           ],
@@ -1616,10 +1680,11 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: (_isOfferApplied
-                                          ? const Color(0xFF10B981)
-                                          : const Color(0xFF8B5CF6))
-                                      .withValues(alpha: 0.3),
+                                  color:
+                                      (_isOfferApplied
+                                              ? const Color(0xFF10B981)
+                                              : const Color(0xFF8B5CF6))
+                                          .withValues(alpha: 0.3),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -1660,8 +1725,9 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                               vertical: 2.5,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: Colors.white
-                                                  .withValues(alpha: 0.22),
+                                              color: Colors.white.withValues(
+                                                alpha: 0.22,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
@@ -1741,8 +1807,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                           ),
                                           border: Border.all(
                                             color: isSel
-                                              ? const Color(0xFF3B82F6)
-                                              : borderColor,
+                                                ? const Color(0xFF3B82F6)
+                                                : borderColor,
                                           ),
                                           boxShadow: isSel
                                               ? [
@@ -1908,413 +1974,431 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                             final int qty = inCartItem?.quantity ?? 0;
 
                             return GestureDetector(
-                              onTap: () => _showMedicationDetailBottomSheet(med),
+                              onTap: () =>
+                                  _showMedicationDetailBottomSheet(med),
                               child: Container(
-                                  decoration: BoxDecoration(
-                                    color: cardBg,
-                                    borderRadius: BorderRadius.circular(18),
-                                    border: Border.all(color: borderColor),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: isDark ? 0.2 : 0.04,
-                                        ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 3),
+                                decoration: BoxDecoration(
+                                  color: cardBg,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: borderColor),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: isDark ? 0.2 : 0.04,
                                       ),
-                                    ],
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.5),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        // Image Container with dosage badge
-                                        Stack(
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              child: Container(
-                                                height: 96,
-                                                width: double.infinity,
-                                                color: isDark
-                                                    ? const Color(0xFF0F172A)
-                                                    : const Color(0xFFF8FAFC),
-                                                child: Opacity(
-                                                  opacity: med.isOutOfStock ? 0.45 : 1.0,
-                                                  child: Image.network(
-                                                    med.imageUrl ??
-                                                        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder: (_, __, ___) =>
-                                                        Center(
-                                                          child: Icon(
-                                                            Icons
-                                                                .medication_rounded,
-                                                            color:
-                                                                const Color(
-                                                                  0xFF3B82F6,
-                                                                ).withValues(
-                                                                  alpha: 0.7,
-                                                                ),
-                                                            size: 40,
-                                                          ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.5),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Image Container with dosage badge
+                                      Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child: Container(
+                                              height: 96,
+                                              width: double.infinity,
+                                              color: isDark
+                                                  ? const Color(0xFF0F172A)
+                                                  : const Color(0xFFF8FAFC),
+                                              child: Opacity(
+                                                opacity: med.isOutOfStock
+                                                    ? 0.45
+                                                    : 1.0,
+                                                child: Image.network(
+                                                  med.imageUrl ??
+                                                      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (_, __, ___) =>
+                                                      Center(
+                                                        child: Icon(
+                                                          Icons
+                                                              .medication_rounded,
+                                                          color:
+                                                              const Color(
+                                                                0xFF3B82F6,
+                                                              ).withValues(
+                                                                alpha: 0.7,
+                                                              ),
+                                                          size: 40,
                                                         ),
-                                                  ),
+                                                      ),
                                                 ),
                                               ),
                                             ),
-                                            // Badges (Out of stock / Discount / Original)
-                                            PositionedDirectional(
-                                              top: 6,
-                                              start: 6,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2.5,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: med.isOutOfStock
-                                                      ? const Color(0xFFEF4444)
-                                                      : (med.hasDiscount
-                                                          ? const Color(0xFFDC2626)
-                                                          : Colors.black.withValues(alpha: 0.65)),
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                  boxShadow: med.hasDiscount || med.isOutOfStock
-                                                      ? [
-                                                          BoxShadow(
-                                                            color: (med.isOutOfStock
-                                                                    ? const Color(0xFFEF4444)
-                                                                    : const Color(0xFFDC2626))
-                                                                .withValues(alpha: 0.35),
-                                                            blurRadius: 4,
-                                                            offset: const Offset(0, 1),
+                                          ),
+                                          // Badges (Out of stock / Discount / Original)
+                                          PositionedDirectional(
+                                            top: 6,
+                                            start: 6,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2.5,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: med.isOutOfStock
+                                                    ? const Color(0xFFEF4444)
+                                                    : (med.hasDiscount
+                                                          ? const Color(
+                                                              0xFFDC2626,
+                                                            )
+                                                          : Colors.black
+                                                                .withValues(
+                                                                  alpha: 0.65,
+                                                                )),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                                boxShadow:
+                                                    med.hasDiscount ||
+                                                        med.isOutOfStock
+                                                    ? [
+                                                        BoxShadow(
+                                                          color:
+                                                              (med.isOutOfStock
+                                                                      ? const Color(
+                                                                          0xFFEF4444,
+                                                                        )
+                                                                      : const Color(
+                                                                          0xFFDC2626,
+                                                                        ))
+                                                                  .withValues(
+                                                                    alpha: 0.35,
+                                                                  ),
+                                                          blurRadius: 4,
+                                                          offset: const Offset(
+                                                            0,
+                                                            1,
                                                           ),
-                                                        ]
-                                                      : null,
-                                                ),
-                                                child: Text(
-                                                  med.isOutOfStock
-                                                      ? 'نەماوە ❌'
-                                                      : (med.hasDiscount
+                                                        ),
+                                                      ]
+                                                    : null,
+                                              ),
+                                              child: Text(
+                                                med.isOutOfStock
+                                                    ? 'نەماوە ❌'
+                                                    : (med.hasDiscount
                                                           ? 'داشکاندن ${med.calculatedDiscountPercent}٪'
                                                           : 'ئۆرجیناڵ ⭐'),
-                                                  style: _kStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 9.5,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
+                                                style: _kStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 9.5,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
+                                      ),
 
-                                        const SizedBox(height: 5),
+                                      const SizedBox(height: 5),
 
-                                        // Medicine Name
-                                        Text(
-                                          med.name,
-                                          style: _kStyle(
-                                            fontSize: 13.5,
-                                            fontWeight: FontWeight.bold,
-                                            color: med.isOutOfStock
-                                                ? (isDark ? Colors.white38 : const Color(0xFF94A3B8))
-                                                : (isDark
+                                      // Medicine Name
+                                      Text(
+                                        med.name,
+                                        style: _kStyle(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: med.isOutOfStock
+                                              ? (isDark
+                                                    ? Colors.white38
+                                                    : const Color(0xFF94A3B8))
+                                              : (isDark
                                                     ? Colors.white
                                                     : const Color(0xFF0F172A)),
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
 
-                                        const SizedBox(height: 2),
+                                      const SizedBox(height: 2),
 
-                                        // Description Subtext
-                                        Text(
-                                          med.description ??
-                                              'دەرمانی باوەڕپێکراو',
-                                          style: _kStyle(
-                                            fontSize: 11,
-                                            color: isDark
-                                                ? Colors.white60
-                                                : const Color(0xFF64748B),
-                                            height: 1.2,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                                      // Description Subtext
+                                      Text(
+                                        med.description ??
+                                            'دەرمانی باوەڕپێکراو',
+                                        style: _kStyle(
+                                          fontSize: 11,
+                                          color: isDark
+                                              ? Colors.white60
+                                              : const Color(0xFF64748B),
+                                          height: 1.2,
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
 
-                                        const Spacer(),
+                                      const Spacer(),
 
-                                        // Price and Add/Counter Row
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            // Price in IQD
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                if (med.hasDiscount && !med.isOutOfStock)
-                                                  Text(
-                                                    '${med.effectiveOriginalPrice.toInt()} د.ع',
-                                                    style: _kStyle(
-                                                      fontSize: 10,
-                                                      color: const Color(0xFF94A3B8),
-                                                    ).copyWith(
-                                                      decoration: TextDecoration.lineThrough,
-                                                    ),
-                                                  ),
+                                      // Price and Add/Counter Row
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          // Price in IQD
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              if (med.hasDiscount &&
+                                                  !med.isOutOfStock)
                                                 Text(
-                                                  '${med.price.toInt()}',
-                                                  style: _kStyle(
-                                                    fontSize: 14.5,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: med.isOutOfStock
-                                                        ? const Color(0xFF94A3B8)
-                                                        : const Color(
-                                                            0xFF2563EB,
-                                                          ),
-                                                  ),
+                                                  '${med.effectiveOriginalPrice.toInt()} د.ع',
+                                                  style:
+                                                      _kStyle(
+                                                        fontSize: 10,
+                                                        color: const Color(
+                                                          0xFF94A3B8,
+                                                        ),
+                                                      ).copyWith(
+                                                        decoration:
+                                                            TextDecoration
+                                                                .lineThrough,
+                                                      ),
                                                 ),
-                                                Text(
-                                                  'دیناری عێراقی',
-                                                  style: _kStyle(
-                                                    fontSize: 9.5,
-                                                    color: isDark
-                                                        ? Colors.white54
-                                                        : const Color(
-                                                            0xFF94A3B8,
-                                                          ),
-                                                  ),
+                                              Text(
+                                                '${med.price.toInt()}',
+                                                style: _kStyle(
+                                                  fontSize: 14.5,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: med.isOutOfStock
+                                                      ? const Color(0xFF94A3B8)
+                                                      : const Color(0xFF2563EB),
                                                 ),
-                                              ],
-                                            ),
-
-                                            // Modern Floating Add / Out of Stock / Stepper Button
-                                            if (med.isOutOfStock)
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 5,
-                                                ),
-                                                decoration: BoxDecoration(
+                                              ),
+                                              Text(
+                                                'دیناری عێراقی',
+                                                style: _kStyle(
+                                                  fontSize: 9.5,
                                                   color: isDark
-                                                      ? const Color(0xFF334155).withValues(alpha: 0.5)
-                                                      : const Color(0xFFF1F5F9),
-                                                  borderRadius: BorderRadius.circular(10),
-                                                  border: Border.all(
-                                                    color: isDark
-                                                        ? const Color(0xFF475569)
-                                                        : const Color(0xFFE2E8F0),
-                                                  ),
+                                                      ? Colors.white54
+                                                      : const Color(0xFF94A3B8),
                                                 ),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    const Icon(
-                                                      Icons.block_rounded,
-                                                      size: 11,
-                                                      color: Color(0xFF94A3B8),
-                                                    ),
-                                                    const SizedBox(width: 3),
-                                                    Text(
-                                                      'نەماوە',
-                                                      style: _kStyle(
-                                                        color: const Color(0xFF94A3B8),
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 10.5,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-                                            else if (qty == 0)
-                                              GestureDetector(
-                                                onTap: () {
-                                                  _showMedicationDetailBottomSheet(
-                                                    med,
-                                                  );
-                                                },
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 6,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(
-                                                      0xFF2563EB,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color:
-                                                            const Color(
-                                                              0xFF2563EB,
-                                                            ).withValues(
-                                                              alpha: 0.3,
-                                                            ),
-                                                        blurRadius: 6,
-                                                        offset: const Offset(
-                                                          0,
-                                                          2,
-                                                        ),
-                                                      ),
-                                                    ],
+                                              ),
+                                            ],
+                                          ),
+
+                                          // Modern Floating Add / Out of Stock / Stepper Button
+                                          if (med.isOutOfStock)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 5,
                                                   ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      const Icon(
-                                                        Icons.add,
-                                                        color: Colors.white,
-                                                        size: 14,
-                                                      ),
-                                                      const SizedBox(width: 3),
-                                                      Text(
-                                                        'کڕین',
-                                                        style: _kStyle(
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 11,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? const Color(
+                                                        0xFF334155,
+                                                      ).withValues(alpha: 0.5)
+                                                    : const Color(0xFFF1F5F9),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                border: Border.all(
+                                                  color: isDark
+                                                      ? const Color(0xFF475569)
+                                                      : const Color(0xFFE2E8F0),
                                                 ),
-                                              )
-                                            else
-                                              Container(
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.block_rounded,
+                                                    size: 11,
+                                                    color: Color(0xFF94A3B8),
+                                                  ),
+                                                  const SizedBox(width: 3),
+                                                  Text(
+                                                    'نەماوە',
+                                                    style: _kStyle(
+                                                      color: const Color(
+                                                        0xFF94A3B8,
+                                                      ),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 10.5,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            )
+                                          else if (qty == 0)
+                                            GestureDetector(
+                                              onTap: () {
+                                                _showMedicationDetailBottomSheet(
+                                                  med,
+                                                );
+                                              },
+                                              child: Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                      horizontal: 4,
-                                                      vertical: 3,
+                                                      horizontal: 10,
+                                                      vertical: 6,
                                                     ),
                                                 decoration: BoxDecoration(
                                                   color: const Color(
                                                     0xFF2563EB,
-                                                  ).withValues(alpha: 0.1),
+                                                  ),
                                                   borderRadius:
                                                       BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                    color: const Color(
-                                                      0xFF2563EB,
-                                                    ).withValues(alpha: 0.3),
-                                                  ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(
+                                                        0xFF2563EB,
+                                                      ).withValues(alpha: 0.3),
+                                                      blurRadius: 6,
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                                 child: Row(
                                                   mainAxisSize:
                                                       MainAxisSize.min,
                                                   children: [
-                                                    GestureDetector(
-                                                      onTap: () {
-                                                        ref
-                                                            .read(
-                                                              cartProvider
-                                                                  .notifier,
-                                                            )
-                                                            .updateQuantity(
-                                                              med.id,
-                                                              qty - 1,
-                                                            );
-                                                      },
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              4,
-                                                            ),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                              color: cardBg,
-                                                              shape: BoxShape
-                                                                  .circle,
-                                                            ),
-                                                        child: const Icon(
-                                                          Icons.remove,
-                                                          size: 12,
-                                                          color: Color(
-                                                            0xFF2563EB,
-                                                          ),
-                                                        ),
-                                                      ),
+                                                    const Icon(
+                                                      Icons.add,
+                                                      color: Colors.white,
+                                                      size: 14,
                                                     ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 6,
-                                                          ),
-                                                      child: Text(
-                                                        '$qty',
-                                                        style: _kStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 12,
-                                                          color: const Color(
-                                                            0xFF2563EB,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    GestureDetector(
-                                                      onTap: () {
-                                                        ref
-                                                            .read(
-                                                              cartProvider
-                                                                  .notifier,
-                                                            )
-                                                            .updateQuantity(
-                                                              med.id,
-                                                              qty + 1,
-                                                            );
-                                                      },
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              4,
-                                                            ),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                              color:
-                                                                  const Color(
-                                                                    0xFF2563EB,
-                                                                  ),
-                                                              shape: BoxShape
-                                                                  .circle,
-                                                            ),
-                                                        child: const Icon(
-                                                          Icons.add,
-                                                          size: 12,
-                                                          color: Colors.white,
-                                                        ),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      'کڕین',
+                                                      style: _kStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 11,
                                                       ),
                                                     ),
                                                   ],
                                                 ),
                                               ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                            )
+                                          else
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 4,
+                                                    vertical: 3,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(
+                                                  0xFF2563EB,
+                                                ).withValues(alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: const Color(
+                                                    0xFF2563EB,
+                                                  ).withValues(alpha: 0.3),
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      ref
+                                                          .read(
+                                                            cartProvider
+                                                                .notifier,
+                                                          )
+                                                          .updateQuantity(
+                                                            med.id,
+                                                            qty - 1,
+                                                          );
+                                                    },
+                                                    child: Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            4,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: cardBg,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.remove,
+                                                        size: 12,
+                                                        color: Color(
+                                                          0xFF2563EB,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 6,
+                                                        ),
+                                                    child: Text(
+                                                      '$qty',
+                                                      style: _kStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: const Color(
+                                                          0xFF2563EB,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      ref
+                                                          .read(
+                                                            cartProvider
+                                                                .notifier,
+                                                          )
+                                                          .updateQuantity(
+                                                            med.id,
+                                                            qty + 1,
+                                                          );
+                                                    },
+                                                    child: Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            4,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color(
+                                                          0xFF2563EB,
+                                                        ),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.add,
+                                                        size: 12,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              )
-                                .animate()
-                                .fadeIn(delay: (index * 30).ms)
-                                .slideY(begin: 0.03, end: 0);
+                              ),
+                            ).animate().fadeIn(delay: (index * 30).ms).slideY(begin: 0.03, end: 0);
                           }, childCount: filteredMeds.length),
                         ),
                       ),
