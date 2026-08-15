@@ -639,24 +639,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             onTap: () => _makePhoneCall(null),
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildActionButton(
-            icon: Iconsax.message,
-            label: _tr('chat', context),
-            color: const Color(0xFF10B981),
-            bgColor: const Color(0xFFECFDF5),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_tr('chat', context), style: _kStyle(color: Colors.white)),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Expanded(
           child: _buildActionButton(
             icon: Iconsax.map,
