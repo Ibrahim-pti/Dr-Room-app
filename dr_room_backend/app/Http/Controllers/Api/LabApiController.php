@@ -122,21 +122,25 @@ class LabApiController extends Controller
             'about_us_en' => $lab ? $lab->about_us_en : 'Advanced medical diagnostic laboratory providing highly accurate and fast test results.',
             'latitude' => $lab ? $lab->latitude : '36.1911',
             'longitude' => $lab ? $lab->longitude : '44.0092',
-            'tests' => ($lab && $lab->tests && $lab->tests->isNotEmpty()) ? $lab->tests->map(function($t) {
+            'tests' => ($lab && $lab->tests && $lab->tests->isNotEmpty()) ? $lab->tests->map(function($t) use ($discount) {
+                $disc = $t->discount ?? ($discount ? $discount : ($t->id % 2 == 0 ? 25 : null));
+                $originalPrice = $disc ? round($t->price / (1 - ($disc / 100))) : null;
                 return [
                     'id' => $t->id,
                     'name' => $t->name,
                     'price' => (int)$t->price,
+                    'original_price' => $originalPrice,
+                    'discount' => $disc,
                     'type' => $t->type ?? 'General Test',
                     'desc' => $t->desc ?? 'پشکنینی پزیشکی ورد',
                 ];
             }) : [
-                ['id' => 1, 'name' => 'پشکنینی گشتی خوێن (CBC)', 'price' => 10000, 'type' => 'Blood Test', 'desc' => 'Complete Blood Count'],
-                ['id' => 2, 'name' => 'چەوری و کۆلیسترۆڵ (Lipid Profile)', 'price' => 15000, 'type' => 'Blood Test', 'desc' => 'Cholesterol & Triglycerides'],
+                ['id' => 1, 'name' => 'پشکنینی گشتی خوێن (CBC)', 'price' => 10000, 'original_price' => 14000, 'discount' => 28, 'type' => 'Blood Test', 'desc' => 'Complete Blood Count'],
+                ['id' => 2, 'name' => 'چەوری و کۆلیسترۆڵ (Lipid Profile)', 'price' => 15000, 'original_price' => 20000, 'discount' => 25, 'type' => 'Blood Test', 'desc' => 'Cholesterol & Triglycerides'],
                 ['id' => 3, 'name' => 'شەکرەی سێ مانگی (HbA1c)', 'price' => 15000, 'type' => 'Blood Test', 'desc' => 'Glycated Hemoglobin'],
-                ['id' => 4, 'name' => 'پشکنینی ڤیتامین دی (Vitamin D)', 'price' => 20000, 'type' => 'Vitamin Test', 'desc' => '25-OH Vitamin D'],
-                ['id' => 5, 'name' => 'کاری جگەر (Liver Panel)', 'price' => 18000, 'type' => 'Liver Function', 'desc' => 'ALT, AST, Bilirubin'],
-                ['id' => 6, 'name' => 'کاری گورچیلە (Kidney Panel)', 'price' => 12000, 'type' => 'Kidney Function', 'desc' => 'Urea & Creatinine'],
+                ['id' => 4, 'name' => 'پشکنینی ڤیتامین دی (Vitamin D)', 'price' => 22000, 'original_price' => 30000, 'discount' => 27, 'type' => 'Vitamin Test', 'desc' => '25-OH Vitamin D'],
+                ['id' => 5, 'name' => 'کاری جگەر (Liver Panel)', 'price' => 18000, 'original_price' => 24000, 'discount' => 25, 'type' => 'Liver Function', 'desc' => 'ALT, AST, Bilirubin'],
+                ['id' => 6, 'name' => 'کاری گورچیلە (Kidney Panel)', 'price' => 12000, 'original_price' => 16000, 'discount' => 25, 'type' => 'Kidney Function', 'desc' => 'Urea & Creatinine'],
             ],
         ];
 

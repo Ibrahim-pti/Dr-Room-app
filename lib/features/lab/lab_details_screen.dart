@@ -140,12 +140,12 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     } else {
       // High quality fallback tests
       _tests = [
-        {'id': 1, 'name': 'پشکنینی گشتی خوێن (CBC)', 'price': 10000, 'type': 'Blood Test', 'desc': 'Complete Blood Count'},
-        {'id': 2, 'name': 'چەوری و کۆلیسترۆڵ (Lipid Profile)', 'price': 15000, 'type': 'Blood Test', 'desc': 'Cholesterol & Triglycerides'},
+        {'id': 1, 'name': 'پشکنینی گشتی خوێن (CBC)', 'price': 10000, 'original_price': 14000, 'discount': 28, 'type': 'Blood Test', 'desc': 'Complete Blood Count'},
+        {'id': 2, 'name': 'چەوری و کۆلیسترۆڵ (Lipid Profile)', 'price': 15000, 'original_price': 20000, 'discount': 25, 'type': 'Blood Test', 'desc': 'Cholesterol & Triglycerides'},
         {'id': 3, 'name': 'شەکرەی سێ مانگی (HbA1c)', 'price': 15000, 'type': 'Blood Test', 'desc': 'Glycated Hemoglobin'},
-        {'id': 4, 'name': 'پشکنینی ڤیتامین دی (Vitamin D)', 'price': 20000, 'type': 'Vitamin Test', 'desc': '25-OH Vitamin D'},
+        {'id': 4, 'name': 'پشکنینی ڤیتامین دی (Vitamin D)', 'price': 22000, 'original_price': 30000, 'discount': 27, 'type': 'Vitamin Test', 'desc': '25-OH Vitamin D'},
         {'id': 5, 'name': 'کاری جگەر (Liver Function Test)', 'price': 18000, 'type': 'Liver Panel', 'desc': 'ALT, AST, Bilirubin'},
-        {'id': 6, 'name': 'کاری گورچیلە (Kidney Function Test)', 'price': 12000, 'type': 'Kidney Panel', 'desc': 'Urea & Creatinine'},
+        {'id': 6, 'name': 'کاری گورچیلە (Kidney Function Test)', 'price': 12000, 'original_price': 16000, 'discount': 25, 'type': 'Kidney Panel', 'desc': 'Urea & Creatinine'},
       ];
     }
     // Select first test by default
@@ -167,7 +167,20 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             _labData = Map<String, dynamic>.from(decoded['data']);
             if (_labData['tests'] is List && (_labData['tests'] as List).isNotEmpty) {
               _tests = List<Map<String, dynamic>>.from(
-                (_labData['tests'] as List).map((t) => Map<String, dynamic>.from(t)),
+                (_labData['tests'] as List).map((t) {
+                  final map = Map<String, dynamic>.from(t);
+                  if (map['discount'] == null && _labData['discount'] != null) {
+                    final d = _labData['discount'];
+                    final p = (map['price'] as num?)?.toInt() ?? 10000;
+                    map['discount'] = d;
+                    map['original_price'] = (p / (1 - (d / 100))).round();
+                  } else if (map['discount'] != null && map['original_price'] == null) {
+                    final d = map['discount'] as num;
+                    final p = (map['price'] as num?)?.toInt() ?? 10000;
+                    map['original_price'] = (p / (1 - (d / 100))).round();
+                  }
+                  return map;
+                }),
               );
             }
           });
@@ -596,7 +609,8 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
   Widget _buildIdentityCard(String name, String location, String rating, String hours) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -610,25 +624,28 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Name Row
+          // Name Centered
           Text(
             name,
+            textAlign: TextAlign.center,
             style: _kStyle(
-              fontSize: 17.5,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 6),
 
-          // Location & Rating Row
+          // Location & Rating Centered Row
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Iconsax.location, color: Color(0xFF3B82F6), size: 15),
-              const SizedBox(width: 5),
-              Expanded(
+              const Icon(Iconsax.location, color: Color(0xFF3B82F6), size: 14),
+              const SizedBox(width: 4),
+              Flexible(
                 child: Text(
                   location,
                   style: _kStyle(
@@ -641,16 +658,16 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(7),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 13),
-                    const SizedBox(width: 3),
+                    const SizedBox(width: 2.5),
                     Text(
                       rating,
                       style: _kStyle(
@@ -1090,6 +1107,8 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             final int testId = test['id'] as int;
             final bool isSelected = _selectedTestIds.contains(testId);
             final int price = (test['price'] as num?)?.toInt() ?? 10000;
+            final int? originalPrice = (test['original_price'] as num?)?.toInt();
+            final dynamic discount = test['discount'];
 
             return GestureDetector(
               onTap: () {
@@ -1103,7 +1122,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
                   borderRadius: BorderRadius.circular(18),
@@ -1138,7 +1157,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                           ? const Icon(Icons.check, color: Colors.white, size: 16)
                           : null,
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
 
                     // Test Name & Description
                     Expanded(
@@ -1148,7 +1167,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                           Text(
                             test['name']?.toString() ?? 'پشکنین',
                             style: _kStyle(
-                              fontSize: 14,
+                              fontSize: 13.5,
                               fontWeight: FontWeight.bold,
                               color: const Color(0xFF0F172A),
                             ),
@@ -1157,29 +1176,68 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                           Text(
                             test['desc']?.toString() ?? test['type']?.toString() ?? 'پشکنینی پزیشکی',
                             style: _kStyle(
-                              fontSize: 11.5,
+                              fontSize: 11,
                               color: const Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
 
-                    // Price Pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${NumberFormat('#,###').format(price)} ${_tr('currency', context)}',
-                        style: _kStyle(
-                          color: isSelected ? Colors.white : const Color(0xFF1E293B),
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                    // Price & Discount Pill Column
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (discount != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            margin: const EdgeInsets.only(bottom: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEE2E2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '%$discount ${_tr('discount', context)}',
+                              style: _kStyle(
+                                color: const Color(0xFFDC2626),
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (originalPrice != null && originalPrice > price) ...[
+                              Text(
+                                NumberFormat('#,###').format(originalPrice),
+                                style: _kStyle(
+                                  fontSize: 10.5,
+                                  color: const Color(0xFF94A3B8),
+                                ).copyWith(decoration: TextDecoration.lineThrough),
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${NumberFormat('#,###').format(price)} ${_tr('currency', context)}',
+                                style: _kStyle(
+                                  color: isSelected ? Colors.white : const Color(0xFF1E293B),
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
