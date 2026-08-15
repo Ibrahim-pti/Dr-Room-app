@@ -1,0 +1,126 @@
+class HomeMockData {
+  static final List<Map<String, dynamic>> fallbackDoctors = [
+    {
+      'id': 101,
+      'user': {'name': 'د. ئارام عوسمان'},
+      'specialty': 'پسپۆڕی دڵ و بۆرییەکانی خوێن',
+      'rating': 4.9,
+      'total_reviews': 128,
+      'image_path': null,
+    },
+    {
+      'id': 102,
+      'user': {'name': 'د. ژینۆ ئەحمەد'},
+      'specialty': 'پسپۆڕی نەخۆشییەکانی منداڵان',
+      'rating': 4.8,
+      'total_reviews': 95,
+      'image_path': null,
+    },
+    {
+      'id': 103,
+      'user': {'name': 'د. سەرۆک عومەر'},
+      'specialty': 'پسپۆڕی ئێسک و جومگە',
+      'rating': 4.9,
+      'total_reviews': 142,
+      'image_path': null,
+    },
+    {
+      'id': 104,
+      'user': {'name': 'د. کاروان کامەران'},
+      'specialty': 'پسپۆڕی پێست و جوانکاری',
+      'rating': 4.7,
+      'total_reviews': 76,
+      'image_path': null,
+    },
+    {
+      'id': 105,
+      'user': {'name': 'د. ڕۆژان محەمەد'},
+      'specialty': 'پسپۆڕی ئافرەتان و منداڵبوون',
+      'rating': 4.9,
+      'total_reviews': 210,
+      'image_path': null,
+    },
+    {
+      'id': 106,
+      'user': {'name': 'د. هەورامان عەلی'},
+      'specialty': 'پسپۆڕی نەخۆشییەکانی چاو',
+      'rating': 4.8,
+      'total_reviews': 105,
+      'image_path': null,
+    },
+    {
+      'id': 107,
+      'user': {'name': 'د. نەبەز جەمال'},
+      'specialty': 'پسپۆڕی هەناوی و شەکرە',
+      'rating': 4.7,
+      'total_reviews': 88,
+      'image_path': null,
+    },
+  ];
+
+  static final List<Map<String, dynamic>> fallbackPharmacies = [
+    {
+      'id': 201,
+      'name': 'دەرمانخانەی سۆران ناوەندی',
+      'city': 'هەولێر',
+      'time': '٢٤ کاتژمێر بەردەوام',
+      'rating': 4.9,
+      'delivery_fee': 1500.0,
+      'profile_image': null,
+    },
+    {
+      'id': 202,
+      'name': 'دەرمانخانەی بەختیاری',
+      'city': 'سلێمانی',
+      'time': '٨ بەیانی - ١٢ شەو',
+      'rating': 4.8,
+      'delivery_fee': 2000.0,
+      'profile_image': null,
+    },
+    {
+      'id': 203,
+      'name': 'دەرمانخانەی ئازادی',
+      'city': 'دهۆک',
+      'time': '٢٤ کاتژمێر',
+      'rating': 4.9,
+      'delivery_fee': 1500.0,
+      'profile_image': null,
+    },
+    {
+      'id': 204,
+      'name': 'دەرمانخانەی شاری پزیشکی',
+      'city': 'هەولێر',
+      'time': '٢٤ کاتژمێر',
+      'rating': 4.7,
+      'delivery_fee': 1000.0,
+      'profile_image': null,
+    },
+  ];
+
+  static final List<Map<String, dynamic>> fallbackLabs = [
+    {
+      'name': 'تاقیگەی ناوەندی هەولێر',
+      'city': 'Erbil',
+      'time': '25-35 min',
+      'image': 'assets/images/lab1.jpg',
+    },
+    {
+      'name': 'تاقیگەی سلێمانی نموونەیی',
+      'city': 'Sulaymaniyah',
+      'time': '30-40 min',
+      'image': 'assets/images/lab2.jpg',
+    },
+    {
+      'name': 'تاقیگەی دهۆک',
+      'city': 'Duhok',
+      'time': '20-30 min',
+      'image': 'assets/images/lab3.jpg',
+    },
+    {
+      'name': 'تاقیگەی کەرکوک مێدیکا',
+      'city': 'Kirkuk',
+      'time': '15-25 min',
+      'image': 'assets/images/lab4.jpg',
+    },
+  ];
+}
