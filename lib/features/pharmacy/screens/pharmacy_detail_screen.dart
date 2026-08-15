@@ -2403,7 +2403,11 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                         ),
                       ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: cartState.items.isNotEmpty ? 85 : 20,
+                  ),
+                ),
               ],
             ),
 
