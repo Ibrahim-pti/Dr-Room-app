@@ -587,32 +587,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                     child: Image.asset(imagePath, fit: BoxFit.cover),
                   ),
                 )
               else if (icon != null)
-                Icon(icon, color: AppColors.getTextSubtitle(context), size: 20),
+                Icon(icon, color: const Color(0xFF3B82F6), size: 20),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.poppins(
-                    color: AppColors.getTextTitle(context),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               Icon(
-                Icons.chevron_right_rounded,
+                Iconsax.arrow_left_2,
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF475569)
                     : const Color(0xFFCBD5E1),
-                size: 22,
+                size: 16,
               ),
             ],
           ),
@@ -644,22 +644,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             )
           else if (icon != null)
-            Icon(icon, color: AppColors.primary, size: 20),
+            Icon(icon, color: const Color(0xFF3B82F6), size: 20),
           const SizedBox(width: 14),
           Expanded(
             child: Text(
               title,
-              style: GoogleFonts.poppins(
-                color: AppColors.getTextTitle(context),
+              style: const TextStyle(
+                fontFamily: 'Rabar',
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
           Switch(
             value: value,
+            activeThumbColor: const Color(0xFF3B82F6),
+            activeTrackColor: const Color(0xFF93C5FD),
             onChanged: onChanged,
-            activeColor: AppColors.primary,
           ),
         ],
       ),

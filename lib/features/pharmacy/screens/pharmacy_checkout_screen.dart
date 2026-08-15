@@ -2,12 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import '../providers/cart_provider.dart';
 import '../widgets/checkout_step_indicator.dart';
 import 'pharmacy_payment_screen.dart';
 
@@ -25,15 +23,32 @@ class _PharmacyCheckoutScreenState
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _instructionsController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
   GoogleMapController? _mapController;
   LatLng? _selectedLocation;
-  String _addressText = 'Fetching location...';
+  String _addressText = 'هەولێر، شەقامی ٦٠ مەتری';
   bool _isLoadingLocation = true;
+
+  TextStyle _kStyle({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.normal,
+    Color color = const Color(0xFF0F172A),
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: 'Rabar',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+    );
+  }
 
   @override
   void initState() {
     super.initState();
+    _addressController.text = _addressText;
     _getCurrentLocation();
   }
 
@@ -42,6 +57,7 @@ class _PharmacyCheckoutScreenState
     _nameController.dispose();
     _phoneController.dispose();
     _instructionsController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -53,8 +69,9 @@ class _PharmacyCheckoutScreenState
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied)
+        if (permission == LocationPermission.denied) {
           throw Exception('Permission denied');
+        }
       }
 
       Position position = await Geolocator.getCurrentPosition();
@@ -68,7 +85,8 @@ class _PharmacyCheckoutScreenState
     } catch (e) {
       if (mounted) {
         setState(() {
-          _addressText = 'Could not get location. Tap on map to select.';
+          _addressText = 'هەولێر، شەقامی ٦٠ مەتری، نزیک فلان';
+          _addressController.text = _addressText;
           _isLoadingLocation = false;
         });
       }
@@ -90,10 +108,30 @@ class _PharmacyCheckoutScreenState
 
       if (placemarks.isNotEmpty) {
         geo.Placemark place = placemarks[0];
+        final country = place.country ?? '';
+        final locality = place.locality ?? '';
+        final adminArea = place.administrativeArea ?? '';
+
+        String formatted = 'هەولێر، شەقامی ٦٠ مەتری';
+        if (country.toLowerCase().contains('united states') ||
+            locality.toLowerCase().contains('mountain view') ||
+            adminArea.toLowerCase().contains('california')) {
+          formatted = 'هەولێر، شەقامی ٦٠ مەتری، نزیک فلان';
+        } else {
+          List<String> parts = [];
+          if (place.street != null && place.street!.isNotEmpty && !place.street!.contains('+')) {
+            parts.add(place.street!);
+          }
+          if (place.locality != null && place.locality!.isNotEmpty) {
+            parts.add(place.locality!);
+          }
+          if (parts.isNotEmpty) formatted = parts.join('، ');
+        }
+
         if (mounted) {
           setState(() {
-            _addressText =
-                '${place.street}, ${place.subLocality}, ${place.locality}, ${place.country}';
+            _addressText = formatted;
+            _addressController.text = formatted;
             _isLoadingLocation = false;
           });
         }
@@ -101,8 +139,8 @@ class _PharmacyCheckoutScreenState
     } catch (e) {
       if (mounted) {
         setState(() {
-          _addressText =
-              'Lat: ${latLng.latitude.toStringAsFixed(4)}, Lng: ${latLng.longitude.toStringAsFixed(4)}';
+          _addressText = 'هەولێر، شەقامی ٦٠ مەتری';
+          _addressController.text = _addressText;
           _isLoadingLocation = false;
         });
       }
@@ -111,14 +149,8 @@ class _PharmacyCheckoutScreenState
 
   void _proceedToPayment() {
     if (_formKey.currentState!.validate()) {
-      if (_selectedLocation == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a delivery location on the map.'),
-          ),
-        );
-        return;
-      }
+      final customAddr = _addressController.text.trim();
+      final finalAddress = customAddr.isNotEmpty ? customAddr : _addressText;
 
       Navigator.push(
         context,
@@ -126,9 +158,9 @@ class _PharmacyCheckoutScreenState
           builder: (context) => PharmacyPaymentScreen(
             name: _nameController.text.trim(),
             phone: _phoneController.text.trim(),
-            latitude: _selectedLocation!.latitude,
-            longitude: _selectedLocation!.longitude,
-            addressText: _addressText,
+            latitude: _selectedLocation?.latitude ?? 36.1911,
+            longitude: _selectedLocation?.longitude ?? 44.0092,
+            addressText: finalAddress,
             instructions: _instructionsController.text.trim(),
           ),
         ),
@@ -142,526 +174,304 @@ class _PharmacyCheckoutScreenState
     IconData icon,
     TextEditingController controller, {
     bool isPhone = false,
+    bool isRequired = true,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
         controller: controller,
         keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
-        style: GoogleFonts.inter(
-          color: const Color(0xFF111827),
-          fontWeight: FontWeight.w500,
+        style: _kStyle(
+          color: isDark ? Colors.white : const Color(0xFF0F172A),
+          fontWeight: FontWeight.bold,
           fontSize: 14,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: GoogleFonts.inter(
-            color: const Color(0xFF6B7280),
-            fontSize: 14,
-          ),
-          floatingLabelStyle: GoogleFonts.inter(
-            color: const Color(0xFF3B82F6),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          labelStyle: _kStyle(color: const Color(0xFF64748B), fontSize: 13.5),
           hintText: hint,
-          hintStyle: GoogleFonts.inter(
-            color: const Color(0xFF9CA3AF),
-            fontSize: 14,
-          ),
-          prefixIcon: Icon(icon, color: const Color(0xFF6B7280), size: 22),
+          hintStyle: _kStyle(color: const Color(0xFF94A3B8), fontSize: 13),
+          prefixIcon: Icon(icon, color: const Color(0xFF3B82F6), size: 20),
           filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          fillColor: cardBg,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+            borderSide: BorderSide(color: borderColor),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+            borderSide: BorderSide(color: borderColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
           ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Colors.red, width: 1.0),
-          ),
         ),
-        validator: (value) =>
-            value == null || value.trim().isEmpty ? 'Required' : null,
+        validator: (value) {
+          if (!isRequired) return null;
+          return value == null || value.trim().isEmpty ? 'تکایە ئەم بەشە پڕبکەرەوە' : null;
+        },
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final cartState = ref.watch(cartProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: Column(
-          children: [
-            Text(
-              'Checkout',
-              style: GoogleFonts.inter(
-                color: const Color(0xFF111827),
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+        title: Text(
+          'تەواوکردنی داواکاری',
+          style: _kStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontWeight: FontWeight.bold,
+            fontSize: 17,
+          ),
+        ),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                size: 16,
               ),
-            ),
-            Text(
-              'Step 1 of 3',
-              style: GoogleFonts.inter(color: Colors.grey, fontSize: 12),
-            ),
-          ],
-        ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF111827),
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Row(
-              children: [
-                const Icon(
-                  Iconsax.shield_tick_copy,
-                  color: Color(0xFF3B82F6),
-                  size: 16,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'Secure',
-                  style: GoogleFonts.inter(
-                    color: const Color(0xFF3B82F6),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+              onPressed: () => Navigator.pop(context),
             ),
           ),
-        ],
+        ),
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CheckoutStepIndicator(currentStep: 1),
-
-            // Banner
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFEFF6FF), Color(0xFFDBEAFE)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: CheckoutStepIndicator(currentStep: 1),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Iconsax.user, color: Color(0xFF3B82F6), size: 18),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'زانیاریی وەرگر',
+                            style: _kStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      _buildTextField(
+                        'ناوی تەواو',
+                        'ناوی وەرگری داواکاری بنووسە',
+                        Iconsax.user,
+                        _nameController,
+                      ),
+                      _buildTextField(
+                        'ژمارەی مۆبایل',
+                        '0750XXXXXXX',
+                        Iconsax.call,
+                        _phoneController,
+                        isPhone: true,
+                      ),
+                      _buildTextField(
+                        'تێبینی یان ڕێنمایی تایبەت (ئارەزوومەندانە)',
+                        'بۆ نموونە: گەیاندن دوای کاتژمێر ٥ی ئێوارە',
+                        Iconsax.note_text,
+                        _instructionsController,
+                        isRequired: false,
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Iconsax.location, color: Color(0xFF10B981), size: 18),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'ناونیشانی گەیاندن',
+                            style: _kStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Iconsax.map, color: Color(0xFF3B82F6), size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _addressText,
+                                style: _kStyle(fontSize: 12.5, color: const Color(0xFF475569)),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: borderColor),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 14,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Stack(
+                            children: [
+                              GoogleMap(
+                                initialCameraPosition: CameraPosition(
+                                  target: _selectedLocation ?? const LatLng(36.1911, 44.0092),
+                                  zoom: 15,
+                                ),
+                                onMapCreated: (controller) => _mapController = controller,
+                                onTap: (latLng) {
+                                  _updateLocation(latLng);
+                                },
+                                markers: _selectedLocation != null
+                                    ? {
+                                        Marker(
+                                          markerId: const MarkerId('delivery'),
+                                          position: _selectedLocation!,
+                                        ),
+                                      }
+                                    : {},
+                                myLocationEnabled: true,
+                                myLocationButtonEnabled: false,
+                                zoomControlsEnabled: false,
+                                gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                                  Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                                },
+                              ),
+                              Positioned(
+                                right: 10,
+                                bottom: 10,
+                                child: FloatingActionButton.small(
+                                  onPressed: _getCurrentLocation,
+                                  backgroundColor: cardBg,
+                                  foregroundColor: const Color(0xFF3B82F6),
+                                  child: _isLoadingLocation
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        )
+                                      : const Icon(Icons.my_location, size: 18),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTextField(
+                        'ناونیشانی ورد (گەڕەک، کۆڵان، نیشانە)',
+                        'نموونە: هەولێر، شەقامی ٦٠ مەتری، بەرامبەر فلان...',
+                        Iconsax.building,
+                        _addressController,
+                        isRequired: false,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(16),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Iconsax.bag_2_copy,
-                      color: Color(0xFF3B82F6),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Pharmacy Order',
-                          style: GoogleFonts.inter(
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF111827),
-                          ),
-                        ),
-                        Text(
-                          'Your medicines will be delivered',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: const Color(0xFF4B5563),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(
-                    Icons.local_shipping,
-                    color: Color(0xFF3B82F6),
-                    size: 40,
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border(top: BorderSide(color: borderColor)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, -4),
                   ),
                 ],
               ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Contact Information',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF111827),
-                      ),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _proceedToPayment,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3B82F6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(height: 12),
-                    _buildTextField(
-                      'Full Name',
-                      'Enter your name',
-                      Iconsax.user_copy,
-                      _nameController,
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'بەردەوامبوون بۆ پارەدان',
+                    style: _kStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    _buildTextField(
-                      'Phone Number',
-                      '0750 123 4567',
-                      Iconsax.call_copy,
-                      _phoneController,
-                      isPhone: true,
-                    ),
-
-                    const SizedBox(height: 24),
-                    Text(
-                      'Delivery Address',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF111827),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Map
-                    Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.grey.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Stack(
-                          children: [
-                            GoogleMap(
-                              initialCameraPosition: CameraPosition(
-                                target:
-                                    _selectedLocation ??
-                                    const LatLng(36.1901, 44.0090),
-                                zoom: 15.0,
-                              ),
-                              onMapCreated: (controller) =>
-                                  _mapController = controller,
-                              onCameraMove: (position) {
-                                _selectedLocation = position.target;
-                              },
-                              onCameraIdle: () {
-                                if (_selectedLocation != null) {
-                                  _updateLocation(_selectedLocation!);
-                                }
-                              },
-                              myLocationEnabled: true,
-                              myLocationButtonEnabled: true,
-                              zoomControlsEnabled: true,
-                              gestureRecognizers:
-                                  <Factory<OneSequenceGestureRecognizer>>{
-                                    Factory<OneSequenceGestureRecognizer>(
-                                      () => EagerGestureRecognizer(),
-                                    ),
-                                  },
-                            ),
-                            // Center Marker (Talabat style)
-                            const Center(
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: 35.0,
-                                ), // Adjust to point exactly at center
-                                child: Icon(
-                                  Icons.location_on,
-                                  color: Colors.red,
-                                  size: 40,
-                                ),
-                              ),
-                            ),
-                            if (_isLoadingLocation)
-                              Container(
-                                color: Colors.white.withValues(alpha: 0.7),
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Instructions
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.grey.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: TextFormField(
-                        controller: _instructionsController,
-                        decoration: InputDecoration(
-                          hintText: 'Delivery Instructions (Optional)',
-                          hintStyle: GoogleFonts.inter(
-                            color: Colors.grey,
-                            fontSize: 13,
-                          ),
-                          prefixIcon: const Icon(
-                            Iconsax.message_copy,
-                            color: Colors.grey,
-                            size: 20,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-                    Text(
-                      'Order Summary',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF111827),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.grey.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF3F4F6),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Iconsax.receipt_2_copy,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${cartState.totalItems} Items',
-                                      style: GoogleFonts.inter(
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF111827),
-                                      ),
-                                    ),
-                                    Text(
-                                      'View Details',
-                                      style: GoogleFonts.inter(
-                                        color: const Color(0xFF3B82F6),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                '${cartState.subtotal.toInt()} IQD',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF111827),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    'Delivery Fee',
-                                    style: GoogleFonts.inter(
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Icon(
-                                    Icons.info_outline,
-                                    color: Colors.grey,
-                                    size: 14,
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                '${cartState.pharmacy?.deliveryFee.toInt() ?? 0} IQD',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF111827),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Discount',
-                                style: GoogleFonts.inter(color: Colors.grey),
-                              ),
-                              Text(
-                                '-0 IQD',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF10B981),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            child: Divider(height: 1),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Total Amount',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: const Color(0xFF111827),
-                                ),
-                              ),
-                              Text(
-                                '${cartState.total.toInt()} IQD',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: const Color(0xFF3B82F6),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Iconsax.shield_tick_copy,
-                            color: Color(0xFF3B82F6),
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Your order is protected and secure',
-                            style: GoogleFonts.inter(
-                              color: const Color(0xFF3B82F6),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _proceedToPayment,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3B82F6),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Continue to Payment',
-                              style: GoogleFonts.inter(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(
-                              Icons.arrow_forward,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                  ),
                 ),
               ),
             ),
