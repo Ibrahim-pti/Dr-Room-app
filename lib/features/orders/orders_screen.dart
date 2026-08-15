@@ -327,8 +327,8 @@ class OrdersScreenState extends State<OrdersScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.arrow_back_ios_rounded,
-                      size: 12,
+                      Iconsax.arrow_left_2,
+                      size: 14,
                       color: isDark ? Colors.white70 : const Color(0xFF64748B),
                     ),
                   ),
