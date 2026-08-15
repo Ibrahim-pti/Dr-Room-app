@@ -341,11 +341,11 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 // ── 5. Dynamic Tab Content ──
                 if (_selectedTabIndex == 0) ...[
                   // 📋 تاب ١: ناساندن و تایبەتمەندییەکان
-                  _buildVideoSection(),
+                  _buildHighlightFeatures(),
                   const SizedBox(height: 18),
                   _buildAboutSection(aboutUs),
                   const SizedBox(height: 18),
-                  _buildHighlightFeatures(),
+                  _buildVideoSection(),
                 ] else if (_selectedTabIndex == 1) ...[
                   // 🧪 تاب ٢: لیستی پشکنینە بەردەستەکان
                   _buildTestsSection(),
