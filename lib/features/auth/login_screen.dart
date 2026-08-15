@@ -131,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Stack(
               children: [
                 Container(
-                  height: 310,
+                  height: 320,
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
@@ -181,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 20),
                               Container(
                                 width: 68,
                                 height: 68,
@@ -229,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   .animate()
                                   .fadeIn(delay: 150.ms)
                                   .slideY(begin: 0.2, end: 0),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 12),
                             ],
                           ),
                         ),
@@ -487,7 +487,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
 
-                      const SizedBox(height: 26),
+                      // Forgot Password Link
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'تکایە پەیوەندی بە بەشی پشتگیرییەوە بکە بۆ گۆڕینی وشەی نهێنی',
+                                  style: TextStyle(fontFamily: 'Rabar'),
+                                ),
+                                backgroundColor: Color(0xFF2563EB),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            minimumSize: const Size(0, 30),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'وشەی نهێنیت لەبیرچووە؟',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
 
                       // Submit Button
                       SizedBox(
@@ -538,32 +571,63 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            // ── Regis
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'هێشتا هەژمارت نییە؟',
-                  style: TextStyle(
-                    fontFamily: 'Rabar',
-                    color: Color(0xFF64748B),
-                    fontSize: 13.5,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                GestureDetector(
-                  onTap: widget.onSignUp,
-                  child: const Text(
-                    'دروستکردنی هەژمار',
+            // ── Register Link ──
+            Padding(
+              padding: const EdgeInsets.only(top: 24, bottom: 28),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'هێشتا هەژمارت نییە؟',
                     style: TextStyle(
                       fontFamily: 'Rabar',
-                      color: Color(0xFF2563EB),
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF64748B),
+                      fontSize: 13.5,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: widget.onSignUp,
+                    child: const Text(
+                      'دروستکردنی هەژمار',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        color: Color(0xFF2563EB),
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Trust Badge ──
+            Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.security_rounded,
+                    size: 15,
+                    color: isDark
+                        ? const Color(0xFF64748B)
+                        : const Color(0xFF94A3B8),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'زانیارییەکانت بە تەواوی پارێزراون لە دکتۆر ڕووم',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 12,
+                      color: isDark
+                          ? const Color(0xFF64748B)
+                          : const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
