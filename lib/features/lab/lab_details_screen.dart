@@ -346,8 +346,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   _buildAboutSection(aboutUs),
                   const SizedBox(height: 18),
                   _buildHighlightFeatures(),
-                  const SizedBox(height: 24),
-                  _buildExploreTestsButton(),
                 ] else if (_selectedTabIndex == 1) ...[
                   // 🧪 تاب ٢: لیستی پشکنینە بەردەستەکان
                   _buildTestsSection(),
@@ -829,54 +827,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     );
   }
 
-  Widget _buildExploreTestsButton() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: () {
-          setState(() {
-            _selectedTabIndex = 1; // Switch to Tests Tab
-          });
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF3B82F6),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Iconsax.health, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              'بینینی پشکنینەکان و دیاریکردنی نرخ',
-              style: _kStyle(
-                color: Colors.white,
-                fontSize: 14.5,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(width: 6),
-            const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildHighlightFeatures() {
     final highlights = [
       {
@@ -989,70 +939,37 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   }
 
   Widget _buildVideoSection() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10, left: 4, right: 4),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Iconsax.video_play, color: Color(0xFF2563EB), size: 17),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'ڤیدیۆی ناساندنی تاقیگە',
-                  style: _kStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.07),
+              blurRadius: 18,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: _youtubeController != null
+                ? YoutubePlayer(
+                    controller: _youtubeController!,
+                    backgroundColor: Colors.black,
+                  )
+                : Container(
                     color: const Color(0xFF0F172A),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Video Player Container (Compact & Ultra Rounded)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(22),
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            child: AspectRatio(
-              aspectRatio: 16 / 8.5,
-              child: _youtubeController != null
-                  ? YoutubePlayer(
-                      controller: _youtubeController!,
-                      backgroundColor: Colors.black,
-                    )
-                  : Container(
-                      color: Colors.black,
-                      child: const Center(
-                        child: CircularProgressIndicator(color: Color(0xFF2563EB)),
-                      ),
+                    child: const Center(
+                      child: CircularProgressIndicator(color: Color(0xFF3B82F6)),
                     ),
-            ),
+                  ),
           ),
-        ],
+        ),
       ),
     );
   }
