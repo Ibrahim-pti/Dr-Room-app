@@ -27,6 +27,40 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   final PageController _pageController = PageController();
   Timer? _autoPlayTimer;
   int _imagesCount = 4;
+  int _selectedTabIndex = 0; // 0: ناساندن, 1: پشکنینەکان, 2: ئۆفەر و پاکێج
+
+  final List<Map<String, dynamic>> _packages = [
+    {
+      'id': 101,
+      'name': 'پاکێجی پشکنینی گشتی (Full Body Checkup)',
+      'desc': 'شاملی سەرەکیترین پشکنینەکانی خوێن (CBC)، چەوری، جگەر، گورچیلە و شەکرە',
+      'original_price': 85000,
+      'price': 55000,
+      'discount': 35,
+      'icon': Iconsax.health,
+      'test_ids': [1, 2, 3, 5, 6],
+    },
+    {
+      'id': 102,
+      'name': 'پاکێجی ڤیتامین و ووزە (Vitamins & Energy)',
+      'desc': 'پشکنینی وردی ڤیتامین D، ڤیتامین B12، ڕێژەی ئاسن و کانزاکانی جەستە',
+      'original_price': 60000,
+      'price': 42000,
+      'discount': 30,
+      'icon': Iconsax.activity,
+      'test_ids': [4],
+    },
+    {
+      'id': 103,
+      'name': 'پاکێجی پاراستنی دڵ و چەوری (Cardiac & Lipid Care)',
+      'desc': 'شاملی کۆلیسترۆڵ، چەوری سیانی (Triglycerides)، و پشکنینی سێ مانگی شەکرە',
+      'original_price': 50000,
+      'price': 35000,
+      'discount': 30,
+      'icon': Iconsax.heart,
+      'test_ids': [2, 3],
+    },
+  ];
 
   @override
   void initState() {
@@ -256,7 +290,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 130),
+            padding: EdgeInsets.fromLTRB(20, 10, 20, _selectedTabIndex == 0 ? 40 : 130),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -268,31 +302,41 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 _buildIdentityCard(name, location, rating, openingHours),
                 const SizedBox(height: 16),
 
-                // ── 3. Quick Action Buttons (Call, Chat, Directions) ──
+                // ── 3. Quick Action Buttons (Call, Directions) ──
                 _buildActionButtons(),
+                const SizedBox(height: 22),
+
+                // ── 4. Segmented Tab Bar (ناساندن / پشکنینەکان / ئۆفەر و پاکێج) ──
+                _buildTabsHeader(),
                 const SizedBox(height: 20),
 
-                // ── 4. Key Highlights / Badges ──
-                _buildHighlightFeatures(),
-                const SizedBox(height: 24),
-
-                // ── 5. About Laboratory ──
-                _buildAboutSection(aboutUs),
-                const SizedBox(height: 24),
-
-                // ── 6. Available Tests List ──
-                _buildTestsSection(),
+                // ── 5. Dynamic Tab Content ──
+                if (_selectedTabIndex == 0) ...[
+                  // 📋 تاب ١: ناساندن و تایبەتمەندییەکان
+                  _buildAboutSection(aboutUs),
+                  const SizedBox(height: 18),
+                  _buildHighlightFeatures(),
+                  const SizedBox(height: 24),
+                  _buildExploreTestsButton(),
+                ] else if (_selectedTabIndex == 1) ...[
+                  // 🧪 تاب ٢: لیستی پشکنینە بەردەستەکان
+                  _buildTestsSection(),
+                ] else ...[
+                  // 🎁 تاب ٣: پاکێج و ئۆفەرە داشکێنراوەکان
+                  _buildPackagesSection(),
+                ],
               ],
             ),
           ),
 
-          // ── Sticky Bottom Checkout Bar ──
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: _buildBottomCheckoutBar(),
-          ),
+          // ── Sticky Bottom Checkout Bar (Only on Tests & Packages tabs) ──
+          if (_selectedTabIndex != 0)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: _buildBottomCheckoutBar(),
+            ),
         ],
       ),
     );
@@ -687,6 +731,74 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     );
   }
 
+  Widget _buildTabsHeader() {
+    final tabs = [
+      {'id': 0, 'title': 'ناساندن', 'icon': Iconsax.info_circle},
+      {'id': 1, 'title': 'پشکنینەکان (${_tests.length})', 'icon': Iconsax.health},
+      {'id': 2, 'title': 'ئۆفەر و پاکێج (${_packages.length})', 'icon': Icons.local_offer_rounded},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: tabs.map((t) {
+          final int id = t['id'] as int;
+          final bool isSelected = _selectedTabIndex == id;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedTabIndex = id),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      t['icon'] as IconData,
+                      color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                      size: 14.5,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        t['title'] as String,
+                        style: _kStyle(
+                          color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                          fontSize: 11.5,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildHighlightFeatures() {
     final highlights = [
       {
@@ -934,6 +1046,201 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     ),
                   ],
                 ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPackagesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.local_offer_rounded, color: Color(0xFFEF4444), size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'پاکێج و ئۆفەرە تایبەتەکان (${_packages.length})',
+                  style: _kStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _packages.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final pkg = _packages[index];
+            final List<int> testIds = List<int>.from(pkg['test_ids'] ?? []);
+            final bool isAllSelected = testIds.isNotEmpty && testIds.every((id) => _selectedTestIds.contains(id));
+
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isAllSelected ? const Color(0xFF3B82F6) : const Color(0xFFE2E8F0),
+                  width: isAllSelected ? 1.5 : 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isAllSelected
+                        ? const Color(0xFF3B82F6).withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(pkg['icon'] as IconData, color: const Color(0xFF3B82F6), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    pkg['name'] as String,
+                                    style: _kStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF2F2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '%${pkg['discount']} داشکاندن',
+                                    style: _kStyle(
+                                      color: const Color(0xFFEF4444),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              pkg['desc'] as String,
+                              style: _kStyle(
+                                fontSize: 11.5,
+                                color: const Color(0xFF64748B),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Price Column
+                      Row(
+                        children: [
+                          Text(
+                            '${NumberFormat('#,###').format(pkg['price'])} ${_tr('currency', context)}',
+                            style: _kStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            NumberFormat('#,###').format(pkg['original_price']),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF94A3B8),
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Select Button
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            if (isAllSelected) {
+                              _selectedTestIds.removeAll(testIds);
+                            } else {
+                              _selectedTestIds.addAll(testIds);
+                            }
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isAllSelected ? const Color(0xFF10B981) : const Color(0xFF3B82F6),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isAllSelected ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+                              color: Colors.white,
+                              size: 15,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              isAllSelected ? 'هەڵبژێردرا' : 'هەڵبژاردنی پاکێج',
+                              style: _kStyle(
+                                color: Colors.white,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             );
           },
