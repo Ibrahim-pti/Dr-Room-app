@@ -259,7 +259,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                   Consumer<CheckoutProvider>(
                     builder: (context, checkoutProvider, child) {
                       final method = checkoutProvider.selectedPaymentMethod;
-                      final bool isCash = method == 'Cash on Delivery' || method == 'کاش لەکاتی وەرگرتندا';
+                      final bool isCash = method == 'Cash on Delivery' || method == 'کاش لەکاتی وەرگرتن' || method == 'کاش لەکاتی وەرگرتندا';
 
                       return Container(
                         padding: const EdgeInsets.all(16),
@@ -289,7 +289,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isCash ? 'کاش لەکاتی وەرگرتندا' : method,
+                                    isCash ? 'کاش لەکاتی وەرگرتن' : method,
                                     style: _kStyle(
                                       color: isDark ? Colors.white : const Color(0xFF0F172A),
                                       fontSize: 14.5,
@@ -340,7 +340,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
             child: SafeArea(
               child: SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 54,
                 child: Consumer<CheckoutProvider>(
                   builder: (context, checkoutProvider, child) {
                     return ElevatedButton(
@@ -388,6 +388,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3B82F6),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -405,27 +406,32 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                           : Consumer<CartProvider>(
                               builder: (context, cart, child) {
                                 return Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      'پەسەندکردن و ناردنی داواکاری',
-                                      style: _kStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
+                                    Row(
+                                      children: [
+                                        const Icon(Iconsax.tick_circle, color: Colors.white, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'تەواوکردنی داواکاری',
+                                          style: _kStyle(
+                                            fontSize: 15.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 10),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.2),
+                                        color: Colors.white.withValues(alpha: 0.22),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Text(
                                         '${NumberFormat('#,###').format(cart.total)} د.ع',
                                         style: _kStyle(
-                                          fontSize: 13,
+                                          fontSize: 13.5,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                         ),
@@ -487,6 +493,8 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
               : Text(
                   value,
                   textAlign: TextAlign.end,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: _kStyle(
                     color: const Color(0xFF0F172A),
                     fontSize: 13.5,
