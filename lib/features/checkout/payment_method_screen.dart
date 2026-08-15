@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -28,10 +27,14 @@ class PaymentMethodScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -79,13 +82,19 @@ class PaymentMethodScreen extends StatelessWidget {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header Badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -93,7 +102,11 @@ class PaymentMethodScreen extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Iconsax.card_tick, color: Color(0xFF3B82F6), size: 14),
+                            const Icon(
+                              Iconsax.card_tick,
+                              color: Color(0xFF3B82F6),
+                              size: 14,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               'شێوازە باوەڕپێکراوەکانی پارەدان',
@@ -111,7 +124,9 @@ class PaymentMethodScreen extends StatelessWidget {
                       Text(
                         'شێوازی پارەدان دیاری بکە',
                         style: _kStyle(
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -137,9 +152,16 @@ class PaymentMethodScreen extends StatelessWidget {
                         badgeText: 'پارەدانی دەستی',
                         badgeColor: const Color(0xFF10B981),
                         icon: Iconsax.wallet_2,
-                        iconBgGradient: const [Color(0xFF10B981), Color(0xFF059669)],
-                        isSelected: selectedMethod == 'Cash on Delivery' || selectedMethod == 'کاش لەکاتی وەرگرتندا',
-                        onTap: () => checkoutProvider.selectPaymentMethod('Cash on Delivery'),
+                        iconBgGradient: const [
+                          Color(0xFF10B981),
+                          Color(0xFF059669),
+                        ],
+                        isSelected:
+                            selectedMethod == 'Cash on Delivery' ||
+                            selectedMethod == 'کاش لەکاتی وەرگرتندا',
+                        onTap: () => checkoutProvider.selectPaymentMethod(
+                          'Cash on Delivery',
+                        ),
                       ),
                       const SizedBox(height: 12),
 
@@ -150,13 +172,21 @@ class PaymentMethodScreen extends StatelessWidget {
                         borderColor: borderColor,
                         isDark: isDark,
                         title: 'فایب بانک (FIB)',
-                        subtitle: 'پارەدانی ڕاستەوخۆ بە هەژماری First Iraqi Bank',
+                        subtitle:
+                            'پارەدانی ڕاستەوخۆ بە هەژماری First Iraqi Bank',
                         badgeText: 'خێرا و ئۆنلاین',
                         badgeColor: const Color(0xFF2563EB),
                         icon: Iconsax.bank,
-                        iconBgGradient: const [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                        isSelected: selectedMethod == 'FIB (First Iraqi Bank)' || selectedMethod == 'FIB',
-                        onTap: () => checkoutProvider.selectPaymentMethod('FIB (First Iraqi Bank)'),
+                        iconBgGradient: const [
+                          Color(0xFF3B82F6),
+                          Color(0xFF1D4ED8),
+                        ],
+                        isSelected:
+                            selectedMethod == 'FIB (First Iraqi Bank)' ||
+                            selectedMethod == 'FIB',
+                        onTap: () => checkoutProvider.selectPaymentMethod(
+                          'FIB (First Iraqi Bank)',
+                        ),
                       ),
                       const SizedBox(height: 12),
 
@@ -171,9 +201,13 @@ class PaymentMethodScreen extends StatelessWidget {
                         badgeText: 'ئەلیكترۆنی',
                         badgeColor: const Color(0xFFEC4899),
                         icon: Iconsax.scan_barcode,
-                        iconBgGradient: const [Color(0xFFEC4899), Color(0xFFDB2777)],
+                        iconBgGradient: const [
+                          Color(0xFFEC4899),
+                          Color(0xFFDB2777),
+                        ],
                         isSelected: selectedMethod == 'FastPay',
-                        onTap: () => checkoutProvider.selectPaymentMethod('FastPay'),
+                        onTap: () =>
+                            checkoutProvider.selectPaymentMethod('FastPay'),
                       ),
                       const SizedBox(height: 12),
 
@@ -184,13 +218,18 @@ class PaymentMethodScreen extends StatelessWidget {
                         borderColor: borderColor,
                         isDark: isDark,
                         title: 'زەین کاش (ZainCash)',
-                        subtitle: 'پارەدان لە ڕێگەی ژمارە مۆبایل و ئەپی ZainCash',
+                        subtitle:
+                            'پارەدان لە ڕێگەی ژمارە مۆبایل و ئەپی ZainCash',
                         badgeText: 'ئەلیكترۆنی',
                         badgeColor: const Color(0xFF8B5CF6),
                         icon: Iconsax.mobile,
-                        iconBgGradient: const [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                        iconBgGradient: const [
+                          Color(0xFF8B5CF6),
+                          Color(0xFF7C3AED),
+                        ],
                         isSelected: selectedMethod == 'ZainCash',
-                        onTap: () => checkoutProvider.selectPaymentMethod('ZainCash'),
+                        onTap: () =>
+                            checkoutProvider.selectPaymentMethod('ZainCash'),
                       ),
                       const SizedBox(height: 12),
 
@@ -205,9 +244,14 @@ class PaymentMethodScreen extends StatelessWidget {
                         badgeText: 'کارت',
                         badgeColor: const Color(0xFFF59E0B),
                         icon: Iconsax.card,
-                        iconBgGradient: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+                        iconBgGradient: const [
+                          Color(0xFFF59E0B),
+                          Color(0xFFD97706),
+                        ],
                         isSelected: selectedMethod == 'Credit Card (Stripe)',
-                        onTap: () => checkoutProvider.selectPaymentMethod('Credit Card (Stripe)'),
+                        onTap: () => checkoutProvider.selectPaymentMethod(
+                          'Credit Card (Stripe)',
+                        ),
                       ),
                     ],
                   ),
@@ -216,10 +260,15 @@ class PaymentMethodScreen extends StatelessWidget {
 
               // ── Next / Continue Button ──
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
                   color: cardBg,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(28),
+                  ),
                   border: Border(top: BorderSide(color: borderColor)),
                   boxShadow: [
                     BoxShadow(
@@ -253,15 +302,19 @@ class PaymentMethodScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'بەردەوامبوون بۆ پوختەی داواکاری',
+                            'بەردەوامبوون',
                             style: _kStyle(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                          const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ],
                       ),
                     ),
@@ -332,11 +385,7 @@ class PaymentMethodScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 22,
-              ),
+              child: Icon(icon, color: Colors.white, size: 22),
             ),
             const SizedBox(width: 14),
 
@@ -351,7 +400,9 @@ class PaymentMethodScreen extends StatelessWidget {
                         child: Text(
                           title,
                           style: _kStyle(
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                             fontSize: 14.5,
                             fontWeight: FontWeight.bold,
                           ),
@@ -359,7 +410,10 @@ class PaymentMethodScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: badgeColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
@@ -396,10 +450,14 @@ class PaymentMethodScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFCBD5E1),
+                  color: isSelected
+                      ? const Color(0xFF3B82F6)
+                      : const Color(0xFFCBD5E1),
                   width: isSelected ? 2 : 1.5,
                 ),
-                color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+                color: isSelected
+                    ? const Color(0xFF3B82F6)
+                    : Colors.transparent,
               ),
               child: isSelected
                   ? const Icon(Icons.check, size: 14, color: Colors.white)

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/providers/payment_provider.dart';
 import '../../core/models/payment_model.dart';
 
