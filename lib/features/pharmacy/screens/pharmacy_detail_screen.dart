@@ -1156,9 +1156,16 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF3B82F6)),
             )
-          : CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
+          : RefreshIndicator(
+              onRefresh: _fetchData,
+              color: const Color(0xFF3B82F6),
+              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              displacement: 40,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                slivers: [
                 // 1. Full Grand Top Carousel Header (Radius 32, Height 250)
                 SliverToBoxAdapter(
                   child: Stack(
@@ -2410,6 +2417,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                 ),
               ],
             ),
+          ),
 
       // Sticky Bottom Cart Bar
       bottomSheet: cartState.items.isNotEmpty
