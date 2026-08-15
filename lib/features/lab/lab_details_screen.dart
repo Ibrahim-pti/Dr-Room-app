@@ -318,33 +318,33 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(20, 10, 20, _selectedTabIndex == 0 ? 40 : 130),
+            padding: EdgeInsets.fromLTRB(16, 4, 16, _selectedTabIndex == 0 ? 30 : 120),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── 1. Hero Image Banner Carousel ──
                 _buildHeroBanner(discount, isOpen),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
 
                 // ── 2. Lab Main Identity Card ──
                 _buildIdentityCard(name, location, rating, openingHours),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
 
                 // ── 3. Quick Action Buttons (Call, Directions) ──
                 _buildActionButtons(),
-                const SizedBox(height: 22),
+                const SizedBox(height: 14),
 
                 // ── 4. Segmented Tab Bar (ناساندن / پشکنینەکان / ئۆفەر و پاکێج) ──
                 _buildTabsHeader(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 14),
 
                 // ── 5. Dynamic Tab Content ──
                 if (_selectedTabIndex == 0) ...[
                   // 📋 تاب ١: ناساندن و تایبەتمەندییەکان
                   _buildHighlightFeatures(),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 12),
                   _buildAboutSection(aboutUs),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
                   _buildVideoSection(),
                 ] else if (_selectedTabIndex == 1) ...[
                   // 🧪 تاب ٢: لیستی پشکنینە بەردەستەکان
@@ -461,15 +461,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     _imagesCount = images.length;
 
     return Container(
-      height: 220,
+      height: 165,
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -478,7 +478,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         children: [
           // 1. Swipable Carousel
           ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
             child: PageView.builder(
               controller: _pageController,
               itemCount: images.length,
@@ -504,7 +504,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -521,33 +521,33 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
           // 3. Discount Badge (Top Start)
           if (discount != null)
             PositionedDirectional(
-              top: 14,
-              start: 14,
+              top: 10,
+              start: 10,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
                   ),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFFEF4444).withValues(alpha: 0.4),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.local_offer_rounded, color: Colors.white, size: 12),
+                    const Icon(Icons.local_offer_rounded, color: Colors.white, size: 11),
                     const SizedBox(width: 4),
                     Text(
                       '%$discount ${_tr('discount', context)}',
                       style: _kStyle(
                         color: Colors.white,
-                        fontSize: 11.5,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -558,15 +558,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
           // 4. Open/Closed Status (Top End)
           PositionedDirectional(
-            top: 14,
-            end: 14,
+            top: 10,
+            end: 10,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: isOpen
                     ? const Color(0xFFECFDF5).withValues(alpha: 0.95)
                     : const Color(0xFFF1F5F9).withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isOpen ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
                   width: 0.8,
@@ -576,19 +576,19 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 7,
-                    height: 7,
+                    width: 6,
+                    height: 6,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isOpen ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
                     ),
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 4),
                   Text(
                     isOpen ? _tr('open_now', context) : _tr('closed_now', context),
                     style: _kStyle(
                       color: isOpen ? const Color(0xFF047857) : const Color(0xFF64748B),
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -599,7 +599,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
           // 6. Animated Dots Indicator (Bottom Center)
           Positioned(
-            bottom: 16,
+            bottom: 12,
             left: 0,
             right: 0,
             child: Row(
@@ -608,9 +608,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 final isSel = idx == _currentImageIndex;
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: isSel ? 18 : 6,
-                  height: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                  width: isSel ? 16 : 5,
+                  height: 5,
                   decoration: BoxDecoration(
                     color: isSel ? Colors.white : Colors.white.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(3),
@@ -626,16 +626,16 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
   Widget _buildIdentityCard(String name, String location, String rating, String hours) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -646,46 +646,46 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
           Text(
             name,
             style: _kStyle(
-              fontSize: 20,
+              fontSize: 17.5,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF0F172A),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
 
           // Location & Rating Row
           Row(
             children: [
-              const Icon(Iconsax.location, color: Color(0xFF3B82F6), size: 16),
-              const SizedBox(width: 6),
+              const Icon(Iconsax.location, color: Color(0xFF3B82F6), size: 15),
+              const SizedBox(width: 5),
               Expanded(
                 child: Text(
                   location,
                   style: _kStyle(
                     color: const Color(0xFF475569),
-                    fontSize: 13,
+                    fontSize: 12,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(7),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 14),
+                    const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 13),
                     const SizedBox(width: 3),
                     Text(
                       rating,
                       style: _kStyle(
                         color: const Color(0xFFB45309),
-                        fontSize: 11.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -711,7 +711,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             onTap: () => _makePhoneCall(null),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: _buildActionButton(
             icon: Iconsax.map,
@@ -735,21 +735,21 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 5),
+            Icon(icon, color: color, size: 18),
+            const SizedBox(height: 3),
             Text(
               label,
               style: _kStyle(
                 color: color,
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -767,10 +767,10 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     ];
 
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
@@ -782,16 +782,16 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               onTap: () => setState(() => _selectedTabIndex = id),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
                   color: isSelected ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
                           ),
                         ]
                       : null,
@@ -802,15 +802,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     Icon(
                       t['icon'] as IconData,
                       color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
-                      size: 16.5,
+                      size: 15,
                     ),
-                    const SizedBox(width: 5),
+                    const SizedBox(width: 4),
                     Flexible(
                       child: Text(
                         t['title'] as String,
                         style: _kStyle(
                           color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF64748B),
-                          fontSize: 12.5,
+                          fontSize: 11.5,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                         ),
                         maxLines: 1,
@@ -848,24 +848,24 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         final color = h['color'] as Color;
         return Expanded(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(h['icon'] as IconData, color: color, size: 20),
+                  child: Icon(h['icon'] as IconData, color: color, size: 17),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -873,7 +873,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                       Text(
                         h['title'] as String,
                         style: _kStyle(
-                          fontSize: 12,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF0F172A),
                         ),
@@ -883,7 +883,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                       Text(
                         h['desc'] as String,
                         style: _kStyle(
-                          fontSize: 10.5,
+                          fontSize: 10,
                           color: const Color(0xFF64748B),
                         ),
                       ),
