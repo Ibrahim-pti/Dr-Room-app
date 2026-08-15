@@ -26,6 +26,7 @@ import '../lab/all_labs_screen.dart';
 import 'promo_carousel.dart';
 import '../records/medical_records_screen.dart';
 import '../emergency/sos_screen.dart';
+import '../emergency/emergency_sos_modal.dart';
 import '../lab/lab_details_screen.dart';
 import '../search/global_search_screen.dart';
 import '../../core/widgets/tinder_swipe_card.dart';
@@ -378,64 +379,107 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const SizedBox(height: 10),
                                 // ── App Bar ──
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      children: [
-                                        // User Avatar
-                                        Container(
-                                          width: 50,
-                                          height: 50,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: AppColors.getSurface(
-                                                context,
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          // User Avatar
+                                          Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: AppColors.getSurface(
+                                                  context,
+                                                ),
+                                                width: 2,
                                               ),
-                                              width: 2,
+                                              image: const DecorationImage(
+                                                image: AssetImage(
+                                                  'assets/images/doctor2.png',
+                                                ),
+                                                fit: BoxFit.cover,
+                                                alignment: Alignment.topCenter,
+                                              ),
                                             ),
-                                            image: const DecorationImage(
-                                              image: AssetImage(
-                                                'assets/images/doctor2.png',
-                                              ), // placeholder user image
-                                              fit: BoxFit.cover,
-                                              alignment: Alignment.topCenter,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          // User Greeting
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  _userName.isNotEmpty && _userName.toLowerCase() != 'slaw'
+                                                      ? 'سڵاو، $_userName'
+                                                      : 'سڵاو، بەخێربێن',
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    color: Colors.white,
+                                                    fontSize: 15.5,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const Text(
+                                                  'هیوای تەندروستییەکی باش',
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    color: Colors.white70,
+                                                    fontSize: 11.5,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    // Right Action Buttons
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // SOS Icon Button
+                                        GestureDetector(
+                                          onTap: () => EmergencySosModal.show(context),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFEF4444),
+                                              borderRadius: BorderRadius.circular(14),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                                                  blurRadius: 6,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: const [
+                                                Icon(Icons.emergency, color: Colors.white, size: 14),
+                                                SizedBox(width: 3),
+                                                Text(
+                                                  'SOS',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 12),
-                                        // User Greeting
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              _userName.isNotEmpty && _userName.toLowerCase() != 'slaw'
-                                                  ? 'سڵاو، $_userName'
-                                                  : 'سڵاو، بەخێربێن',
-                                              style: const TextStyle(
-                                                fontFamily: 'Rabar',
-                                                color: Colors.white,
-                                                fontSize: 16.5,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const Text(
-                                              'هیوای تەندروستییەکی باشت بۆ دەخوازین',
-                                              style: TextStyle(
-                                                fontFamily: 'Rabar',
-                                                color: Colors.white70,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    // Right Icons (Menu & Notification)
-                                    Row(
-                                      children: [
+                                        const SizedBox(width: 6),
                                         // Cart Icon
                                         Consumer(
                                           builder: (context, ref, child) {
@@ -455,8 +499,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                               child: Stack(
                                                 children: [
                                                   Container(
-                                                    width: 44,
-                                                    height: 44,
+                                                    width: 38,
+                                                    height: 38,
                                                     decoration: BoxDecoration(
                                                       color: Colors.white
                                                           .withValues(
@@ -467,17 +511,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     child: const Icon(
                                                       Iconsax.shopping_cart,
                                                       color: Colors.white,
-                                                      size: 22,
+                                                      size: 18,
                                                     ),
                                                   ),
                                                   if (cartState.totalItems > 0)
                                                     PositionedDirectional(
-                                                      top: 8,
-                                                      end: 8,
+                                                      top: 4,
+                                                      end: 4,
                                                       child: Container(
                                                         padding:
                                                             const EdgeInsets.all(
-                                                              4,
+                                                              3,
                                                             ),
                                                         decoration:
                                                             const BoxDecoration(
@@ -493,7 +537,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               const TextStyle(
                                                                 color: Colors
                                                                     .white,
-                                                                fontSize: 10,
+                                                                fontSize: 9,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .bold,
@@ -506,7 +550,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             );
                                           },
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: 6),
                                         // Notification Icon
                                         GestureDetector(
                                           onTap: () {
@@ -521,8 +565,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: Stack(
                                             children: [
                                               Container(
-                                                width: 44,
-                                                height: 44,
+                                                width: 38,
+                                                height: 38,
                                                 decoration: BoxDecoration(
                                                   color: Colors.white
                                                       .withValues(alpha: 0.2),
@@ -531,15 +575,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 child: const Icon(
                                                   Iconsax.notification,
                                                   color: Colors.white,
-                                                  size: 22,
+                                                  size: 18,
                                                 ),
                                               ),
                                               PositionedDirectional(
-                                                top: 12,
-                                                end: 12,
+                                                top: 8,
+                                                end: 8,
                                                 child: Container(
-                                                  width: 8,
-                                                  height: 8,
+                                                  width: 7,
+                                                  height: 7,
                                                   decoration:
                                                       const BoxDecoration(
                                                         color: Colors.redAccent,
@@ -550,7 +594,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ],
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: 6),
                                         // Menu Icon
                                         GestureDetector(
                                           onTap: () {
@@ -559,8 +603,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ).openEndDrawer();
                                           },
                                           child: Container(
-                                            width: 44,
-                                            height: 44,
+                                            width: 38,
+                                            height: 38,
                                             decoration: BoxDecoration(
                                               color: Colors.white.withValues(
                                                 alpha: 0.2,

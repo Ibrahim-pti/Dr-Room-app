@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:easy_localization/easy_localization.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/utils/api_client.dart';
 
 class VirtualWaitingRoomScreen extends StatefulWidget {
   final String doctorName;
@@ -25,22 +23,35 @@ class VirtualWaitingRoomScreen extends StatefulWidget {
 
 class _VirtualWaitingRoomScreenState extends State<VirtualWaitingRoomScreen>
     with TickerProviderStateMixin {
-  int _queuePosition = 4;
-  int _totalInQueue = 7;
-  int _estimatedMinutes = 32;
+  int _queuePosition = 3;
+  int _totalInQueue = 6;
+  int _estimatedMinutes = 20;
   late Timer _simulationTimer;
   late AnimationController _pulseController;
   late AnimationController _progressController;
   bool _isAlmostReady = false;
 
+  TextStyle _kStyle({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.normal,
+    Color color = const Color(0xFF0F172A),
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: 'Rabar',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+    );
+  }
+
   final List<Map<String, dynamic>> _queuePeople = [
-    {'name': 'Patient A', 'status': 'In Session', 'avatar': '👤'},
-    {'name': 'Patient B', 'status': 'Waiting', 'avatar': '👤'},
-    {'name': 'Patient C', 'status': 'Waiting', 'avatar': '👤'},
-    {'name': 'Patient D', 'status': 'Waiting', 'avatar': '👤'},
-    {'name': 'You', 'status': 'Waiting', 'avatar': '🧑'},
-    {'name': 'Patient F', 'status': 'Waiting', 'avatar': '👤'},
-    {'name': 'Patient G', 'status': 'Waiting', 'avatar': '👤'},
+    {'name': 'نەخۆشی ژمارە ١', 'status': 'لای دکتۆرە', 'avatar': '👤', 'isCurrent': true},
+    {'name': 'نەخۆشی ژمارە ٢', 'status': 'چاوەڕوانە', 'avatar': '👤', 'isCurrent': false},
+    {'name': 'تۆ (نەخۆش)', 'status': 'نۆرەی تۆیە', 'avatar': '🧑', 'isYou': true},
+    {'name': 'نەخۆشی ژمارە ٤', 'status': 'چاوەڕوانە', 'avatar': '👤', 'isCurrent': false},
+    {'name': 'نەخۆشی ژمارە ٥', 'status': 'چاوەڕوانە', 'avatar': '👤', 'isCurrent': false},
   ];
 
   @override
@@ -57,13 +68,12 @@ class _VirtualWaitingRoomScreenState extends State<VirtualWaitingRoomScreen>
       duration: const Duration(milliseconds: 1500),
     )..forward();
 
-    // Simulate queue movement every 8 seconds
-    _simulationTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
+    // Simulate queue movement every 10 seconds
+    _simulationTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (_queuePosition > 1) {
         setState(() {
           _queuePosition--;
-          _estimatedMinutes = max(0, _estimatedMinutes - 8);
-          // Remove the first person from queue (they finished)
+          _estimatedMinutes = max(0, _estimatedMinutes - 7);
           if (_queuePeople.isNotEmpty) {
             _queuePeople.removeAt(0);
             _totalInQueue--;
@@ -96,132 +106,137 @@ class _VirtualWaitingRoomScreenState extends State<VirtualWaitingRoomScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: AppColors.getSurface(context),
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                blurRadius: 30,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                  blurRadius: 30,
+                  spreadRadius: 5,
                 ),
-                child: const Icon(
-                  Icons.check_circle,
-                  color: Color(0xFF10B981),
-                  size: 64,
-                ),
-              ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
-              const SizedBox(height: 24),
-              Text(
-                'It\'s Your Turn!',
-                style: GoogleFonts.poppins(
-                  color: AppColors.getTextTitle(context),
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'The doctor is ready to see you now.\nPlease proceed to Room 3.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: AppColors.getTextSubtitle(context),
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // dialog
-                    Navigator.pop(context); // screen
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
                   ),
-                  child: Text(
-                    'I\'m on my way!',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF10B981),
+                    size: 60,
+                  ),
+                ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
+                const SizedBox(height: 20),
+                Text(
+                  'نۆرەی تۆ گەیشت!',
+                  style: _kStyle(
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  'پزیشک ئێستا ئامادەیە بۆ بینینت.\nتکایە بچۆ ژووری ژمارە ٣.',
+                  textAlign: TextAlign.center,
+                  style: _kStyle(
+                    color: const Color(0xFF64748B),
+                    fontSize: 13.5,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: Text('چوونە ژوورەوە', style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final progress = 1 - (_queuePosition / _totalInQueue.clamp(1, 100));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return Scaffold(
-      backgroundColor: AppColors.getBackground(context),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: AppColors.getSurface(context),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'virtual_waiting_room'.tr(),
-          style: GoogleFonts.poppins(
-            color: AppColors.getTextTitle(context),
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+          'ژووری چاوەڕوانیی ڕاستەوخۆ',
+          style: _kStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.getTextTitle(context)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Iconsax.notification,
-              color: AppColors.getTextTitle(context),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
             ),
-            onPressed: () {},
+            child: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                size: 16,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
-        ],
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Doctor Info Card ──
+            // Doctor Card
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
-                borderRadius: BorderRadius.circular(24),
+                color: cardBg,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: borderColor),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: 0.02),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -233,484 +248,233 @@ class _VirtualWaitingRoomScreenState extends State<VirtualWaitingRoomScreen>
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      image: DecorationImage(
-                        image: AssetImage(widget.image),
-                        fit: BoxFit.cover,
-                      ),
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(18),
+                      image: widget.image.isNotEmpty
+                          ? DecorationImage(
+                              image: widget.image.startsWith('http')
+                                  ? NetworkImage(widget.image)
+                                  : NetworkImage('${ApiClient.storageUrl}/${widget.image}'),
+                              fit: BoxFit.cover,
+                            )
+                          : const DecorationImage(
+                              image: AssetImage('assets/images/doctor2.png'),
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           widget.doctorName,
-                          style: GoogleFonts.poppins(
-                            color: AppColors.getTextTitle(context),
+                          style: _kStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
-                          '${widget.specialty} • Room 3',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.getTextSubtitle(context),
-                            fontSize: 13,
-                          ),
+                          widget.specialty,
+                          style: _kStyle(color: const Color(0xFF3B82F6), fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(
-                      'Active',
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF10B981),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text('چالاکە', style: _kStyle(color: const Color(0xFF10B981), fontSize: 11.5, fontWeight: FontWeight.bold)),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ).animate().fadeIn().slideY(begin: -0.1, end: 0),
+            ).animate().fadeIn().slideY(begin: 0.05, end: 0),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
 
-            // ── Queue Position Hero ──
-            AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                return Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: _isAlmostReady
-                          ? [const Color(0xFF10B981), const Color(0xFF059669)]
-                          : [const Color(0xFF3B82F6), const Color(0xFF8B5CF6)],
-                      begin: AlignmentDirectional.topStart,
-                      end: AlignmentDirectional.bottomEnd,
-                    ),
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: (_isAlmostReady
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFF3B82F6))
-                            .withValues(alpha: 0.2 + (_pulseController.value * 0.15)),
-                        blurRadius: 20 + (_pulseController.value * 10),
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        _isAlmostReady ? 'almost_ready'.tr() : 'your_position'.tr(),
-                        style: GoogleFonts.poppins(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text(
-                            _queuePosition == 0 ? '🎉' : '#$_queuePosition',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 64,
-                              fontWeight: FontWeight.bold,
-                              height: 1,
-                            ),
-                          ),
-                          if (_queuePosition > 0)
-                            Text(
-                              ' / $_totalInQueue',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white.withValues(alpha: 0.6),
-                                fontSize: 24,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Progress bar
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                          minHeight: 8,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Stats row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildStatItem(
-                            icon: Iconsax.clock,
-                            label: 'est_wait'.tr(),
-                            value: '$_estimatedMinutes min',
-                          ),
-                          Container(
-                            width: 1,
-                            height: 40,
-                            color: Colors.white.withValues(alpha: 0.3),
-                          ),
-                          _buildStatItem(
-                            icon: Iconsax.people,
-                            label: 'ahead'.tr(),
-                            value: '${_queuePosition > 0 ? _queuePosition - 1 : 0} people',
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ).animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1)),
-
-            const SizedBox(height: 32),
-
-            // ── Live Queue Visualization ──
+            // Queue Status Card
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
-                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(26),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'live_queue'.tr(),
-                        style: GoogleFonts.poppins(
-                          color: AppColors.getTextTitle(context),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('نۆرەی تۆ لە نۆرەگریدا', style: _kStyle(color: Colors.white70, fontSize: 13)),
+                          const SizedBox(height: 4),
+                          Text(
+                            _queuePosition > 0 ? 'نەفەری $_queuePosition لە $_totalInQueue' : 'نۆرەی تۆیە ئێستا!',
+                            style: _kStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFEF4444),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'LIVE',
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFFEF4444),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          '$_queuePosition',
+                          style: _kStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-
-                  // Queue list
-                  ...List.generate(_queuePeople.length, (index) {
-                    final person = _queuePeople[index];
-                    final isYou = person['name'] == 'You';
-                    final isFirst = index == 0;
-
-                    return Padding(
-                      padding: const EdgeInsetsDirectional.only(bottom: 12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: isYou
-                              ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
-                              : isFirst
-                                  ? const Color(0xFF10B981).withValues(alpha: 0.08)
-                                  : Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
-                          border: isYou
-                              ? Border.all(
-                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-                                )
-                              : null,
-                        ),
-                        child: Row(
-                          children: [
-                            // Position number
-                            Container(
-                              width: 32,
-                              height: 32,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: isFirst
-                                    ? const Color(0xFF10B981)
-                                    : isYou
-                                        ? const Color(0xFF3B82F6)
-                                        : AppColors.getBorder(context),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '${index + 1}',
-                                style: GoogleFonts.poppins(
-                                  color: isFirst || isYou ? Colors.white : AppColors.getTextSubtitle(context),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            // Person name
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    isYou ? 'You 👈' : person['name'],
-                                    style: GoogleFonts.poppins(
-                                      color: isYou
-                                          ? const Color(0xFF3B82F6)
-                                          : AppColors.getTextTitle(context),
-                                      fontSize: 14,
-                                      fontWeight: isYou ? FontWeight.w700 : FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Status badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: isFirst
-                                    ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                                    : AppColors.getBackground(context),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                isFirst ? 'In Session' : 'Waiting',
-                                style: GoogleFonts.poppins(
-                                  color: isFirst
-                                      ? const Color(0xFF10B981)
-                                      : AppColors.getTextSubtitle(context),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: (100 * index).ms).slideX(begin: 0.05, end: 0);
-                  }),
-                ],
-              ),
-            ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, end: 0),
-
-            const SizedBox(height: 24),
-
-            // ── Tips while waiting ──
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Iconsax.lamp_charge, color: Color(0xFFFBBF24), size: 22),
-                      const SizedBox(width: 10),
-                      Text(
-                        'While You Wait...',
-                        style: GoogleFonts.poppins(
-                          color: AppColors.getTextTitle(context),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTipItem(context, '📋', 'Prepare your questions for the doctor'),
-                  const SizedBox(height: 12),
-                  _buildTipItem(context, '💊', 'Have your current medications list ready'),
-                  const SizedBox(height: 12),
-                  _buildTipItem(context, '📱', 'You\'ll get a notification when it\'s your turn'),
-                ],
-              ),
-            ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1, end: 0),
-
-            const SizedBox(height: 32),
-
-            // ── Leave Queue button ──
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: OutlinedButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      backgroundColor: AppColors.getSurface(context),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      title: Text(
-                        'Leave Queue?',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.getTextTitle(context),
-                        ),
-                      ),
-                      content: Text(
-                        'You will lose your position in the queue. Are you sure?',
-                        style: GoogleFonts.poppins(
-                          color: AppColors.getTextSubtitle(context),
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: Text(
-                            'Stay',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFF3B82F6),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            'Leave',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFFEF4444),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                  const SizedBox(height: 18),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Iconsax.clock, color: Colors.white, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          'کاتی خەمڵێنراوی ماوە: $_estimatedMinutes خولەک',
+                          style: _kStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
-                  );
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFFEF4444)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
                   ),
-                ),
-                child: Text(
-                  'Leave Queue',
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFFEF4444),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                ],
               ),
-            ).animate().fadeIn(delay: 800.ms),
+            ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05, end: 0),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            Text(
+              'ڕیزی نۆرەگریی نەخۆشەکان',
+              style: _kStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            ...List.generate(_queuePeople.length, (index) {
+              final person = _queuePeople[index];
+              final isYou = person['isYou'] == true;
+              final isCurrent = person['isCurrent'] == true;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: isYou
+                      ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
+                      : cardBg,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: isYou ? const Color(0xFF3B82F6) : borderColor,
+                    width: isYou ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: isYou
+                            ? const Color(0xFF3B82F6)
+                            : (isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          person['avatar'] as String,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            person['name'] as String,
+                            style: _kStyle(
+                              fontSize: 14,
+                              fontWeight: isYou ? FontWeight.bold : FontWeight.w600,
+                              color: isYou
+                                  ? const Color(0xFF2563EB)
+                                  : (isDark ? Colors.white : const Color(0xFF0F172A)),
+                            ),
+                          ),
+                          Text(
+                            person['status'] as String,
+                            style: _kStyle(
+                              fontSize: 11.5,
+                              color: isCurrent
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF94A3B8),
+                              fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isYou)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3B82F6),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'نۆرەی تۆیە',
+                          style: _kStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                  ],
+                ),
+              ).animate().fadeIn(delay: (index * 60).ms);
+            }),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildStatItem({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 20),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            color: Colors.white.withValues(alpha: 0.6),
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTipItem(BuildContext context, String emoji, String text) {
-    return Row(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-              color: AppColors.getTextSubtitle(context),
-              fontSize: 13,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
