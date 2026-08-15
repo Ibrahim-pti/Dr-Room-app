@@ -30,6 +30,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   int _imagesCount = 4;
   int _selectedTabIndex = 0; // 0: ناساندن, 1: پشکنینەکان, 2: ئۆفەر و پاکێج
   YoutubePlayerController? _youtubeController;
+  bool _isVideoPlaying = false;
 
   final List<Map<String, dynamic>> _packages = [
     {
@@ -938,37 +939,130 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     );
   }
 
-  Widget _buildVideoSection() {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.07),
-              blurRadius: 18,
-              offset: const Offset(0, 5),
+  void _startYoutubeVideo() {
+    final rawUrl = _labData['youtube_url']?.toString() ?? 'https://www.youtube.com/watch?v=ScMzIvxBSi4';
+    final videoId = _extractYoutubeId(rawUrl);
+    
+    _youtubeController = YoutubePlayerController.fromVideoId(
+      videoId: videoId.isNotEmpty ? videoId : 'ScMzIvxBSi4',
+      autoPlay: true,
+      params: const YoutubePlayerParams(
+        showFullscreenButton: true,
+        showControls: true,
+        showVideoAnnotations: false,
+        strictRelatedVideos: true,
+        mute: false,
+      ),
+    );
+    setState(() {
+      _isVideoPlaying = true;
+    });
+  }
+
+  Widget _buildVideoPoster() {
+    final posterImage = (_labData['image'] != null && _labData['image'].toString().isNotEmpty)
+        ? _labData['image'].toString()
+        : 'assets/images/laboratory.jpg';
+
+    return GestureDetector(
+      onTap: _startYoutubeVideo,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            posterImage,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: const Color(0xFF1E293B),
+              child: const Icon(Iconsax.hospital, color: Color(0xFF3B82F6), size: 48),
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: _youtubeController != null
-                ? YoutubePlayer(
-                    controller: _youtubeController!,
-                    backgroundColor: Colors.black,
-                  )
-                : Container(
-                    color: const Color(0xFF0F172A),
-                    child: const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF3B82F6)),
-                    ),
-                  ),
           ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.2),
+                  Colors.black.withValues(alpha: 0.65),
+                ],
+              ),
+            ),
+          ),
+          Center(
+            child: Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.45),
+                    blurRadius: 16,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 10,
+            left: 16,
+            right: 16,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Iconsax.video_play, color: Colors.white, size: 14),
+                const SizedBox(width: 5),
+                Text(
+                  'ڤیدیۆی ناساندنی تاقیگە',
+                  style: _kStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: _isVideoPlaying && _youtubeController != null
+              ? YoutubePlayer(
+                  controller: _youtubeController!,
+                  backgroundColor: Colors.black,
+                )
+              : _buildVideoPoster(),
         ),
       ),
     );
