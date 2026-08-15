@@ -533,13 +533,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           child: Row(
             children: [
+              // Phone Icon on start
+              const Padding(
+                padding: EdgeInsetsDirectional.only(start: 14, end: 8),
+                child: Icon(
+                  Icons.phone_android_rounded,
+                  color: Color(0xFF2563EB),
+                  size: 20,
+                ),
+              ),
+
               // Iraqi Flag + Code Badge
               Container(
-                margin: const EdgeInsetsDirectional.only(start: 10, end: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                margin: const EdgeInsetsDirectional.only(end: 8),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: const Color(0xFFDBEAFE),
                     width: 1,
@@ -548,8 +558,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('🇮🇶', style: TextStyle(fontSize: 16)),
-                    const SizedBox(width: 6),
+                    const Text('🇮🇶', style: TextStyle(fontSize: 14)),
+                    const SizedBox(width: 4),
                     Text(
                       '+964',
                       style: GoogleFonts.poppins(
@@ -562,55 +572,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
 
-              // Phone text field
+              // Phone text field (aligned to start right next to +964)
               Expanded(
-                child: Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: TextField(
-                    controller: _phoneController,
-                    onChanged: (_) {
-                      if (_phoneError != null) {
-                        setState(() => _phoneError = null);
-                      }
-                    },
-                    keyboardType: TextInputType.phone,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(11),
-                    ],
-                    textAlign: TextAlign.start,
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1E293B),
+                child: TextField(
+                  controller: _phoneController,
+                  onChanged: (_) {
+                    if (_phoneError != null) {
+                      setState(() => _phoneError = null);
+                    }
+                  },
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(11),
+                  ],
+                  textAlign: TextAlign.start,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1E293B),
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    hintText: '0750 123 4567',
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF94A3B8),
                     ),
-                    decoration: InputDecoration(
-                      counterText: '',
-                      hintText: '0750 123 4567',
-                      hintStyle: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFF94A3B8),
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 8,
-                      ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 4,
                     ),
                   ),
                 ),
               ),
-
-              // Phone icon
-              const Padding(
-                padding: EdgeInsetsDirectional.only(end: 14),
-                child: Icon(
-                  Icons.phone_android_rounded,
-                  color: Color(0xFF2563EB),
-                  size: 20,
-                ),
-              ),
+              const SizedBox(width: 14),
             ],
           ),
         ),
@@ -656,50 +654,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
               width: hasError ? 1.4 : 1.2,
             ),
           ),
-          child: TextField(
-            controller: controller,
-            onChanged: onChanged,
-            obscureText: obscure ?? false,
-            textAlign: TextAlign.start,
-            style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF1E293B),
-            ),
-            decoration: InputDecoration(
-              counterText: '',
-              hintText: hint,
-              hintStyle: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFF94A3B8),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 14, end: 8),
+                child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
               ),
-              prefixIconConstraints: const BoxConstraints(
-                minWidth: 48,
-                minHeight: 48,
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  onChanged: onChanged,
+                  obscureText: obscure ?? false,
+                  textAlign: TextAlign.start,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF1E293B),
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    hintText: hint,
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF94A3B8),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 4,
+                    ),
+                  ),
+                ),
               ),
-              prefixIcon: Icon(icon, color: const Color(0xFF2563EB), size: 20),
-              suffixIcon: isPassword
-                  ? GestureDetector(
-                      onTap: onToggleObscure,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.only(end: 14),
-                        child: Icon(
-                          (obscure ?? true)
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          color: const Color(0xFF94A3B8),
-                          size: 20,
-                        ),
-                      ),
-                    )
-                  : null,
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 16,
-                horizontal: 8,
-              ),
-            ),
+              if (isPassword)
+                GestureDetector(
+                  onTap: onToggleObscure,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 14, start: 8),
+                    child: Icon(
+                      (obscure ?? true)
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: const Color(0xFF94A3B8),
+                      size: 20,
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(width: 14),
+            ],
           ),
         ),
         if (hasError)
