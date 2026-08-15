@@ -39,7 +39,17 @@ class _LoginScreenState extends State<LoginScreen> {
     final clean = phone.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
     if (clean.length == 11 && clean.startsWith('07')) {
       final prefix = clean.substring(0, 3);
-      return ['075', '077', '078', '079', '074', '073', '070', '071', '072'].contains(prefix) ||
+      return [
+            '075',
+            '077',
+            '078',
+            '079',
+            '074',
+            '073',
+            '070',
+            '071',
+            '072',
+          ].contains(prefix) ||
           RegExp(r'^07\d{9}$').hasMatch(clean);
     }
     if (clean.length == 10 && clean.startsWith('7')) {
@@ -70,7 +80,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final normalizedPhone = _normalizeIraqiPhone(phone);
 
     setState(() {
-      _phoneError = !isPhoneValid ? 'تکایە ژمارە مۆبایلێکی عێراقی دروست بنووسە' : null;
+      _phoneError = !isPhoneValid
+          ? 'تکایە ژمارە مۆبایلێکی عێراقی دروست بنووسە'
+          : null;
       _passwordError = password.isEmpty ? 'تکایە وشەی نهێنی بنووسە' : null;
       _formError = null;
     });
@@ -106,7 +118,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     return Scaffold(
       backgroundColor: bg,
@@ -121,7 +135,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF1E3A8A), Color(0xFF2563EB), Color(0xFF3B82F6)],
+                      colors: [
+                        Color(0xFF1E3A8A),
+                        Color(0xFF2563EB),
+                        Color(0xFF3B82F6),
+                      ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
@@ -171,7 +189,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.15),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       blurRadius: 16,
                                       offset: const Offset(0, 6),
                                     ),
@@ -182,7 +202,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: Color(0xFF2563EB),
                                   size: 34,
                                 ),
-                              ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack),
+                              ).animate().scale(
+                                duration: 500.ms,
+                                curve: Curves.easeOutBack,
+                              ),
                               const SizedBox(height: 12),
                               const Text(
                                 'چوونەژوورەوە',
@@ -195,13 +218,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               ).animate().fadeIn().slideY(begin: 0.2, end: 0),
                               const SizedBox(height: 4),
                               const Text(
-                                'بەخێربێیتەوە بۆ ئەپڵیکەیشنی دکتۆر ڕووم',
-                                style: TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 13,
-                                  color: Colors.white70,
-                                ),
-                              ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.2, end: 0),
+                                    'بەخێربێیتەوە بۆ ئەپڵیکەیشنی دکتۆر ڕووم',
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 13,
+                                      color: Colors.white70,
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: 150.ms)
+                                  .slideY(begin: 0.2, end: 0),
                             ],
                           ),
                         ),
@@ -225,7 +251,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: Border.all(color: borderColor),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.3 : 0.06,
+                        ),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -238,7 +266,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (_formError != null)
                         Container(
                           margin: const EdgeInsets.only(bottom: 18),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFEF2F2),
                             borderRadius: BorderRadius.circular(14),
@@ -246,7 +277,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
+                              const Icon(
+                                Icons.error_outline_rounded,
+                                color: Color(0xFFDC2626),
+                                size: 20,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
@@ -278,7 +313,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Phone Field
                       Container(
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF334155).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
+                          color: isDark
+                              ? const Color(0xFF334155).withValues(alpha: 0.5)
+                              : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: _phoneError != null
@@ -290,12 +327,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             // Flag / Prefix
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF334155) : const Color(0xFFEFF6FF),
-                                borderRadius: const BorderRadiusDirectional.horizontal(
-                                  start: Radius.circular(15),
-                                ),
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFEFF6FF),
+                                borderRadius:
+                                    const BorderRadiusDirectional.horizontal(
+                                      start: Radius.circular(15),
+                                    ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -328,7 +371,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   fontFamily: 'Rabar',
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
                                 ),
                                 decoration: const InputDecoration(
                                   hintText: '0750 000 0000',
@@ -336,7 +381,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: Color(0xFF94A3B8),
                                     fontSize: 14,
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 14),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                  ),
                                   border: InputBorder.none,
                                 ),
                               ),
@@ -374,7 +421,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Password Field
                       Container(
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF334155).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
+                          color: isDark
+                              ? const Color(0xFF334155).withValues(alpha: 0.5)
+                              : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: _passwordError != null
@@ -388,7 +437,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 15,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                           ),
                           decoration: InputDecoration(
                             hintText: '••••••••',
@@ -403,13 +454,20 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
+                                _obscurePassword
+                                    ? Iconsax.eye_slash
+                                    : Iconsax.eye,
                                 color: const Color(0xFF94A3B8),
                                 size: 18,
                               ),
-                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 14,
+                            ),
                             border: InputBorder.none,
                           ),
                         ),
@@ -439,7 +497,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             backgroundColor: const Color(0xFF2563EB),
                             foregroundColor: Colors.white,
                             elevation: 0,
-                            shadowColor: const Color(0xFF2563EB).withValues(alpha: 0.4),
+                            shadowColor: const Color(
+                              0xFF2563EB,
+                            ).withValues(alpha: 0.4),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
