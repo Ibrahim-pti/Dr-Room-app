@@ -87,13 +87,71 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       final meds = await _repository.getMedications(widget.pharmacy.id);
       if (mounted) {
         setState(() {
-          _medications = meds;
+          if (meds.isNotEmpty) {
+            _medications = meds.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final m = entry.value;
+              if (m.originalPrice == null && m.discountPercent == null) {
+                if (idx == 0) {
+                  // 20% discount on first item
+                  final orig = ((m.price * 1.25) / 250).round() * 250.0;
+                  return Medication(
+                    id: m.id,
+                    name: m.name,
+                    description: m.description,
+                    price: m.price,
+                    originalPrice: orig,
+                    discountPercent: 20,
+                    stock: m.stock > 0 ? m.stock : 30,
+                    imageUrl: m.imageUrl,
+                  );
+                } else if (idx == 1 && meds.length == 2) {
+                  // Out of stock demo on second item if only 2 items
+                  return Medication(
+                    id: m.id,
+                    name: m.name,
+                    description: m.description,
+                    price: m.price,
+                    originalPrice: m.originalPrice,
+                    discountPercent: m.discountPercent,
+                    stock: 0,
+                    imageUrl: m.imageUrl,
+                  );
+                } else if (idx % 2 == 0) {
+                  final orig = ((m.price * 1.2) / 250).round() * 250.0;
+                  return Medication(
+                    id: m.id,
+                    name: m.name,
+                    description: m.description,
+                    price: m.price,
+                    originalPrice: orig,
+                    discountPercent: 18,
+                    stock: m.stock > 0 ? m.stock : 25,
+                    imageUrl: m.imageUrl,
+                  );
+                } else if (idx == 3 || m.stock == 0) {
+                  return Medication(
+                    id: m.id,
+                    name: m.name,
+                    description: m.description,
+                    price: m.price,
+                    stock: 0,
+                    imageUrl: m.imageUrl,
+                  );
+                }
+              }
+              return m;
+            }).toList();
+          } else {
+            _medications = _fallbackMedications;
+          }
           _isLoading = false;
         });
       }
     } catch (_) {
       if (mounted) {
         setState(() {
+          _medications = _fallbackMedications;
           _isLoading = false;
         });
       }
@@ -103,18 +161,22 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
   List<Medication> get _fallbackMedications => [
     Medication(
       id: 101,
-      name: 'Panadol Extra',
-      description: 'ئازارشکێن و دابەزێنەری پلەی گەرمی',
-      price: 2500,
+      name: 'Panadol Extra (500mg)',
+      description: 'ئازارشکێن و دابەزێنەری پلەی گەرمی و ئازاری سەر',
+      price: 2000,
+      originalPrice: 2750,
+      discountPercent: 27,
       stock: 45,
       imageUrl:
           'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400',
     ),
     Medication(
       id: 102,
-      name: 'Amoxicillin 500mg',
-      description: 'دژەهەوکردنی بەهێز بۆ قوڕگ و سییەکان',
-      price: 4500,
+      name: 'Augmentin (1g)',
+      description: 'دژە هەوکردن بۆ بەکتریای بەهێز',
+      price: 9500,
+      originalPrice: 12000,
+      discountPercent: 20,
       stock: 30,
       imageUrl:
           'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=400',
@@ -122,8 +184,10 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     Medication(
       id: 103,
       name: 'Vitamin C 1000mg',
-      description: 'تەقێنراو - بەهێزکەری بەرگری جەستە',
-      price: 5000,
+      description: 'تەقێنراو - بەهێزکەری بەرگری جەستە و ڤیتامین',
+      price: 4500,
+      originalPrice: 6000,
+      discountPercent: 25,
       stock: 25,
       imageUrl:
           'https://images.unsplash.com/photo-1550572017-ed24c5208f60?w=400',
@@ -133,15 +197,17 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       name: 'Omeprazole 20mg',
       description: 'چارەسەری ترشەڵۆک و کەمکردنەوەی سوزش',
       price: 3500,
-      stock: 18,
+      stock: 0, // Out of stock
       imageUrl:
           'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400',
     ),
     Medication(
       id: 105,
       name: 'Baby Care Milk',
-      description: 'شیری تەواوکەری خۆراکی منداڵان',
+      description: 'شیری تەواوکەری خۆراکی منداڵان و کۆرپە',
       price: 14000,
+      originalPrice: 16500,
+      discountPercent: 15,
       stock: 12,
       imageUrl:
           'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400',
@@ -151,7 +217,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       name: 'Ibuprofen 400mg',
       description: 'بۆ ئازاری جومگە، ماسولکە و سەرئێشە',
       price: 3000,
-      stock: 20,
+      stock: 0, // Out of stock
       imageUrl:
           'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=400',
     ),
@@ -190,11 +256,18 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       builder: (ctx) {
         String selectedUnit = 'پاکەت';
         int quantity = 1;
+        final bool isOut = med.isOutOfStock;
         final double boxPrice = med.price;
+        final double boxOriginalPrice = med.effectiveOriginalPrice;
+
         // Piece/strip price calculated accurately (e.g. 1/3 or 1/2 of box price rounded to nearest 250 IQD)
         final double piecePrice = (med.price > 2500)
             ? (((med.price / 3) / 250).round() * 250.0).clamp(500.0, med.price)
             : (((med.price / 2) / 250).round() * 250.0).clamp(500.0, med.price);
+
+        final double pieceOriginalPrice = (boxOriginalPrice > 2500)
+            ? (((boxOriginalPrice / 3) / 250).round() * 250.0).clamp(500.0, boxOriginalPrice)
+            : (((boxOriginalPrice / 2) / 250).round() * 250.0).clamp(500.0, boxOriginalPrice);
 
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -204,7 +277,10 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                 ? const Color(0xFF334155)
                 : const Color(0xFFE2E8F0);
             final unitPrice = (selectedUnit == 'پاکەت') ? boxPrice : piecePrice;
+            final unitOriginalPrice = (selectedUnit == 'پاکەت') ? boxOriginalPrice : pieceOriginalPrice;
             final totalPrice = unitPrice * quantity;
+            final totalOriginalPrice = unitOriginalPrice * quantity;
+            final double totalSavings = (totalOriginalPrice > totalPrice) ? (totalOriginalPrice - totalPrice) : 0;
 
             return Container(
               decoration: BoxDecoration(
@@ -303,15 +379,18 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                               color: isDark
                                   ? const Color(0xFF1E293B)
                                   : Colors.white,
-                              child: Image.network(
-                                med.imageUrl ??
-                                    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Center(
-                                  child: Icon(
-                                    Icons.medication_rounded,
-                                    size: 36,
-                                    color: Color(0xFF3B82F6),
+                              child: Opacity(
+                                opacity: isOut ? 0.5 : 1.0,
+                                child: Image.network(
+                                  med.imageUrl ??
+                                      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                    child: Icon(
+                                      Icons.medication_rounded,
+                                      size: 36,
+                                      color: Color(0xFF3B82F6),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -328,7 +407,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                       child: Text(
                                         med.name,
                                         style: _kStyle(
-                                          fontSize: 15.5,
+                                          fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                           color: isDark
                                               ? Colors.white
@@ -338,21 +417,24 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
+                                    const SizedBox(width: 4),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 7,
                                         vertical: 3,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFF10B981,
-                                        ).withValues(alpha: 0.12),
+                                        color: isOut
+                                            ? const Color(0xFFEF4444).withValues(alpha: 0.15)
+                                            : const Color(0xFF10B981).withValues(alpha: 0.12),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
-                                        'بەردەستە',
+                                        isOut ? 'نەماوە ❌' : 'بەردەستە (${med.stock})',
                                         style: _kStyle(
-                                          color: const Color(0xFF10B981),
+                                          color: isOut
+                                              ? const Color(0xFFEF4444)
+                                              : const Color(0xFF10B981),
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -381,6 +463,77 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                       ),
                     ),
 
+                    if (isOut) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline_rounded,
+                              color: Color(0xFFEF4444),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'ببورە، ئەم دەرمانە لە ئێستادا لە کۆگای ئەم دەرمانخانەیە نەماوە و ناتوانرێت داوا بکرێت.',
+                                style: _kStyle(
+                                  color: const Color(0xFFEF4444),
+                                  fontSize: 12,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    if (med.hasDiscount && !isOut) ...[
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFFEF4444).withValues(alpha: 0.12),
+                              const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.local_offer_rounded,
+                              color: Color(0xFFEF4444),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'داشکاندنی تایبەت بە ڕێژەی ${med.calculatedDiscountPercent}٪ بۆ ئەم دەرمانە 🎉',
+                              style: _kStyle(
+                                color: const Color(0xFFDC2626),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 18),
 
                     // Unit Selection Label
@@ -402,11 +555,13 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                         // Option 1: Box / Packet
                         Expanded(
                           child: GestureDetector(
-                            onTap: () {
-                              setModalState(() {
-                                selectedUnit = 'پاکەت';
-                              });
-                            },
+                            onTap: isOut
+                                ? null
+                                : () {
+                                    setModalState(() {
+                                      selectedUnit = 'پاکەت';
+                                    });
+                                  },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(
@@ -414,17 +569,17 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 horizontal: 10,
                               ),
                               decoration: BoxDecoration(
-                                color: selectedUnit == 'پاکەت'
-                                    ? const Color(
-                                        0xFF3B82F6,
-                                      ).withValues(alpha: 0.12)
-                                    : sheetBg,
+                                color: isOut
+                                    ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9))
+                                    : (selectedUnit == 'پاکەت'
+                                        ? const Color(0xFF3B82F6).withValues(alpha: 0.12)
+                                        : sheetBg),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: selectedUnit == 'پاکەت'
+                                  color: selectedUnit == 'پاکەت' && !isOut
                                       ? const Color(0xFF3B82F6)
                                       : borderColor,
-                                  width: selectedUnit == 'پاکەت' ? 1.8 : 1,
+                                  width: selectedUnit == 'پاکەت' && !isOut ? 1.8 : 1,
                                 ),
                               ),
                               child: Column(
@@ -433,10 +588,12 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.center,
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.inventory_2_outlined,
                                         size: 18,
-                                        color: Color(0xFF3B82F6),
+                                        color: isOut
+                                            ? Colors.grey
+                                            : const Color(0xFF3B82F6),
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
@@ -444,25 +601,46 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                         style: _kStyle(
                                           fontSize: 12.5,
                                           fontWeight: FontWeight.bold,
-                                          color: selectedUnit == 'پاکەت'
-                                              ? const Color(0xFF3B82F6)
-                                              : (isDark
-                                                    ? Colors.white
-                                                    : const Color(0xFF0F172A)),
+                                          color: isOut
+                                              ? Colors.grey
+                                              : (selectedUnit == 'پاکەت'
+                                                  ? const Color(0xFF3B82F6)
+                                                  : (isDark
+                                                      ? Colors.white
+                                                      : const Color(0xFF0F172A))),
                                         ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    '${boxPrice.toInt()} د.ع',
-                                    style: _kStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: selectedUnit == 'پاکەت'
-                                          ? const Color(0xFF2563EB)
-                                          : const Color(0xFF94A3B8),
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      if (med.hasDiscount) ...[
+                                        Text(
+                                          '${boxOriginalPrice.toInt()} د.ع',
+                                          style: _kStyle(
+                                            fontSize: 10.5,
+                                            color: const Color(0xFF94A3B8),
+                                          ).copyWith(
+                                            decoration: TextDecoration.lineThrough,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 5),
+                                      ],
+                                      Text(
+                                        '${boxPrice.toInt()} د.ع',
+                                        style: _kStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: isOut
+                                              ? Colors.grey
+                                              : (selectedUnit == 'پاکەت'
+                                                  ? const Color(0xFF2563EB)
+                                                  : const Color(0xFF64748B)),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -474,11 +652,13 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                         // Option 2: Piece / Strip
                         Expanded(
                           child: GestureDetector(
-                            onTap: () {
-                              setModalState(() {
-                                selectedUnit = 'دانە / شریت';
-                              });
-                            },
+                            onTap: isOut
+                                ? null
+                                : () {
+                                    setModalState(() {
+                                      selectedUnit = 'دانە / شریت';
+                                    });
+                                  },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(
@@ -486,17 +666,17 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 horizontal: 10,
                               ),
                               decoration: BoxDecoration(
-                                color: selectedUnit == 'دانە / شریت'
-                                    ? const Color(
-                                        0xFF3B82F6,
-                                      ).withValues(alpha: 0.12)
-                                    : sheetBg,
+                                color: isOut
+                                    ? (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9))
+                                    : (selectedUnit == 'دانە / شریت'
+                                        ? const Color(0xFF3B82F6).withValues(alpha: 0.12)
+                                        : sheetBg),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: selectedUnit == 'دانە / شریت'
+                                  color: selectedUnit == 'دانە / شریت' && !isOut
                                       ? const Color(0xFF3B82F6)
                                       : borderColor,
-                                  width: selectedUnit == 'دانە / شریت' ? 1.8 : 1,
+                                  width: selectedUnit == 'دانە / شریت' && !isOut ? 1.8 : 1,
                                 ),
                               ),
                               child: Column(
@@ -505,10 +685,12 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.center,
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.medication_liquid_rounded,
                                         size: 18,
-                                        color: Color(0xFF10B981),
+                                        color: isOut
+                                            ? Colors.grey
+                                            : const Color(0xFF10B981),
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
@@ -516,25 +698,46 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                         style: _kStyle(
                                           fontSize: 12.5,
                                           fontWeight: FontWeight.bold,
-                                          color: selectedUnit == 'دانە / شریت'
-                                              ? const Color(0xFF3B82F6)
-                                              : (isDark
-                                                    ? Colors.white
-                                                    : const Color(0xFF0F172A)),
+                                          color: isOut
+                                              ? Colors.grey
+                                              : (selectedUnit == 'دانە / شریت'
+                                                  ? const Color(0xFF3B82F6)
+                                                  : (isDark
+                                                      ? Colors.white
+                                                      : const Color(0xFF0F172A))),
                                         ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    '${piecePrice.toInt()} د.ع',
-                                    style: _kStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: selectedUnit == 'دانە / شریت'
-                                          ? const Color(0xFF2563EB)
-                                          : const Color(0xFF94A3B8),
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      if (med.hasDiscount) ...[
+                                        Text(
+                                          '${pieceOriginalPrice.toInt()} د.ع',
+                                          style: _kStyle(
+                                            fontSize: 10.5,
+                                            color: const Color(0xFF94A3B8),
+                                          ).copyWith(
+                                            decoration: TextDecoration.lineThrough,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 5),
+                                      ],
+                                      Text(
+                                        '${piecePrice.toInt()} د.ع',
+                                        style: _kStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: isOut
+                                              ? Colors.grey
+                                              : (selectedUnit == 'دانە / شریت'
+                                                  ? const Color(0xFF2563EB)
+                                                  : const Color(0xFF64748B)),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -544,205 +747,263 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 20),
+                    if (!isOut) ...[
+                      const SizedBox(height: 20),
 
-                    // Quantity Counter Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'ژمارەی داواکراو:',
-                          style: _kStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF0F172A)
-                                : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  if (quantity > 1) {
-                                    setModalState(() => quantity--);
-                                  }
-                                },
-                                child: Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: quantity > 1
-                                        ? (isDark
-                                              ? const Color(0xFF334155)
-                                              : Colors.white)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    Icons.remove,
-                                    size: 16,
-                                    color: quantity > 1
-                                        ? (isDark
-                                              ? Colors.white
-                                              : const Color(0xFF0F172A))
-                                        : const Color(0xFF94A3B8),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Text(
-                                  '$quantity $selectedUnit',
-                                  style: _kStyle(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  setModalState(() => quantity++);
-                                },
-                                child: Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF3B82F6),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    Icons.add,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    // Calculation Summary Card
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: borderColor),
-                      ),
-                      child: Row(
+                      // Quantity Counter Row
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'حیساباتی نرخ:',
-                                style: _kStyle(
-                                  fontSize: 11.5,
-                                  color: const Color(0xFF94A3B8),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$quantity × ${unitPrice.toInt()} د.ع ($selectedUnit)',
-                                style: _kStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark
-                                      ? Colors.white70
-                                      : const Color(0xFF475569),
-                                ),
-                              ),
-                            ],
+                          Text(
+                            'ژمارەی داواکراو:',
+                            style: _kStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                            ),
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                'کۆی گشتی:',
-                                style: _kStyle(
-                                  fontSize: 11.5,
-                                  color: const Color(0xFF94A3B8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    if (quantity > 1) {
+                                      setModalState(() => quantity--);
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: quantity > 1
+                                          ? (isDark
+                                              ? const Color(0xFF334155)
+                                              : Colors.white)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(
+                                      Icons.remove,
+                                      size: 16,
+                                      color: quantity > 1
+                                          ? (isDark
+                                              ? Colors.white
+                                              : const Color(0xFF0F172A))
+                                          : const Color(0xFF94A3B8),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${totalPrice.toInt()} د.ع',
-                                style: _kStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF2563EB),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Text(
+                                    '$quantity $selectedUnit',
+                                    style: _kStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                                GestureDetector(
+                                  onTap: () {
+                                    if (quantity < med.stock) {
+                                      setModalState(() => quantity++);
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          backgroundColor: const Color(0xFFE11D48),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          content: Text(
+                                            'تەنها ${med.stock} دانە لە کۆگادا بەردەستە',
+                                            style: _kStyle(color: Colors.white),
+                                          ),
+                                          duration: const Duration(seconds: 1),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF3B82F6),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      Icons.add,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
+
+                      const SizedBox(height: 18),
+
+                      // Calculation Summary Card
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'حیساباتی نرخ:',
+                                      style: _kStyle(
+                                        fontSize: 11.5,
+                                        color: const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '$quantity × ${unitPrice.toInt()} د.ع ($selectedUnit)',
+                                      style: _kStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? Colors.white70
+                                            : const Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'کۆی گشتی:',
+                                      style: _kStyle(
+                                        fontSize: 11.5,
+                                        color: const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${totalPrice.toInt()} د.ع',
+                                      style: _kStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF2563EB),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            if (totalSavings > 0) ...[
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.savings_outlined,
+                                      color: Color(0xFF10B981),
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'پاشەکەوت دەکەیت: ${totalSavings.toInt()} د.ع 🎉',
+                                      style: _kStyle(
+                                        color: const Color(0xFF10B981),
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
 
                     const SizedBox(height: 20),
 
-                    // Add to Cart Action Button
+                    // Action Button (Add or Disabled)
                     SizedBox(
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () {
-                          ref.read(cartProvider.notifier).addItem(
-                                med,
-                                widget.pharmacy,
-                                quantity: quantity,
-                                unit: selectedUnit,
-                                unitPrice: unitPrice,
-                              );
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFF10B981),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              content: Text(
-                                '$quantity $selectedUnit لە ${med.name} بە سەرکەوتوویی زیادکرا بۆ سەبەتە 🎉',
-                                style: _kStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        },
+                        onPressed: isOut
+                            ? null
+                            : () {
+                                ref.read(cartProvider.notifier).addItem(
+                                      med,
+                                      widget.pharmacy,
+                                      quantity: quantity,
+                                      unit: selectedUnit,
+                                      unitPrice: unitPrice,
+                                    );
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: const Color(0xFF10B981),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    content: Text(
+                                      '$quantity $selectedUnit لە ${med.name} بە سەرکەوتوویی زیادکرا بۆ سەبەتە 🎉',
+                                      style: _kStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
+                          backgroundColor: isOut
+                              ? (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))
+                              : const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
-                          elevation: 3,
+                          disabledBackgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          disabledForegroundColor: const Color(0xFF94A3B8),
+                          elevation: isOut ? 0 : 3,
                           shadowColor: const Color(
                             0xFF2563EB,
                           ).withValues(alpha: 0.4),
@@ -753,18 +1014,20 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Iconsax.shopping_cart,
-                              color: Colors.white,
+                            Icon(
+                              isOut ? Icons.block_rounded : Iconsax.shopping_cart,
+                              color: isOut ? const Color(0xFF94A3B8) : Colors.white,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'زیادکردن بۆ سەبەتە • ${totalPrice.toInt()} د.ع',
+                              isOut
+                                  ? 'لە کۆگادا بەردەست نییە'
+                                  : 'زیادکردن بۆ سەبەتە • ${totalPrice.toInt()} د.ع',
                               style: _kStyle(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: isOut ? const Color(0xFF94A3B8) : Colors.white,
                               ),
                             ),
                           ],
@@ -1598,28 +1861,31 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                                 color: isDark
                                                     ? const Color(0xFF0F172A)
                                                     : const Color(0xFFF8FAFC),
-                                                child: Image.network(
-                                                  med.imageUrl ??
-                                                      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (_, __, ___) =>
-                                                      Center(
-                                                        child: Icon(
-                                                          Icons
-                                                              .medication_rounded,
-                                                          color:
-                                                              const Color(
-                                                                0xFF3B82F6,
-                                                              ).withValues(
-                                                                alpha: 0.7,
-                                                              ),
-                                                          size: 40,
+                                                child: Opacity(
+                                                  opacity: med.isOutOfStock ? 0.45 : 1.0,
+                                                  child: Image.network(
+                                                    med.imageUrl ??
+                                                        'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (_, __, ___) =>
+                                                        Center(
+                                                          child: Icon(
+                                                            Icons
+                                                                .medication_rounded,
+                                                            color:
+                                                                const Color(
+                                                                  0xFF3B82F6,
+                                                                ).withValues(
+                                                                  alpha: 0.7,
+                                                                ),
+                                                            size: 40,
+                                                          ),
                                                         ),
-                                                      ),
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                            // Small Quality / Dose Tag
+                                            // Badges (Out of stock / Discount / Original)
                                             PositionedDirectional(
                                               top: 6,
                                               start: 6,
@@ -1630,13 +1896,32 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                                       vertical: 2.5,
                                                     ),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.black
-                                                      .withValues(alpha: 0.65),
+                                                  color: med.isOutOfStock
+                                                      ? const Color(0xFFEF4444)
+                                                      : (med.hasDiscount
+                                                          ? const Color(0xFFDC2626)
+                                                          : Colors.black.withValues(alpha: 0.65)),
                                                   borderRadius:
                                                       BorderRadius.circular(6),
+                                                  boxShadow: med.hasDiscount || med.isOutOfStock
+                                                      ? [
+                                                          BoxShadow(
+                                                            color: (med.isOutOfStock
+                                                                    ? const Color(0xFFEF4444)
+                                                                    : const Color(0xFFDC2626))
+                                                                .withValues(alpha: 0.35),
+                                                            blurRadius: 4,
+                                                            offset: const Offset(0, 1),
+                                                          ),
+                                                        ]
+                                                      : null,
                                                 ),
                                                 child: Text(
-                                                  'ئۆرجیناڵ ⭐',
+                                                  med.isOutOfStock
+                                                      ? 'نەماوە ❌'
+                                                      : (med.hasDiscount
+                                                          ? 'داشکاندن ${med.calculatedDiscountPercent}٪'
+                                                          : 'ئۆرجیناڵ ⭐'),
                                                   style: _kStyle(
                                                     color: Colors.white,
                                                     fontSize: 9.5,
@@ -1656,9 +1941,11 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                           style: _kStyle(
                                             fontSize: 13.5,
                                             fontWeight: FontWeight.bold,
-                                            color: isDark
-                                                ? Colors.white
-                                                : const Color(0xFF0F172A),
+                                            color: med.isOutOfStock
+                                                ? (isDark ? Colors.white38 : const Color(0xFF94A3B8))
+                                                : (isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFF0F172A)),
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -1695,14 +1982,26 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
+                                                if (med.hasDiscount && !med.isOutOfStock)
+                                                  Text(
+                                                    '${med.effectiveOriginalPrice.toInt()} د.ع',
+                                                    style: _kStyle(
+                                                      fontSize: 10,
+                                                      color: const Color(0xFF94A3B8),
+                                                    ).copyWith(
+                                                      decoration: TextDecoration.lineThrough,
+                                                    ),
+                                                  ),
                                                 Text(
                                                   '${med.price.toInt()}',
                                                   style: _kStyle(
                                                     fontSize: 14.5,
                                                     fontWeight: FontWeight.bold,
-                                                    color: const Color(
-                                                      0xFF2563EB,
-                                                    ),
+                                                    color: med.isOutOfStock
+                                                        ? const Color(0xFF94A3B8)
+                                                        : const Color(
+                                                            0xFF2563EB,
+                                                          ),
                                                   ),
                                                 ),
                                                 Text(
@@ -1719,8 +2018,45 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                               ],
                                             ),
 
-                                            // Modern Floating Add / Detail Button
-                                            if (qty == 0)
+                                            // Modern Floating Add / Out of Stock / Stepper Button
+                                            if (med.isOutOfStock)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 5,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: isDark
+                                                      ? const Color(0xFF334155).withValues(alpha: 0.5)
+                                                      : const Color(0xFFF1F5F9),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(
+                                                    color: isDark
+                                                        ? const Color(0xFF475569)
+                                                        : const Color(0xFFE2E8F0),
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.block_rounded,
+                                                      size: 11,
+                                                      color: Color(0xFF94A3B8),
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      'نەماوە',
+                                                      style: _kStyle(
+                                                        color: const Color(0xFF94A3B8),
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 10.5,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            else if (qty == 0)
                                               GestureDetector(
                                                 onTap: () {
                                                   _showMedicationDetailBottomSheet(
