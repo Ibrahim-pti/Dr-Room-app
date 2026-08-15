@@ -2126,101 +2126,110 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 80,
+            width: 78,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/lab.png',
               titleKey: 'cat_lab',
               id: 'lab',
               isActive: true,
+              accentColor: const Color(0xFF3B82F6),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 80,
+            width: 78,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/doctor_bag.png',
               titleKey: 'cat_nursing',
               id: 'nursing',
               isActive: true,
+              accentColor: const Color(0xFF0D9488),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 80,
+            width: 78,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/doctor.png',
               titleKey: 'cat_doctor',
               id: 'doctor',
               isActive: true,
+              accentColor: const Color(0xFF2563EB),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 80,
+            width: 78,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/medicine.png',
               titleKey: 'cat_pharmacy',
               id: 'pharmacy',
               isActive: true,
+              accentColor: const Color(0xFF8B5CF6),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 80,
+            width: 78,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/add.png',
               titleKey: 'cat_ambulance',
               id: 'ambulance',
               isActive: true,
+              accentColor: const Color(0xFFEF4444),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 80,
+            width: 78,
             child: _buildGridCard(
               context,
               icon: Iconsax.health,
               titleKey: 'ai_assistant',
               id: 'ai_assistant',
               isActive: true,
+              accentColor: const Color(0xFF06B6D4),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 80,
+            width: 78,
             child: _buildGridCard(
               context,
               icon: Iconsax.clock,
               titleKey: 'pill_reminder',
               id: 'pill_reminder',
               isActive: true,
+              accentColor: const Color(0xFFF59E0B),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 80,
+            width: 78,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/xray.png',
               titleKey: 'cat_xray',
               id: 'xray',
               isActive: false,
+              accentColor: const Color(0xFF6366F1),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 80,
+            width: 78,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/apps.png',
               titleKey: 'cat_more',
               id: 'more',
               isActive: true,
+              accentColor: const Color(0xFF64748B),
             ),
           ),
         ],
@@ -2235,8 +2244,11 @@ class _HomeScreenState extends State<HomeScreen> {
     required String titleKey,
     required String id,
     required bool isActive,
+    Color accentColor = const Color(0xFF3B82F6),
   }) {
     assert(imagePath != null || icon != null, 'a grid card needs an image or an icon');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () {
         if (!isActive) {
@@ -2271,14 +2283,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 70,
                       height: 70,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: accentColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: imagePath != null
                             ? Image.asset(imagePath, fit: BoxFit.cover)
-                            : Icon(icon, color: AppColors.primary, size: 38),
+                            : Icon(icon, color: accentColor, size: 38),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -2430,22 +2442,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 66,
                 height: 66,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [
+                            accentColor.withValues(alpha: 0.18),
+                            const Color(0xFF1E293B),
+                          ]
+                        : [
+                            accentColor.withValues(alpha: 0.12),
+                            Colors.white,
+                          ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: accentColor.withValues(alpha: isDark ? 0.25 : 0.15),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: isDark ? 0.15 : 0.08),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(20),
                   child: Opacity(
-                    opacity: isActive ? 1.0 : 0.6,
-                    child: imagePath != null
-                        ? Image.asset(imagePath, fit: BoxFit.cover)
-                        : Container(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            child: Icon(
-                              icon,
-                              color: AppColors.primary,
-                              size: 32,
+                    opacity: isActive ? 1.0 : 0.55,
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: imagePath != null
+                          ? Image.asset(imagePath, fit: BoxFit.contain)
+                          : Center(
+                              child: Icon(
+                                icon,
+                                color: accentColor,
+                                size: 28,
+                              ),
                             ),
-                          ),
+                    ),
                   ),
                 ),
               ),
@@ -2455,12 +2493,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
+                style: TextStyle(
+                  fontFamily: 'Rabar',
                   color: isActive
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFF64748B),
-                  fontSize: 11,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                      ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                      : const Color(0xFF94A3B8),
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -2468,20 +2507,28 @@ class _HomeScreenState extends State<HomeScreen> {
           if (!isActive)
             PositionedDirectional(
               top: -4,
-              end: -8,
+              end: -6,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: const Color(0xFF3B82F6),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white, width: 2),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
                 child: Text(
                   'coming_soon'.tr(),
-                  style: GoogleFonts.poppins(
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
                     color: Colors.white,
-                    fontSize: 8,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
