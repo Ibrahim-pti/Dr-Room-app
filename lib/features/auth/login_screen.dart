@@ -525,13 +525,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Submit Button
                       SizedBox(
                         width: double.infinity,
-                        height: 52,
+                        height: 54,
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _handleLogin,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
                             foregroundColor: Colors.white,
                             elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             shadowColor: const Color(
                               0xFF2563EB,
                             ).withValues(alpha: 0.4),
@@ -550,6 +554,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 )
                               : Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: const [
                                     Icon(Iconsax.login_1, size: 20),
                                     SizedBox(width: 8),
@@ -559,6 +564,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         fontFamily: 'Rabar',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
+                                        height: 1.2,
                                       ),
                                     ),
                                   ],

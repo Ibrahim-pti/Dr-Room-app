@@ -754,13 +754,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       // Submit Button
                       SizedBox(
                         width: double.infinity,
-                        height: 52,
+                        height: 54,
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _handleRegister,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
                             foregroundColor: Colors.white,
                             elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             shadowColor: const Color(
                               0xFF2563EB,
                             ).withValues(alpha: 0.4),
@@ -779,6 +783,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 )
                               : Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: const [
                                     Icon(Iconsax.user_add, size: 20),
                                     SizedBox(width: 8),
@@ -788,6 +793,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         fontFamily: 'Rabar',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
+                                        height: 1.2,
                                       ),
                                     ),
                                   ],
