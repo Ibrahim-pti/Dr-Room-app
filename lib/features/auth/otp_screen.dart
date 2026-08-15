@@ -88,6 +88,7 @@ class _OtpScreenState extends State<OtpScreen> {
         await prefs.setString('user_role', role);
         await prefs.setString('user_name', data['user']['name'] ?? '');
         await prefs.setString('user_phone', data['user']['phone'] ?? '');
+        await prefs.setBool('has_completed_setup', true);
 
         widget.onVerified(role);
       } else {

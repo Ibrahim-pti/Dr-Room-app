@@ -155,14 +155,14 @@ class AppFlowState extends State<AppFlow> {
         return SplashScreen(
           key: const ValueKey('splash'),
           onFinished: (bool isLoggedIn, String role, bool isFirstTime) {
-            if (isFirstTime) {
-              _goTo(_FlowState.onboarding);
-            } else if (isLoggedIn) {
+            if (isLoggedIn) {
               if (role == 'admin') {
                 _goTo(_FlowState.admin);
               } else {
                 _goTo(_FlowState.home);
               }
+            } else if (isFirstTime) {
+              _goTo(_FlowState.onboarding);
             } else {
               _goTo(_FlowState.login);
             }

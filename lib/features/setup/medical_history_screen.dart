@@ -73,13 +73,16 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
     }
 
     await prefs.setBool('guest_smokes', _smokes!);
+    await prefs.setBool('has_completed_setup', true);
 
     if (mounted) {
       widget.onFinished();
     }
   }
 
-  void _skipSetup() {
+  Future<void> _skipSetup() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_completed_setup', true);
     if (mounted) {
       widget.onFinished();
     }

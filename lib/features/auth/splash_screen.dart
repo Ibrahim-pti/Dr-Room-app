@@ -168,11 +168,17 @@ class _ECGPainter extends CustomPainter {
       final tx = drawW;
       final r = tx / totalW;
       double ty = midY;
-      if (r > 0.35 && r < 0.40) ty = midY - sin((r - 0.35) / 0.05 * pi) * 8;
-      else if (r > 0.42 && r < 0.45) ty = midY + sin((r - 0.42) / 0.03 * pi) * 6;
-      else if (r > 0.45 && r < 0.53) ty = midY - sin((r - 0.45) / 0.08 * pi) * 35;
-      else if (r > 0.53 && r < 0.58) ty = midY + sin((r - 0.53) / 0.05 * pi) * 12;
-      else if (r > 0.62 && r < 0.70) ty = midY - sin((r - 0.62) / 0.08 * pi) * 10;
+      if (r > 0.35 && r < 0.40) {
+        ty = midY - sin((r - 0.35) / 0.05 * pi) * 8;
+      } else if (r > 0.42 && r < 0.45) {
+        ty = midY + sin((r - 0.42) / 0.03 * pi) * 6;
+      } else if (r > 0.45 && r < 0.53) {
+        ty = midY - sin((r - 0.45) / 0.08 * pi) * 35;
+      } else if (r > 0.53 && r < 0.58) {
+        ty = midY + sin((r - 0.53) / 0.05 * pi) * 12;
+      } else if (r > 0.62 && r < 0.70) {
+        ty = midY - sin((r - 0.62) / 0.08 * pi) * 10;
+      }
 
       // Solid dot
       canvas.drawCircle(Offset(tx, ty), 5, Paint()..color = const Color(0xFF3B82F6));

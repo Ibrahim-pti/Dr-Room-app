@@ -81,8 +81,12 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     }
   }
 
-  void _skipSetup() {
-    widget.onFinished();
+  Future<void> _skipSetup() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_completed_setup', true);
+    if (mounted) {
+      widget.onFinished();
+    }
   }
 
   @override
@@ -233,7 +237,6 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
-          
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
