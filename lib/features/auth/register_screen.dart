@@ -535,7 +535,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               // Phone Icon on start
               const Padding(
-                padding: EdgeInsetsDirectional.only(start: 14, end: 8),
+                padding: EdgeInsetsDirectional.only(start: 14, end: 6),
                 child: Icon(
                   Icons.phone_android_rounded,
                   color: Color(0xFF2563EB),
@@ -543,36 +543,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
 
-              // Iraqi Flag + Code Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                margin: const EdgeInsetsDirectional.only(end: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: const Color(0xFFDBEAFE),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('🇮🇶', style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 4),
-                    Text(
-                      '+964',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1D4ED8),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Phone text field (aligned to start right next to +964)
+              // Phone text field with integrated +964 prefixText
               Expanded(
                 child: TextField(
                   controller: _phoneController,
@@ -594,7 +565,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   decoration: InputDecoration(
                     counterText: '',
-                    hintText: '0750 123 4567',
+                    prefixText: '+964',
+                    prefixStyle: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1D4ED8),
+                    ),
+                    hintText: '7501234567',
                     hintStyle: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
