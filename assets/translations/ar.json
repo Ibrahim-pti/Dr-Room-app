@@ -112,6 +112,10 @@
   "app_name": "دكتور روم",
   "and": " و ",
   "privacy_policy": "سياسة الخصوصية",
+  "terms_and_privacy": "الشروط وسياسة الخصوصية",
+  "i_agree_terms": "أوافق على الشروط والسياسة",
+  "last_updated": "آخر تحديث: ٢٠٢٦",
+  "must_agree_terms": "يرجى الموافقة على شروط الخدمة وسياسة الخصوصية للمتابعة",
   "already_have_account": "لديك حساب بالفعل؟ ",
   "verify_phone": "التحقق من\nرقم الهاتف",
   "code_sent_to": "أرسلنا رمز التحقق إلى",
@@ -530,5 +534,11 @@
   "assigned_professional": "الشخص المُعيَّن",
   "date": "التاريخ",
   "medical_professional": "مختص طبي",
-  "order_information": "معلومات الطلب"
+  "order_information": "معلومات الطلب",
+  "ahead": "أمامك",
+  "almost_ready": "شارف على الجاهزية",
+  "est_wait": "وقت الانتظار",
+  "live_queue": "الطابور المباشر",
+  "no_favorites_yet": "لا توجد مفضلات بعد",
+  "favorite_doctors_desc": "سيظهر هنا الأطباء الذين تضيفهم إلى المفضلة"
 }

@@ -28,14 +28,17 @@ void main() {
           TransactionStatus.pending);
     });
 
-    test('formats the amount to two decimal places', () {
-      expect(Transaction.fromJson(json()).formattedAmount, r'$49.50');
+    // Dinars have no practical subunit, so an amount is rounded to whole
+    // dinars and grouped. The symbol comes from the translations, which are
+    // not loaded in a unit test, so only the number is asserted here.
+    test('formats the amount as whole dinars', () {
+      expect(Transaction.fromJson(json()).formattedAmount, startsWith('50'));
     });
 
     test('reads an integer amount as a double', () {
       final t = Transaction.fromJson({...json(), 'amount': 50});
       expect(t.amount, 50.0);
-      expect(t.formattedAmount, r'$50.00');
+      expect(t.formattedAmount, startsWith('50'));
     });
 
     test('survives a response missing every optional field', () {

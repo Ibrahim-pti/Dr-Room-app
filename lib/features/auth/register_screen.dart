@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
 import 'package:flutter/services.dart';
+import 'widgets/terms_privacy_modal.dart';
 
 class RegisterScreen extends StatefulWidget {
   final void Function(String phone) onOtpSent;
@@ -25,6 +27,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  late TapGestureRecognizer _termsRecognizer;
+  late TapGestureRecognizer _privacyRecognizer;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = true;
@@ -37,7 +41,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _formError;
 
   @override
+  void initState() {
+    super.initState();
+    _termsRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openTermsAndPrivacy(initialTab: 0);
+    _privacyRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openTermsAndPrivacy(initialTab: 1);
+  }
+
+  void _openTermsAndPrivacy({int initialTab = 0}) {
+    HapticFeedback.lightImpact();
+    TermsPrivacyModal.show(
+      context,
+      initialTabIndex: initialTab,
+      onAccept: () {
+        if (mounted) {
+          setState(() {
+            _agreeToTerms = true;
+            if (_formError == 'must_agree_terms'.tr()) {
+              _formError = null;
+            }
+          });
+        }
+      },
+    );
+  }
+
+  @override
   void dispose() {
+    _termsRecognizer.dispose();
+    _privacyRecognizer.dispose();
     _nameController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -62,13 +95,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _confirmPasswordError = (password.isNotEmpty && confirm != password)
           ? 'passwords_do_not_match'.tr()
           : null;
-      _formError = null;
+      _formError = !_agreeToTerms ? 'must_agree_terms'.tr() : null;
     });
 
     if (_nameError != null ||
         _phoneError != null ||
         _passwordError != null ||
-        _confirmPasswordError != null) {
+        _confirmPasswordError != null ||
+        !_agreeToTerms) {
       return;
     }
 
@@ -353,17 +387,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextSpan(text: 'by_signing_up'.tr()),
                                 TextSpan(
                                   text: 'terms_of_service'.tr(),
+                                  recognizer: _termsRecognizer,
                                   style: TextStyle(
                                     color: const Color(0xFF2563EB),
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: const Color(0xFF2563EB)
+                                        .withValues(alpha: 0.4),
                                   ),
                                 ),
                                 TextSpan(text: 'and'.tr()),
                                 TextSpan(
                                   text: 'privacy_policy'.tr(),
+                                  recognizer: _privacyRecognizer,
                                   style: TextStyle(
                                     color: const Color(0xFF2563EB),
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: const Color(0xFF2563EB)
+                                        .withValues(alpha: 0.4),
                                   ),
                                 ),
                               ],

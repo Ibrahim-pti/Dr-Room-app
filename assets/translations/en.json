@@ -109,6 +109,10 @@
   "terms_of_service": "Terms of Service",
   "and": " and ",
   "privacy_policy": "Privacy Policy",
+  "terms_and_privacy": "Terms & Privacy Policy",
+  "i_agree_terms": "I Agree to Terms & Policy",
+  "last_updated": "Last Updated: 2026",
+  "must_agree_terms": "Please agree to the Terms of Service and Privacy Policy to continue",
   "already_have_account": "Already have an account? ",
   "verify_phone": "Verify Your\nPhone Number",
   "code_sent_to": "We sent a verification code to",
@@ -530,5 +534,12 @@
   "assigned_professional": "Assigned professional",
   "date": "Date",
   "medical_professional": "Medical Professional",
-  "order_information": "Order Information"
+  "order_information": "Order Information",
+  "ahead": "Ahead of you",
+  "almost_ready": "Almost ready",
+  "est_wait": "Est. wait",
+  "live_queue": "Live queue",
+  "no_favorites_yet": "No favourites yet",
+  "favorite_doctors_desc": "Doctors you mark as favourite will appear here",
+  "top_labs": "Top Labs"
 }

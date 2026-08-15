@@ -111,6 +111,10 @@
   "terms_of_service": "مەرجەکانی خزمەتگوزاری",
   "and": " و ",
   "privacy_policy": "سیاسەتی تایبەتمەندی",
+  "terms_and_privacy": "مەرجەکان و سیاسەتی تایبەتمەندی",
+  "i_agree_terms": "ڕازیم بە مەرج و سیاسەتەکان",
+  "last_updated": "کۆتا نوێکردنەوە: ٢٠٢٦",
+  "must_agree_terms": "تکایە سەرەتا ڕەزامەندی بدە لەسەر مەرجەکان و سیاسەتی تایبەتمەندی",
   "already_have_account": "هەژمارت هەیە؟ ",
   "verify_phone": "دڵنیابوونەوە لە\nژمارەی مۆبایل",
   "code_sent_to": "کۆدی دڵنیابوونەوەمان نارد بۆ",
@@ -529,5 +533,11 @@
   "assigned_professional": "کەسی دیاریکراو",
   "date": "بەروار",
   "medical_professional": "پسپۆڕی پزیشکی",
-  "order_information": "زانیاری داواکاری"
+  "order_information": "زانیاری داواکاری",
+  "ahead": "لە پێشتەوە",
+  "almost_ready": "خەریکە ئامادە دەبێت",
+  "est_wait": "کاتی چاوەڕوانی",
+  "live_queue": "ڕیزی زیندوو",
+  "no_favorites_yet": "هێشتا هیچ دڵخوازێکت نییە",
+  "favorite_doctors_desc": "ئەو پزیشکانەی دڵخوازت دەکەیت لێرە دەردەکەون"
 }
