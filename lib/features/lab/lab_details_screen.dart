@@ -7,7 +7,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../core/utils/api_client.dart';
-import 'lab_order_method_screen.dart';
+import 'package:provider/provider.dart';
+import '../../core/providers/cart_provider.dart';
+import '../checkout/checkout_details_screen.dart';
 import 'lab_map_screen.dart';
 
 class LabDetailsScreen extends StatefulWidget {
@@ -342,7 +344,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               16,
               4,
               16,
-              (_selectedTabIndex == 0 || _selectedTestIds.isEmpty) ? 16 : 90,
+              (_selectedTabIndex != 0 && _selectedTestIds.isNotEmpty) ? 80 : 10,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1518,10 +1520,30 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 return;
               }
 
+              // Populate cart provider with selected lab tests
+              final cart = Provider.of<CartProvider>(context, listen: false);
+              cart.clearCart();
+              cart.setServiceType('lab', extraFee: 0.0);
+              for (final test in _tests) {
+                if (_selectedTestIds.contains(test['id'])) {
+                  final p = (test['price'] as num?)?.toDouble() ?? 10000.0;
+                  cart.addItem(CartItem(
+                    id: test['id'].toString(),
+                    name: test['name']?.toString() ?? 'پشکنین',
+                    price: p,
+                    extraData: {
+                      'lab_id': _labData['id'],
+                      'lab_name': _labData['name'],
+                      'type': test['type'],
+                    },
+                  ));
+                }
+              }
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const LabOrderMethodScreen(),
+                  builder: (context) => const CheckoutDetailsScreen(),
                 ),
               );
             },
