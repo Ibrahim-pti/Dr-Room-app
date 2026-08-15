@@ -85,7 +85,7 @@
   "email_or_phone": "Email or Phone number",
   "password": "Password",
   "forgot_password": "Forgot Password?",
-  "phone_invalid": "Please enter a valid 11-digit phone number",
+  "phone_invalid": "Please enter a valid Iraqi phone number (e.g. 0750xxxxxxx)",
   "password_required": "Password is required",
   "login_failed": "Login failed",
   "server_connection_error": "Server connection error",

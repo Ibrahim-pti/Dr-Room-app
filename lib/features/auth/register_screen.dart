@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
 import 'package:flutter/services.dart';
@@ -78,17 +78,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  bool _isValidIraqiPhone(String phone) {
+    final clean = phone.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
+    // 07XXXXXXXXX (11 digits starting with 07)
+    if (clean.length == 11 && clean.startsWith('07')) {
+      final prefix = clean.substring(0, 3);
+      return ['075', '077', '078', '079', '074', '073', '070', '071', '072'].contains(prefix) ||
+          RegExp(r'^07\d{9}$').hasMatch(clean);
+    }
+    // 7XXXXXXXXX (10 digits starting with 7)
+    if (clean.length == 10 && clean.startsWith('7')) {
+      return RegExp(r'^7\d{9}$').hasMatch(clean);
+    }
+    // 9647XXXXXXXXX (12 digits starting with 9647)
+    if (clean.length == 12 && clean.startsWith('9647')) {
+      return true;
+    }
+    return false;
+  }
+
+  String _normalizeIraqiPhone(String raw) {
+    final clean = raw.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
+    if (clean.startsWith('9647') && clean.length == 12) {
+      return '0${clean.substring(3)}';
+    }
+    if (clean.startsWith('7') && clean.length == 10) {
+      return '0$clean';
+    }
+    return clean;
+  }
+
   Future<void> _handleRegister() async {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     final password = _passwordController.text;
     final confirm = _confirmPasswordController.text;
 
+    final isPhoneValid = _isValidIraqiPhone(phone);
+    final normalizedPhone = _normalizeIraqiPhone(phone);
+
     setState(() {
       _nameError = name.isEmpty ? 'name_required'.tr() : null;
-      _phoneError = (phone.isEmpty || phone.length != 11)
-          ? 'phone_invalid'.tr()
-          : null;
+      _phoneError = !isPhoneValid ? 'phone_invalid'.tr() : null;
       _passwordError = password.isEmpty
           ? 'password_required'.tr()
           : (password.length < 6 ? 'password_too_short'.tr() : null);
@@ -110,11 +141,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final response = await ApiClient.post(
         '/register',
-        body: {'name': name, 'phone': phone, 'password': password},
+        body: {'name': name, 'phone': normalizedPhone, 'password': password},
       );
 
       if (response.statusCode == 201) {
-        widget.onOtpSent(phone);
+        widget.onOtpSent(normalizedPhone);
       } else {
         final err = jsonDecode(response.body);
         final msg = err['message'] ?? 'register_failed'.tr();
@@ -165,8 +196,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               // ── Doctor Image ──
               SizedBox(
-                    height: size.height * 0.20,
-                    width: size.width * 0.60,
+                    height: size.height * 0.18,
+                    width: size.width * 0.55,
                     child: Image.asset(
                       'assets/images/doctor2.png',
                       fit: BoxFit.contain,
@@ -188,11 +219,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 'create_account'.tr().replaceAll('\n', ' '),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  fontSize: 26,
+                  fontSize: 24,
                   fontWeight: FontWeight.w800,
                   color: const Color(0xFF0F172A),
                   height: 1.25,
-                  letterSpacing: -0.3,
                 ),
               ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
 
@@ -205,8 +235,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                   color: const Color(0xFF78909C),
-                  height: 1.5,
-                  letterSpacing: 0.1,
+                  height: 1.4,
                 ),
               ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
 
@@ -215,7 +244,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Name Input
                     _buildInputField(
@@ -235,19 +264,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                     const SizedBox(height: 14),
 
-                    // Phone Input
-                    _buildInputField(
-                          hint: 'phone_number'.tr(),
-                          icon: Icons.phone_android_rounded,
-                          controller: _phoneController,
-                          isPhone: true,
-                          errorText: _phoneError,
-                          onChanged: (_) {
-                            if (_phoneError != null) {
-                              setState(() => _phoneError = null);
-                            }
-                          },
-                        )
+                    // Iraqi Phone Input
+                    _buildPhoneField()
                         .animate()
                         .fadeIn(delay: 350.ms)
                         .slideY(begin: 0.2, end: 0),
@@ -331,16 +349,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                     // Terms & Conditions
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         GestureDetector(
                           onTap: () =>
                               setState(() => _agreeToTerms = !_agreeToTerms),
                           child: Container(
-                            margin: const EdgeInsetsDirectional.only(
-                              top: 2,
-                              end: 12,
-                            ),
+                            margin: const EdgeInsetsDirectional.only(end: 10),
                             width: 22,
                             height: 22,
                             decoration: BoxDecoration(
@@ -357,9 +372,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               boxShadow: _agreeToTerms
                                   ? [
                                       BoxShadow(
-                                        color: const Color(
-                                          0xFF2563EB,
-                                        ).withValues(alpha: 0.25),
+                                        color: const Color(0xFF2563EB)
+                                            .withValues(alpha: 0.25),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -415,12 +429,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                     ).animate().fadeIn(delay: 550.ms),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 22),
 
                     // Create Account Button
                     SizedBox(
                           width: double.infinity,
-                          height: 58,
+                          height: 56,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _handleRegister,
                             style: ElevatedButton.styleFrom(
@@ -453,7 +467,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.3,
                                     ),
                                   ),
                           ),
@@ -462,7 +475,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         .fadeIn(delay: 600.ms)
                         .slideY(begin: 0.2, end: 0),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Log In Link
                     Row(
@@ -485,7 +498,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF2563EB),
-                              letterSpacing: 0.3,
                             ),
                           ),
                         ),
@@ -503,11 +515,126 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  Widget _buildPhoneField() {
+    final hasError = _phoneError != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: hasError
+                  ? const Color(0xFFEF4444)
+                  : const Color(0xFFE2E8F0),
+              width: hasError ? 1.4 : 1.2,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Iraqi Flag + Code Badge
+              Container(
+                margin: const EdgeInsetsDirectional.only(start: 10, end: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFFDBEAFE),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('🇮🇶', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '+964',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1D4ED8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Phone text field
+              Expanded(
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: TextField(
+                    controller: _phoneController,
+                    onChanged: (_) {
+                      if (_phoneError != null) {
+                        setState(() => _phoneError = null);
+                      }
+                    },
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(11),
+                    ],
+                    textAlign: TextAlign.start,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1E293B),
+                    ),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      hintText: '0750 123 4567',
+                      hintStyle: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF94A3B8),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 8,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Phone icon
+              const Padding(
+                padding: EdgeInsetsDirectional.only(end: 14),
+                child: Icon(
+                  Icons.phone_android_rounded,
+                  color: Color(0xFF2563EB),
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(top: 6, start: 4),
+            child: Text(
+              _phoneError!,
+              textAlign: TextAlign.start,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFFEF4444),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildInputField({
     required String hint,
     required IconData icon,
     bool isPassword = false,
-    bool isPhone = false,
     bool? obscure,
     VoidCallback? onToggleObscure,
     required TextEditingController controller,
@@ -533,35 +660,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: controller,
             onChanged: onChanged,
             obscureText: obscure ?? false,
-            keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
-            inputFormatters: isPhone
-                ? [FilteringTextInputFormatter.digitsOnly]
-                : null,
-            maxLength: isPhone ? 11 : null,
-            textAlign: TextAlign.end,
+            textAlign: TextAlign.start,
             style: GoogleFonts.poppins(
               fontSize: 15,
               fontWeight: FontWeight.w500,
               color: const Color(0xFF1E293B),
-              letterSpacing: isPhone ? 1.2 : 0.2,
             ),
             decoration: InputDecoration(
               counterText: '',
               hintText: hint,
               hintStyle: GoogleFonts.poppins(
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: const Color(0xFF94A3B8),
-                letterSpacing: 0.2,
               ),
               prefixIconConstraints: const BoxConstraints(
-                minWidth: 0,
-                minHeight: 0,
+                minWidth: 48,
+                minHeight: 48,
               ),
-              prefixIcon: Padding(
-                padding: const EdgeInsetsDirectional.only(start: 14, end: 12),
-                child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
-              ),
+              prefixIcon: Icon(icon, color: const Color(0xFF2563EB), size: 20),
               suffixIcon: isPassword
                   ? GestureDetector(
                       onTap: onToggleObscure,
@@ -577,15 +694,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     )
                   : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
-              ),
-              filled: true,
-              fillColor: Colors.transparent,
+              border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 16,
-                horizontal: 4,
+                horizontal: 8,
               ),
             ),
           ),
@@ -595,7 +707,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             padding: const EdgeInsetsDirectional.only(top: 6, start: 4),
             child: Text(
               errorText,
-              textAlign: TextAlign.end,
+              textAlign: TextAlign.start,
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

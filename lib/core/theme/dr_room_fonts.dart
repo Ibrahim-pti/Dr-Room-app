@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart' as gf;
-import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class GoogleFonts {
@@ -36,7 +35,7 @@ class GoogleFonts {
         fontSize: fontSize,
         fontWeight: fontWeight,
         fontStyle: fontStyle,
-        letterSpacing: letterSpacing,
+        letterSpacing: null, // Avoid letter spacing to ensure connected Kurdish/Arabic cursive characters
         wordSpacing: wordSpacing,
         textBaseline: textBaseline,
         height: height,
@@ -150,7 +149,7 @@ class GoogleFonts {
         fontSize: fontSize,
         fontWeight: fontWeight,
         fontStyle: fontStyle,
-        letterSpacing: letterSpacing,
+        letterSpacing: null,
         wordSpacing: wordSpacing,
         textBaseline: textBaseline,
         height: height,

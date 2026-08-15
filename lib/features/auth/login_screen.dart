@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
 import 'package:flutter/services.dart';
@@ -36,14 +36,42 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  bool _isValidIraqiPhone(String phone) {
+    final clean = phone.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
+    if (clean.length == 11 && clean.startsWith('07')) {
+      final prefix = clean.substring(0, 3);
+      return ['075', '077', '078', '079', '074', '073', '070', '071', '072'].contains(prefix) ||
+          RegExp(r'^07\d{9}$').hasMatch(clean);
+    }
+    if (clean.length == 10 && clean.startsWith('7')) {
+      return RegExp(r'^7\d{9}$').hasMatch(clean);
+    }
+    if (clean.length == 12 && clean.startsWith('9647')) {
+      return true;
+    }
+    return false;
+  }
+
+  String _normalizeIraqiPhone(String raw) {
+    final clean = raw.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
+    if (clean.startsWith('9647') && clean.length == 12) {
+      return '0${clean.substring(3)}';
+    }
+    if (clean.startsWith('7') && clean.length == 10) {
+      return '0$clean';
+    }
+    return clean;
+  }
+
   Future<void> _handleLogin() async {
     final phone = _phoneController.text.trim();
     final password = _passwordController.text;
 
+    final isPhoneValid = _isValidIraqiPhone(phone);
+    final normalizedPhone = _normalizeIraqiPhone(phone);
+
     setState(() {
-      _phoneError = (phone.isEmpty || phone.length != 11)
-          ? 'phone_invalid'.tr()
-          : null;
+      _phoneError = !isPhoneValid ? 'phone_invalid'.tr() : null;
       _passwordError = password.isEmpty ? 'password_required'.tr() : null;
       _formError = null;
     });
@@ -55,11 +83,11 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await ApiClient.post(
         '/login',
-        body: {'phone': phone, 'password': password},
+        body: {'phone': normalizedPhone, 'password': password},
       );
 
       if (response.statusCode == 200) {
-        widget.onOtpSent(phone);
+        widget.onOtpSent(normalizedPhone);
       } else {
         final err = jsonDecode(response.body);
         final msg = err['message'] ?? 'login_failed'.tr();
@@ -112,8 +140,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // ── Doctor Image ──
               SizedBox(
-                    height: size.height * 0.32,
-                    width: size.width * 0.90,
+                    height: size.height * 0.28,
+                    width: size.width * 0.85,
                     child: Image.asset(
                       'assets/images/doctor2.png',
                       fit: BoxFit.contain,
@@ -135,11 +163,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 'welcome_back'.tr(),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  fontSize: 28,
+                  fontSize: 26,
                   fontWeight: FontWeight.w800,
                   color: const Color(0xFF0F172A),
                   height: 1.25,
-                  letterSpacing: -0.3,
                 ),
               ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
 
@@ -152,8 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                   color: const Color(0xFF78909C),
-                  height: 1.5,
-                  letterSpacing: 0.1,
+                  height: 1.4,
                 ),
               ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
 
@@ -162,26 +188,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
-                    // Phone Input
-                    _buildInputField(
-                          hint: 'phone_number'.tr(),
-                          icon: Icons.phone_android_rounded,
-                          controller: _phoneController,
-                          isPhone: true,
-                          errorText: _phoneError,
-                          onChanged: (_) {
-                            if (_phoneError != null) {
-                              setState(() => _phoneError = null);
-                            }
-                          },
-                        )
+                    // Iraqi Phone Input
+                    _buildPhoneField()
                         .animate()
                         .fadeIn(delay: 300.ms)
                         .slideY(begin: 0.2, end: 0),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // Password Input
                     _buildInputField(
@@ -228,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ).animate().fadeIn(duration: 250.ms),
                     ],
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // Forgot Password
                     Align(
@@ -240,23 +255,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           textAlign: TextAlign.end,
                           style: GoogleFonts.poppins(
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                             color: const Color(0xFF2563EB),
-                            decoration: TextDecoration.underline,
-                            decorationColor: const Color(
-                              0xFF2563EB,
-                            ).withValues(alpha: 0.2),
                           ),
                         ),
                       ),
                     ).animate().fadeIn(delay: 500.ms),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 28),
 
                     // Login Button
                     SizedBox(
                           width: double.infinity,
-                          height: 58,
+                          height: 56,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _handleLogin,
                             style: ElevatedButton.styleFrom(
@@ -289,7 +300,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.3,
                                     ),
                                   ),
                           ),
@@ -298,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         .fadeIn(delay: 600.ms)
                         .slideY(begin: 0.2, end: 0),
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
                     // Sign Up Link
                     Row(
@@ -321,7 +331,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF2563EB),
-                              letterSpacing: 0.3,
                             ),
                           ),
                         ),
@@ -339,11 +348,126 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Widget _buildPhoneField() {
+    final hasError = _phoneError != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: hasError
+                  ? const Color(0xFFEF4444)
+                  : const Color(0xFFE2E8F0),
+              width: hasError ? 1.4 : 1.2,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Iraqi Flag + Code Badge
+              Container(
+                margin: const EdgeInsetsDirectional.only(start: 10, end: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: const Color(0xFFDBEAFE),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('🇮🇶', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '+964',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1D4ED8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Phone text field
+              Expanded(
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: TextField(
+                    controller: _phoneController,
+                    onChanged: (_) {
+                      if (_phoneError != null) {
+                        setState(() => _phoneError = null);
+                      }
+                    },
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(11),
+                    ],
+                    textAlign: TextAlign.start,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1E293B),
+                    ),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      hintText: '0750 123 4567',
+                      hintStyle: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF94A3B8),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 8,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Phone icon
+              const Padding(
+                padding: EdgeInsetsDirectional.only(end: 14),
+                child: Icon(
+                  Icons.phone_android_rounded,
+                  color: Color(0xFF2563EB),
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(top: 6, start: 4),
+            child: Text(
+              _phoneError!,
+              textAlign: TextAlign.start,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFFEF4444),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildInputField({
     required String hint,
     required IconData icon,
     bool isPassword = false,
-    bool isPhone = false,
     required TextEditingController controller,
     String? errorText,
     void Function(String)? onChanged,
@@ -367,35 +491,25 @@ class _LoginScreenState extends State<LoginScreen> {
             controller: controller,
             onChanged: onChanged,
             obscureText: isPassword ? _obscurePassword : false,
-            keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
-            inputFormatters: isPhone
-                ? [FilteringTextInputFormatter.digitsOnly]
-                : null,
-            maxLength: isPhone ? 11 : null,
-            textAlign: TextAlign.end,
+            textAlign: TextAlign.start,
             style: GoogleFonts.poppins(
               fontSize: 15,
               fontWeight: FontWeight.w500,
               color: const Color(0xFF1E293B),
-              letterSpacing: isPhone ? 1.2 : 0.2,
             ),
             decoration: InputDecoration(
               counterText: '',
               hintText: hint,
               hintStyle: GoogleFonts.poppins(
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: const Color(0xFF94A3B8),
-                letterSpacing: 0.2,
               ),
               prefixIconConstraints: const BoxConstraints(
-                minWidth: 0,
-                minHeight: 0,
+                minWidth: 48,
+                minHeight: 48,
               ),
-              prefixIcon: Padding(
-                padding: const EdgeInsetsDirectional.only(start: 14, end: 12),
-                child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
-              ),
+              prefixIcon: Icon(icon, color: const Color(0xFF2563EB), size: 20),
               suffixIcon: isPassword
                   ? GestureDetector(
                       onTap: () {
@@ -413,15 +527,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     )
                   : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
-              ),
-              filled: true,
-              fillColor: Colors.transparent,
+              border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 16,
-                horizontal: 4,
+                horizontal: 8,
               ),
             ),
           ),
@@ -431,7 +540,7 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsetsDirectional.only(top: 6, start: 4),
             child: Text(
               errorText,
-              textAlign: TextAlign.end,
+              textAlign: TextAlign.start,
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
