@@ -619,36 +619,41 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
 
   Widget _buildSliverAppBar() {
     return SliverAppBar(
-      expandedHeight: 110,
       pinned: true,
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF0F172A),
-            size: 18,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      leadingWidth: 64,
+      leading: Padding(
+        padding: const EdgeInsetsDirectional.only(start: 16),
+        child: Center(
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Color(0xFF0F172A),
+                size: 16,
+              ),
+            ),
           ),
         ),
-        onPressed: () => Navigator.pop(context),
       ),
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsetsDirectional.only(start: 60, bottom: 16, end: 20),
-        title: Text(
-          _tr('all_labs', context),
-          style: _kurdishStyle(
-            color: const Color(0xFF0F172A),
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-          ),
+      title: Text(
+        _tr('all_labs', context),
+        style: _kurdishStyle(
+          color: const Color(0xFF0F172A),
+          fontSize: 17,
+          fontWeight: FontWeight.bold,
         ),
-        background: Container(color: Colors.white),
       ),
     );
   }
