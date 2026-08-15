@@ -166,10 +166,34 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${NumberFormat('#,###').format(item.totalPrice.toInt())} د.ع',
-                                    style: _kStyle(color: const Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 13.5),
+                                  const SizedBox(height: 3),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          item.unit,
+                                          style: _kStyle(
+                                            color: const Color(0xFF2563EB),
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${NumberFormat('#,###').format(item.totalPrice.toInt())} د.ع',
+                                        style: _kStyle(
+                                          color: const Color(0xFF2563EB),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13.5,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -179,7 +203,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.remove_circle_outline, color: Color(0xFF94A3B8), size: 22),
                                   onPressed: () {
-                                    ref.read(cartProvider.notifier).updateQuantity(item.medication.id, item.quantity - 1);
+                                    ref.read(cartProvider.notifier).updateQuantity(item.medication.id, item.quantity - 1, unit: item.unit);
                                   },
                                 ),
                                 Text(
@@ -189,7 +213,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.add_circle_outline, color: Color(0xFF3B82F6), size: 22),
                                   onPressed: () {
-                                    ref.read(cartProvider.notifier).updateQuantity(item.medication.id, item.quantity + 1);
+                                    ref.read(cartProvider.notifier).updateQuantity(item.medication.id, item.quantity + 1, unit: item.unit);
                                   },
                                 ),
                               ],

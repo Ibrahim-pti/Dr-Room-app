@@ -5,13 +5,17 @@ import '../models/pharmacy_model.dart';
 class CartItem {
   final Medication medication;
   int quantity;
+  final String unit; // 'پاکەت' or 'دانە / شریت'
+  final double unitPrice;
 
   CartItem({
     required this.medication,
     this.quantity = 1,
-  });
+    this.unit = 'پاکەت',
+    double? unitPrice,
+  }) : unitPrice = unitPrice ?? medication.price;
 
-  double get totalPrice => medication.price * quantity;
+  double get totalPrice => unitPrice * quantity;
 }
 
 class CartState {
@@ -50,36 +54,65 @@ class CartNotifier extends StateNotifier<CartState> {
     }
   }
 
-  void addItem(Medication medication, Pharmacy pharmacy) {
+  void addItem(
+    Medication medication,
+    Pharmacy pharmacy, {
+    int quantity = 1,
+    String unit = 'پاکەت',
+    double? unitPrice,
+  }) {
     if (state.pharmacy == null || state.pharmacy?.id != pharmacy.id) {
       setPharmacy(pharmacy);
     }
 
-    final existingIndex = state.items.indexWhere((item) => item.medication.id == medication.id);
+    final calculatedPrice = unitPrice ?? medication.price;
+    final existingIndex = state.items.indexWhere(
+      (item) => item.medication.id == medication.id && item.unit == unit,
+    );
 
     if (existingIndex >= 0) {
       final updatedItems = List<CartItem>.from(state.items);
-      updatedItems[existingIndex].quantity++;
+      updatedItems[existingIndex].quantity += quantity;
       state = state.copyWith(items: updatedItems);
     } else {
-      state = state.copyWith(items: [...state.items, CartItem(medication: medication)]);
+      state = state.copyWith(
+        items: [
+          ...state.items,
+          CartItem(
+            medication: medication,
+            quantity: quantity,
+            unit: unit,
+            unitPrice: calculatedPrice,
+          ),
+        ],
+      );
     }
   }
 
-  void removeItem(int medicationId) {
-    final updatedItems = state.items.where((item) => item.medication.id != medicationId).toList();
+  void removeItem(int medicationId, {String? unit}) {
+    final updatedItems = state.items.where((item) {
+      if (unit != null) {
+        return !(item.medication.id == medicationId && item.unit == unit);
+      }
+      return item.medication.id != medicationId;
+    }).toList();
     state = state.copyWith(items: updatedItems);
   }
 
-  void updateQuantity(int medicationId, int quantity) {
+  void updateQuantity(int medicationId, int quantity, {String? unit}) {
     if (quantity <= 0) {
-      removeItem(medicationId);
+      removeItem(medicationId, unit: unit);
       return;
     }
 
     final updatedItems = state.items.map((item) {
-      if (item.medication.id == medicationId) {
-        return CartItem(medication: item.medication, quantity: quantity);
+      if (item.medication.id == medicationId && (unit == null || item.unit == unit)) {
+        return CartItem(
+          medication: item.medication,
+          quantity: quantity,
+          unit: item.unit,
+          unitPrice: item.unitPrice,
+        );
       }
       return item;
     }).toList();

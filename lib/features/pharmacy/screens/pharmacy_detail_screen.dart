@@ -182,6 +182,605 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     }
   }
 
+  void _showMedicationDetailBottomSheet(Medication med) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        String selectedUnit = 'پاکەت';
+        int quantity = 1;
+        final double boxPrice = med.price;
+        // Piece/strip price calculated accurately (e.g. 1/3 or 1/2 of box price rounded to nearest 250 IQD)
+        final double piecePrice = (med.price > 2500)
+            ? (((med.price / 3) / 250).round() * 250.0).clamp(500.0, med.price)
+            : (((med.price / 2) / 250).round() * 250.0).clamp(500.0, med.price);
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final sheetBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+            final borderColor = isDark
+                ? const Color(0xFF334155)
+                : const Color(0xFFE2E8F0);
+            final unitPrice = (selectedUnit == 'پاکەت') ? boxPrice : piecePrice;
+            final totalPrice = unitPrice * quantity;
+
+            return Container(
+              decoration: BoxDecoration(
+                color: sheetBg,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 12,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 28,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle Bar
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 4.5,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white24
+                              : const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Header Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'وردەکاری و هەڵبژاردنی بڕ',
+                          style: _kStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFF1F5F9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              size: 18,
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Medication Info Card
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              color: isDark
+                                  ? const Color(0xFF1E293B)
+                                  : Colors.white,
+                              child: Image.network(
+                                med.imageUrl ??
+                                    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300',
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Center(
+                                  child: Icon(
+                                    Icons.medication_rounded,
+                                    size: 36,
+                                    color: Color(0xFF3B82F6),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        med.name,
+                                        style: _kStyle(
+                                          fontSize: 15.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark
+                                              ? Colors.white
+                                              : const Color(0xFF0F172A),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF10B981,
+                                        ).withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        'بەردەستە',
+                                        style: _kStyle(
+                                          color: const Color(0xFF10B981),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  med.description ??
+                                      'دەرمانی باوەڕپێکراو بە کوالیتی بەرز و گەرەنتی کراو',
+                                  style: _kStyle(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? Colors.white60
+                                        : const Color(0xFF64748B),
+                                    height: 1.3,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Unit Selection Label
+                    Text(
+                      'جۆری کڕین هەڵبژێرە:',
+                      style: _kStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? Colors.white
+                            : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Unit Selection Row
+                    Row(
+                      children: [
+                        // Option 1: Box / Packet
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                selectedUnit = 'پاکەت';
+                              });
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: selectedUnit == 'پاکەت'
+                                    ? const Color(
+                                        0xFF3B82F6,
+                                      ).withValues(alpha: 0.12)
+                                    : sheetBg,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: selectedUnit == 'پاکەت'
+                                      ? const Color(0xFF3B82F6)
+                                      : borderColor,
+                                  width: selectedUnit == 'پاکەت' ? 1.8 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.inventory_2_outlined,
+                                        size: 18,
+                                        color: Color(0xFF3B82F6),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'بە پاکەت (قوتی)',
+                                        style: _kStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: selectedUnit == 'پاکەت'
+                                              ? const Color(0xFF3B82F6)
+                                              : (isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFF0F172A)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${boxPrice.toInt()} د.ع',
+                                    style: _kStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: selectedUnit == 'پاکەت'
+                                          ? const Color(0xFF2563EB)
+                                          : const Color(0xFF94A3B8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Option 2: Piece / Strip
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                selectedUnit = 'دانە / شریت';
+                              });
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: selectedUnit == 'دانە / شریت'
+                                    ? const Color(
+                                        0xFF3B82F6,
+                                      ).withValues(alpha: 0.12)
+                                    : sheetBg,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: selectedUnit == 'دانە / شریت'
+                                      ? const Color(0xFF3B82F6)
+                                      : borderColor,
+                                  width: selectedUnit == 'دانە / شریت' ? 1.8 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.medication_liquid_rounded,
+                                        size: 18,
+                                        color: Color(0xFF10B981),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'بە دانە / شریت',
+                                        style: _kStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: selectedUnit == 'دانە / شریت'
+                                              ? const Color(0xFF3B82F6)
+                                              : (isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFF0F172A)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${piecePrice.toInt()} د.ع',
+                                    style: _kStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: selectedUnit == 'دانە / شریت'
+                                          ? const Color(0xFF2563EB)
+                                          : const Color(0xFF94A3B8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Quantity Counter Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'ژمارەی داواکراو:',
+                          style: _kStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF0F172A)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  if (quantity > 1) {
+                                    setModalState(() => quantity--);
+                                  }
+                                },
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: quantity > 1
+                                        ? (isDark
+                                              ? const Color(0xFF334155)
+                                              : Colors.white)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Icons.remove,
+                                    size: 16,
+                                    color: quantity > 1
+                                        ? (isDark
+                                              ? Colors.white
+                                              : const Color(0xFF0F172A))
+                                        : const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Text(
+                                  '$quantity $selectedUnit',
+                                  style: _kStyle(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setModalState(() => quantity++);
+                                },
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF3B82F6),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.add,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Calculation Summary Card
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'حیساباتی نرخ:',
+                                style: _kStyle(
+                                  fontSize: 11.5,
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$quantity × ${unitPrice.toInt()} د.ع ($selectedUnit)',
+                                style: _kStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : const Color(0xFF475569),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                'کۆی گشتی:',
+                                style: _kStyle(
+                                  fontSize: 11.5,
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${totalPrice.toInt()} د.ع',
+                                style: _kStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF2563EB),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Add to Cart Action Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          ref.read(cartProvider.notifier).addItem(
+                                med,
+                                widget.pharmacy,
+                                quantity: quantity,
+                                unit: selectedUnit,
+                                unitPrice: unitPrice,
+                              );
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: const Color(0xFF10B981),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              content: Text(
+                                '$quantity $selectedUnit لە ${med.name} بە سەرکەوتوویی زیادکرا بۆ سەبەتە 🎉',
+                                style: _kStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          elevation: 3,
+                          shadowColor: const Color(
+                            0xFF2563EB,
+                          ).withValues(alpha: 0.4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Iconsax.shopping_cart,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'زیادکردن بۆ سەبەتە • ${totalPrice.toInt()} د.ع',
+                              style: _kStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartState = ref.watch(cartProvider);
@@ -964,7 +1563,9 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 .firstOrNull;
                             final int qty = inCartItem?.quantity ?? 0;
 
-                            return Container(
+                            return GestureDetector(
+                              onTap: () => _showMedicationDetailBottomSheet(med),
+                              child: Container(
                                   decoration: BoxDecoration(
                                     color: cardBg,
                                     borderRadius: BorderRadius.circular(18),
@@ -1118,18 +1719,13 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                               ],
                                             ),
 
-                                            // Modern Floating Add / Stepper Button
+                                            // Modern Floating Add / Detail Button
                                             if (qty == 0)
                                               GestureDetector(
                                                 onTap: () {
-                                                  ref
-                                                      .read(
-                                                        cartProvider.notifier,
-                                                      )
-                                                      .addItem(
-                                                        med,
-                                                        widget.pharmacy,
-                                                      );
+                                                  _showMedicationDetailBottomSheet(
+                                                    med,
+                                                  );
                                                 },
                                                 child: Container(
                                                   padding:
@@ -1297,7 +1893,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                       ],
                                     ),
                                   ),
-                                )
+                                ),
+                              )
                                 .animate()
                                 .fadeIn(delay: (index * 30).ms)
                                 .slideY(begin: 0.03, end: 0);
