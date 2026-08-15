@@ -952,7 +952,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 crossAxisCount: 2,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 14,
-                                childAspectRatio: 0.74,
+                                childAspectRatio: 0.91,
                               ),
                           delegate: SliverChildBuilderDelegate((
                             context,
@@ -967,7 +967,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                             return Container(
                                   decoration: BoxDecoration(
                                     color: cardBg,
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(18),
                                     border: Border.all(color: borderColor),
                                     boxShadow: [
                                       BoxShadow(
@@ -980,7 +980,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                     ],
                                   ),
                                   child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
+                                    padding: const EdgeInsets.all(8.5),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -990,9 +990,9 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                           children: [
                                             ClipRRect(
                                               borderRadius:
-                                                  BorderRadius.circular(14),
+                                                  BorderRadius.circular(12),
                                               child: Container(
-                                                height: 110,
+                                                height: 96,
                                                 width: double.infinity,
                                                 color: isDark
                                                     ? const Color(0xFF0F172A)
@@ -1047,7 +1047,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                           ],
                                         ),
 
-                                        const SizedBox(height: 8),
+                                        const SizedBox(height: 5),
 
                                         // Medicine Name
                                         Text(
