@@ -86,6 +86,7 @@
   "password": "Password",
   "forgot_password": "Forgot Password?",
   "phone_invalid": "Please enter a valid Iraqi phone number (e.g. 0750xxxxxxx)",
+  "phone_already_exists": "This phone number is already registered, please log in",
   "password_required": "Password is required",
   "login_failed": "Login failed",
   "server_connection_error": "Server connection error",

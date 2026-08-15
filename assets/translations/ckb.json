@@ -86,6 +86,7 @@
   "password": "وشەی نهێنی",
   "forgot_password": "وشەی نهێنیت لەبیر چووە؟",
   "phone_invalid": "تکایە ژمارەیەکی دروستی عێراقی بنووسە (وەک 0750xxxxxxx)",
+  "phone_already_exists": "ئەم ژمارە مۆبایلە پێشتر تۆمار کراوە، تکایە بچۆ ژوورەوە",
   "password_required": "وشەی نهێنی پێویستە",
   "login_failed": "هەڵە ڕوویدا لە چوونەژوورەوە",
   "server_connection_error": "هەڵە لە پەیوەندیکردن بە سێرڤەر",

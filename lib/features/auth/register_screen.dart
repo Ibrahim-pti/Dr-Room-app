@@ -147,9 +147,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (response.statusCode == 201) {
         widget.onOtpSent(normalizedPhone);
       } else {
-        final err = jsonDecode(response.body);
-        final msg = err['message'] ?? 'register_failed'.tr();
-        if (mounted) setState(() => _formError = msg);
+        try {
+          final err = jsonDecode(response.body);
+          String msg = err['message'] ?? 'register_failed'.tr();
+          if (msg.contains('already been taken') || (err['errors']?['phone'] != null)) {
+            msg = 'phone_already_exists'.tr();
+          }
+          if (mounted) setState(() => _formError = msg);
+        } catch (_) {
+          if (mounted) setState(() => _formError = 'register_failed'.tr());
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -524,12 +531,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: hasError
-                  ? const Color(0xFFEF4444)
-                  : const Color(0xFFE2E8F0),
-              width: hasError ? 1.4 : 1.2,
-            ),
+            border: hasError
+                ? Border.all(color: const Color(0xFFEF4444), width: 1.2)
+                : null,
           ),
           child: Row(
             children: [
@@ -584,7 +588,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16,
+                      vertical: 14,
                       horizontal: 2,
                     ),
                   ),
@@ -629,12 +633,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: hasError
-                  ? const Color(0xFFEF4444)
-                  : const Color(0xFFE2E8F0),
-              width: hasError ? 1.4 : 1.2,
-            ),
+            border: hasError
+                ? Border.all(color: const Color(0xFFEF4444), width: 1.2)
+                : null,
           ),
           child: Row(
             children: [
@@ -663,7 +664,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16,
+                      vertical: 14,
                       horizontal: 4,
                     ),
                   ),

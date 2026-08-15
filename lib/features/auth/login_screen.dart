@@ -357,12 +357,9 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: hasError
-                  ? const Color(0xFFEF4444)
-                  : const Color(0xFFE2E8F0),
-              width: hasError ? 1.4 : 1.2,
-            ),
+            border: hasError
+                ? Border.all(color: const Color(0xFFEF4444), width: 1.2)
+                : null,
           ),
           child: Row(
             children: [
@@ -417,7 +414,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16,
+                      vertical: 14,
                       horizontal: 2,
                     ),
                   ),
@@ -460,12 +457,9 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: hasError
-                  ? const Color(0xFFEF4444)
-                  : const Color(0xFFE2E8F0),
-              width: hasError ? 1.4 : 1.2,
-            ),
+            border: hasError
+                ? Border.all(color: const Color(0xFFEF4444), width: 1.2)
+                : null,
           ),
           child: Row(
             children: [
@@ -494,7 +488,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16,
+                      vertical: 14,
                       horizontal: 4,
                     ),
                   ),

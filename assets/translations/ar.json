@@ -86,6 +86,7 @@
   "password": "كلمة المرور",
   "forgot_password": "هل نسيت كلمة المرور؟",
   "phone_invalid": "يرجى إدخال رقم هاتف عراقي صالح (مثل 0750xxxxxxx)",
+  "phone_already_exists": "رقم الهاتف هذا مسجل بالفعل، يرجى تسجيل الدخول",
   "password_required": "كلمة المرور مطلوبة",
   "login_failed": "حدث خطأ أثناء تسجيل الدخول",
   "server_connection_error": "خطأ في الاتصال بالخادم",
