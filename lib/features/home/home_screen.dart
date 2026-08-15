@@ -413,11 +413,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
-                                                  _userName.isNotEmpty && _userName.toLowerCase() != 'slaw'
+                                                  _userName.isNotEmpty &&
+                                                          _userName
+                                                                  .toLowerCase() !=
+                                                              'slaw'
                                                       ? 'سڵاو، $_userName'
                                                       : 'سڵاو، بەخێربێن',
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: const TextStyle(
                                                     fontFamily: 'Rabar',
                                                     color: Colors.white,
@@ -428,7 +432,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 const Text(
                                                   'هیوای تەندروستییەکی باش',
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Rabar',
                                                     color: Colors.white70,
@@ -448,13 +453,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                         // Cart Icon
                                         Consumer(
                                           builder: (context, ref, child) {
-                                            final cartState = ref.watch(cartProvider);
+                                            final cartState = ref.watch(
+                                              cartProvider,
+                                            );
                                             return GestureDetector(
                                               onTap: () {
                                                 Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
-                                                    builder: (context) => const CartScreen(),
+                                                    builder: (context) =>
+                                                        const CartScreen(),
                                                   ),
                                                 );
                                               },
@@ -464,24 +472,46 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     width: 42,
                                                     height: 42,
                                                     decoration: BoxDecoration(
-                                                      color: Colors.white.withValues(alpha: 0.2),
+                                                      color: Colors.white
+                                                          .withValues(
+                                                            alpha: 0.2,
+                                                          ),
                                                       shape: BoxShape.circle,
                                                     ),
-                                                    child: const Icon(Iconsax.shopping_cart, color: Colors.white, size: 20),
+                                                    child: const Icon(
+                                                      Iconsax.shopping_cart,
+                                                      color: Colors.white,
+                                                      size: 20,
+                                                    ),
                                                   ),
                                                   if (cartState.totalItems > 0)
                                                     PositionedDirectional(
                                                       top: 6,
                                                       end: 6,
                                                       child: Container(
-                                                        padding: const EdgeInsets.all(4),
-                                                        decoration: const BoxDecoration(
-                                                          color: Colors.redAccent,
-                                                          shape: BoxShape.circle,
-                                                        ),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              4,
+                                                            ),
+                                                        decoration:
+                                                            const BoxDecoration(
+                                                              color: Colors
+                                                                  .redAccent,
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                            ),
                                                         child: Text(
-                                                          cartState.totalItems.toString(),
-                                                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                                          cartState.totalItems
+                                                              .toString(),
+                                                          style:
+                                                              const TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 9,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
                                                         ),
                                                       ),
                                                     ),
@@ -497,7 +527,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (context) => const NotificationsScreen(),
+                                                builder: (context) =>
+                                                    const NotificationsScreen(),
                                               ),
                                             );
                                           },
@@ -507,10 +538,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 width: 42,
                                                 height: 42,
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white.withValues(alpha: 0.2),
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.2),
                                                   shape: BoxShape.circle,
                                                 ),
-                                                child: const Icon(Iconsax.notification, color: Colors.white, size: 20),
+                                                child: const Icon(
+                                                  Iconsax.notification,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
                                               ),
                                               PositionedDirectional(
                                                 top: 10,
@@ -518,10 +554,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 child: Container(
                                                   width: 7,
                                                   height: 7,
-                                                  decoration: const BoxDecoration(
-                                                    color: Colors.redAccent,
-                                                    shape: BoxShape.circle,
-                                                  ),
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                        color: Colors.redAccent,
+                                                        shape: BoxShape.circle,
+                                                      ),
                                                 ),
                                               ),
                                             ],
@@ -531,16 +568,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                         // Menu Icon
                                         GestureDetector(
                                           onTap: () {
-                                            Scaffold.of(context).openEndDrawer();
+                                            Scaffold.of(
+                                              context,
+                                            ).openEndDrawer();
                                           },
                                           child: Container(
                                             width: 42,
                                             height: 42,
                                             decoration: BoxDecoration(
-                                              color: Colors.white.withValues(alpha: 0.2),
+                                              color: Colors.white.withValues(
+                                                alpha: 0.2,
+                                              ),
                                               shape: BoxShape.circle,
                                             ),
-                                            child: const Icon(Iconsax.menu_1, color: Colors.white, size: 20),
+                                            child: const Icon(
+                                              Iconsax.menu_1,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -654,90 +699,115 @@ class _HomeScreenState extends State<HomeScreen> {
                     // ── Emergency SOS Banner ──
                     const SizedBox(height: 18),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: GestureDetector(
-                        onTap: () => EmergencySosModal.show(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: GestureDetector(
+                            onTap: () => EmergencySosModal.show(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFEF4444),
+                                    Color(0xFFDC2626),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(22),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFFEF4444,
+                                    ).withValues(alpha: 0.35),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.emergency,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: const [
+                                        Text(
+                                          'حاڵەتی لەناکاو و فریاکەوتن (SOS)',
+                                          style: TextStyle(
+                                            fontFamily: 'Rabar',
+                                            color: Colors.white,
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'پەیوەندیی دەستبەجێ بە فریاکەوتنی ١٢٢ و نەخۆشخانەکان',
+                                          style: TextStyle(
+                                            fontFamily: 'Rabar',
+                                            color: Colors.white70,
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Icon(
+                                          Icons.call,
+                                          color: Color(0xFFDC2626),
+                                          size: 14,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'پەیوەندی',
+                                          style: TextStyle(
+                                            fontFamily: 'Rabar',
+                                            color: Color(0xFFDC2626),
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(22),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFEF4444).withValues(alpha: 0.35),
-                                blurRadius: 14,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.emergency, color: Colors.white, size: 24),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text(
-                                      'حاڵەتی لەناکاو و فریاکەوتن (SOS)',
-                                      style: TextStyle(
-                                        fontFamily: 'Rabar',
-                                        color: Colors.white,
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'پەیوەندیی دەستبەجێ بە فریاکەوتنی ١٢٢ و نەخۆشخانەکان',
-                                      style: TextStyle(
-                                        fontFamily: 'Rabar',
-                                        color: Colors.white70,
-                                        fontSize: 11.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: const [
-                                    Icon(Icons.call, color: Color(0xFFDC2626), size: 14),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'پەیوەندی',
-                                      style: TextStyle(
-                                        fontFamily: 'Rabar',
-                                        color: Color(0xFFDC2626),
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.05, end: 0),
+                        )
+                        .animate()
+                        .fadeIn(delay: 200.ms, duration: 400.ms)
+                        .slideY(begin: 0.05, end: 0),
 
                     // ── Categories (Grid) ──
                     const SizedBox(height: 28),
@@ -830,9 +900,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     // ── Doctor List Card ──
                     Builder(
                       builder: (context) {
-                        final isDark = Theme.of(context).brightness == Brightness.dark;
-                        final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-                        final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
+                        final cardBg = isDark
+                            ? const Color(0xFF1E293B)
+                            : Colors.white;
+                        final borderColor = isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFE2E8F0);
                         final doctorsList = _topDoctors.isNotEmpty
                             ? _topDoctors
                             : _fallbackDoctors;
@@ -867,264 +942,359 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fallbackImages[index % fallbackImages.length];
 
                               final rawPath = doc['image_path']?.toString();
-                              final isCustomUpload = rawPath != null &&
+                              final isCustomUpload =
+                                  rawPath != null &&
                                   rawPath.isNotEmpty &&
                                   !rawPath.contains('assets/images/doctor') &&
                                   !rawPath.contains('default');
                               final image = isCustomUpload
                                   ? (rawPath.startsWith('http')
-                                      ? rawPath
-                                      : ApiClient.getImageUrl(rawPath))
+                                        ? rawPath
+                                        : ApiClient.getImageUrl(rawPath))
                                   : fallbackImage;
                               final isNetworkImg = image.startsWith('http');
                               final doctorId = doc['id'];
 
                               return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => DoctorDetailsScreen(
-                                        doctorId: doctorId,
-                                        name: name,
-                                        specialty: specialty,
-                                        image: image,
-                                        initialDoctor:
-                                            Map<String, dynamic>.from(doc),
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 165,
-                                  margin: const EdgeInsetsDirectional.only(
-                                    end: 14,
-                                    bottom: 6,
-                                    top: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: cardBg,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: borderColor),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: isDark ? 0.25 : 0.05,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              DoctorDetailsScreen(
+                                                doctorId: doctorId,
+                                                name: name,
+                                                specialty: specialty,
+                                                image: image,
+                                                initialDoctor:
+                                                    Map<String, dynamic>.from(
+                                                      doc,
+                                                    ),
+                                              ),
                                         ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 3),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 165,
+                                      margin: const EdgeInsetsDirectional.only(
+                                        end: 14,
+                                        bottom: 6,
+                                        top: 2,
                                       ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Top Image Container
-                                      Stack(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: const BorderRadius.vertical(
-                                              top: Radius.circular(19),
+                                      decoration: BoxDecoration(
+                                        color: cardBg,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: borderColor),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: isDark ? 0.25 : 0.05,
                                             ),
-                                            child: Container(
-                                              height: 114,
-                                              width: double.infinity,
-                                              decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                  colors: isDark
-                                                      ? [
-                                                          const Color(0xFF0F172A),
-                                                          const Color(0xFF1E293B),
-                                                        ]
-                                                      : [
-                                                          const Color(0xFFEFF6FF),
-                                                          const Color(0xFFDBEAFE),
-                                                        ],
-                                                  begin: Alignment.topCenter,
-                                                  end: Alignment.bottomCenter,
-                                                ),
-                                              ),
-                                              child: isNetworkImg
-                                                  ? CachedNetworkImage(
-                                                      imageUrl: image,
-                                                      fit: BoxFit.cover,
-                                                      alignment: const Alignment(0, -0.15),
-                                                      errorWidget: (context, url, error) => const Icon(
-                                                        Icons.person,
-                                                        size: 45,
-                                                        color: Color(0xFF3B82F6),
-                                                      ),
-                                                    )
-                                                  : Image.asset(
-                                                      image,
-                                                      fit: BoxFit.cover,
-                                                      alignment: const Alignment(0, -0.15),
-                                                    ),
-                                            ),
-                                          ),
-                                          // Verified Tag
-                                          PositionedDirectional(
-                                            top: 6,
-                                            start: 6,
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 6,
-                                                vertical: 2.5,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF10B981),
-                                                borderRadius: BorderRadius.circular(6),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 1),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: const [
-                                                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 10),
-                                                  SizedBox(width: 3),
-                                                  Text(
-                                                    'باوەڕپێکراو',
-                                                    style: TextStyle(
-                                                      fontFamily: 'Rabar',
-                                                      color: Colors.white,
-                                                      fontSize: 8.5,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          // Favorite Icon
-                                          PositionedDirectional(
-                                            top: 6,
-                                            end: 6,
-                                            child: Container(
-                                              width: 26,
-                                              height: 26,
-                                              decoration: BoxDecoration(
-                                                color: Colors.black.withValues(alpha: 0.35),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(
-                                                Icons.favorite_border_rounded,
-                                                color: Colors.white,
-                                                size: 14,
-                                              ),
-                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 3),
                                           ),
                                         ],
                                       ),
-
-                                      // Content
-                                      Padding(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              name,
-                                              style: TextStyle(
-                                                fontFamily: 'Rabar',
-                                                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                                fontSize: 12.5,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 1),
-                                            Text(
-                                              specialty,
-                                              style: TextStyle(
-                                                fontFamily: 'Rabar',
-                                                color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                                fontSize: 10.5,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.star_rounded,
-                                                  color: Color(0xFFF59E0B),
-                                                  size: 13,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Top Image Container
+                                          Stack(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                    const BorderRadius.vertical(
+                                                      top: Radius.circular(19),
+                                                    ),
+                                                child: Container(
+                                                  height: 114,
+                                                  width: double.infinity,
+                                                  decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      colors: isDark
+                                                          ? [
+                                                              const Color(
+                                                                0xFF0F172A,
+                                                              ),
+                                                              const Color(
+                                                                0xFF1E293B,
+                                                              ),
+                                                            ]
+                                                          : [
+                                                              const Color(
+                                                                0xFFEFF6FF,
+                                                              ),
+                                                              const Color(
+                                                                0xFFDBEAFE,
+                                                              ),
+                                                            ],
+                                                      begin:
+                                                          Alignment.topCenter,
+                                                      end: Alignment
+                                                          .bottomCenter,
+                                                    ),
+                                                  ),
+                                                  child: isNetworkImg
+                                                      ? CachedNetworkImage(
+                                                          imageUrl: image,
+                                                          fit: BoxFit.cover,
+                                                          alignment:
+                                                              const Alignment(
+                                                                0,
+                                                                -0.15,
+                                                              ),
+                                                          errorWidget:
+                                                              (
+                                                                context,
+                                                                url,
+                                                                error,
+                                                              ) => const Icon(
+                                                                Icons.person,
+                                                                size: 45,
+                                                                color: Color(
+                                                                  0xFF3B82F6,
+                                                                ),
+                                                              ),
+                                                        )
+                                                      : Image.asset(
+                                                          image,
+                                                          fit: BoxFit.cover,
+                                                          alignment:
+                                                              const Alignment(
+                                                                0,
+                                                                -0.15,
+                                                              ),
+                                                        ),
                                                 ),
-                                                const SizedBox(width: 3),
-                                                Text(
-                                                  rating,
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Rabar',
-                                                    color: Color(0xFFD97706),
-                                                    fontSize: 10.5,
-                                                    fontWeight: FontWeight.bold,
+                                              ),
+                                              // Verified Tag
+                                              PositionedDirectional(
+                                                top: 6,
+                                                start: 6,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2.5,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                      0xFF10B981,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color:
+                                                            const Color(
+                                                              0xFF10B981,
+                                                            ).withValues(
+                                                              alpha: 0.3,
+                                                            ),
+                                                        blurRadius: 4,
+                                                        offset: const Offset(
+                                                          0,
+                                                          1,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: const [
+                                                      Icon(
+                                                        Icons
+                                                            .check_circle_rounded,
+                                                        color: Colors.white,
+                                                        size: 10,
+                                                      ),
+                                                      SizedBox(width: 3),
+                                                      Text(
+                                                        'باوەڕپێکراو',
+                                                        style: TextStyle(
+                                                          fontFamily: 'Rabar',
+                                                          color: Colors.white,
+                                                          fontSize: 8.5,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
-                                                const SizedBox(width: 3),
+                                              ),
+                                              // Favorite Icon
+                                              PositionedDirectional(
+                                                top: 6,
+                                                end: 6,
+                                                child: Container(
+                                                  width: 26,
+                                                  height: 26,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black
+                                                        .withValues(
+                                                          alpha: 0.35,
+                                                        ),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons
+                                                        .favorite_border_rounded,
+                                                    color: Colors.white,
+                                                    size: 14,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          // Content
+                                          Padding(
+                                            padding: const EdgeInsets.all(8),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
                                                 Text(
-                                                  reviews,
+                                                  name,
                                                   style: TextStyle(
                                                     fontFamily: 'Rabar',
-                                                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                                                    fontSize: 9.5,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : const Color(
+                                                            0xFF0F172A,
+                                                          ),
+                                                    fontSize: 12.5,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 1),
+                                                Text(
+                                                  specialty,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    color: isDark
+                                                        ? Colors.white60
+                                                        : const Color(
+                                                            0xFF64748B,
+                                                          ),
+                                                    fontSize: 10.5,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.star_rounded,
+                                                      color: Color(0xFFF59E0B),
+                                                      size: 13,
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      rating,
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        color: Color(
+                                                          0xFFD97706,
+                                                        ),
+                                                        fontSize: 10.5,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      reviews,
+                                                      style: TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        color: isDark
+                                                            ? Colors.white38
+                                                            : const Color(
+                                                                0xFF94A3B8,
+                                                              ),
+                                                        fontSize: 9.5,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 6),
+                                                // Book Now Button
+                                                Container(
+                                                  width: double.infinity,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 4.5,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                      0xFF3B82F6,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color:
+                                                            const Color(
+                                                              0xFF3B82F6,
+                                                            ).withValues(
+                                                              alpha: 0.25,
+                                                            ),
+                                                        blurRadius: 4,
+                                                        offset: const Offset(
+                                                          0,
+                                                          1,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: const [
+                                                      Icon(
+                                                        Iconsax.calendar_1,
+                                                        color: Colors.white,
+                                                        size: 12,
+                                                      ),
+                                                      SizedBox(width: 4),
+                                                      Text(
+                                                        'نۆرەگرتن',
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: TextStyle(
+                                                          fontFamily: 'Rabar',
+                                                          color: Colors.white,
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(height: 6),
-                                            // Book Now Button
-                                            Container(
-                                              width: double.infinity,
-                                              padding: const EdgeInsets.symmetric(
-                                                vertical: 4.5,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF3B82F6),
-                                                borderRadius: BorderRadius.circular(10),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 1),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: const [
-                                                  Icon(
-                                                    Iconsax.calendar_1,
-                                                    color: Colors.white,
-                                                    size: 12,
-                                                  ),
-                                                  SizedBox(width: 4),
-                                                  Text(
-                                                    'نۆرەگرتن',
-                                                    textAlign: TextAlign.center,
-                                                    style: TextStyle(
-                                                      fontFamily: 'Rabar',
-                                                      color: Colors.white,
-                                                      fontSize: 11,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ).animate().fadeIn(delay: (500 + (index * 80)).ms).slideX(begin: 0.1, end: 0);
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: (500 + (index * 80)).ms)
+                                  .slideX(begin: 0.1, end: 0);
                             },
                           ),
                         );
@@ -1174,9 +1344,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     // ── Top Labs Horizontal List ──
                     Builder(
                       builder: (context) {
-                        final isDark = Theme.of(context).brightness == Brightness.dark;
-                        final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-                        final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
+                        final cardBg = isDark
+                            ? const Color(0xFF1E293B)
+                            : Colors.white;
+                        final borderColor = isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFE2E8F0);
 
                         return SizedBox(
                           height: 198,
@@ -1213,198 +1388,256 @@ class _HomeScreenState extends State<HomeScreen> {
                               ];
                               final lab = labs[index];
                               return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          LabDetailsScreen(lab: lab),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 175,
-                                  margin: const EdgeInsetsDirectional.only(
-                                    end: 14,
-                                    bottom: 6,
-                                    top: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: cardBg,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: borderColor),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: isDark ? 0.25 : 0.05,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              LabDetailsScreen(lab: lab),
                                         ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 3),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 175,
+                                      margin: const EdgeInsetsDirectional.only(
+                                        end: 14,
+                                        bottom: 6,
+                                        top: 2,
                                       ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Top Image Section
-                                      Stack(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: const BorderRadius.vertical(
-                                              top: Radius.circular(19),
+                                      decoration: BoxDecoration(
+                                        color: cardBg,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: borderColor),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: isDark ? 0.25 : 0.05,
                                             ),
-                                            child: Container(
-                                              height: 92,
-                                              width: double.infinity,
-                                              color: const Color(0xFFF8FAFC),
-                                              child: Image.asset(
-                                                lab['image']!,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          ),
-                                          // Rating Badge
-                                          PositionedDirectional(
-                                            bottom: 6,
-                                            end: 6,
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 7,
-                                                vertical: 2.5,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white.withValues(alpha: 0.95),
-                                                borderRadius: BorderRadius.circular(10),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withValues(alpha: 0.15),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 1),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: const [
-                                                  Icon(
-                                                    Icons.star_rounded,
-                                                    color: Color(0xFFF59E0B),
-                                                    size: 13,
-                                                  ),
-                                                  SizedBox(width: 3),
-                                                  Text(
-                                                    '4.8',
-                                                    style: TextStyle(
-                                                      fontFamily: 'Rabar',
-                                                      color: Color(0xFF1E293B),
-                                                      fontSize: 10.5,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 3),
                                           ),
                                         ],
                                       ),
-
-                                      // Details Section
-                                      Padding(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              lab['name']!,
-                                              style: TextStyle(
-                                                fontFamily: 'Rabar',
-                                                fontSize: 12.5,
-                                                fontWeight: FontWeight.bold,
-                                                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 3),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Iconsax.location,
-                                                  color: Color(0xFF3B82F6),
-                                                  size: 11,
-                                                ),
-                                                const SizedBox(width: 3),
-                                                Expanded(
-                                                  child: Text(
-                                                    lab['city']!,
-                                                    style: TextStyle(
-                                                      fontFamily: 'Rabar',
-                                                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                                      fontSize: 10.5,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Top Image Section
+                                          Stack(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                    const BorderRadius.vertical(
+                                                      top: Radius.circular(19),
                                                     ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
+                                                child: Container(
+                                                  height: 92,
+                                                  width: double.infinity,
+                                                  color: const Color(
+                                                    0xFFF8FAFC,
+                                                  ),
+                                                  child: Image.asset(
+                                                    lab['image']!,
+                                                    fit: BoxFit.cover,
                                                   ),
                                                 ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Iconsax.clock,
-                                                  color: Color(0xFF94A3B8),
-                                                  size: 11,
-                                                ),
-                                                const SizedBox(width: 3),
-                                                Text(
-                                                  lab['time']!,
-                                                  style: TextStyle(
-                                                    fontFamily: 'Rabar',
-                                                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                                const Spacer(),
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                              ),
+                                              // Rating Badge
+                                              PositionedDirectional(
+                                                bottom: 6,
+                                                end: 6,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                        vertical: 2.5,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    color: Colors.white
+                                                        .withValues(
+                                                          alpha: 0.95,
+                                                        ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withValues(
+                                                              alpha: 0.15,
+                                                            ),
+                                                        blurRadius: 4,
+                                                        offset: const Offset(
+                                                          0,
+                                                          1,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                   child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: const [
                                                       Icon(
-                                                        Iconsax.shield_tick,
-                                                        color: Color(0xFF10B981),
-                                                        size: 10,
+                                                        Icons.star_rounded,
+                                                        color: Color(
+                                                          0xFFF59E0B,
+                                                        ),
+                                                        size: 13,
                                                       ),
-                                                      SizedBox(width: 2),
+                                                      SizedBox(width: 3),
                                                       Text(
-                                                        'کراوەیە',
+                                                        '4.8',
                                                         style: TextStyle(
                                                           fontFamily: 'Rabar',
-                                                          color: Color(0xFF10B981),
-                                                          fontSize: 9.5,
-                                                          fontWeight: FontWeight.bold,
+                                                          color: Color(
+                                                            0xFF1E293B,
+                                                          ),
+                                                          fontSize: 10.5,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                                 ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          // Details Section
+                                          Padding(
+                                            padding: const EdgeInsets.all(8),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  lab['name']!,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 12.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : const Color(
+                                                            0xFF0F172A,
+                                                          ),
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 3),
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Iconsax.location,
+                                                      color: Color(0xFF3B82F6),
+                                                      size: 11,
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Expanded(
+                                                      child: Text(
+                                                        lab['city']!,
+                                                        style: TextStyle(
+                                                          fontFamily: 'Rabar',
+                                                          color: isDark
+                                                              ? Colors.white60
+                                                              : const Color(
+                                                                  0xFF64748B,
+                                                                ),
+                                                          fontSize: 10.5,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Iconsax.clock,
+                                                      color: Color(0xFF94A3B8),
+                                                      size: 11,
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      lab['time']!,
+                                                      style: TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        color: isDark
+                                                            ? Colors.white38
+                                                            : const Color(
+                                                                0xFF94A3B8,
+                                                              ),
+                                                        fontSize: 10,
+                                                      ),
+                                                    ),
+                                                    const Spacer(),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 5,
+                                                            vertical: 1.5,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            const Color(
+                                                              0xFF10B981,
+                                                            ).withValues(
+                                                              alpha: 0.12,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              6,
+                                                            ),
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: const [
+                                                          Icon(
+                                                            Iconsax.shield_tick,
+                                                            color: Color(
+                                                              0xFF10B981,
+                                                            ),
+                                                            size: 10,
+                                                          ),
+                                                          SizedBox(width: 2),
+                                                          Text(
+                                                            'کراوەیە',
+                                                            style: TextStyle(
+                                                              fontFamily:
+                                                                  'Rabar',
+                                                              color: Color(
+                                                                0xFF10B981,
+                                                              ),
+                                                              fontSize: 9.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                              .animate()
-                              .fadeIn(delay: (500 + (index * 80)).ms)
-                              .slideY(begin: 0.08, end: 0);
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: (500 + (index * 80)).ms)
+                                  .slideY(begin: 0.08, end: 0);
                             },
                           ),
                         );
@@ -1450,9 +1683,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 8),
                     Builder(
                       builder: (context) {
-                        final isDark = Theme.of(context).brightness == Brightness.dark;
-                        final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-                        final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
+                        final cardBg = isDark
+                            ? const Color(0xFF1E293B)
+                            : Colors.white;
+                        final borderColor = isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFE2E8F0);
                         final pharmaciesList = _topPharmacies.isNotEmpty
                             ? _topPharmacies
                             : _fallbackPharmacies;
@@ -1478,234 +1716,314 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=500&auto=format&fit=crop&q=60',
                                 'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=500&auto=format&fit=crop&q=60',
                               ];
-                              final pharmImg = (profileImage != null && profileImage.toString().isNotEmpty)
-                                  ? (profileImage.toString().startsWith('assets/') || profileImage.toString().startsWith('http')
-                                      ? profileImage.toString()
-                                      : ApiClient.getImageUrl(profileImage.toString()))
-                                  : fallbackPharmacyImages[index % fallbackPharmacyImages.length];
-                              final isNetworkPharm = pharmImg.startsWith('http');
+                              final pharmImg =
+                                  (profileImage != null &&
+                                      profileImage.toString().isNotEmpty)
+                                  ? (profileImage.toString().startsWith(
+                                              'assets/',
+                                            ) ||
+                                            profileImage.toString().startsWith(
+                                              'http',
+                                            )
+                                        ? profileImage.toString()
+                                        : ApiClient.getImageUrl(
+                                            profileImage.toString(),
+                                          ))
+                                  : fallbackPharmacyImages[index %
+                                        fallbackPharmacyImages.length];
+                              final isNetworkPharm = pharmImg.startsWith(
+                                'http',
+                              );
 
                               return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          PharmacyDetailScreen(
-                                            pharmacy: Pharmacy(
-                                              id: pharm['id'] ?? 1,
-                                              name:
-                                                  pharm['name'] ?? 'دەرمانخانە',
-                                              rating:
-                                                  double.tryParse(
-                                                    pharm['rating']
-                                                            ?.toString() ??
-                                                        '4.8',
-                                                  ) ??
-                                                  4.8,
-                                              deliveryFee:
-                                                  double.tryParse(
-                                                    pharm['delivery_fee']
-                                                            ?.toString() ??
-                                                        '1500.0',
-                                                  ) ??
-                                                  1500.0,
-                                              profileImage:
-                                                  pharm['profile_image'],
-                                            ),
-                                          ),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 175,
-                                  margin: const EdgeInsetsDirectional.only(
-                                    end: 14,
-                                    bottom: 6,
-                                    top: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: cardBg,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: borderColor),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: isDark ? 0.25 : 0.05,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              PharmacyDetailScreen(
+                                                pharmacy: Pharmacy(
+                                                  id: pharm['id'] ?? 1,
+                                                  name:
+                                                      pharm['name'] ??
+                                                      'دەرمانخانە',
+                                                  rating:
+                                                      double.tryParse(
+                                                        pharm['rating']
+                                                                ?.toString() ??
+                                                            '4.8',
+                                                      ) ??
+                                                      4.8,
+                                                  deliveryFee:
+                                                      double.tryParse(
+                                                        pharm['delivery_fee']
+                                                                ?.toString() ??
+                                                            '1500.0',
+                                                      ) ??
+                                                      1500.0,
+                                                  profileImage:
+                                                      pharm['profile_image'],
+                                                ),
+                                              ),
                                         ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 3),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 175,
+                                      margin: const EdgeInsetsDirectional.only(
+                                        end: 14,
+                                        bottom: 6,
+                                        top: 2,
                                       ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Top Image Section
-                                      Stack(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: const BorderRadius.vertical(
-                                              top: Radius.circular(19),
+                                      decoration: BoxDecoration(
+                                        color: cardBg,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: borderColor),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: isDark ? 0.25 : 0.05,
                                             ),
-                                            child: Container(
-                                              height: 92,
-                                              width: double.infinity,
-                                              color: const Color(0xFFF8FAFC),
-                                              child: isNetworkPharm
-                                                  ? CachedNetworkImage(
-                                                      imageUrl: pharmImg,
-                                                      fit: BoxFit.cover,
-                                                      errorWidget: (context, url, error) => Image.asset(
-                                                        'assets/images/pharmacy1.jpg',
-                                                        fit: BoxFit.cover,
-                                                      ),
-                                                    )
-                                                  : Image.asset(
-                                                      pharmImg,
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                            ),
-                                          ),
-                                          // Rating Badge
-                                          PositionedDirectional(
-                                            bottom: 6,
-                                            end: 6,
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 7,
-                                                vertical: 2.5,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white.withValues(alpha: 0.95),
-                                                borderRadius: BorderRadius.circular(10),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withValues(alpha: 0.15),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 1),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: const [
-                                                  Icon(
-                                                    Icons.star_rounded,
-                                                    color: Color(0xFFF59E0B),
-                                                    size: 13,
-                                                  ),
-                                                  SizedBox(width: 3),
-                                                  Text(
-                                                    '4.9',
-                                                    style: TextStyle(
-                                                      fontFamily: 'Rabar',
-                                                      color: Color(0xFF1E293B),
-                                                      fontSize: 10.5,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 3),
                                           ),
                                         ],
                                       ),
-
-                                      // Details Section
-                                      Padding(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              name,
-                                              style: TextStyle(
-                                                fontFamily: 'Rabar',
-                                                fontSize: 12.5,
-                                                fontWeight: FontWeight.bold,
-                                                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 3),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Iconsax.location,
-                                                  color: Color(0xFF3B82F6),
-                                                  size: 11,
-                                                ),
-                                                const SizedBox(width: 3),
-                                                Expanded(
-                                                  child: Text(
-                                                    city,
-                                                    style: TextStyle(
-                                                      fontFamily: 'Rabar',
-                                                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                                      fontSize: 10.5,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Top Image Section
+                                          Stack(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                    const BorderRadius.vertical(
+                                                      top: Radius.circular(19),
                                                     ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
+                                                child: Container(
+                                                  height: 92,
+                                                  width: double.infinity,
+                                                  color: const Color(
+                                                    0xFFF8FAFC,
                                                   ),
+                                                  child: isNetworkPharm
+                                                      ? CachedNetworkImage(
+                                                          imageUrl: pharmImg,
+                                                          fit: BoxFit.cover,
+                                                          errorWidget:
+                                                              (
+                                                                context,
+                                                                url,
+                                                                error,
+                                                              ) => Image.asset(
+                                                                'assets/images/pharmacy1.jpg',
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                              ),
+                                                        )
+                                                      : Image.asset(
+                                                          pharmImg,
+                                                          fit: BoxFit.cover,
+                                                        ),
                                                 ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Iconsax.clock,
-                                                  color: Color(0xFF94A3B8),
-                                                  size: 11,
-                                                ),
-                                                const SizedBox(width: 3),
-                                                Text(
-                                                  time,
-                                                  style: TextStyle(
-                                                    fontFamily: 'Rabar',
-                                                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
-                                                const Spacer(),
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                              ),
+                                              // Rating Badge
+                                              PositionedDirectional(
+                                                bottom: 6,
+                                                end: 6,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                        vertical: 2.5,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    color: Colors.white
+                                                        .withValues(
+                                                          alpha: 0.95,
+                                                        ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withValues(
+                                                              alpha: 0.15,
+                                                            ),
+                                                        blurRadius: 4,
+                                                        offset: const Offset(
+                                                          0,
+                                                          1,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                   child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: const [
                                                       Icon(
-                                                        Iconsax.verify,
-                                                        color: Color(0xFF10B981),
-                                                        size: 10,
+                                                        Icons.star_rounded,
+                                                        color: Color(
+                                                          0xFFF59E0B,
+                                                        ),
+                                                        size: 13,
                                                       ),
-                                                      SizedBox(width: 2),
+                                                      SizedBox(width: 3),
                                                       Text(
-                                                        'باوەڕپێکراو',
+                                                        '4.9',
                                                         style: TextStyle(
                                                           fontFamily: 'Rabar',
-                                                          color: Color(0xFF10B981),
-                                                          fontSize: 9.5,
-                                                          fontWeight: FontWeight.bold,
+                                                          color: Color(
+                                                            0xFF1E293B,
+                                                          ),
+                                                          fontSize: 10.5,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                                 ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          // Details Section
+                                          Padding(
+                                            padding: const EdgeInsets.all(8),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  name,
+                                                  style: TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 12.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : const Color(
+                                                            0xFF0F172A,
+                                                          ),
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 3),
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Iconsax.location,
+                                                      color: Color(0xFF3B82F6),
+                                                      size: 11,
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Expanded(
+                                                      child: Text(
+                                                        city,
+                                                        style: TextStyle(
+                                                          fontFamily: 'Rabar',
+                                                          color: isDark
+                                                              ? Colors.white60
+                                                              : const Color(
+                                                                  0xFF64748B,
+                                                                ),
+                                                          fontSize: 10.5,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Iconsax.clock,
+                                                      color: Color(0xFF94A3B8),
+                                                      size: 11,
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      time,
+                                                      style: TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        color: isDark
+                                                            ? Colors.white38
+                                                            : const Color(
+                                                                0xFF94A3B8,
+                                                              ),
+                                                        fontSize: 10,
+                                                      ),
+                                                    ),
+                                                    const Spacer(),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 5,
+                                                            vertical: 1.5,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            const Color(
+                                                              0xFF10B981,
+                                                            ).withValues(
+                                                              alpha: 0.12,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              6,
+                                                            ),
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: const [
+                                                          Icon(
+                                                            Iconsax.verify,
+                                                            color: Color(
+                                                              0xFF10B981,
+                                                            ),
+                                                            size: 10,
+                                                          ),
+                                                          SizedBox(width: 2),
+                                                          Text(
+                                                            'باوەڕپێکراو',
+                                                            style: TextStyle(
+                                                              fontFamily:
+                                                                  'Rabar',
+                                                              color: Color(
+                                                                0xFF10B981,
+                                                              ),
+                                                              fontSize: 9.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ).animate().fadeIn(delay: (500 + (index * 80)).ms).slideX(begin: 0.1, end: 0);
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: (500 + (index * 80)).ms)
+                                  .slideX(begin: 0.1, end: 0);
                             },
                           ),
                         );
@@ -1767,9 +2085,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           TinderSwipeCard(
             onSwiped: () async {
-              final success =
-                  await appointmentProvider.cancelAppointment(next.id);
-              
+              final success = await appointmentProvider.cancelAppointment(
+                next.id,
+              );
+
               if (success) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -2200,7 +2519,10 @@ class _HomeScreenState extends State<HomeScreen> {
     required bool isActive,
     Color accentColor = const Color(0xFF3B82F6),
   }) {
-    assert(imagePath != null || icon != null, 'a grid card needs an image or an icon');
+    assert(
+      imagePath != null || icon != null,
+      'a grid card needs an image or an icon',
+    );
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
@@ -2335,9 +2657,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (id == 'lab') {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const AllLabsScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const AllLabsScreen()),
             );
           } else if (id == 'nursing') {
             Navigator.push(
@@ -2402,10 +2722,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             accentColor.withValues(alpha: 0.18),
                             const Color(0xFF1E293B),
                           ]
-                        : [
-                            accentColor.withValues(alpha: 0.12),
-                            Colors.white,
-                          ],
+                        : [accentColor.withValues(alpha: 0.12), Colors.white],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -2416,7 +2733,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: accentColor.withValues(alpha: isDark ? 0.15 : 0.08),
+                      color: accentColor.withValues(
+                        alpha: isDark ? 0.15 : 0.08,
+                      ),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -2431,11 +2750,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: imagePath != null
                           ? Image.asset(imagePath, fit: BoxFit.contain)
                           : Center(
-                              child: Icon(
-                                icon,
-                                color: accentColor,
-                                size: 28,
-                              ),
+                              child: Icon(icon, color: accentColor, size: 28),
                             ),
                     ),
                   ),
