@@ -31,6 +31,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
   List<Medication> _medications = [];
   bool _isLoading = true;
   String _selectedCategory = 'هەمووی';
+  bool _isOfferApplied = false;
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -1561,63 +1562,143 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           ],
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
 
                         // Special Offer Banner
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(18),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(
-                                  0xFF8B5CF6,
-                                ).withValues(alpha: 0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.discount_rounded,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'ئۆفەری داشکاندنی دەرمانەکان 🎉',
-                                      style: _kStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    Text(
-                                      'داشکاندنی ١٠٪ بە کۆدی PHARMA10 لە کاتی کڕین',
-                                      style: _kStyle(
-                                        color: Colors.white70,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ],
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isOfferApplied = !_isOfferApplied;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: _isOfferApplied
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF64748B),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
+                                content: Text(
+                                  _isOfferApplied
+                                      ? 'کۆدی PHARMA10 چالاک کرا! داشکاندنی ١٠٪ جێبەجێ کرا 🎉'
+                                      : 'داشکاندن لابرا',
+                                  style: _kStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                duration: const Duration(seconds: 2),
                               ),
-                            ],
+                            );
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 11,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: _isOfferApplied
+                                    ? [
+                                        const Color(0xFF059669),
+                                        const Color(0xFF10B981),
+                                      ]
+                                    : [
+                                        const Color(0xFF8B5CF6),
+                                        const Color(0xFF6D28D9),
+                                      ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (_isOfferApplied
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFF8B5CF6))
+                                      .withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _isOfferApplied
+                                      ? Icons.check_circle_rounded
+                                      : Icons.discount_rounded,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            _isOfferApplied
+                                                ? 'داشکاندن کرا ✓'
+                                                : 'ئۆفەری داشکاندنی دەرمانەکان 🎉',
+                                            style: _kStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 2.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.22),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              _isOfferApplied
+                                                  ? 'چالاک کرا'
+                                                  : 'داگرە بۆ داشکاندن',
+                                              style: _kStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _isOfferApplied
+                                            ? 'داشکاندنی ١٠٪ بە کۆدی PHARMA10 لە کڕینەکەت حساب دەکرێت'
+                                            : 'داشکاندنی ١٠٪ بە کۆدی PHARMA10 لە کاتی کڕین',
+                                        style: _kStyle(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.9,
+                                          ),
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
 
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 12),
 
                         // Categories Horizontal Scroll
                         SingleChildScrollView(
@@ -1660,8 +1741,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                           ),
                                           border: Border.all(
                                             color: isSel
-                                                ? const Color(0xFF3B82F6)
-                                                : borderColor,
+                                              ? const Color(0xFF3B82F6)
+                                              : borderColor,
                                           ),
                                           boxShadow: isSel
                                               ? [
@@ -1708,7 +1789,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 12),
 
                         // Search Medicines Bar
                         Container(
@@ -1763,7 +1844,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
 
                         Text(
                           'دەرمان و پێداویستییەکان (${filteredMeds.length})',
