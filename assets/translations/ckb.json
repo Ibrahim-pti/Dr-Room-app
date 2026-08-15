@@ -540,5 +540,21 @@
   "est_wait": "کاتی چاوەڕوانی",
   "live_queue": "ڕیزی زیندوو",
   "no_favorites_yet": "هێشتا هیچ دڵخوازێکت نییە",
-  "favorite_doctors_desc": "ئەو پزیشکانەی دڵخوازت دەکەیت لێرە دەردەکەون"
+  "favorite_doctors_desc": "ئەو پزیشکانەی دڵخوازت دەکەیت لێرە دەردەکەون",
+  "filter_labs": "فلتەرکردنی تاقیگەکان",
+  "filter_by_city": "بەپێی شار",
+  "filter_by_rating": "بەپێی هەڵسەنگاندن",
+  "city_all": "هەموو شارەکان",
+  "city_erbil": "هەولێر",
+  "city_sulaymaniyah": "سلێمانی",
+  "city_duhok": "دهۆک",
+  "city_kirkuk": "کەرکووک",
+  "city_halabja": "هەڵەبجە",
+  "rating_all": "هەموو نمرەکان",
+  "rating_4_5": "⭐ ٤.٥ و بەرزتر",
+  "rating_4_7": "⭐ ٤.٧ و بەرزتر",
+  "rating_4_9": "⭐ ٤.٩ و بەرزتر",
+  "verified_only": "تەنها تاقیگەی باوەڕپێکراو",
+  "apply_filter": "جێبەجێکردنی فلتەر",
+  "reset_filter": "سڕینەوە"
 }

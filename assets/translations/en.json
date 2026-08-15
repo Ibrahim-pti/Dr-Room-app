@@ -542,5 +542,21 @@
   "live_queue": "Live queue",
   "no_favorites_yet": "No favourites yet",
   "favorite_doctors_desc": "Doctors you mark as favourite will appear here",
-  "top_labs": "Top Labs"
+  "top_labs": "Top Labs",
+  "filter_labs": "Filter Laboratories",
+  "filter_by_city": "By City",
+  "filter_by_rating": "By Rating",
+  "city_all": "All Cities",
+  "city_erbil": "Erbil",
+  "city_sulaymaniyah": "Sulaymaniyah",
+  "city_duhok": "Duhok",
+  "city_kirkuk": "Kirkuk",
+  "city_halabja": "Halabja",
+  "rating_all": "All Ratings",
+  "rating_4_5": "⭐ 4.5 & up",
+  "rating_4_7": "⭐ 4.7 & up",
+  "rating_4_9": "⭐ 4.9 & up",
+  "verified_only": "Verified Labs Only",
+  "apply_filter": "Apply Filter",
+  "reset_filter": "Reset"
 }

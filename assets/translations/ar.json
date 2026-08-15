@@ -541,5 +541,21 @@
   "est_wait": "وقت الانتظار",
   "live_queue": "الطابور المباشر",
   "no_favorites_yet": "لا توجد مفضلات بعد",
-  "favorite_doctors_desc": "سيظهر هنا الأطباء الذين تضيفهم إلى المفضلة"
+  "favorite_doctors_desc": "سيظهر هنا الأطباء الذين تضيفهم إلى المفضلة",
+  "filter_labs": "تصفية المختبرات",
+  "filter_by_city": "حسب المدينة",
+  "filter_by_rating": "حسب التقييم",
+  "city_all": "جميع المدن",
+  "city_erbil": "أربيل",
+  "city_sulaymaniyah": "السليمانية",
+  "city_duhok": "دهوك",
+  "city_kirkuk": "كركوك",
+  "city_halabja": "حلبجة",
+  "rating_all": "جميع التقييمات",
+  "rating_4_5": "⭐ 4.5 وأعلى",
+  "rating_4_7": "⭐ 4.7 وأعلى",
+  "rating_4_9": "⭐ 4.9 وأعلى",
+  "verified_only": "المختبرات المعتمدة فقط",
+  "apply_filter": "تطبيق التصفية",
+  "reset_filter": "إعادة ضبط"
 }

@@ -276,35 +276,86 @@ class DatabaseSeeder extends Seeder
         }
 
         // 5. Laboratories & Lab Tests
-        $labData = [
-            'name' => 'تاقیگەی پزیشکی ڕازی',
-            'name_en' => 'Razi Medical Laboratory',
-            'name_ar' => 'مختبر الرازي الطبي',
-            'location' => 'هەولێر - شەقامی پزیشکان',
-            'location_en' => 'Erbil - Doctors Street',
-            'location_ar' => 'أربيل - شارع الأطباء',
-            'phone' => '07505556677',
-            'is_approved' => true,
-        ];
-
-        $labUser = User::firstOrCreate(
-            ['phone' => $labData['phone']],
+        $labsList = [
             [
-                'name' => $labData['name'],
-                'email' => 'razi.lab@drroom.com',
-                'role' => 'lab',
-                'status' => 'approved',
-                'password' => Hash::make('lab123456'),
-            ]
-        );
-
-        $lFields = $labData;
-        unset($lFields['name'], $lFields['name_en'], $lFields['name_ar']);
-
-        $lab = Lab::firstOrCreate(
-            ['user_id' => $labUser->id],
-            array_merge($lFields, ['user_id' => $labUser->id])
-        );
+                'name' => 'تاقیگەی پزیشکی ڕازی',
+                'name_en' => 'Razi Medical Laboratory',
+                'name_ar' => 'مختبر الرازي الطبي',
+                'city' => 'Erbil',
+                'location' => 'هەولێر - شەقامی پزیشکان',
+                'location_en' => 'Erbil - Doctors Street',
+                'location_ar' => 'أربيل - شارع الأطباء',
+                'phone' => '07505556677',
+                'rating' => 4.9,
+                'total_reviews' => 145,
+                'image_path' => 'assets/images/laboratory.jpg',
+            ],
+            [
+                'name' => 'تاقیگەی مۆدێرنی سلێمانی',
+                'name_en' => 'Sulaymaniyah Model Lab',
+                'name_ar' => 'مختبر السليمانية النموذجي',
+                'city' => 'Sulaymaniyah',
+                'location' => 'سلێمانی - تووی مەملیک',
+                'location_en' => 'Sulaymaniyah - Twee Malik',
+                'location_ar' => 'السليمانية - توي ملك',
+                'phone' => '07701234567',
+                'rating' => 4.8,
+                'total_reviews' => 98,
+                'image_path' => 'assets/images/lab2.jpg',
+            ],
+            [
+                'name' => 'سەنتەری دەستنیشانکردنی دهۆک',
+                'name_en' => 'Duhok Diagnostic Center',
+                'name_ar' => 'مركز دهوك التشخيصي',
+                'city' => 'Duhok',
+                'location' => 'دهۆک - سەنتەری شار',
+                'location_en' => 'Duhok - City Center',
+                'location_ar' => 'دهوك - مركز المدينة',
+                'phone' => '07511234567',
+                'rating' => 4.7,
+                'total_reviews' => 62,
+                'image_path' => 'assets/images/lab3.jpg',
+            ],
+            [
+                'name' => 'تاقیگەی پزیشکی کەرکووک',
+                'name_en' => 'Kirkuk Medica Lab',
+                'name_ar' => 'مختبر كركوك الطبي',
+                'city' => 'Kirkuk',
+                'location' => 'کەرکووک - ڕێگای بەغدا',
+                'location_en' => 'Kirkuk - Baghdad Road',
+                'location_ar' => 'كركوك - طريق بغداد',
+                'phone' => '07711234567',
+                'rating' => 4.6,
+                'total_reviews' => 110,
+                'image_path' => 'assets/images/lab4.jpg',
+            ],
+            [
+                'name' => 'تاقیگەی هەڵەبجەی ناوەندی',
+                'name_en' => 'Halabja Central Lab',
+                'name_ar' => 'مختبر حلبجة المركزي',
+                'city' => 'Halabja',
+                'location' => 'هەڵەبجە - نزیک نەخۆشخانەی گشتی',
+                'location_en' => 'Halabja - Near Public Hospital',
+                'location_ar' => 'حلبجة - قرب المستشفى العام',
+                'phone' => '07509876543',
+                'rating' => 4.5,
+                'total_reviews' => 45,
+                'image_path' => 'assets/images/lab.png',
+            ],
+            [
+                'name' => 'تاقیگەی نێودەوڵەتی پار',
+                'name_en' => 'PAR International Laboratory',
+                'name_ar' => 'مختبر بار الدولي',
+                'city' => 'Erbil',
+                'location' => 'هەولێر - ٦٠ مەتری',
+                'location_en' => 'Erbil - 60 Meter',
+                'location_ar' => 'أربيل - 60 متري',
+                'phone' => '07501112233',
+                'rating' => 5.0,
+                'total_reviews' => 215,
+                'image_path' => 'assets/images/laboratory.jpg',
+            ],
+        ];
 
         $tests = [
             ['name' => 'پشکنینی گشتی خوێن (CBC)', 'price' => 10000, 'type' => 'Blood Test', 'desc' => 'Complete Blood Count'],
@@ -315,16 +366,39 @@ class DatabaseSeeder extends Seeder
             ['name' => 'کاری گورچیلە (Kidney Function Test)', 'price' => 12000, 'type' => 'Kidney Panel', 'desc' => 'Urea & Creatinine'],
         ];
 
-        foreach ($tests as $t) {
-            LabTest::firstOrCreate(
-                ['lab_id' => $lab->id, 'name' => $t['name']],
+        foreach ($labsList as $idx => $labData) {
+            $labUser = User::firstOrCreate(
+                ['phone' => $labData['phone']],
                 [
-                    'price' => $t['price'],
-                    'type' => $t['type'],
-                    'description' => $t['desc'],
-                    'is_active' => true,
+                    'name' => $labData['name'],
+                    'name_en' => $labData['name_en'],
+                    'name_ar' => $labData['name_ar'],
+                    'email' => 'lab' . ($idx + 1) . '@drroom.com',
+                    'role' => 'lab',
+                    'status' => 'approved',
+                    'password' => Hash::make('lab123456'),
                 ]
             );
+
+            $lFields = $labData;
+            unset($lFields['name'], $lFields['name_en'], $lFields['name_ar']);
+
+            $lab = Lab::updateOrCreate(
+                ['user_id' => $labUser->id],
+                array_merge($lFields, ['user_id' => $labUser->id, 'is_approved' => true])
+            );
+
+            foreach ($tests as $t) {
+                LabTest::firstOrCreate(
+                    ['lab_id' => $lab->id, 'name' => $t['name']],
+                    [
+                        'price' => $t['price'],
+                        'type' => $t['type'],
+                        'description' => $t['desc'],
+                        'is_active' => true,
+                    ]
+                );
+            }
         }
 
         // 6. Home Care Nurses
