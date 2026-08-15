@@ -11,7 +11,6 @@ import '../../core/providers/appointment_provider.dart';
 import '../../core/providers/order_provider.dart';
 import '../../core/theme/app_colors.dart';
 import 'home_screen.dart';
-import '../emergency_reels/emergency_reels_screen.dart';
 import '../settings/settings_screen.dart';
 import '../pharmacy/pill_scanner_screen.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
@@ -27,6 +26,7 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   static const int _requestsTabIndex = 1;
   static const int _bodyMapTabIndex = 2;
+  static const int _settingsTabIndex = 3;
 
   String _userName = '';
   String _userPhone = '';
@@ -48,30 +48,22 @@ class _MainShellState extends State<MainShell> {
     }
   }
 
-  /// One entry per tab, in bar order. The screens list below follows the same
-  /// order, so an index means the same thing in both.
   static const List<IconData> _navIcons = [
     Iconsax.home_2,
     Iconsax.box,
     Icons.accessibility_new_rounded,
-    Iconsax.document_text,
     Iconsax.user,
   ];
 
   int _currentIndex = 0;
 
-  /// Lets the shell refresh the requests list whenever its tab is reopened,
-  /// since IndexedStack keeps the screen alive and initState runs only once.
   final GlobalKey<MyRequestsScreenState> _requestsKey =
       GlobalKey<MyRequestsScreenState>();
 
-  /// Built once and reused, so switching tabs never rebuilds these screens
-  /// from scratch (and never re-runs their startup fetches).
   late final List<Widget> _screens = [
     const HomeScreen(),
     MyRequestsScreen(key: _requestsKey),
     BodyMapScreen(onBack: () => setState(() => _currentIndex = 0)),
-    const EmergencyReelsScreen(),
     const SettingsScreen(),
   ];
 
@@ -93,9 +85,7 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFF1F5F9,
-      ), // Light background to match Home
+      backgroundColor: const Color(0xFFF1F5F9),
       endDrawer: _buildDrawer(context),
       body: Stack(
         children: [
@@ -106,53 +96,43 @@ class _MainShellState extends State<MainShell> {
           PositionedDirectional(
             start: 20,
             end: 20,
-            bottom: 30, // Floats above the bottom
+            bottom: 24,
             child: Container(
-              height: 70,
+              height: 72,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(32),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 20,
+                    blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
                 ],
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Five tabs plus the scan button no longer divide evenly, so
-                  // the button is placed over the gap it actually leaves rather
-                  // than at the centre of the bar — at the centre it would sit
-                  // on top of a tab.
-                  const scanSize = 56.0;
-                  const tabsBeforeScan = 2;
-                  final slot =
-                      (constraints.maxWidth - scanSize) / _navIcons.length;
-
-                  return Stack(
-                    clipBehavior: Clip.none,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  // Symmetrical Nav Items Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          for (var i = 0; i < _navIcons.length; i++) ...[
-                            // Equal shares rather than sizing to the label, so
-                            // a long translation cannot overflow the bar.
-                            if (i == tabsBeforeScan)
-                              const SizedBox(width: scanSize),
-                            Expanded(child: _buildNavItem(i, _navIcons[i])),
-                          ],
-                        ],
-                      ),
-                      PositionedDirectional(
-                        top: 0,
-                        start: slot * tabsBeforeScan,
-                        child: _buildScanNavItem(),
-                      ),
+                      Expanded(child: _buildNavItem(0, _navIcons[0])),
+                      Expanded(child: _buildNavItem(1, _navIcons[1])),
+                      const SizedBox(width: 64), // Symmetrical center gap for scanner
+                      Expanded(child: _buildNavItem(2, _navIcons[2])),
+                      Expanded(child: _buildNavItem(3, _navIcons[3])),
                     ],
-                  );
-                },
+                  ),
+
+                  // Dead-Center Scanner Button
+                  Positioned(
+                    top: -10,
+                    child: _buildScanNavItem(),
+                  ),
+                ],
               ),
             ),
           ),
@@ -167,36 +147,33 @@ class _MainShellState extends State<MainShell> {
     return GestureDetector(
       onTap: () => _onTabSelected(index),
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          index == _requestsTabIndex
-              ? _buildOrdersIcon(icon, color)
-              : Icon(icon, color: color, size: 22),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: Text(
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            index == _requestsTabIndex
+                ? _buildOrdersIcon(icon, color)
+                : Icon(icon, color: color, size: 22),
+            const SizedBox(height: 4),
+            Text(
               _getLabelForIndex(index),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 color: color,
-                fontWeight: FontWeight.w600,
-                fontSize: 10,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                fontSize: 10.5,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  /// The Requests icon carries a count of everything the patient is still
-  /// waiting on — open orders plus upcoming appointments — so a status change
-  /// is visible without opening the tab.
   Widget _buildOrdersIcon(IconData icon, Color color) {
     return Consumer2<OrderProvider, AppointmentProvider>(
       builder: (context, orderProvider, appointmentProvider, child) {
@@ -206,12 +183,13 @@ class _MainShellState extends State<MainShell> {
 
         return Stack(
           clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
             Icon(icon, color: color, size: 22),
             if (count > 0)
               PositionedDirectional(
                 top: -4,
-                end: -6,
+                end: -8,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 5,
@@ -248,30 +226,28 @@ class _MainShellState extends State<MainShell> {
       child: Transform.rotate(
         angle: math.pi / 4,
         child: Container(
-          width: 56,
-          height: 56,
+          width: 58,
+          height: 58,
           decoration: BoxDecoration(
             color: const Color(0xFF3B82F6),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
-                blurRadius: 14,
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
             ],
           ),
           child: Transform.rotate(
             angle: -math.pi / 4,
-            child: const Icon(Iconsax.scan, color: Colors.white, size: 32),
+            child: const Icon(Iconsax.scan, color: Colors.white, size: 30),
           ),
         ),
       ),
     );
   }
 
-  /// Short forms on purpose: five labels share the bar's width, so the full
-  /// names ("نەخشەی جەستە", "داواکارییەکان") no longer fit a slot.
   String _getLabelForIndex(int index) {
     switch (index) {
       case 0:
@@ -280,9 +256,7 @@ class _MainShellState extends State<MainShell> {
         return 'nav_requests'.tr();
       case _bodyMapTabIndex:
         return 'nav_body'.tr();
-      case 3:
-        return 'nav_articles'.tr();
-      case 4:
+      case _settingsTabIndex:
         return 'nav_profile'.tr();
       default:
         return '';
