@@ -148,10 +148,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         {'id': 6, 'name': 'کاری گورچیلە (Kidney Function Test)', 'price': 12000, 'original_price': 16000, 'discount': 25, 'type': 'Kidney Panel', 'desc': 'Urea & Creatinine'},
       ];
     }
-    // Select first test by default
-    if (_tests.isNotEmpty) {
-      _selectedTestIds.add(_tests[0]['id'] as int);
-    }
   }
 
   Future<void> _fetchLabDetails() async {
@@ -342,7 +338,12 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(16, 4, 16, _selectedTabIndex == 0 ? 30 : 120),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              4,
+              16,
+              (_selectedTabIndex == 0 || _selectedTestIds.isEmpty) ? 30 : 120,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -381,8 +382,8 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             ),
           ),
 
-          // ── Sticky Bottom Checkout Bar (Only on Tests & Packages tabs) ──
-          if (_selectedTabIndex != 0)
+          // ── Sticky Bottom Checkout Bar (Only when at least 1 test is selected) ──
+          if (_selectedTabIndex != 0 && _selectedTestIds.isNotEmpty)
             Positioned(
               left: 16,
               right: 16,
