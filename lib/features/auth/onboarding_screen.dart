@@ -126,7 +126,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   // ── Top Artwork Section ──
                   Container(
-                    height: size.height * 0.52,
+                    height: size.height * 0.54,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -145,7 +145,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       bottom: false,
                       child: Center(
                         child: Padding(
-                          padding: const EdgeInsets.only(top: 48, bottom: 8),
+                          padding: const EdgeInsets.only(top: 76, bottom: 6),
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
