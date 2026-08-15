@@ -2065,12 +2065,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCategoryGrid(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 86,
+            width: 80,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/lab.png',
@@ -2079,9 +2080,9 @@ class _HomeScreenState extends State<HomeScreen> {
               isActive: true,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           SizedBox(
-            width: 86,
+            width: 80,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/doctor_bag.png',
@@ -2090,9 +2091,9 @@ class _HomeScreenState extends State<HomeScreen> {
               isActive: true,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           SizedBox(
-            width: 86,
+            width: 80,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/doctor.png',
@@ -2101,9 +2102,9 @@ class _HomeScreenState extends State<HomeScreen> {
               isActive: true,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           SizedBox(
-            width: 86,
+            width: 80,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/medicine.png',
@@ -2112,31 +2113,9 @@ class _HomeScreenState extends State<HomeScreen> {
               isActive: true,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           SizedBox(
-            width: 86,
-            child: _buildGridCard(
-              context,
-              imagePath: 'assets/images/xray.png',
-              titleKey: 'cat_xray',
-              id: 'xray',
-              isActive: false,
-            ),
-          ),
-          const SizedBox(width: 16),
-          SizedBox(
-            width: 86,
-            child: _buildGridCard(
-              context,
-              imagePath: 'assets/images/report.png',
-              titleKey: 'cat_news',
-              id: 'news',
-              isActive: false,
-            ),
-          ),
-          const SizedBox(width: 16),
-          SizedBox(
-            width: 86,
+            width: 80,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/add.png',
@@ -2145,13 +2124,9 @@ class _HomeScreenState extends State<HomeScreen> {
               isActive: true,
             ),
           ),
-          const SizedBox(width: 16),
-          // Moved out of the menu drawer: these are things the patient *does*,
-          // and this row is where they look for something to do. The AI
-          // assistant leads because it was the most valuable thing hidden in
-          // there.
+          const SizedBox(width: 14),
           SizedBox(
-            width: 86,
+            width: 80,
             child: _buildGridCard(
               context,
               icon: Iconsax.health,
@@ -2160,11 +2135,9 @@ class _HomeScreenState extends State<HomeScreen> {
               isActive: true,
             ),
           ),
-          const SizedBox(width: 16),
-          // The body map has its own tab in the bottom bar now, so it is not
-          // repeated here — one route to a screen, not two.
+          const SizedBox(width: 14),
           SizedBox(
-            width: 86,
+            width: 80,
             child: _buildGridCard(
               context,
               icon: Iconsax.clock,
@@ -2173,15 +2146,26 @@ class _HomeScreenState extends State<HomeScreen> {
               isActive: true,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           SizedBox(
-            width: 86,
+            width: 80,
+            child: _buildGridCard(
+              context,
+              imagePath: 'assets/images/xray.png',
+              titleKey: 'cat_xray',
+              id: 'xray',
+              isActive: false,
+            ),
+          ),
+          const SizedBox(width: 14),
+          SizedBox(
+            width: 80,
             child: _buildGridCard(
               context,
               imagePath: 'assets/images/apps.png',
               titleKey: 'cat_more',
               id: 'more',
-              isActive: false,
+              isActive: true,
             ),
           ),
         ],
@@ -2368,6 +2352,13 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => const PillReminderScreen(),
+              ),
+            );
+          } else if (id == 'more') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AllCategoriesScreen(),
               ),
             );
           }

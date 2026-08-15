@@ -1,6 +1,10 @@
+import 'package:dr_room/features/emergency/sos_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../doctors/all_doctors_screen.dart';
+import '../pharmacy/screens/pharmacies_screen.dart';
 import '../lab/lab_order_method_screen.dart';
 import '../nursing/nursing_services_screen.dart';
 
@@ -16,11 +20,15 @@ class AllCategoriesScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0F172A), size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Color(0xFF0F172A),
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'All Categories',
+          'categories'.tr(),
           style: GoogleFonts.poppins(
             color: const Color(0xFF0F172A),
             fontSize: 18,
@@ -32,17 +40,73 @@ class AllCategoriesScreen extends StatelessWidget {
         crossAxisCount: 4,
         mainAxisSpacing: 16,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.85,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        childAspectRatio: 0.82,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         children: [
-          _buildGridCard(context, imagePath: 'assets/images/doctor.png', title: 'Doctor', isActive: false, delay: 100),
-          _buildGridCard(context, imagePath: 'assets/images/medicine.png', title: 'Pharmacy', isActive: false, delay: 150),
-          _buildGridCard(context, imagePath: 'assets/images/lab.png', title: 'Lab', isActive: true, delay: 200),
-          _buildGridCard(context, imagePath: 'assets/images/xray.png', title: 'X-Ray', isActive: false, delay: 250),
-          _buildGridCard(context, imagePath: 'assets/images/doctor_bag.png', title: 'Nursing', isActive: true, delay: 300),
-          _buildGridCard(context, imagePath: 'assets/images/report.png', title: 'Reports', isActive: false, delay: 350),
-          _buildGridCard(context, imagePath: 'assets/images/apps.png', title: 'Specialty', isActive: false, delay: 400),
-          _buildGridCard(context, imagePath: 'assets/images/add.png', title: 'Ambulance', isActive: false, delay: 450),
+          _buildGridCard(
+            context,
+            imagePath: 'assets/images/lab.png',
+            titleKey: 'cat_lab',
+            id: 'lab',
+            isActive: true,
+            delay: 100,
+          ),
+          _buildGridCard(
+            context,
+            imagePath: 'assets/images/doctor_bag.png',
+            titleKey: 'cat_nursing',
+            id: 'nursing',
+            isActive: true,
+            delay: 150,
+          ),
+          _buildGridCard(
+            context,
+            imagePath: 'assets/images/doctor.png',
+            titleKey: 'cat_doctor',
+            id: 'doctor',
+            isActive: true,
+            delay: 200,
+          ),
+          _buildGridCard(
+            context,
+            imagePath: 'assets/images/medicine.png',
+            titleKey: 'cat_pharmacy',
+            id: 'pharmacy',
+            isActive: true,
+            delay: 250,
+          ),
+          _buildGridCard(
+            context,
+            imagePath: 'assets/images/add.png',
+            titleKey: 'cat_ambulance',
+            id: 'ambulance',
+            isActive: true,
+            delay: 300,
+          ),
+          _buildGridCard(
+            context,
+            imagePath: 'assets/images/xray.png',
+            titleKey: 'cat_xray',
+            id: 'xray',
+            isActive: false,
+            delay: 350,
+          ),
+          _buildGridCard(
+            context,
+            imagePath: 'assets/images/report.png',
+            titleKey: 'cat_news',
+            id: 'news',
+            isActive: false,
+            delay: 400,
+          ),
+          _buildGridCard(
+            context,
+            imagePath: 'assets/images/apps.png',
+            titleKey: 'cat_more',
+            id: 'more',
+            isActive: false,
+            delay: 450,
+          ),
         ],
       ),
     );
@@ -51,7 +115,8 @@ class AllCategoriesScreen extends StatelessWidget {
   Widget _buildGridCard(
     BuildContext context, {
     required String imagePath,
-    required String title,
+    required String titleKey,
+    required String id,
     required bool isActive,
     required int delay,
   }) {
@@ -61,8 +126,11 @@ class AllCategoriesScreen extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'ئەم بەشە لە قۆناغی ئامادەکارییە و بەم زووانە دەکەوێتە خزمەتت.',
-                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
+                'service_unavailable_sub'.tr(),
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               backgroundColor: const Color(0xFF0F172A),
               behavior: SnackBarBehavior.floating,
@@ -73,15 +141,34 @@ class AllCategoriesScreen extends StatelessWidget {
             ),
           );
         } else {
-          if (title == 'Lab') {
+          if (id == 'lab') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const LabOrderMethodScreen()),
+              MaterialPageRoute(
+                builder: (context) => const LabOrderMethodScreen(),
+              ),
             );
-          } else if (title == 'Nursing') {
+          } else if (id == 'nursing') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const NursingServicesScreen()),
+              MaterialPageRoute(
+                builder: (context) => const NursingServicesScreen(),
+              ),
+            );
+          } else if (id == 'doctor') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AllDoctorsScreen()),
+            );
+          } else if (id == 'pharmacy') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PharmaciesScreen()),
+            );
+          } else if (id == 'ambulance') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SosScreen()),
             );
           }
         }
@@ -94,8 +181,8 @@ class AllCategoriesScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Container(
-                width: 58,
-                height: 58,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
                 ),
@@ -103,21 +190,20 @@ class AllCategoriesScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                   child: Opacity(
                     opacity: isActive ? 1.0 : 0.6,
-                    child: Image.asset(
-                      imagePath,
-                      fit: BoxFit.cover,
-                    ),
+                    child: Image.asset(imagePath, fit: BoxFit.cover),
                   ),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                title,
+                titleKey.tr(),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                  color: isActive ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                  color: isActive
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFF64748B),
                   fontSize: 11,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                 ),
@@ -131,14 +217,14 @@ class AllCategoriesScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(6),
+                  color: const Color(0xFF3B82F6),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.white, width: 1.5),
                 ),
                 child: Text(
-                  'Soon',
+                  'coming_soon'.tr(),
                   style: GoogleFonts.poppins(
-                    color: const Color(0xFF94A3B8),
+                    color: Colors.white,
                     fontSize: 8,
                     fontWeight: FontWeight.w600,
                   ),
