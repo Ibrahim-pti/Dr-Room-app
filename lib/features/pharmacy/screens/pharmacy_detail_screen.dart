@@ -30,6 +30,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
 
   List<Medication> _medications = [];
   bool _isLoading = true;
+  String _selectedCategory = 'هەمووی';
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -182,7 +183,21 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     final medList = _medications.isNotEmpty ? _medications : _fallbackMedications;
     final filteredMeds = medList.where((med) {
       final query = _searchMedController.text.trim().toLowerCase();
-      return med.name.toLowerCase().contains(query) || (med.description?.toLowerCase().contains(query) ?? false);
+      final matchesQuery = med.name.toLowerCase().contains(query) || (med.description?.toLowerCase().contains(query) ?? false);
+      if (!matchesQuery) return false;
+
+      if (_selectedCategory == 'ئازارشکێن') {
+        return med.name.contains('Panadol') || med.name.contains('Ibuprofen') || (med.description?.contains('ئازار') ?? false);
+      } else if (_selectedCategory == 'دژەهەوکردن') {
+        return med.name.contains('Amoxicillin') || (med.description?.contains('هەوکردن') ?? false);
+      } else if (_selectedCategory == 'ڤیتامین') {
+        return med.name.contains('Vitamin') || (med.description?.contains('ڤیتامین') ?? false);
+      } else if (_selectedCategory == 'گەدە و هەرس') {
+        return med.name.contains('Omeprazole') || (med.description?.contains('گەدە') ?? false);
+      } else if (_selectedCategory == 'منداڵان') {
+        return med.name.contains('Baby') || (med.description?.contains('منداڵ') ?? false);
+      }
+      return true;
     }).toList();
 
     return Scaffold(
@@ -571,7 +586,68 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 18),
+
+                        // Categories Horizontal Scroll
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
+                            children: [
+                              {'name': 'هەمووی', 'icon': '💊'},
+                              {'name': 'ئازارشکێن', 'icon': '⚡'},
+                              {'name': 'دژەهەوکردن', 'icon': '🛡️'},
+                              {'name': 'ڤیتامین', 'icon': '🍊'},
+                              {'name': 'گەدە و هەرس', 'icon': '🫀'},
+                              {'name': 'منداڵان', 'icon': '👶'},
+                            ].map((cat) {
+                              final isSel = _selectedCategory == cat['name'];
+                              return Padding(
+                                padding: const EdgeInsetsDirectional.only(end: 8),
+                                child: GestureDetector(
+                                  onTap: () => setState(() => _selectedCategory = cat['name']!),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isSel ? const Color(0xFF3B82F6) : cardBg,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: isSel ? const Color(0xFF3B82F6) : borderColor,
+                                      ),
+                                      boxShadow: isSel
+                                          ? [
+                                              BoxShadow(
+                                                color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(cat['icon']!, style: const TextStyle(fontSize: 14)),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          cat['name']!,
+                                          style: _kStyle(
+                                            color: isSel ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+
+                        const SizedBox(height: 18),
 
                         // Search Medicines Bar
                         Container(
