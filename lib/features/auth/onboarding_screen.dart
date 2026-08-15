@@ -21,39 +21,39 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'title': 'پزیشکانی پسپۆڕ و باوەڕپێکراو',
       'subtitle':
           'نۆرەگرتنی ئاسان و ڕاوێژی خێرا لە باشترین دکتۆرەکانی کوردستان لە هەر کات و شوێنێک بیت.',
-      'image': 'assets/images/doctor.png',
+      'image': 'assets/images/onboarding_doctor.png',
       'badgeIcon': Iconsax.verify,
-      'badgeText': 'پزیشکانی باوەڕپێکراو',
+      'badgeText': 'پزیشکانی پسپۆڕ',
       'primaryColor': const Color(0xFF2563EB),
       'secondaryColor': const Color(0xFF3B82F6),
       'gradient': const [Color(0xFF1D4ED8), Color(0xFF3B82F6)],
-      'chip': 'زیاتر لە ٥٠٠+ پزیشکی پسپۆڕ',
+      'chip': 'زیاتر لە ٥٠٠+ پزیشکی بە ئەزموون',
       'chipIcon': Iconsax.user_tag,
     },
     {
       'title': 'دەرمانخانە و گەیاندنی دەستبەجێ',
       'subtitle':
           'داواکردنی دەرمان و پێداویستییە تەندروستییەکان لە نزیکترین دەرمانخانە بە خێراترین کات بۆ بەردەم ماڵەکەت.',
-      'image': 'assets/images/medicine.png',
+      'image': 'assets/images/onboarding_pharmacy.png',
       'badgeIcon': Iconsax.truck_fast,
-      'badgeText': 'گەیاندنی خێرا بۆ ماڵەوە',
+      'badgeText': 'گەیاندنی خێرا',
       'primaryColor': const Color(0xFF059669),
       'secondaryColor': const Color(0xFF10B981),
       'gradient': const [Color(0xFF047857), Color(0xFF10B981)],
-      'chip': 'گەیاندن لە کەمتر لە ٤٥ خولەک',
+      'chip': 'گەیاندن لە ماوەی کەمتر لە ٤٥ خولەک',
       'chipIcon': Iconsax.clock,
     },
     {
       'title': 'تاقیگە و پشکنینی پزیشکی لە ماڵەوە',
       'subtitle':
           'ئەنجامدانی پشکنینە پزیشکییەکان لە ماڵەوە بە بەرزترین کوالێتی و وەرگرتنەوەی ئەنجام بە شێوەی دیجیتاڵی.',
-      'image': 'assets/images/lab.png',
+      'image': 'assets/images/onboarding_lab.png',
       'badgeIcon': Iconsax.health,
-      'badgeText': 'ڕاپۆرتی پزیشکی سەرهێڵ',
+      'badgeText': 'ڕاپۆرتی سەرهێڵ',
       'primaryColor': const Color(0xFF6366F1),
       'secondaryColor': const Color(0xFF8B5CF6),
       'gradient': const [Color(0xFF4F46E5), Color(0xFF8B5CF6)],
-      'chip': 'ئەنجامی خێرا بە شێوەی PDF لە ئەپدا',
+      'chip': 'ئەنجامی پشکنین بە شێوەی ڕاستەوخۆ لە ئەپدا',
       'chipIcon': Iconsax.document_text,
     },
   ];
@@ -97,9 +97,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: Stack(
         children: [
-          // ── Ambient Background Glows ──
+          // ── Ambient Background Glow ──
           Positioned(
-            top: -80,
+            top: -60,
             right: -60,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 500),
@@ -107,296 +107,288 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: activeColor.withValues(alpha: isDark ? 0.12 : 0.15),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 160,
-            left: -80,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: activeColor.withValues(alpha: isDark ? 0.08 : 0.08),
+                color: activeColor.withValues(alpha: isDark ? 0.18 : 0.12),
               ),
             ),
           ),
 
-          SafeArea(
-            child: Column(
-              children: [
-                // ── Top Navigation Bar ──
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // App Branding
-                      Row(
-                        children: [
-                          Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: activeGradient,
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+          // ── PageView Carousel ──
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) => setState(() => _currentPage = index),
+            itemCount: _pages.length,
+            itemBuilder: (context, index) {
+              final item = _pages[index];
+              final pageColor = item['primaryColor'] as Color;
+              final gradient = item['gradient'] as List<Color>;
+
+              return Column(
+                children: [
+                  // ── Top Artwork Section ──
+                  Container(
+                    height: size.height * 0.52,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          gradient[0].withValues(alpha: isDark ? 0.35 : 0.12),
+                          gradient[1].withValues(alpha: isDark ? 0.12 : 0.04),
+                          isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF8FAFC),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                    child: SafeArea(
+                      bottom: false,
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 48, bottom: 8),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Radial glow behind artwork
+                              Container(
+                                width: size.width * 0.72,
+                                height: size.height * 0.36,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: RadialGradient(
+                                    colors: [
+                                      pageColor.withValues(
+                                        alpha: isDark ? 0.28 : 0.18,
+                                      ),
+                                      Colors.transparent,
+                                    ],
+                                  ),
+                                ),
                               ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: activeColor.withValues(alpha: 0.3),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+
+                              // Big Transparent 3D Artwork
+                              Image.asset(
+                                item['image'] as String,
+                                fit: BoxFit.contain,
+                                height: size.height * 0.40,
+                                width: size.width * 0.85,
+                              ).animate().scale(
+                                duration: 500.ms,
+                                curve: Curves.easeOutBack,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // ── Bottom Content Card ──
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 6),
+
+                          // Highlight Feature Chip
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: pageColor.withValues(
+                                alpha: isDark ? 0.22 : 0.08,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: pageColor.withValues(alpha: 0.18),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  item['chipIcon'] as IconData,
+                                  size: 14,
+                                  color: pageColor,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  item['chip'] as String,
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: pageColor,
+                                  ),
                                 ),
                               ],
                             ),
-                            child: const Icon(
-                              Icons.local_hospital_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
+                          ).animate().fadeIn(delay: 150.ms),
+
+                          const SizedBox(height: 16),
+
+                          // Big Bold Title
                           Text(
-                            'دکتۆر ڕووم',
+                            item['title'] as String,
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Rabar',
-                              fontSize: 17,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                              height: 1.3,
                             ),
+                          ).animate().fadeIn(delay: 200.ms).slideY(
+                            begin: 0.2,
+                            end: 0,
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          // Subtitle
+                          Text(
+                            item['subtitle'] as String,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 13.5,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                              height: 1.6,
+                            ),
+                          ).animate().fadeIn(delay: 300.ms).slideY(
+                            begin: 0.2,
+                            end: 0,
                           ),
                         ],
                       ),
-
-                      // Skip Button
-                      if (!isLastPage)
-                        TextButton(
-                          onPressed: widget.onFinished,
-                          style: TextButton.styleFrom(
-                            backgroundColor: isDark
-                                ? const Color(0xFF1E293B)
-                                : const Color(0xFFF1F5F9),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: const Text(
-                            'تێپەڕاندن',
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              color: Color(0xFF64748B),
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      else
-                        const SizedBox(width: 40),
-                    ],
+                    ),
                   ),
-                ),
 
-                // ── Page View Carousel ──
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (index) => setState(() => _currentPage = index),
-                    itemCount: _pages.length,
-                    itemBuilder: (context, index) {
-                      final item = _pages[index];
-                      final pageColor = item['primaryColor'] as Color;
+                  // Space for the bottom fixed buttons
+                  const SizedBox(height: 110),
+                ],
+              );
+            },
+          ),
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // ── Visual Artwork Box ──
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Outer Glow Ring
-                                Container(
-                                  width: size.width * 0.74,
-                                  height: size.width * 0.74,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: RadialGradient(
-                                      colors: [
-                                        pageColor.withValues(
-                                          alpha: isDark ? 0.25 : 0.18,
-                                        ),
-                                        Colors.transparent,
-                                      ],
-                                    ),
-                                  ),
-                                ),
-
-                                // Main Circular Image Container
-                                Container(
-                                  width: size.width * 0.58,
-                                  height: size.width * 0.58,
-                                  padding: const EdgeInsets.all(24),
-                                  decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: pageColor.withValues(alpha: 0.15),
-                                      width: 2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: pageColor.withValues(
-                                          alpha: isDark ? 0.3 : 0.15,
-                                        ),
-                                        blurRadius: 36,
-                                        offset: const Offset(0, 12),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Image.asset(
-                                    item['image'] as String,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-
-                                // Floating Feature Badge
-                                Positioned(
-                                  bottom: 8,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(
-                                        color: pageColor.withValues(alpha: 0.25),
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: isDark ? 0.3 : 0.08,
-                                          ),
-                                          blurRadius: 16,
-                                          offset: const Offset(0, 6),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          item['badgeIcon'] as IconData,
-                                          size: 16,
-                                          color: pageColor,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          item['badgeText'] as String,
-                                          style: TextStyle(
-                                            fontFamily: 'Rabar',
-                                            color: pageColor,
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ).animate().scale(
-                              duration: 500.ms,
-                              curve: Curves.easeOutBack,
+          // ── Fixed Top Bar (Logo + Skip) ──
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // App Branding
+                  Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: activeGradient,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: activeColor.withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
-
-                            const SizedBox(height: 32),
-
-                            // ── Highlight Feature Pill ──
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: pageColor.withValues(alpha: isDark ? 0.2 : 0.08),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    item['chipIcon'] as IconData,
-                                    size: 14,
-                                    color: pageColor,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    item['chip'] as String,
-                                    style: TextStyle(
-                                      fontFamily: 'Rabar',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: pageColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ).animate().fadeIn(delay: 150.ms),
-
-                            const SizedBox(height: 16),
-
-                            // ── Title ──
-                            Text(
-                              item['title'] as String,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                height: 1.3,
-                              ),
-                            ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
-
-                            const SizedBox(height: 10),
-
-                            // ── Subtitle ──
-                            Text(
-                              item['subtitle'] as String,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 13.5,
-                                color: isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF64748B),
-                                height: 1.6,
-                              ),
-                            ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2, end: 0),
                           ],
                         ),
-                      );
-                    },
+                        child: const Icon(
+                          Icons.local_hospital_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'دکتۆر ڕووم',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
 
-                // ── Bottom Navigation Controls ──
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  // Skip Button
+                  if (!isLastPage)
+                    TextButton(
+                      onPressed: widget.onFinished,
+                      style: TextButton.styleFrom(
+                        backgroundColor: isDark
+                            ? const Color(0xFF1E293B).withValues(alpha: 0.8)
+                            : Colors.white.withValues(alpha: 0.85),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 6,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                      ),
+                      child: const Text(
+                        'تێپەڕاندن',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          color: Color(0xFF64748B),
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  else
+                    const SizedBox(width: 40),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Fixed Bottom Controls ──
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC))
+                        .withValues(alpha: 0.0),
+                    isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // Smooth Page Indicator
                       SmoothPageIndicator(
@@ -414,9 +406,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 18),
 
-                      // Action Row (Back + Next/Start)
+                      // Action Button Row (Back + Next/Start)
                       Row(
                         children: [
                           // Previous Page Button
@@ -428,19 +420,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               decoration: BoxDecoration(
                                 color: isDark
                                     ? const Color(0xFF1E293B)
-                                    : const Color(0xFFF1F5F9),
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
                                   color: isDark
                                       ? const Color(0xFF334155)
                                       : const Color(0xFFE2E8F0),
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(
+                                      alpha: isDark ? 0.2 : 0.04,
+                                    ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
                               child: IconButton(
                                 onPressed: _previousPage,
                                 icon: Icon(
                                   Icons.arrow_back_rounded,
-                                  color: isDark ? Colors.white : const Color(0xFF475569),
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF475569),
                                 ),
                               ),
                             ),
@@ -509,7 +512,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ],
