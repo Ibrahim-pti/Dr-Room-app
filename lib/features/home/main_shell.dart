@@ -5,6 +5,10 @@ import 'package:dr_room/features/requests/my_requests_screen.dart';
 import 'package:flutter/material.dart';
 import '../body_map/body_map_screen.dart';
 import '../surgery/surgery_timeline_screen.dart';
+import '../records/medical_records_screen.dart';
+import '../ai_assistant/ai_symptom_checker_screen.dart';
+import '../prescriptions/pill_reminder_screen.dart';
+import '../checkout/payment_history_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/appointment_provider.dart';
@@ -405,6 +409,48 @@ class _MainShellState extends State<MainShell> {
                 children: [
                   _buildDrawerItem(
                     context,
+                    icon: Iconsax.message_programming,
+                    title: 'یاریدەدەری زیرەکی دەستکرد (AI)',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AiSymptomCheckerScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Iconsax.folder_2,
+                    title: 'تۆماری پزیشکی',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MedicalRecordsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Iconsax.clock,
+                    title: 'بیرخەرەوەی دەرمان',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PillReminderScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
                     icon: Iconsax.hospital,
                     title: 'هێڵی کاتی نەشتەرگەری',
                     onTap: () {
@@ -413,6 +459,20 @@ class _MainShellState extends State<MainShell> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const SurgeryTimelineScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Iconsax.card_pos,
+                    title: 'مێژووی پارەدان',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PaymentHistoryScreen(),
                         ),
                       );
                     },
