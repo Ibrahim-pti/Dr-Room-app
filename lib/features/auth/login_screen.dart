@@ -131,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Stack(
               children: [
                 Container(
-                  height: 260,
+                  height: 310,
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
@@ -181,9 +181,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              const SizedBox(height: 10),
                               Container(
-                                width: 64,
-                                height: 64,
+                                width: 68,
+                                height: 68,
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   shape: BoxShape.circle,
@@ -200,34 +201,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: const Icon(
                                   Icons.local_hospital_rounded,
                                   color: Color(0xFF2563EB),
-                                  size: 34,
+                                  size: 36,
                                 ),
                               ).animate().scale(
                                 duration: 500.ms,
                                 curve: Curves.easeOutBack,
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 14),
                               const Text(
                                 'چوونەژوورەوە',
                                 style: TextStyle(
                                   fontFamily: 'Rabar',
-                                  fontSize: 22,
+                                  fontSize: 23,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
                               ).animate().fadeIn().slideY(begin: 0.2, end: 0),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               const Text(
                                     'بەخێربێیتەوە بۆ ئەپڵیکەیشنی دکتۆر ڕووم',
                                     style: TextStyle(
                                       fontFamily: 'Rabar',
-                                      fontSize: 13,
+                                      fontSize: 13.5,
                                       color: Colors.white70,
                                     ),
                                   )
                                   .animate()
                                   .fadeIn(delay: 150.ms)
                                   .slideY(begin: 0.2, end: 0),
+                              const SizedBox(height: 10),
                             ],
                           ),
                         ),
@@ -240,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
             // ── Form Container ──
             Transform.translate(
-              offset: const Offset(0, -20),
+              offset: const Offset(0, -24),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
@@ -536,35 +538,32 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            // ── Register Link ──
-            Padding(
-              padding: const EdgeInsets.only(bottom: 32, top: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'هێشتا هەژمارت نییە؟',
+            // ── Regis
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'هێشتا هەژمارت نییە؟',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    color: Color(0xFF64748B),
+                    fontSize: 13.5,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: widget.onSignUp,
+                  child: const Text(
+                    'دروستکردنی هەژمار',
                     style: TextStyle(
                       fontFamily: 'Rabar',
-                      color: Color(0xFF64748B),
-                      fontSize: 13.5,
+                      color: Color(0xFF2563EB),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: widget.onSignUp,
-                    child: const Text(
-                      'دروستکردنی هەژمار',
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        color: Color(0xFF2563EB),
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
