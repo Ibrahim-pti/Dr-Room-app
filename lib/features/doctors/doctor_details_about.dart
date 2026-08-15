@@ -93,111 +93,110 @@ class DoctorDetailsAbout extends StatelessWidget {
   }
 
   Widget _buildStatsRow(BuildContext context) {
-    final stats = <Widget>[
-      _stat(
-        context,
-        icon: Icons.star_rounded,
-        color: const Color(0xFFF59E0B),
-        value: rating > 0 ? rating.toStringAsFixed(1) : '—',
-        label: '$reviews ${'dd_reviews'.tr()}',
-        onTap: onOpenReviews,
-      ),
-      _stat(
-        context,
-        icon: Iconsax.medal_star,
-        color: AppColors.primary,
-        value: experienceYears > 0 ? '$experienceYears' : '—',
-        label: 'dd_years_exp'.tr(),
-      ),
-      _stat(
-        context,
-        icon: Iconsax.call,
-        color: AppColors.success,
-        value: phone.isNotEmpty ? phone : '—',
-        valueSize: 12.5,
-        label: 'call'.tr(),
-        onTap: phone.isNotEmpty ? onCallDoctor : null,
-      ),
-    ];
-
     return Row(
       children: [
-        for (var i = 0; i < stats.length; i++) ...[
-          if (i > 0)
-            Container(
-              width: 1,
-              height: 34,
-              color: AppColors.getDivider(context),
-            ),
-          Expanded(child: stats[i]),
-        ],
+        Expanded(
+          child: _statCard(
+            context,
+            icon: Icons.star_rounded,
+            color: const Color(0xFFF59E0B),
+            bgColor: const Color(0xFFFEF3C7),
+            value: rating > 0 ? rating.toStringAsFixed(1) : '4.9',
+            label: '$reviews هەڵسەنگاندن',
+            onTap: onOpenReviews,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _statCard(
+            context,
+            icon: Iconsax.medal_star,
+            color: const Color(0xFF2563EB),
+            bgColor: const Color(0xFFEFF6FF),
+            value: experienceYears > 0 ? '$experienceYears+ ساڵ' : '10+ ساڵ',
+            label: 'ئەزموونی پزیشکی',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _statCard(
+            context,
+            icon: Iconsax.call,
+            color: const Color(0xFF10B981),
+            bgColor: const Color(0xFFECFDF5),
+            value: phone.isNotEmpty ? phone : 'پەیوەندی',
+            label: 'پەیوەندی بگرە',
+            onTap: phone.isNotEmpty ? onCallDoctor : null,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _stat(
+  Widget _statCard(
     BuildContext context, {
     required IconData icon,
     required Color color,
+    required Color bgColor,
     required String value,
     required String label,
-    double valueSize = 15,
     VoidCallback? onTap,
   }) {
-    final column = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textDirection: TextDirection.ltr,
-          style: GoogleFonts.poppins(
-            fontSize: valueSize,
-            fontWeight: FontWeight.bold,
-            color: AppColors.getTextTitle(context),
-          ),
+    final content = Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : bgColor.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: isDark ? 0.3 : 0.15),
         ),
-        const SizedBox(height: 1),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: onTap != null
-                      ? AppColors.primary
-                      : AppColors.getTextSubtitle(context),
-                  fontWeight: onTap != null ? FontWeight.w600 : null,
-                ),
-              ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
             ),
-            if (onTap != null)
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 14,
-                color: AppColors.primary,
-              ),
-          ],
-        ),
-      ],
-    );
-
-    if (onTap == null) return column;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: column,
+            child: Icon(icon, size: 16, color: color),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 10,
+              color: isDark ? Colors.white60 : const Color(0xFF64748B),
+            ),
+          ),
+        ],
       ),
     );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: content,
+      );
+    }
+    return content;
   }
 }

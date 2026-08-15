@@ -8,7 +8,6 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../core/providers/favorite_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/dr_room_fonts.dart';
-import '../../core/utils/api_client.dart';
 import 'doctor_details_models.dart';
 
 /// Full-bleed hero carousel with the doctor's photos, collapsible app bar,
@@ -135,9 +134,10 @@ class DoctorDetailsHero extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
+            style: TextStyle(
+              fontFamily: 'Rabar',
               color: AppColors.getTextTitle(context),
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -156,6 +156,31 @@ class DoctorDetailsHero extends StatelessWidget {
                 iconColor: const Color(0xFFFBBF24),
               ),
             ],
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.25)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 12),
+                  SizedBox(width: 3),
+                  Text(
+                    'باوەڕپێکراو',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      color: Color(0xFF10B981),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ],
@@ -180,6 +205,7 @@ class DoctorDetailsHero extends StatelessWidget {
               itemBuilder: (context, index) => Image(
                 image: imageProvider(images[index]),
                 fit: BoxFit.cover,
+                alignment: const Alignment(0, -0.15),
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Container(
@@ -194,13 +220,10 @@ class DoctorDetailsHero extends StatelessWidget {
                     ),
                   );
                 },
-                errorBuilder: (_, _, _) => Container(
-                  color: AppColors.primary,
-                  child: const Icon(
-                    Iconsax.user,
-                    color: Colors.white,
-                    size: 44,
-                  ),
+                errorBuilder: (_, _, _) => CachedNetworkImage(
+                  imageUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=800&auto=format&fit=crop&q=80',
+                  fit: BoxFit.cover,
+                  alignment: const Alignment(0, -0.15),
                 ),
               ),
             ),

@@ -187,9 +187,14 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
   }
 
   String get _doctorImage {
-    final path = _doctor?['image_path']?.toString();
-    if (path != null && path.isNotEmpty) return ApiClient.getImageUrl(path);
-    return widget.image;
+    final path = _doctor?['image_path']?.toString() ?? _doctor?['image']?.toString();
+    if (path != null && path.isNotEmpty && !path.contains('doctor1.png') && !path.contains('default')) {
+      return path.startsWith('http') ? path : ApiClient.getImageUrl(path);
+    }
+    if (widget.image.isNotEmpty && !widget.image.contains('doctor1.png') && !widget.image.contains('default')) {
+      return widget.image;
+    }
+    return 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=800&auto=format&fit=crop&q=80';
   }
 
   List<String> get _heroImages {
@@ -197,9 +202,9 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     if (_doctorImage.isNotEmpty) images.add(_doctorImage);
     for (final item in (_doctor?['gallery'] as List?) ?? const []) {
       final path = item.toString();
-      if (path.isNotEmpty) images.add(ApiClient.getImageUrl(path));
+      if (path.isNotEmpty) images.add(path.startsWith('http') ? path : ApiClient.getImageUrl(path));
     }
-    return images.isEmpty ? [widget.image] : images.toList();
+    return images.isEmpty ? [_doctorImage] : images.toList();
   }
 
   String _serviceName(Map service) {
@@ -252,7 +257,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       : null;
 
   ImageProvider _imageProvider(String path) {
-    if (path.isEmpty) return const AssetImage('assets/images/doctor.png');
+    if (path.isEmpty || path.contains('doctor1.png') || path.contains('default')) {
+      return const CachedNetworkImageProvider(
+        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=800&auto=format&fit=crop&q=80',
+      );
+    }
     if (path.startsWith('assets/')) return AssetImage(path);
     final url = path.startsWith('http') ? path : ApiClient.getImageUrl(path);
     return CachedNetworkImageProvider(url);
@@ -669,10 +678,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'total_price'.tr(),
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: AppColors.getTextSubtitle(context),
+                  'کۆی گشتی',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11.5,
+                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -682,21 +692,22 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                     if (_selectedSaving > 0) ...[
                       Text(
                         _money(_asDouble(_selectedService?['old_price'])),
-                        style: GoogleFonts.poppins(
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
                           fontSize: 12,
-                          color: AppColors.textLight,
+                          color: Color(0xFF94A3B8),
                           decoration: TextDecoration.lineThrough,
-                          decorationColor: AppColors.textLight,
                         ),
                       ),
                       const SizedBox(width: 6),
                     ],
                     Text(
                       _money(price),
-                      style: GoogleFonts.poppins(
-                        fontSize: 17,
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 16.5,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: Color(0xFF2563EB),
                       ),
                     ),
                   ],
@@ -710,22 +721,28 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                 child: ElevatedButton(
                   onPressed: _onBookPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: ready
-                        ? AppColors.primary
-                        : AppColors.primary.withValues(alpha: 0.5),
+                    backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
                     elevation: ready ? 6 : 0,
-                    shadowColor: AppColors.primary.withValues(alpha: 0.35),
+                    shadowColor: const Color(0xFF2563EB).withValues(alpha: 0.35),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
                   ),
-                  child: Text(
-                    'dd_book_now'.tr(),
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Iconsax.calendar_1, size: 18, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        'نۆرە بگرە',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

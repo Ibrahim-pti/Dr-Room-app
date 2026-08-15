@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/dr_room_fonts.dart';
 import 'doctor_details_models.dart';
 import 'doctor_details_widgets.dart';
 
@@ -103,19 +102,21 @@ class DoctorDetailsSchedule extends StatelessWidget {
                           dayLabel(day.date),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
                             color: isSelected
-                                ? Colors.white.withValues(alpha: 0.85)
+                                ? Colors.white.withValues(alpha: 0.9)
                                 : AppColors.getTextSubtitle(context),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           DateFormat('dd').format(day.date),
-                          style: GoogleFonts.poppins(
-                            fontSize: 19,
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: isSelected
                                 ? Colors.white
@@ -126,8 +127,9 @@ class DoctorDetailsSchedule extends StatelessWidget {
                           monthName(day.date),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 10.5,
                             color: isSelected
                                 ? Colors.white.withValues(alpha: 0.85)
                                 : AppColors.textLight,
@@ -159,8 +161,8 @@ class DoctorDetailsSchedule extends StatelessWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
+                      horizontal: 16,
+                      vertical: 10,
                     ),
                     decoration: BoxDecoration(
                       color: isTaken
@@ -174,16 +176,22 @@ class DoctorDetailsSchedule extends StatelessWidget {
                             ? AppColors.primary
                             : AppColors.getBorder(context),
                       ),
+                      boxShadow: isSelected && !isTaken
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.25),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ]
+                          : null,
                     ),
                     child: Text(
                       clock(slot.dateTime),
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: isSelected && !isTaken
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        decoration: isTaken ? TextDecoration.lineThrough : null,
-                        decorationColor: AppColors.textLight,
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                         color: isTaken
                             ? AppColors.textLight
                             : isSelected
