@@ -394,7 +394,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 : const Color(0xFF0F172A),
                           ),
                           decoration: const InputDecoration(
-                            hintText: 'ناوی یەکەم و دووەم',
+                            hintText: 'ناو',
                             hintStyle: TextStyle(
                               color: Color(0xFF94A3B8),
                               fontSize: 13.5,
