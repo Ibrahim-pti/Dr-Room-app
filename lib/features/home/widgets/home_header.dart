@@ -18,13 +18,15 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Stack(
       children: [
         // ── Curved Background Header ──
         ClipPath(
           clipper: OvalBottomBorderClipper(),
           child: Container(
-            height: 250,
+            height: 285,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF1E3A8A), Color(0xFF2563EB), Color(0xFF3B82F6)],
@@ -85,7 +87,7 @@ class HomeHeader extends StatelessWidget {
         SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -256,9 +258,9 @@ class HomeHeader extends StatelessWidget {
                   ],
                 ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2, end: 0),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 38),
 
-                // ── Modern Search Bar ──
+                // ── Modern Soft Search Bar ──
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -271,33 +273,50 @@ class HomeHeader extends StatelessWidget {
                   child: Container(
                     height: 56,
                     padding: const EdgeInsetsDirectional.only(
-                      start: 20,
+                      start: 18,
                       end: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFF1F5F9),
+                        width: 1.2,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF3B82F6).withValues(alpha: 0.05),
-                          blurRadius: 24,
-                          offset: const Offset(0, 10),
+                          color: isDark
+                              ? Colors.black.withValues(alpha: 0.3)
+                              : const Color(0xFF1E3A8A).withValues(alpha: 0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                          spreadRadius: -2,
+                        ),
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withValues(alpha: 0.15)
+                              : const Color(0xFF0F172A).withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Iconsax.search_normal_1,
-                          color: Color(0xFF64748B),
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           size: 20,
                         ),
                         const SizedBox(width: 12),
                         Text(
                           'search_doctors'.tr(),
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF94A3B8),
-                            fontSize: 14,
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            color: Color(0xFF94A3B8),
+                            fontSize: 13.5,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -306,8 +325,8 @@ class HomeHeader extends StatelessWidget {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6).withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(16),
+                            color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                           child: const Icon(
                             Iconsax.microphone,
@@ -325,7 +344,7 @@ class HomeHeader extends StatelessWidget {
                   ),
                 ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.2, end: 0),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
               ],
             ),
           ),
