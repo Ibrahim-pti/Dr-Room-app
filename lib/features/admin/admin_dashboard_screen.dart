@@ -6,11 +6,17 @@ import 'dart:convert';
 import '../../core/utils/api_client.dart';
 import 'admin_notifications_screen.dart';
 import 'admin_app_bar.dart';
+import 'admin_doctors_screen.dart';
+import 'admin_nurses_screen.dart';
+import 'admin_users_screen.dart';
+import 'admin_appointments_screen.dart';
+import 'admin_articles_screen.dart';
 import 'admin_labs_screen.dart';
 import 'admin_pharmacies_screen.dart';
 import 'admin_xrays_screen.dart';
 import 'admin_banners_screen.dart';
 import 'admin_orders_screen.dart';
+import '../home/main_shell.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -86,6 +92,47 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
+                  builder: (context) => const MainShell(),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(
+                    Iconsax.user,
+                    color: Color(0xFF3B82F6),
+                    size: 16,
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    'ئەپی بەکارهێنەر',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      color: Color(0xFF3B82F6),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
                   builder: (context) => const Directionality(
                     textDirection: TextDirection.rtl,
                     child: AdminNotificationsScreen(),
@@ -94,10 +141,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               );
             },
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
                 boxShadow: [
                   BoxShadow(
@@ -110,7 +157,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: const Icon(
                 Iconsax.notification,
                 color: Color(0xFF3B82F6),
-                size: 24,
+                size: 20,
               ),
             ),
           ),
@@ -148,11 +195,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildServicesGrid() {
     final services = [
       {
-        'title': 'تاقیگەکان',
-        'subtitle': 'بینین و قبوڵکردنی تاقیگەکان',
-        'icon': Iconsax.microscope,
-        'color': const Color(0xFF8B5CF6),
-        'screen': const AdminLabsScreen(),
+        'title': 'پزیشکەکان',
+        'subtitle': 'پەسەندکردن و بەڕێوەبردنی پزیشکەکان',
+        'icon': Iconsax.health,
+        'color': const Color(0xFF2563EB),
+        'screen': const AdminDoctorsScreen(),
       },
       {
         'title': 'دەرمانخانەکان',
@@ -162,18 +209,53 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminPharmaciesScreen(),
       },
       {
-        'title': 'تیشک و سۆنەر',
-        'subtitle': 'سەنتەرەکانی تیشک و سۆنەر',
-        'icon': Iconsax.scan,
-        'color': const Color(0xFF10B981),
-        'screen': const AdminXRaysScreen(),
+        'title': 'تاقیگەکان',
+        'subtitle': 'بینین و قبوڵکردنی تاقیگەکان',
+        'icon': Iconsax.microscope,
+        'color': const Color(0xFF8B5CF6),
+        'screen': const AdminLabsScreen(),
       },
       {
-        'title': 'داواکارییەکان',
-        'subtitle': 'بینین و ناردنی ئۆردەرەکان',
+        'title': 'داواکارییەکان (Orders)',
+        'subtitle': 'بینین و دیاریکردنی پەرستار بۆ ئۆردەر',
         'icon': Iconsax.document,
         'color': const Color(0xFF3B82F6),
         'screen': const AdminOrdersScreen(),
+      },
+      {
+        'title': 'بەکارهێنەران',
+        'subtitle': 'بەڕێوەبردنی هەژمار و بەکارهێنەران',
+        'icon': Iconsax.people,
+        'color': const Color(0xFF06B6D4),
+        'screen': const AdminUsersScreen(),
+      },
+      {
+        'title': 'پەرستارەکان',
+        'subtitle': 'بەڕێوەبردن و پەسەندکردنی پەرستارەکان',
+        'icon': Iconsax.profile_2user,
+        'color': const Color(0xFFEC4899),
+        'screen': const AdminNursesScreen(),
+      },
+      {
+        'title': 'نۆرە و چاوپێکەوتنەکان',
+        'subtitle': 'بەڕێوەبردنی نۆرەی نەخۆشەکان',
+        'icon': Iconsax.calendar_1,
+        'color': const Color(0xFF10B981),
+        'screen': const AdminAppointmentsScreen(),
+      },
+      {
+        'title': 'تیشک و سۆنەر',
+        'subtitle': 'سەنتەرەکانی تیشک و سۆنەر',
+        'icon': Iconsax.scan,
+        'color': const Color(0xFF6366F1),
+        'screen': const AdminXRaysScreen(),
+      },
+      {
+        'title': 'وتار و ڕێنمایی پزیشکی',
+        'subtitle': 'بڵاوکردنەوەی وتار و فریاکەوتن بۆ ئەپ',
+        'icon': Iconsax.book_1,
+        'color': const Color(0xFFE11D48),
+        'screen': const AdminArticlesScreen(),
       },
     ];
 
@@ -272,7 +354,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ],
                       ),
                     )
-                    .animate(delay: Duration(milliseconds: index * 100))
+                    .animate(delay: Duration(milliseconds: index * 60))
                     .fadeIn()
                     .slideX(begin: 0.05, end: 0),
           );
@@ -300,7 +382,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           },
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
@@ -318,30 +400,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
+                  children: const [
+                    Text(
                       'ڕیکلامەکان',
                       style: TextStyle(
                         fontFamily: 'Rabar',
                         color: Color(0xFF1E293B),
-                        fontSize: 20,
+                        fontSize: 19,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    const Text(
+                    SizedBox(height: 4),
+                    Text(
                       'بەڕێوەبردنی بانەرەکانی ئەپ',
                       style: TextStyle(
                         fontFamily: 'Rabar',
                         color: Color(0xFF64748B),
-                        fontSize: 13,
+                        fontSize: 12.5,
                       ),
                     ),
                   ],
                 ),
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 54,
+                  height: 54,
                   decoration: BoxDecoration(
                     color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
@@ -349,14 +431,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   child: const Icon(
                     Iconsax.picture_frame,
                     color: Color(0xFF3B82F6),
-                    size: 32,
+                    size: 28,
                   ),
                 ),
               ],
             ),
           ),
         ).animate().fadeIn().slideY(begin: 0.1, end: 0),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         // Secondary Horizontal List
         SizedBox(
           height: 100,
@@ -371,6 +453,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 icon: Iconsax.people,
                 color: const Color(0xFF3B82F6),
                 delay: 100,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: AdminUsersScreen(),
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 12),
               _buildSmallStatCard(
@@ -379,6 +472,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 icon: Iconsax.user_search,
                 color: const Color(0xFFF59E0B),
                 delay: 150,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: AdminDoctorsScreen(),
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 12),
               _buildSmallStatCard(
@@ -387,6 +491,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 icon: Iconsax.profile_2user,
                 color: const Color(0xFFEC4899),
                 delay: 200,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: AdminNursesScreen(),
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 12),
               _buildSmallStatCard(
@@ -395,6 +510,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 icon: Iconsax.calendar_1,
                 color: const Color(0xFF10B981),
                 delay: 250,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: AdminAppointmentsScreen(),
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -409,62 +535,66 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     required IconData icon,
     required Color color,
     required int delay,
+    VoidCallback? onTap,
   }) {
-    return Container(
-          width: 140,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: color, size: 18),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 140,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontFamily: 'Rabar',
-                      color: Color(0xFF1E293B),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: 'Rabar',
-                  color: Color(0xFF64748B),
-                  fontSize: 12,
+                  child: Icon(icon, color: color, size: 18),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    color: Color(0xFF1E293B),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Rabar',
+                color: Color(0xFF64748B),
+                fontSize: 12,
               ),
-            ],
-          ),
-        )
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    )
         .animate(delay: Duration(milliseconds: delay))
         .fadeIn()
         .slideX(begin: 0.1, end: 0);
