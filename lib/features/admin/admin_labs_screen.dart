@@ -25,9 +25,13 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
     _fetchLabs();
   }
 
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -73,12 +77,26 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
     }
   }
 
+  List<dynamic> _filterList(List<dynamic> list) {
+    if (_searchQuery.trim().isEmpty) return list;
+    final q = _searchQuery.toLowerCase().trim();
+    return list.where((d) {
+      final name = (d['name'] ?? '').toString().toLowerCase();
+      final address = (d['address'] ?? '').toString().toLowerCase();
+      final phone = (d['phone'] ?? '').toString().toLowerCase();
+      return name.contains(q) || address.contains(q) || phone.contains(q);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final pendingLabs =
         _labs.where((d) => d['status'] == 'pending').toList();
     final approvedLabs =
         _labs.where((d) => d['status'] == 'approved').toList();
+
+    final filteredPending = _filterList(pendingLabs);
+    final filteredApproved = _filterList(approvedLabs);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
@@ -93,6 +111,55 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Search Field ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (val) => setState(() => _searchQuery = val),
+                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
+                decoration: InputDecoration(
+                  hintText: 'گەڕان بەپێی ناوی تاقیگە، ناونیشان یان مۆبایل...',
+                  hintStyle: const TextStyle(
+                    fontFamily: 'Rabar',
+                    color: Color(0xFF94A3B8),
+                    fontSize: 13,
+                  ),
+                  prefixIcon: const Icon(
+                    Iconsax.search_normal_1,
+                    color: Color(0xFF94A3B8),
+                    size: 18,
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                          child: const Icon(
+                            Icons.close,
+                            color: Color(0xFF94A3B8),
+                            size: 18,
+                          ),
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // ── Tabs ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -112,7 +179,7 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
                 indicatorSize: TabBarIndicatorSize.tab,
                 labelColor: Colors.white,
                 unselectedLabelColor: const Color(0xFF64748B),
-                labelStyle: TextStyle(
+                labelStyle: const TextStyle(
                   fontFamily: 'Rabar',
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -135,8 +202,8 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
                 : TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildLabList(pendingLabs, isPending: true),
-                      _buildLabList(approvedLabs, isPending: false),
+                      _buildLabList(filteredPending, isPending: true),
+                      _buildLabList(filteredApproved, isPending: false),
                     ],
                   ),
           ),
