@@ -31,6 +31,8 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool canPop = showBackButton || Navigator.canPop(context);
+
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 16,
@@ -50,25 +52,32 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: Row(
         children: [
-          if (showBackButton) ...[
+          if (canPop) ...[
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Container(
                 width: 44,
                 height: 44,
+                margin: const EdgeInsetsDirectional.only(end: 12),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: const Icon(
                   Icons.arrow_back_ios_new_rounded,
                   color: Color(0xFF1E293B),
-                  size: 20,
+                  size: 18,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
           ],
           if (imagePath != null) ...[
             ClipRRect(

@@ -196,63 +196,63 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final services = [
       {
         'title': 'پزیشکەکان',
-        'subtitle': 'پەسەندکردن و بەڕێوەبردنی پزیشکەکان',
+        'subtitle': 'پەسەندکردن و بەڕێوەبردن',
         'icon': Iconsax.health,
         'color': const Color(0xFF2563EB),
         'screen': const AdminDoctorsScreen(),
       },
       {
         'title': 'دەرمانخانەکان',
-        'subtitle': 'بەڕێوەبردنی دەرمانخانەکانی ئەپ',
+        'subtitle': 'دەرمانخانەکانی ئەپ',
         'icon': Iconsax.reserve,
         'color': const Color(0xFFF59E0B),
         'screen': const AdminPharmaciesScreen(),
       },
       {
         'title': 'تاقیگەکان',
-        'subtitle': 'بینین و قبوڵکردنی تاقیگەکان',
+        'subtitle': 'تاقیگەکانی پشکنین',
         'icon': Iconsax.microscope,
         'color': const Color(0xFF8B5CF6),
         'screen': const AdminLabsScreen(),
       },
       {
-        'title': 'داواکارییەکان (Orders)',
-        'subtitle': 'بینین و دیاریکردنی پەرستار بۆ ئۆردەر',
+        'title': 'داواکارییەکان',
+        'subtitle': 'ئۆردەرەکانی نەخۆش',
         'icon': Iconsax.document,
-        'color': const Color(0xFF3B82F6),
+        'color': const Color(0xFF0284C7),
         'screen': const AdminOrdersScreen(),
       },
       {
         'title': 'بەکارهێنەران',
-        'subtitle': 'بەڕێوەبردنی هەژمار و بەکارهێنەران',
+        'subtitle': 'هەژمار و ڕۆڵەکان',
         'icon': Iconsax.people,
-        'color': const Color(0xFF06B6D4),
+        'color': const Color(0xFF0D9488),
         'screen': const AdminUsersScreen(),
       },
       {
         'title': 'پەرستارەکان',
-        'subtitle': 'بەڕێوەبردن و پەسەندکردنی پەرستارەکان',
+        'subtitle': 'پەرستارانی ماڵەوە',
         'icon': Iconsax.profile_2user,
         'color': const Color(0xFFEC4899),
         'screen': const AdminNursesScreen(),
       },
       {
-        'title': 'نۆرە و چاوپێکەوتنەکان',
-        'subtitle': 'بەڕێوەبردنی نۆرەی نەخۆشەکان',
+        'title': 'چاوپێکەوتنەکان',
+        'subtitle': 'نۆرەی نەخۆشەکان',
         'icon': Iconsax.calendar_1,
         'color': const Color(0xFF10B981),
         'screen': const AdminAppointmentsScreen(),
       },
       {
         'title': 'تیشک و سۆنەر',
-        'subtitle': 'سەنتەرەکانی تیشک و سۆنەر',
+        'subtitle': 'سەنتەری تیشک',
         'icon': Iconsax.scan,
         'color': const Color(0xFF6366F1),
         'screen': const AdminXRaysScreen(),
       },
       {
-        'title': 'وتار و ڕێنمایی پزیشکی',
-        'subtitle': 'بڵاوکردنەوەی وتار و فریاکەوتن بۆ ئەپ',
+        'title': 'وتار و فریاکەوتن',
+        'subtitle': 'ڕێنماییە پزیشکییەکان',
         'icon': Iconsax.book_1,
         'color': const Color(0xFFE11D48),
         'screen': const AdminArticlesScreen(),
@@ -262,103 +262,152 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'خزمەتگوزارییەکان',
-          style: TextStyle(
-            fontFamily: 'Rabar',
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'خزمەتگوزارییەکان',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${services.length} بەش',
+                style: const TextStyle(
+                  fontFamily: 'Rabar',
+                  color: Color(0xFF3B82F6),
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
-        ...services.asMap().entries.map((entry) {
-          final index = entry.key;
-          final service = entry.value;
-          final color = service['color'] as Color;
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: services.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.28,
+          ),
+          itemBuilder: (context, index) {
+            final service = services[index];
+            final color = service['color'] as Color;
 
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: service['screen'] as Widget,
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: service['screen'] as Widget,
+                    ),
                   ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFFE2E8F0).withValues(alpha: 0.9),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1E293B).withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-              );
-            },
-            child:
-                Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(13),
                           ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: color.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Icon(
-                              service['icon'] as IconData,
-                              color: color,
-                              size: 24,
-                            ),
+                          child: Icon(
+                            service['icon'] as IconData,
+                            color: color,
+                            size: 21,
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  service['title'] as String,
-                                  style: const TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  service['subtitle'] as String,
-                                  style: const TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 12,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
-                            ),
+                        ),
+                        Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
-                          const Icon(
+                          child: const Icon(
                             Icons.arrow_forward_ios_rounded,
-                            color: Color(0xFFCBD5E1),
-                            size: 16,
+                            color: Color(0xFF94A3B8),
+                            size: 10.5,
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Text(
+                      service['title'] as String,
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
                       ),
-                    )
-                    .animate(delay: Duration(milliseconds: index * 60))
-                    .fadeIn()
-                    .slideX(begin: 0.05, end: 0),
-          );
-        }),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      service['subtitle'] as String,
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                        height: 1.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              )
+                  .animate(delay: Duration(milliseconds: index * 35))
+                  .fadeIn()
+                  .scale(
+                    begin: const Offset(0.96, 0.96),
+                    end: const Offset(1, 1),
+                  ),
+            );
+          },
+        ),
       ],
     );
   }
