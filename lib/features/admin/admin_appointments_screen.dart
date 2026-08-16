@@ -16,11 +16,20 @@ class AdminAppointmentsScreen extends StatefulWidget {
 class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
   List<dynamic> _appointments = [];
   bool _isLoading = true;
+  String _searchQuery = '';
+  String _selectedStatus = 'all';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _fetchAppointments();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchAppointments() async {
@@ -51,8 +60,78 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
     }
   }
 
+  String _statusLabel(String? status) {
+    switch (status) {
+      case 'completed':
+        return 'تەواوکراو';
+      case 'cancelled':
+        return 'ڕەتکراوە';
+      case 'confirmed':
+        return 'پەسەندکراو';
+      default:
+        return 'چاوەڕێکراو';
+    }
+  }
+
+  List<dynamic> get _filteredAppointments {
+    return _appointments.where((apt) {
+      final patientName = (apt['patient_name'] ?? apt['user']?['name'] ?? '')
+          .toString()
+          .toLowerCase();
+      final doctorName = (apt['doctor_name'] ?? apt['doctor']?['user']?['name'] ?? '')
+          .toString()
+          .toLowerCase();
+      final status = (apt['status'] ?? '').toString().toLowerCase();
+      final date = (apt['date'] ?? apt['appointment_date'] ?? '')
+          .toString()
+          .toLowerCase();
+      final q = _searchQuery.toLowerCase().trim();
+
+      final matchesQuery = q.isEmpty ||
+          patientName.contains(q) ||
+          doctorName.contains(q) ||
+          date.contains(q);
+
+      final matchesStatus =
+          _selectedStatus == 'all' || status == _selectedStatus;
+
+      return matchesQuery && matchesStatus;
+    }).toList();
+  }
+
+  Widget _buildFilterPill(String status, String label) {
+    final isSelected = _selectedStatus == status;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedStatus = status),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary : AppColors.getSurface(context),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : AppColors.getTextSubtitle(context),
+              fontFamily: 'Rabar',
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _filteredAppointments;
+
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       body: SafeArea(
@@ -61,24 +140,16 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
-                      margin: const EdgeInsets.only(left: 12),
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: AppColors.getSurface(context),
                         borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
                       ),
                       child: Icon(
                         Icons.arrow_back_ios_new_rounded,
@@ -87,12 +158,13 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(width: 14),
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 46,
+                    height: 46,
                     decoration: BoxDecoration(
                       color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
                       Iconsax.calendar_tick,
@@ -100,30 +172,31 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
                       size: 24,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'چاوپێکەوتنەکان',
-                        style: TextStyle(
-                          color: AppColors.getTextTitle(context),
-                          fontFamily: 'Rabar',
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'چاوپێکەوتنەکان',
+                          style: TextStyle(
+                            color: AppColors.getTextTitle(context),
+                            fontFamily: 'Rabar',
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${_appointments.length} total',
-                        style: TextStyle(
-                          color: AppColors.getTextSubtitle(context),
-                          fontFamily: 'Rabar',
-                          fontSize: 13,
+                        Text(
+                          '${filtered.length} لە کۆی ${_appointments.length} نۆرە',
+                          style: TextStyle(
+                            color: AppColors.getTextSubtitle(context),
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const Spacer(),
                   GestureDetector(
                     onTap: _fetchAppointments,
                     child: Container(
@@ -150,13 +223,81 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
               ).animate().fadeIn().slideY(begin: -0.1, end: 0),
             ),
 
+            // ── Search Field ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (val) => setState(() => _searchQuery = val),
+                  style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
+                  decoration: InputDecoration(
+                    hintText: 'گەڕان بەپێی ناوی نەخۆش، پزیشک یان بەروار...',
+                    hintStyle: const TextStyle(
+                      fontFamily: 'Rabar',
+                      color: Color(0xFF94A3B8),
+                      fontSize: 13,
+                    ),
+                    prefixIcon: const Icon(
+                      Iconsax.search_normal_1,
+                      color: Color(0xFF94A3B8),
+                      size: 18,
+                    ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                            child: const Icon(
+                              Icons.close,
+                              color: Color(0xFF94A3B8),
+                              size: 18,
+                            ),
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Status Filter Pills ──
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    _buildFilterPill('all', 'هەمووی'),
+                    _buildFilterPill('pending', 'چاوەڕێکراو'),
+                    _buildFilterPill('confirmed', 'پەسەندکراو'),
+                    _buildFilterPill('completed', 'تەواوکراو'),
+                    _buildFilterPill('cancelled', 'ڕەتکراوە'),
+                  ],
+                ),
+              ),
+            ),
+
             // List
             Expanded(
               child: _isLoading
                   ? const Center(
                       child: CircularProgressIndicator(color: AppColors.primary),
                     )
-                  : _appointments.isEmpty
+                  : filtered.isEmpty
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -175,7 +316,7 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'هیچ چاوپێکەوتنێک نییە',
+                                'هیچ چاوپێکەوتنێک نەدۆزرایەوە',
                                 style: TextStyle(
                                   color: AppColors.getTextTitle(context),
                                   fontFamily: 'Rabar',
@@ -185,7 +326,7 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'تائێستا هیچ نۆرەیەک نەگیراوە',
+                                'بەپێی ئەو فلتەر یان سێرچە هیچ نۆرەیەک نەدۆزرایەوە',
                                 style: TextStyle(
                                   color: AppColors.getTextSubtitle(context),
                                   fontFamily: 'Rabar',
@@ -201,16 +342,16 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
                           backgroundColor: AppColors.getSurface(context),
                           child: ListView.builder(
                             padding: const EdgeInsets.fromLTRB(24, 0, 24, 110),
-                            itemCount: _appointments.length,
+                            itemCount: filtered.length,
                             itemBuilder: (context, index) {
-                              final appt = _appointments[index];
+                              final appt = filtered[index];
                               final userName = appt['user'] != null
                                   ? appt['user']['name']
-                                  : 'Patient';
+                                  : 'نەخۆش';
                               final doctorName = (appt['doctor'] != null &&
                                       appt['doctor']['user'] != null)
                                   ? appt['doctor']['user']['name']
-                                  : 'Doctor';
+                                  : 'پزیشک';
                               final status = appt['status'] ?? 'pending';
                               final date = appt['appointment_date'] ?? '';
                               final time = appt['appointment_time'] ?? '';
@@ -261,7 +402,7 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'Dr. $doctorName',
+                                            'د. $doctorName',
                                             style: TextStyle(
                                               color: AppColors.getTextSubtitle(context),
                                               fontFamily: 'Rabar',
@@ -302,7 +443,7 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
-                                        status,
+                                        _statusLabel(status),
                                         style: TextStyle(
                                           color: statusColor,
                                           fontFamily: 'Rabar',
