@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -17,6 +16,7 @@ class UpcomingAppointmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final appointmentProvider = context.watch<AppointmentProvider>();
     final upcoming = appointmentProvider.appointments
         .where((a) => a.isUpcoming && a.status != AppointmentStatus.cancelled)
@@ -47,7 +47,8 @@ class UpcomingAppointmentCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'appointment_cancelled'.tr(),
-                    style: GoogleFonts.poppins(
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
                       color: Colors.redAccent,
                       fontWeight: FontWeight.bold,
                     ),
@@ -65,7 +66,8 @@ class UpcomingAppointmentCard extends StatelessWidget {
                     SnackBar(
                       content: Text(
                         'appointment_cancelled'.tr(),
-                        style: GoogleFonts.poppins(
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
                           color: Colors.white,
                           fontSize: 13,
                         ),
@@ -82,9 +84,10 @@ class UpcomingAppointmentCard extends StatelessWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
+                      content: const Text(
                         'Failed to cancel appointment on server.',
-                        style: GoogleFonts.poppins(
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
                           color: Colors.white,
                           fontSize: 13,
                         ),
@@ -107,16 +110,16 @@ class UpcomingAppointmentCard extends StatelessWidget {
                 );
               },
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.getSurface(context),
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
+                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -130,24 +133,26 @@ class UpcomingAppointmentCard extends StatelessWidget {
                       children: [
                         Text(
                           'upcoming_appointments'.tr(),
-                          style: GoogleFonts.poppins(
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
                             color: AppColors.getTextTitle(context),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
                             color: next.status.color.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             next.status.kurdiName,
-                            style: GoogleFonts.poppins(
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
                               color: next.status.color,
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -182,9 +187,10 @@ class UpcomingAppointmentCard extends StatelessWidget {
                             children: [
                               Text(
                                 next.doctorName.isNotEmpty ? next.doctorName : 'Doctor',
-                                style: GoogleFonts.poppins(
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
                                   color: AppColors.getTextTitle(context),
-                                  fontSize: 16,
+                                  fontSize: 14.5,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 maxLines: 1,
@@ -193,28 +199,16 @@ class UpcomingAppointmentCard extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 next.doctorSpecialty.isNotEmpty ? next.doctorSpecialty : 'پزیشکی گشتی',
-                                style: GoogleFonts.poppins(
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
                                   color: AppColors.getTextSubtitle(context),
-                                  fontSize: 13,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
-                          ),
-                        ),
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEFF6FF),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Iconsax.arrow_left_2,
-                            color: Color(0xFF3B82F6),
-                            size: 20,
                           ),
                         ),
                       ],
@@ -234,9 +228,10 @@ class UpcomingAppointmentCard extends StatelessWidget {
                               const SizedBox(width: 8),
                               Text(
                                 next.formattedDate,
-                                style: GoogleFonts.poppins(
-                                  color: const Color(0xFF475569),
-                                  fontSize: 13,
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  color: Color(0xFF475569),
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -250,9 +245,10 @@ class UpcomingAppointmentCard extends StatelessWidget {
                               const SizedBox(width: 8),
                               Text(
                                 next.formattedTime,
-                                style: GoogleFonts.poppins(
-                                  color: const Color(0xFF475569),
-                                  fontSize: 13,
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  color: Color(0xFF475569),
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),

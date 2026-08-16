@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -34,10 +33,11 @@ class TopDoctorsSection extends StatelessWidget {
             children: [
               Text(
                 'top_doctors'.tr(),
-                style: GoogleFonts.poppins(
+                style: TextStyle(
+                  fontFamily: 'Rabar',
                   color: AppColors.getTextTitle(context),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               GestureDetector(
@@ -51,10 +51,11 @@ class TopDoctorsSection extends StatelessWidget {
                 },
                 child: Text(
                   'see_all'.tr(),
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFF3B82F6),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    color: Color(0xFF3B82F6),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),

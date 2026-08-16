@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -30,10 +29,11 @@ class ServicesCategoryGrid extends StatelessWidget {
             children: [
               Text(
                 'categories'.tr(),
-                style: GoogleFonts.poppins(
+                style: TextStyle(
+                  fontFamily: 'Rabar',
                   color: AppColors.getTextTitle(context),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               GestureDetector(
@@ -47,10 +47,11 @@ class ServicesCategoryGrid extends StatelessWidget {
                 },
                 child: Text(
                   'see_all'.tr(),
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFF3B82F6),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    color: Color(0xFF3B82F6),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -366,8 +367,9 @@ class ServicesCategoryGrid extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 titleKey.tr(),
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.getTextTitle(context),
                 ),
@@ -376,8 +378,9 @@ class ServicesCategoryGrid extends StatelessWidget {
               Text(
                 'desc_$id'.tr(),
                 textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 13.5,
                   color: AppColors.getTextTitle(context),
                   fontWeight: FontWeight.w500,
                   height: 1.5,
@@ -398,9 +401,10 @@ class ServicesCategoryGrid extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'coming_soon_msg'.tr(),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: const Color(0xFF1D4ED8),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 12.5,
+                          color: Color(0xFF1D4ED8),
                         ),
                       ),
                     ),
@@ -422,9 +426,10 @@ class ServicesCategoryGrid extends StatelessWidget {
                   ),
                   child: Text(
                     'ok'.tr(),
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
