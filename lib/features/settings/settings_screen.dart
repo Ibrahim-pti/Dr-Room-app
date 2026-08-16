@@ -16,6 +16,7 @@ import '../settings/saved_addresses_screen.dart';
 import '../checkout/payment_history_screen.dart';
 import '../doctors/favorite_doctors_screen.dart';
 import '../records/medical_records_screen.dart';
+import '../admin/admin_dashboard_shell.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -28,6 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _userName = '';
   String _userPhone = '';
   bool _isGuest = false;
+  bool _isAdmin = false;
 
   @override
   void initState() {
@@ -41,6 +43,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         final token = prefs.getString('auth_token');
         _isGuest = token == null || token.isEmpty;
+        _isAdmin = prefs.getBool('is_admin') == true ||
+            prefs.getString('user_role') == 'admin';
 
         if (!_isGuest) {
           final un = prefs.getString('user_name') ?? '';
@@ -301,6 +305,75 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                   ),
+
+                  if (_isAdmin) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Iconsax.shield_security,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                        title: const Text(
+                          'داشبۆردی ئەدمین (Admin Panel)',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            color: Colors.white,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'بەڕێوەبردنی پزیشکان، دەرمانخانە، تاقیگەکان و سیستەم',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            color: Colors.white70,
+                            fontSize: 11,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: Colors.white70,
+                          size: 16,
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AdminDashboardShell(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 16),
 

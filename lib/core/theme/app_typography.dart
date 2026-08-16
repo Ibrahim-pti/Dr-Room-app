@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:dr_room/core/theme/dr_room_fonts.dart';
 
 class AppTypography {
   AppTypography._();
 
-  static TextStyle get _baseKurdish => GoogleFonts.notoNaskhArabic();
+  static TextStyle get _baseKurdish => const TextStyle(fontFamily: 'Rabar');
 
   // ─── Headings ─────────────────────────────────────────────
   static TextStyle headingXL = _baseKurdish.copyWith(
