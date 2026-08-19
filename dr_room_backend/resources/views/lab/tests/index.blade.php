@@ -9,23 +9,15 @@
             <div class="flex items-center gap-3">
                 <h2 class="text-xl font-bold text-slate-800">لیستی پشکنینە بەردەستەکانی تاقیگە</h2>
                 <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
-                    کۆی گشتی: {{ $tests->count() }} پشکنین
+                    کۆی گشتی: {{ $tests->total() }} پشکنین
                 </span>
             </div>
             <p class="text-sm text-slate-500 mt-1">ئەو پشکنینانەی لە تاقیگەکەت بەردەستن و لە ئەپڵیکەیشندا بۆ نەخۆشەکان دەردەکەون.</p>
         </div>
-        <div class="flex items-center gap-3">
-            <select onchange="location = this.value;" 
-                    class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-2xl px-4 py-2.5 outline-none focus:border-blue-500 transition-all cursor-pointer shadow-sm">
-                <option value="{{ route('lab.tests.index') }}" {{ !$type ? 'selected' : '' }}>هەموو جۆرەکان ({{ $tests->count() }})</option>
-                <option value="{{ route('lab.tests.index', ['type' => 'blood']) }}" {{ $type == 'blood' ? 'selected' : '' }}>🩸 پشکنینی خوێن</option>
-                <option value="{{ route('lab.tests.index', ['type' => 'urine']) }}" {{ $type == 'urine' ? 'selected' : '' }}>🧪 پشکنینی میز</option>
-                <option value="{{ route('lab.tests.index', ['type' => 'hormone']) }}" {{ $type == 'hormone' ? 'selected' : '' }}>🧬 پشکنینی هۆرمۆن</option>
-                <option value="{{ route('lab.tests.index', ['type' => 'other']) }}" {{ $type == 'other' ? 'selected' : '' }}>🔬 پشکنینەکانی تر</option>
-            </select>
-            <a href="{{ route('lab.tests.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-md shadow-blue-200 transition-all text-xs whitespace-nowrap">
+        <div>
+            <a href="{{ route('lab.tests.create') }}" class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-md shadow-blue-200 transition-all text-xs whitespace-nowrap">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                زیادکردنی پشکنین
+                زیادکردنی پشکنینی نوێ
             </a>
         </div>
     </div>
@@ -44,10 +36,9 @@
                 <thead class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold">
                     <tr>
                         <th class="px-6 py-4">ناوی پشکنین</th>
-                        <th class="px-6 py-4">جۆر</th>
                         <th class="px-6 py-4">نرخ (IQD)</th>
                         <th class="px-6 py-4">داشکاندن</th>
-                        <th class="px-6 py-4">حاڵەت</th>
+                        <th class="px-6 py-4">حاڵەت لە ئەپڵیکەیشن</th>
                         <th class="px-6 py-4 text-center">کردارەکان</th>
                     </tr>
                 </thead>
@@ -63,30 +54,9 @@
                                     </div>
                                 @endif
                                 @if($test->description)
-                                    <div class="text-xs text-slate-500 mt-1 max-w-sm line-clamp-1" title="{{ $test->description }}">
+                                    <div class="text-xs text-slate-500 mt-1 max-w-md line-clamp-1" title="{{ $test->description }}">
                                         {{ $test->description }}
                                     </div>
-                                @endif
-                            </td>
-
-                            <!-- Type -->
-                            <td class="px-6 py-4">
-                                @if($test->type == 'blood')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-50 text-rose-700 font-bold text-xs border border-rose-200/50">
-                                        🩸 خوێن
-                                    </span>
-                                @elseif($test->type == 'urine')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs border border-amber-200/50">
-                                        🧪 میز
-                                    </span>
-                                @elseif($test->type == 'hormone')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-purple-50 text-purple-700 font-bold text-xs border border-purple-200/50">
-                                        🧬 هۆرمۆن
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">
-                                        🔬 گشتی
-                                    </span>
                                 @endif
                             </td>
 
@@ -104,7 +74,7 @@
                                         {{ $test->discount }}% داشکاندن
                                     </span>
                                 @else
-                                    <span class="text-xs text-slate-400">داشکاندن نییە</span>
+                                    <span class="text-xs text-slate-400 font-medium">داشکاندن نییە</span>
                                 @endif
                             </td>
 
@@ -127,14 +97,14 @@
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="{{ route('lab.tests.edit', $test) }}" 
-                                       class="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl font-bold text-xs transition-all flex items-center gap-1">
+                                       class="px-3.5 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl font-bold text-xs transition-all flex items-center gap-1">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         دەستکاری
                                     </a>
                                     <form action="{{ route('lab.tests.destroy', $test) }}" method="POST" class="inline-block" onsubmit="return confirm('ئایا دڵنیایت لە سڕینەوەی ئەم پشکنینە؟');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl font-bold text-xs transition-all flex items-center gap-1">
+                                        <button type="submit" class="px-3.5 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl font-bold text-xs transition-all flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             سڕینەوە
                                         </button>
@@ -144,7 +114,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-16 text-center text-slate-500">
+                            <td colspan="5" class="px-6 py-16 text-center text-slate-500">
                                 <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
                                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                                 </div>

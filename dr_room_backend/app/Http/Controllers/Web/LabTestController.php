@@ -38,7 +38,7 @@ class LabTestController extends Controller
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'name_ar' => 'nullable|string|max:255',
-            'type' => 'required|string|in:blood,urine,hormone,other',
+            'type' => 'nullable|string|max:255',
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|integer|min:0|max:100',
             'description' => 'nullable|string',
@@ -46,6 +46,7 @@ class LabTestController extends Controller
         ]);
 
         $validated['lab_id'] = $lab->id;
+        $validated['type'] = $request->input('type') ?? 'general';
         $validated['is_active'] = $request->has('is_active');
 
         LabTest::create($validated);
@@ -72,12 +73,13 @@ class LabTestController extends Controller
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'name_ar' => 'nullable|string|max:255',
-            'type' => 'required|string|in:blood,urine,hormone,other',
+            'type' => 'nullable|string|max:255',
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|integer|min:0|max:100',
             'description' => 'nullable|string',
         ]);
 
+        $validated['type'] = $request->input('type') ?? $test->type ?? 'general';
         $validated['is_active'] = $request->has('is_active');
         $test->update($validated);
 
@@ -92,6 +94,6 @@ class LabTestController extends Controller
 
         $test->delete();
 
-        return redirect()->route('lab.tests.index')->with('success', 'Test deleted successfully.');
+        return redirect()->route('lab.tests.index')->with('success', 'پشکنین بە سەرکەوتوویی سڕایەوە.');
     }
 }
