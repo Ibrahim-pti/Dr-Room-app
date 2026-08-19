@@ -42,23 +42,28 @@ class OrderController extends Controller
 
             $assignedPharmacyId = $request->assigned_pharmacy_id ?? $request->pharmacy_id;
             $assignedNurseId = $request->assigned_nurse_id ?? $request->nurse_id;
+            $assignedLabId = $request->assigned_lab_id ?? $request->lab_id;
 
-            // Auto detect assigned pharmacy or nurse from item extra_data if not directly specified
-            if (!$assignedPharmacyId && !empty($request->items)) {
+            // Auto detect assigned pharmacy, nurse, or lab from item extra_data if not directly specified
+            if (!empty($request->items)) {
                 foreach ($request->items as $item) {
-                    if (!empty($item['extra_data']['pharmacy_id'])) {
+                    if (!$assignedPharmacyId && !empty($item['extra_data']['pharmacy_id'])) {
                         $assignedPharmacyId = $item['extra_data']['pharmacy_id'];
-                        break;
+                    }
+                    if (!$assignedNurseId && !empty($item['extra_data']['nurse_id'])) {
+                        $assignedNurseId = $item['extra_data']['nurse_id'];
+                    }
+                    if (!$assignedLabId && !empty($item['extra_data']['lab_id'])) {
+                        $assignedLabId = $item['extra_data']['lab_id'];
                     }
                 }
             }
 
-            if (!$assignedNurseId && !empty($request->items)) {
-                foreach ($request->items as $item) {
-                    if (!empty($item['extra_data']['nurse_id'])) {
-                        $assignedNurseId = $item['extra_data']['nurse_id'];
-                        break;
-                    }
+            // If it's a lab service and assignedLabId corresponds to a Lab model ID instead of User ID, resolve user_id
+            if ($assignedLabId) {
+                $labRecord = \App\Models\Lab::find($assignedLabId);
+                if ($labRecord) {
+                    $assignedLabId = $labRecord->user_id;
                 }
             }
 
@@ -72,6 +77,7 @@ class OrderController extends Controller
                 'payment_method' => $request->payment_method,
                 'assigned_pharmacy_id' => $assignedPharmacyId,
                 'assigned_nurse_id' => $assignedNurseId,
+                'assigned_lab_id' => $assignedLabId,
                 'patient_details' => $request->patient_details ?? [],
                 'location_details' => $request->location_details ?? [],
             ]);
@@ -91,7 +97,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'message' => 'Order created successfully',
-                'order' => $order->load(['items', 'assignedNurse', 'assignedPharmacy'])
+                'order' => $order->load(['items', 'assignedNurse', 'assignedPharmacy', 'assignedLab'])
             ], 201);
 
         } catch (\Exception $e) {

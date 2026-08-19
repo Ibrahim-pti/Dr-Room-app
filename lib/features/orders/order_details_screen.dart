@@ -45,34 +45,49 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void initState() {
     super.initState();
     _currentOrder = widget.order;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _fetchFreshOrder();
+      }
+    });
     _startPolling();
   }
 
+  Future<void> _fetchFreshOrder() async {
+    try {
+      if (!mounted) return;
+      await context.read<OrderProvider>().fetchOrders();
+      if (mounted) {
+        final updatedOrder = context.read<OrderProvider>().orders.firstWhere(
+          (o) => o.id == _currentOrder.id,
+          orElse: () => _currentOrder,
+        );
+        setState(() {
+          _currentOrder = updatedOrder;
+        });
+      }
+    } catch (_) {}
+  }
+
   void _startPolling() {
-    if (_currentOrder.status.isActive) {
-      _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
-        if (!mounted) return;
-        await context.read<OrderProvider>().fetchOrders();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (!mounted) return;
+      await context.read<OrderProvider>().fetchOrders();
 
-        if (mounted) {
-          final updatedOrder = context.read<OrderProvider>().orders.firstWhere(
-            (o) => o.id == _currentOrder.id,
-            orElse: () => _currentOrder,
-          );
+      if (mounted) {
+        final updatedOrder = context.read<OrderProvider>().orders.firstWhere(
+          (o) => o.id == _currentOrder.id,
+          orElse: () => _currentOrder,
+        );
 
-          if (updatedOrder.status != _currentOrder.status ||
-              updatedOrder.assignedNurseId != _currentOrder.assignedNurseId) {
-            setState(() {
-              _currentOrder = updatedOrder;
-            });
-          }
-
-          if (!_currentOrder.status.isActive) {
-            _pollingTimer?.cancel();
-          }
+        if (updatedOrder.status != _currentOrder.status ||
+            updatedOrder.assignedNurseId != _currentOrder.assignedNurseId) {
+          setState(() {
+            _currentOrder = updatedOrder;
+          });
         }
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -167,12 +182,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: RefreshIndicator(
+        onRefresh: _fetchFreshOrder,
+        color: const Color(0xFF3B82F6),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // ── Top Summary Card ──
             Container(
               padding: const EdgeInsets.all(18),

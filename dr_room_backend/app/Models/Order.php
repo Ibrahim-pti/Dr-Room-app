@@ -35,4 +35,9 @@ class Order extends Model
     {
         return $this->belongsTo(User::class, 'assigned_pharmacy_id');
     }
+
+    public function assignedLab()
+    {
+        return $this->belongsTo(User::class, 'assigned_lab_id');
+    }
 }

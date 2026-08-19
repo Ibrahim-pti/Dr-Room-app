@@ -138,8 +138,9 @@ Route::prefix('lab')->middleware(['auth', \App\Http\Middleware\IsLab::class])->g
     Route::middleware('lab.profile.complete')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Web\LabDashboardController::class, 'index'])->name('lab.dashboard');
         
-        // Patients
+        // Patients / Orders
         Route::get('/patients', [\App\Http\Controllers\Web\LabPatientController::class, 'index'])->name('lab.patients.index');
+        Route::patch('/orders/{order}/status', [\App\Http\Controllers\Web\LabPatientController::class, 'updateStatus'])->name('lab.orders.update_status');
         
         // Tests
         Route::resource('/tests', \App\Http\Controllers\Web\LabTestController::class, ['as' => 'lab']);

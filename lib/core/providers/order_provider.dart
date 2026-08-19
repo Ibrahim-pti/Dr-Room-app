@@ -16,11 +16,20 @@ enum OrderStatus {
 
   static OrderStatus fromApi(String? raw) {
     final value = (raw ?? '').trim().toLowerCase();
-    return OrderStatus.values.firstWhere(
-      (status) => status.name == value,
-      // 'accepted' was the old server-side name for work in progress.
-      orElse: () => value == 'accepted' ? OrderStatus.processing : OrderStatus.pending,
-    );
+    if (value == 'processing' ||
+        value == 'in_progress' ||
+        value == 'approved' ||
+        value == 'confirmed' ||
+        value == 'accepted') {
+      return OrderStatus.processing;
+    }
+    if (value == 'completed' || value == 'done' || value == 'delivered') {
+      return OrderStatus.completed;
+    }
+    if (value == 'cancelled' || value == 'rejected' || value == 'canceled') {
+      return OrderStatus.cancelled;
+    }
+    return OrderStatus.pending;
   }
 
   /// Translation key — every status already exists in the translation files.
