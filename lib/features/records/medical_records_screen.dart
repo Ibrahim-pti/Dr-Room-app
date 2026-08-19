@@ -75,30 +75,13 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        automaticallyImplyLeading: false,
         title: Text(
           'تۆماری پزیشکی',
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 18,
             fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor),
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new,
-                size: 16,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
           ),
         ),
       ),
@@ -114,7 +97,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Folders Section ──
+                    // ── Folders Section (Symmetrical 3 Columns) ──
                     Text(
                       'بەشە پزیشکییەکان',
                       style: _kStyle(
@@ -125,35 +108,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     ).animate().fadeIn(delay: 100.ms),
                     const SizedBox(height: 14),
 
-                    SizedBox(
-                      height: 130,
-                      child: ListView(
-                        physics: const BouncingScrollPhysics(),
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          _buildFolderCard(
-                            context,
-                            'پشکنینی تاقیگە',
-                            '${_labResults.length} پشکنین',
-                            const Color(0xFF3B82F6),
-                            Iconsax.document_like,
-                            isSelected: _selectedCategory == 'lab',
-                            onTap: () => setState(() => _selectedCategory =
-                                _selectedCategory == 'lab' ? 'all' : 'lab'),
-                            isDark: isDark,
-                          ),
-                          _buildFolderCard(
-                            context,
-                            'چاودێری پەرستاری',
-                            '${_nurseCares.length} تۆمار',
-                            const Color(0xFF10B981),
-                            Iconsax.health,
-                            isSelected: _selectedCategory == 'nurse',
-                            onTap: () => setState(() => _selectedCategory =
-                                _selectedCategory == 'nurse' ? 'all' : 'nurse'),
-                            isDark: isDark,
-                          ),
-                          _buildFolderCard(
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildFolderCard(
                             context,
                             'هەموو دۆسیەکان',
                             '${_labResults.length + _nurseCares.length} دۆسیە',
@@ -163,9 +121,37 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             onTap: () => setState(() => _selectedCategory = 'all'),
                             isDark: isDark,
                           ),
-                        ],
-                      ),
-                    ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.05, end: 0),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildFolderCard(
+                            context,
+                            'تاقیگە',
+                            '${_labResults.length} پشکنین',
+                            const Color(0xFF3B82F6),
+                            Iconsax.document_like,
+                            isSelected: _selectedCategory == 'lab',
+                            onTap: () => setState(() => _selectedCategory =
+                                _selectedCategory == 'lab' ? 'all' : 'lab'),
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildFolderCard(
+                            context,
+                            'پەرستاری',
+                            '${_nurseCares.length} تۆمار',
+                            const Color(0xFF10B981),
+                            Iconsax.health,
+                            isSelected: _selectedCategory == 'nurse',
+                            onTap: () => setState(() => _selectedCategory =
+                                _selectedCategory == 'nurse' ? 'all' : 'nurse'),
+                            isDark: isDark,
+                          ),
+                        ),
+                      ],
+                    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05, end: 0),
 
                     const SizedBox(height: 28),
 
@@ -277,16 +263,15 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 140,
-        margin: const EdgeInsetsDirectional.only(end: 12),
-        padding: const EdgeInsets.all(16),
+        height: 120,
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: cardBg,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: borderColor, width: isSelected ? 2 : 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: isSelected ? color.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
