@@ -142,20 +142,35 @@
                             $patientName = !empty($details['full_name']) ? $details['full_name'] : (!empty($details['name']) ? $details['name'] : ($order->patient?->name ?? 'نەخۆش'));
                             $patientPhone = !empty($details['phone']) ? $details['phone'] : ($order->patient?->phone ?? 'نەزانراو');
                             $patientAge = !empty($details['age']) ? $details['age'] : (!empty($details['patient_age']) ? $details['patient_age'] : null);
-                            $patientGender = !empty($details['gender']) ? $details['gender'] : null;
-                            $collectionMethodRaw = $details['sample_collection_method'] ?? ($order->extra_fee > 0 ? 'home' : 'lab');
+                            
+                            $rawGender = $details['patient_gender'] ?? $details['gender'] ?? $order->patient?->gender ?? null;
+                            $rawGenderLower = strtolower(trim((string)$rawGender));
+                            if (in_array($rawGenderLower, ['male', 'نێر', 'm', 'پیاو'])) {
+                                $patientGender = 'male';
+                                $patientGenderKurdish = 'نێر (Male)';
+                            } elseif (in_array($rawGenderLower, ['female', 'مێ', 'f', 'ئافرەت', 'ژن'])) {
+                                $patientGender = 'female';
+                                $patientGenderKurdish = 'مێ (Female)';
+                            } else {
+                                $patientGender = null;
+                                $patientGenderKurdish = 'دیارینەکراو';
+                            }
+
+                            $collectionMethodRaw = $details['collection_method'] ?? $details['sample_collection_method'] ?? ($order->extra_fee > 0 ? 'home' : 'lab');
                             $collectionMethodText = ($collectionMethodRaw === 'home') ? '🏠 لە ماڵەوە (Home Sample)' : '🏢 لە تاقیگە (Lab Visit)';
                             
-                            $address = !empty($details['address']) 
-                                ? $details['address'] 
-                                : (!empty($details['location_name']) 
-                                    ? $details['location_name'] 
-                                    : (!empty($loc['address']) ? $loc['address'] : 'هەولێر'));
+                            $address = !empty($details['location'])
+                                ? $details['location']
+                                : (!empty($details['address']) 
+                                    ? $details['address'] 
+                                    : (!empty($details['location_name']) 
+                                        ? $details['location_name'] 
+                                        : (!empty($loc['address']) ? $loc['address'] : 'هەولێر')));
                             
                             $notes = !empty($details['notes']) ? $details['notes'] : (!empty($details['description']) ? $details['description'] : 'هیچ تێبینییەک نەنوسراوە');
 
-                            $lat = $loc['latitude'] ?? $details['latitude'] ?? 36.1911;
-                            $lng = $loc['longitude'] ?? $details['longitude'] ?? 44.0092;
+                            $lat = $details['lat'] ?? $details['latitude'] ?? $loc['latitude'] ?? 36.1911;
+                            $lng = $details['lng'] ?? $details['longitude'] ?? $loc['longitude'] ?? 44.0092;
 
                             // Payment Method Kurdish Translation
                             $rawPayment = strtolower((string)($order->payment_method ?? 'cash'));
