@@ -620,7 +620,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       _buildDetailRow(
                         context,
                         'شێوازی پارەدان',
-                        _currentOrder.paymentMethod!,
+                        _formatPaymentMethod(_currentOrder.paymentMethod),
                         isDark: isDark,
                       ),
                     ],
@@ -640,35 +640,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.05, end: 0),
 
-              // Order Again Button (if completed or cancelled)
-              if (!_currentOrder.status.isActive) ...[
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    onPressed: _orderAgain,
-                    icon: const Icon(Iconsax.refresh, size: 18),
-                    label: Text(
-                      'دووبارەکردنەوەی داواکاری',
-                      style: _kStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                  ),
-                ).animate(delay: 250.ms).fadeIn(),
-              ],
-
               const SizedBox(height: 20),
             ],
           ),
@@ -677,20 +648,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  void _orderAgain() {
-    context.read<CartProvider>().clearCart();
-
-    final Widget destination = switch (_currentOrder.serviceType
-        .toLowerCase()) {
-      final s when s.contains('lab') => const LabOrderMethodScreen(),
-      final s when s.contains('nurs') => const NursingServicesScreen(),
-      _ => PharmaciesScreen(),
-    };
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => destination),
-    );
+  String _formatPaymentMethod(String? raw) {
+    if (raw == null || raw.isEmpty) return 'کاش';
+    final lower = raw.toLowerCase();
+    if (lower.contains('delivery') || lower.contains('cash') || lower.contains('کاش')) {
+      return 'کاش لەکاتی وەرگرتن';
+    } else if (lower.contains('fastpay')) {
+      return 'FastPay';
+    } else if (lower.contains('fib')) {
+      return 'FIB بانکی یەکەمی عێراق';
+    } else if (lower.contains('zain')) {
+      return 'Zain Cash';
+    }
+    return raw;
   }
 
   Widget _buildDetailRow(
