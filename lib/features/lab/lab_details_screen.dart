@@ -34,7 +34,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   YoutubePlayerController? _youtubeController;
   bool _isVideoPlaying = false;
 
-  final List<Map<String, dynamic>> _packages = [
+  List<Map<String, dynamic>> _packages = [
     {
       'id': 101,
       'name': 'پاکێجی پشکنینی گشتی (Full Body Checkup)',
@@ -177,6 +177,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     final p = (map['price'] as num?)?.toInt() ?? 10000;
                     map['original_price'] = (p / (1 - (d / 100))).round();
                   }
+                  return map;
+                }),
+              );
+            }
+            if (_labData['packages'] is List && (_labData['packages'] as List).isNotEmpty) {
+              _packages = List<Map<String, dynamic>>.from(
+                (_labData['packages'] as List).map((p) {
+                  final map = Map<String, dynamic>.from(p);
+                  map['icon'] = Icons.local_offer_rounded;
                   return map;
                 }),
               );

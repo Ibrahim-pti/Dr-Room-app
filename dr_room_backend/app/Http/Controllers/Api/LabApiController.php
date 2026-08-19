@@ -75,7 +75,7 @@ class LabApiController extends Controller
      */
     public function show($id)
     {
-        $user = User::with(['lab.tests'])
+        $user = User::with(['lab.tests', 'lab.packages'])
             ->where('role', 'lab')
             ->where('status', 'approved')
             ->where(function($q) use ($id) {
@@ -98,6 +98,41 @@ class LabApiController extends Controller
         $discount = $lab && $lab->discount !== null ? (int)$lab->discount : (($user->id == 12 || $user->id % 3 == 0) ? 25 : ($user->id % 4 == 0 ? 15 : null));
         $isOpen = ($user->id % 2 != 0 || $user->id == 12);
         
+        $packages = ($lab && $lab->packages && $lab->packages->isNotEmpty()) ? $lab->packages->where('is_active', true)->values()->map(function($p) {
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'name_ar' => $p->name_ar,
+                'name_en' => $p->name_en,
+                'desc' => $p->description ?? 'پاکێجی تایبەتی تاقیگە بە داشکاندنی ناوازە',
+                'description_ar' => $p->description_ar,
+                'description_en' => $p->description_en,
+                'price' => (int)$p->price,
+                'original_price' => (int)($p->original_price ?? ($p->discount ? round($p->price / (1 - ($p->discount / 100))) : $p->price)),
+                'discount' => (int)($p->discount ?? 0),
+                'test_ids' => $p->test_ids ?? [],
+            ];
+        }) : [
+            [
+                'id' => 101,
+                'name' => 'پاکێجی پشکنینی تەواوی جەستە (Full Body Checkup)',
+                'desc' => 'شاملی پشکنینی گشتی خوێن CBC، چەوری و کۆلیسترۆڵ، شەکرەی سێ مانگی، کاری جگەر و گورچیلە',
+                'original_price' => 85000,
+                'price' => 59000,
+                'discount' => 30,
+                'test_ids' => [1, 2, 3, 5, 6],
+            ],
+            [
+                'id' => 102,
+                'name' => 'پاکێجی ڤیتامین و ووزە (Vitamins & Energy)',
+                'desc' => 'پشکنینی وردی ڤیتامین D، ڤیتامین B12، ڕێژەی ئاسن و کانزاکانی جەستە',
+                'original_price' => 60000,
+                'price' => 42000,
+                'discount' => 30,
+                'test_ids' => [4],
+            ],
+        ];
+
         $data = [
             'id' => $user->id,
             'name' => $user->name,
@@ -129,6 +164,7 @@ class LabApiController extends Controller
             'about_us_en' => $lab ? $lab->about_us_en : 'Advanced medical diagnostic laboratory providing highly accurate and fast test results.',
             'latitude' => $lab && $lab->latitude ? $lab->latitude : '36.1911',
             'longitude' => $lab && $lab->longitude ? $lab->longitude : '44.0092',
+            'packages' => $packages,
             'tests' => ($lab && $lab->tests && $lab->tests->isNotEmpty()) ? $lab->tests->map(function($t) use ($discount) {
                 $disc = $t->discount ?? ($discount ? $discount : null);
                 $originalPrice = $disc ? round($t->price / (1 - ($disc / 100))) : null;

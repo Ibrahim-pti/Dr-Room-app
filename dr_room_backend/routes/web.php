@@ -145,6 +145,9 @@ Route::prefix('lab')->middleware(['auth', \App\Http\Middleware\IsLab::class])->g
         // Tests
         Route::resource('/tests', \App\Http\Controllers\Web\LabTestController::class, ['as' => 'lab']);
         
+        // Packages & Offers
+        Route::resource('/packages', \App\Http\Controllers\Web\LabPackageController::class, ['as' => 'lab']);
+        
         // Results
         Route::resource('/results', \App\Http\Controllers\Web\LabResultController::class, ['as' => 'lab']);
         

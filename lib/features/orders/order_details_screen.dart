@@ -5,12 +5,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../core/providers/order_provider.dart';
-import '../../core/providers/cart_provider.dart';
 import '../doctors/chat_screen.dart';
 import '../doctors/video_call_screen.dart';
-import '../lab/lab_order_method_screen.dart';
-import '../nursing/nursing_services_screen.dart';
-import '../pharmacy/screens/pharmacies_screen.dart';
 import 'widgets/order_progress_timeline.dart';
 
 class OrderDetailsScreen extends StatefulWidget {

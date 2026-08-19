@@ -24,4 +24,9 @@ class Lab extends Model
     {
         return $this->hasMany(LabTest::class);
     }
+
+    public function packages()
+    {
+        return $this->hasMany(LabPackage::class);
+    }
 }
