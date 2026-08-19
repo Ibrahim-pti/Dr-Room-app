@@ -29,7 +29,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
-      height: height,
+      height: height ?? 1.25,
     );
   }
 
@@ -67,14 +67,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark
-        ? const Color(0xFF334155)
-        : const Color(0xFFE2E8F0);
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return Scaffold(
-      backgroundColor: isDark
-          ? const Color(0xFF0F172A)
-          : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -142,10 +138,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             const Color(0xFF3B82F6),
                             Iconsax.document_like,
                             isSelected: _selectedCategory == 'lab',
-                            onTap: () => setState(
-                              () => _selectedCategory =
-                                  _selectedCategory == 'lab' ? 'all' : 'lab',
-                            ),
+                            onTap: () => setState(() => _selectedCategory =
+                                _selectedCategory == 'lab' ? 'all' : 'lab'),
                             isDark: isDark,
                           ),
                           _buildFolderCard(
@@ -155,12 +149,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             const Color(0xFF10B981),
                             Iconsax.health,
                             isSelected: _selectedCategory == 'nurse',
-                            onTap: () => setState(
-                              () => _selectedCategory =
-                                  _selectedCategory == 'nurse'
-                                  ? 'all'
-                                  : 'nurse',
-                            ),
+                            onTap: () => setState(() => _selectedCategory =
+                                _selectedCategory == 'nurse' ? 'all' : 'nurse'),
                             isDark: isDark,
                           ),
                           _buildFolderCard(
@@ -170,8 +160,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             const Color(0xFF8B5CF6),
                             Iconsax.folder_2,
                             isSelected: _selectedCategory == 'all',
-                            onTap: () =>
-                                setState(() => _selectedCategory = 'all'),
+                            onTap: () => setState(() => _selectedCategory = 'all'),
                             isDark: isDark,
                           ),
                         ],
@@ -187,9 +176,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         Text(
                           'تۆمار و ئەنجامەکان',
                           style: _kStyle(
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -206,44 +193,30 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     ).animate().fadeIn(delay: 300.ms),
                     const SizedBox(height: 14),
 
-                    // Lab Results
-                    if (_selectedCategory == 'all' ||
-                        _selectedCategory == 'lab') ...[
-                      ..._labResults.map(
-                        (item) => _buildFileItem(
-                          context,
-                          item['test_name'] ?? 'پشکنینی تاقیگە',
-                          '${item['lab_name'] ?? 'تاقیگە'} • ${item['created_at_human'] ?? item['created_at'] ?? ''}',
-                          item['status'] == 'completed'
-                              ? 'تەواوکراو'
-                              : (item['status'] ?? 'بەردەستە'),
-                          Iconsax.document_text,
-                          value: item['result_value'],
-                          notes: item['notes'],
-                          fileUrl: item['file_url'],
-                          isDark: isDark,
-                          onTap: () =>
-                              _showLabResultDetails(context, item, isDark),
-                        ),
-                      ),
+                    // Lab Results List
+                    if (_selectedCategory == 'all' || _selectedCategory == 'lab') ...[
+                      ..._labResults.map((item) => _buildFileItem(
+                            context,
+                            item['test_name'] ?? 'پشکنینی تاقیگە',
+                            '${item['lab_name'] ?? 'تاقیگە'} • ${item['created_at_human'] ?? item['created_at'] ?? ''}',
+                            item['status'] == 'completed' ? 'تەواوکراو' : (item['status'] ?? 'بەردەستە'),
+                            Iconsax.document_text,
+                            isDark: isDark,
+                            onTap: () => _showLabResultDetails(context, item, isDark),
+                          )),
                     ],
 
-                    // Nurse Cares
-                    if (_selectedCategory == 'all' ||
-                        _selectedCategory == 'nurse') ...[
-                      ..._nurseCares.map(
-                        (item) => _buildFileItem(
-                          context,
-                          'چاودێری پەرستاری: ${item['nurse_name'] ?? 'پەرستار'}',
-                          'بەروار: ${item['date'] ?? item['created_at'] ?? ''}',
-                          'تۆمارکراو',
-                          Iconsax.heart_tick,
-                          notes: item['notes'] ?? item['symptoms'],
-                          isDark: isDark,
-                          onTap: () =>
-                              _showNurseCareDetails(context, item, isDark),
-                        ),
-                      ),
+                    // Nurse Cares List
+                    if (_selectedCategory == 'all' || _selectedCategory == 'nurse') ...[
+                      ..._nurseCares.map((item) => _buildFileItem(
+                            context,
+                            'چاودێری پەرستاری: ${item['nurse_name'] ?? 'پەرستار'}',
+                            'بەروار: ${item['date'] ?? item['created_at'] ?? ''}',
+                            'تۆمارکراو',
+                            Iconsax.heart_tick,
+                            isDark: isDark,
+                            onTap: () => _showNurseCareDetails(context, item, isDark),
+                          )),
                     ],
 
                     if (_labResults.isEmpty && _nurseCares.isEmpty)
@@ -255,16 +228,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                               Container(
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF3B82F6,
-                                  ).withValues(alpha: 0.1),
+                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
-                                  Iconsax.folder_open,
-                                  color: Color(0xFF3B82F6),
-                                  size: 40,
-                                ),
+                                child: const Icon(Iconsax.folder_open, color: Color(0xFF3B82F6), size: 40),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -305,9 +272,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required bool isDark,
   }) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isSelected
-        ? color
-        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
+    final borderColor = isSelected ? color : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
 
     return GestureDetector(
       onTap: onTap,
@@ -368,29 +333,24 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
+  // Clean, Simple List Item (Tappable to see details)
   Widget _buildFileItem(
     BuildContext context,
     String name,
     String date,
     String status,
     IconData icon, {
-    String? value,
-    String? notes,
-    String? fileUrl,
     required bool isDark,
     required VoidCallback onTap,
   }) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark
-        ? const Color(0xFF334155)
-        : const Color(0xFFE2E8F0);
-    final hasFile = fileUrl != null && fileUrl.isNotEmpty;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(18),
@@ -403,144 +363,63 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(icon, color: const Color(0xFF3B82F6), size: 22),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: _kStyle(
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF0F172A),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        date,
-                        style: _kStyle(
-                          color: const Color(0xFF94A3B8),
-                          fontSize: 11.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    status,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: const Color(0xFF3B82F6), size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
                     style: _kStyle(
-                      color: const Color(0xFF10B981),
-                      fontSize: 11,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    date,
+                    style: _kStyle(
+                      color: const Color(0xFF94A3B8),
+                      fontSize: 11.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            if (value != null && value.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    Text(
-                      'ئەنجام: ',
-                      style: _kStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF3B82F6),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        value,
-                        style: _kStyle(
-                          fontSize: 12,
-                          color: isDark
-                              ? Colors.white70
-                              : const Color(0xFF334155),
-                        ),
-                      ),
-                    ),
-                  ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                status,
+                style: _kStyle(
+                  color: const Color(0xFF10B981),
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-            if (notes != null && notes.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                'تێبینی: $notes',
-                style: _kStyle(fontSize: 11.5, color: const Color(0xFF64748B)),
-              ),
-            ],
-            if (hasFile) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Iconsax.image,
-                      size: 14,
-                      color: Color(0xFF3B82F6),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'وێنەی پشکنین هاوپێچە (کلیک بکە بۆ بینین)',
-                      style: _kStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF3B82F6),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+            ),
           ],
         ),
       ),
@@ -555,9 +434,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     final resultValue = item['result_value'] ?? '';
     final notes = item['notes'] ?? '';
     final rawFileUrl = (item['file_url'] ?? item['file_path'] ?? '').toString();
-    final fullFileUrl = rawFileUrl.isNotEmpty
-        ? ApiClient.getImageUrl(rawFileUrl)
-        : '';
+    final fullFileUrl = rawFileUrl.isNotEmpty ? ApiClient.getImageUrl(rawFileUrl) : '';
 
     showModalBottomSheet(
       context: context,
@@ -608,11 +485,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(
-                      Iconsax.document_text,
-                      color: Color(0xFF3B82F6),
-                      size: 26,
-                    ),
+                    child: const Icon(Iconsax.document_text, color: Color(0xFF3B82F6), size: 26),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -624,9 +497,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           style: _kStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -641,10 +512,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: const Color(0xFF10B981).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
@@ -680,9 +548,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF3B82F6).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
-                    ),
+                    border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.2)),
                   ),
                   child: Text(
                     resultValue,
@@ -711,15 +577,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF0F172A)
-                        : const Color(0xFFF8FAFC),
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFE2E8F0),
-                    ),
+                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   ),
                   child: Text(
                     notes,
@@ -751,11 +611,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     constraints: const BoxConstraints(maxHeight: 260),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isDark
-                            ? const Color(0xFF334155)
-                            : const Color(0xFFE2E8F0),
-                      ),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: Stack(
@@ -777,23 +633,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
                               padding: const EdgeInsets.all(24),
-                              color: isDark
-                                  ? const Color(0xFF0F172A)
-                                  : const Color(0xFFF1F5F9),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                               child: Column(
                                 children: [
-                                  const Icon(
-                                    Iconsax.document_text,
-                                    size: 36,
-                                    color: Color(0xFF3B82F6),
-                                  ),
+                                  const Icon(Iconsax.document_text, size: 36, color: Color(0xFF3B82F6)),
                                   const SizedBox(height: 8),
                                   Text(
                                     'فایلی ڕاپۆرتی تاقیگە (PDF)',
-                                    style: _kStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: _kStyle(fontSize: 12, fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
@@ -804,29 +651,18 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           bottom: 10,
                           left: 10,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.7),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               children: [
-                                const Icon(
-                                  Iconsax.maximize_4,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
+                                const Icon(Iconsax.maximize_4, color: Colors.white, size: 14),
                                 const SizedBox(width: 4),
                                 Text(
                                   'گەورەکردن',
-                                  style: _kStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: _kStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -839,26 +675,48 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 const SizedBox(height: 20),
               ],
 
-              // Close button
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(
-                    'داخستن',
-                    style: _kStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+              // Safe and clean Close Button
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 8,
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(ctx),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.close_rounded, size: 20, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text(
+                            'داخستن',
+                            style: _kStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -905,43 +763,42 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               style: _kStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            Text(
-              'بەروار: $date',
-              style: _kStyle(fontSize: 12, color: const Color(0xFF94A3B8)),
-            ),
+            Text('بەروار: $date', style: _kStyle(fontSize: 12, color: const Color(0xFF94A3B8))),
             const SizedBox(height: 16),
             if (notes.isNotEmpty) ...[
-              Text(
-                'تێبینی و ڕێنمایی:',
-                style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
+              Text('تێبینی و ڕێنمایی:', style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
-              Text(
-                notes,
-                style: _kStyle(
-                  fontSize: 13,
-                  color: isDark ? Colors.white70 : const Color(0xFF334155),
-                ),
-              ),
+              Text(notes, style: _kStyle(fontSize: 13, color: isDark ? Colors.white70 : const Color(0xFF334155))),
             ],
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(
-                  'داخستن',
-                  style: _kStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+            Padding(
+              padding: EdgeInsets.only(
+                top: 20,
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.pop(ctx),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.close_rounded, size: 20, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Text(
+                          'داخستن',
+                          style: _kStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height: 1.1),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -961,14 +818,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           appBar: AppBar(
             backgroundColor: Colors.black,
             iconTheme: const IconThemeData(color: Colors.white),
-            title: Text(
-              'وێنەی پشکنین',
-              style: _kStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            title: Text('وێنەی پشکنین', style: _kStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
           ),
           body: Center(
             child: InteractiveViewer(
@@ -980,15 +830,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 imageUrl,
                 loadingBuilder: (context, child, progress) {
                   if (progress == null) return child;
-                  return const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  );
+                  return const Center(child: CircularProgressIndicator(color: Colors.white));
                 },
                 errorBuilder: (context, error, stackTrace) => const Center(
-                  child: Text(
-                    'هەڵە لە بارکردنی وێنە',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  child: Text('هەڵە لە بارکردنی وێنە', style: TextStyle(color: Colors.white)),
                 ),
               ),
             ),
