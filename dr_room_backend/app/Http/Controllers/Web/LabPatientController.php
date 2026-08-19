@@ -26,7 +26,7 @@ class LabPatientController extends Controller
             $query->where('status', $status);
         }
 
-        $orders = $query->latest()->paginate(15);
+        $orders = $query->latest()->paginate(10)->withQueryString();
 
         $counts = [
             'all' => Order::where(function($q) use ($user) {

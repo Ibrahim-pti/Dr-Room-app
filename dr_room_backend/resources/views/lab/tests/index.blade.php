@@ -156,6 +156,17 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination Footer -->
+        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div class="font-medium">
+                پیشاندانی <span class="font-bold text-slate-800">{{ $tests->firstItem() ?? 0 }}</span> بۆ <span class="font-bold text-slate-800">{{ $tests->lastItem() ?? 0 }}</span> لە کۆی <span class="font-bold text-blue-600">{{ $tests->total() }}</span> پشکنین
+            </div>
+
+            <div>
+                {{ $tests->links() }}
+            </div>
+        </div>
     </div>
 </div>
 @endsection

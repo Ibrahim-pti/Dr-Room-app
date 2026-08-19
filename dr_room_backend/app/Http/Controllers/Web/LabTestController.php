@@ -20,7 +20,7 @@ class LabTestController extends Controller
             $query->where('type', $type);
         }
 
-        $tests = $query->latest()->get();
+        $tests = $query->latest()->paginate(10)->withQueryString();
 
         return view('lab.tests.index', compact('tests', 'type'));
     }

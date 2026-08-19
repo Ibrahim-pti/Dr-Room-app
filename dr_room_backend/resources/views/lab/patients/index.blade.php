@@ -182,11 +182,16 @@
             </table>
         </div>
 
-        @if(method_exists($orders, 'hasPages') && $orders->hasPages())
-            <div class="p-4 border-t border-slate-100">
+        <!-- Pagination Footer -->
+        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div class="font-medium">
+                پیشاندانی <span class="font-bold text-slate-800">{{ $orders->firstItem() ?? 0 }}</span> بۆ <span class="font-bold text-slate-800">{{ $orders->lastItem() ?? 0 }}</span> لە کۆی <span class="font-bold text-blue-600">{{ $orders->total() }}</span> داواکاری
+            </div>
+
+            <div>
                 {{ $orders->links() }}
             </div>
-        @endif
+        </div>
     </div>
 </div>
 
