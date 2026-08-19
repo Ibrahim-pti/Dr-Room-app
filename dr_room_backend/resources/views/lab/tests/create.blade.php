@@ -65,7 +65,11 @@
                         نرخی پشکنین بە دینار (IQD) <span class="text-rose-500">*</span>
                     </label>
                     <input class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-xs text-slate-800 outline-none" 
-                           id="price" type="number" step="500" name="price" value="{{ old('price') }}" placeholder="10000" required>
+                           id="price" type="number" step="250" name="price" value="{{ old('price') }}" placeholder="نموونە: 10,000" required>
+                    <div id="pricePreview" class="text-xs font-bold text-blue-600 mt-1.5 hidden flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        <span>بڕی نرخ: <span id="priceFormatted" class="font-extrabold text-slate-900">0</span> دیناری عێراقی</span>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-2" for="discount">
@@ -147,6 +151,27 @@ async function translateAll() {
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
+}
+
+// Live Price Formatter (Thousands Separator)
+const priceInput = document.getElementById('price');
+const pricePreview = document.getElementById('pricePreview');
+const priceFormatted = document.getElementById('priceFormatted');
+
+function updatePricePreview() {
+    if (!priceInput || !pricePreview || !priceFormatted) return;
+    const val = parseFloat(priceInput.value);
+    if (!isNaN(val) && val > 0) {
+        priceFormatted.innerText = Number(val).toLocaleString('en-US');
+        pricePreview.classList.remove('hidden');
+    } else {
+        pricePreview.classList.add('hidden');
+    }
+}
+
+if (priceInput) {
+    priceInput.addEventListener('input', updatePricePreview);
+    updatePricePreview();
 }
 </script>
 @endsection
