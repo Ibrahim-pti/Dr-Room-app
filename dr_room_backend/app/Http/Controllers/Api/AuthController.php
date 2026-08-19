@@ -224,20 +224,26 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
+        $user = $request->user() ?: Auth::user();
         return response()->json([
-            'user' => $request->user()
+            'user' => $user
         ]);
     }
 
     public function updateProfile(Request $request)
     {
-        $user = $request->user();
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $request->validate([
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
             'gender' => 'nullable|string|in:male,female,Male,Female',
             'dob' => 'nullable|string',
             'blood_type' => 'nullable|string',
+            'profile_image' => 'nullable|image|max:5120',
         ]);
 
         if ($request->has('name')) $user->name = $request->name;
@@ -245,6 +251,11 @@ class AuthController extends Controller
         if ($request->has('gender')) $user->gender = $request->gender;
         if ($request->has('dob')) $user->dob = $request->dob;
         if ($request->has('blood_type')) $user->blood_type = $request->blood_type;
+
+        if ($request->hasFile('profile_image')) {
+            $path = $request->file('profile_image')->store('profiles', 'public');
+            $user->profile_image = $path;
+        }
 
         $user->save();
 
@@ -256,7 +267,7 @@ class AuthController extends Controller
 
     public function destroy(Request $request)
     {
-        $user = $request->user();
+        $user = $request->user() ?: Auth::user();
         if ($user) {
             $user->delete();
             return response()->json(['message' => 'هەژمارەکەت بە سەرکەوتوویی سڕایەوە']);

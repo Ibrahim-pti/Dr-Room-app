@@ -7,8 +7,6 @@ import '../../core/utils/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../main.dart';
 import 'admin_users_screen.dart';
-import 'admin_appointments_screen.dart';
-import 'admin_banners_screen.dart';
 import 'admin_app_bar.dart';
 
 class AdminMenuScreen extends StatefulWidget {
@@ -193,8 +191,9 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                             : () async {
                                 if (nameController.text.isEmpty ||
                                     phoneController.text.isEmpty ||
-                                    passwordController.text.isEmpty)
+                                    passwordController.text.isEmpty) {
                                   return;
+                                }
 
                                 setModalState(() => isAdding = true);
                                 try {
@@ -347,6 +346,13 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'icon': Iconsax.logout,
             'color': AppColors.error,
             'action': _logout,
+          },
+          {
+            'title': 'سڕینەوەی هەژمار',
+            'subtitle': 'سڕینەوەی هەژماری ئەدمین',
+            'icon': Iconsax.trash,
+            'color': AppColors.error,
+            'action': _deleteAccount,
           },
         ],
       },

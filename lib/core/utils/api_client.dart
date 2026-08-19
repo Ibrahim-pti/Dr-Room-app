@@ -126,4 +126,48 @@ class ApiClient {
 
   static Future<http.Response> delete(String endpoint) =>
       _send((headers) => http.delete(_uri(endpoint), headers: headers));
+
+  static Future<http.Response> uploadMultipart(
+    String endpoint, {
+    String method = 'POST',
+    Map<String, String>? fields,
+    String? fileField,
+    String? filePath,
+  }) async {
+    final prefs = await _getPrefs();
+    final token = prefs.getString('auth_token');
+
+    final uri = _uri(endpoint);
+    final request = http.MultipartRequest(method, uri);
+
+    request.headers.addAll({
+      'Accept': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    });
+
+    if (fields != null) {
+      request.fields.addAll(fields);
+    }
+
+    if (fileField != null && filePath != null && filePath.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
+    }
+
+    final streamedResponse = await request.send().timeout(
+      AppConfig.requestTimeout,
+      onTimeout: () => throw TimeoutException(
+        'The server took too long to respond.',
+        AppConfig.requestTimeout,
+      ),
+    );
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 401) {
+      await _clearSession();
+      onUnauthorized?.call();
+      throw const UnauthorizedException();
+    }
+
+    return response;
+  }
 }

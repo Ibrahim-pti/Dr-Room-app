@@ -2,7 +2,6 @@ import 'package:dr_room/core/utils/api_client.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
-import '../config/app_config.dart';
 import '../utils/currency.dart';
 
 /// Mirrors the `doctors` table as returned by `GET /api/doctors`.

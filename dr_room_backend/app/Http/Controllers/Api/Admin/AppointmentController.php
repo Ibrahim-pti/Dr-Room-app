@@ -10,7 +10,11 @@ class AppointmentController extends Controller
 {
     public function index()
     {
-        return Appointment::latest()->get();
+        $appointments = Appointment::with(['doctor.user', 'patient'])->latest()->get();
+        return response()->json([
+            'success' => true,
+            'data' => $appointments
+        ]);
     }
 
     public function store(Request $request)

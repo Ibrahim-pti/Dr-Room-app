@@ -57,6 +57,9 @@ class OrderModel {
   final String? assignedNurseId;
   final String? assignedNurseName;
   final String? assignedNurseAvatar;
+  final String? assignedPharmacyName;
+  final String? paymentMethod;
+  final List<dynamic>? items;
 
   /// Set only for orders built locally right after checkout, where the item
   /// names are known and more useful than the generic service name.
@@ -71,11 +74,15 @@ class OrderModel {
     this.assignedNurseId,
     this.assignedNurseName,
     this.assignedNurseAvatar,
+    this.assignedPharmacyName,
+    this.paymentMethod,
+    this.items,
     this.customTitle,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     final nurse = json['assigned_nurse'];
+    final pharmacy = json['assigned_pharmacy'];
 
     return OrderModel(
       id: json['id']?.toString() ?? '',
@@ -85,7 +92,10 @@ class OrderModel {
       date: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
       assignedNurseId: nurse?['id']?.toString(),
       assignedNurseName: nurse?['name']?.toString(),
-      assignedNurseAvatar: nurse?['avatar']?.toString(),
+      assignedNurseAvatar: nurse?['avatar']?.toString() ?? nurse?['profile_image']?.toString(),
+      assignedPharmacyName: pharmacy?['name']?.toString(),
+      paymentMethod: json['payment_method']?.toString(),
+      items: json['items'] is List ? json['items'] : null,
     );
   }
 
@@ -94,6 +104,9 @@ class OrderModel {
     String? assignedNurseId,
     String? assignedNurseName,
     String? assignedNurseAvatar,
+    String? assignedPharmacyName,
+    String? paymentMethod,
+    List<dynamic>? items,
   }) {
     return OrderModel(
       id: id,
@@ -104,6 +117,9 @@ class OrderModel {
       assignedNurseId: assignedNurseId ?? this.assignedNurseId,
       assignedNurseName: assignedNurseName ?? this.assignedNurseName,
       assignedNurseAvatar: assignedNurseAvatar ?? this.assignedNurseAvatar,
+      assignedPharmacyName: assignedPharmacyName ?? this.assignedPharmacyName,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      items: items ?? this.items,
       customTitle: customTitle,
     );
   }

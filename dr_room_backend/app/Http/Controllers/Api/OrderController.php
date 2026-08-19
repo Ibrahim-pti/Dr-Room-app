@@ -14,7 +14,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $orders = Order::where('patient_id', Auth::id())
-            ->with(['items', 'assignedNurse'])
+            ->with(['items', 'assignedNurse', 'assignedPharmacy'])
             ->orderBy('created_at', 'desc')
             ->get();
             
@@ -40,10 +40,29 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
+            $assignedPharmacyId = $request->assigned_pharmacy_id ?? $request->pharmacy_id;
+            $assignedNurseId = $request->assigned_nurse_id ?? $request->nurse_id;
+
+            // Auto detect assigned pharmacy or nurse from item extra_data if not directly specified
+            if (!$assignedPharmacyId && !empty($request->items)) {
+                foreach ($request->items as $item) {
+                    if (!empty($item['extra_data']['pharmacy_id'])) {
+                        $assignedPharmacyId = $item['extra_data']['pharmacy_id'];
+                        break;
+                    }
+                }
+            }
+
+            if (!$assignedNurseId && !empty($request->items)) {
+                foreach ($request->items as $item) {
+                    if (!empty($item['extra_data']['nurse_id'])) {
+                        $assignedNurseId = $item['extra_data']['nurse_id'];
+                        break;
+                    }
+                }
+            }
+
             $order = Order::create([
-                // No fallback: the route requires authentication, and guessing
-                // an id here once meant every order from a signed-out caller
-                // was filed against user 1.
                 'patient_id' => Auth::id(),
                 'service_type' => $request->service_type,
                 'subtotal' => $request->subtotal,
@@ -51,6 +70,8 @@ class OrderController extends Controller
                 'total_price' => $request->total_price,
                 'status' => 'pending',
                 'payment_method' => $request->payment_method,
+                'assigned_pharmacy_id' => $assignedPharmacyId,
+                'assigned_nurse_id' => $assignedNurseId,
                 'patient_details' => $request->patient_details ?? [],
                 'location_details' => $request->location_details ?? [],
             ]);
@@ -70,7 +91,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'message' => 'Order created successfully',
-                'order' => $order->load('items')
+                'order' => $order->load(['items', 'assignedNurse', 'assignedPharmacy'])
             ], 201);
 
         } catch (\Exception $e) {

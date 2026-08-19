@@ -315,7 +315,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 .fadeIn()
                 .slideY(begin: 0.05, end: 0),
 
-            // ── Assigned Professional Card (if any) ──
+            // ── Assigned Professional Card (if Nurse) ──
             if (_currentOrder.assignedNurseId != null && _currentOrder.assignedNurseName != null) ...[
               const SizedBox(height: 20),
               Container(
@@ -351,7 +351,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'تیمی تەندروستی تاقیگە',
+                                'تیمی تەندروستی پەرستاری',
                                 style: _kStyle(
                                   color: const Color(0xFF64748B),
                                   fontSize: 12,
@@ -417,6 +417,56 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ),
             ],
 
+            // ── Assigned Pharmacy Card (if Pharmacy) ──
+            if (_currentOrder.assignedPharmacyName != null) ...[
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(Iconsax.hospital, color: Color(0xFF10B981), size: 26),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _currentOrder.assignedPharmacyName!,
+                            style: _kStyle(
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'دەرمانخانەی جێبەجێکار',
+                            style: _kStyle(
+                              color: const Color(0xFF64748B),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 20),
 
             // ── Order Information Card ──
@@ -472,6 +522,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}',
                     isDark: isDark,
                   ),
+                  if (_currentOrder.paymentMethod != null) ...[
+                    const Divider(height: 24, thickness: 1, color: Color(0xFFF1F5F9)),
+                    _buildDetailRow(
+                      context,
+                      'شێوازی پارەدان',
+                      _currentOrder.paymentMethod!,
+                      isDark: isDark,
+                    ),
+                  ],
                   const Divider(height: 24, thickness: 1, color: Color(0xFFF1F5F9)),
                   _buildDetailRow(
                     context,

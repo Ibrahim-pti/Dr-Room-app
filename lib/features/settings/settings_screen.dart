@@ -9,10 +9,9 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../core/utils/api_client.dart';
 import 'personal_information_screen.dart';
 import 'help_support_screen.dart';
-import '../health_sync/health_dashboard_screen.dart';
-import '../settings/saved_addresses_screen.dart';
 import '../checkout/payment_history_screen.dart';
 import '../doctors/favorite_doctors_screen.dart';
 import '../records/medical_records_screen.dart';
@@ -28,6 +27,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String _userName = '';
   String _userPhone = '';
+  String? _profileImageUrl;
   bool _isGuest = false;
   bool _isAdmin = false;
 
@@ -50,6 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final un = prefs.getString('user_name') ?? '';
           _userName = un.isNotEmpty ? un : 'guest_user'.tr();
           _userPhone = prefs.getString('user_phone') ?? '';
+          _profileImageUrl = prefs.getString('user_profile_image');
         }
       });
     }
@@ -206,55 +207,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     end: 0,
                     child: Column(
                       children: [
-                        Stack(
-                          children: [
-                            Container(
-                              width: 90,
-                              height: 90,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isDark
-                                    ? const Color(0xFF334155)
-                                    : const Color(0xFFE2E8F0),
-                                border: Border.all(
-                                  color: Theme.of(
-                                    context,
-                                  ).scaffoldBackgroundColor,
-                                  width: 4,
-                                ),
+                        GestureDetector(
+                          onTap: () async {
+                            final res = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const PersonalInformationScreen(),
                               ),
-                              child: Icon(
-                                Icons.person_rounded,
-                                size: 50,
-                                color: isDark
-                                    ? const Color(0xFF64748B)
-                                    : const Color(0xFF94A3B8),
-                              ),
-                            ),
-                            PositionedDirectional(
-                              bottom: 0,
-                              end: 2,
-                              child: Container(
-                                width: 28,
-                                height: 28,
+                            );
+                            if (res == true || mounted) {
+                              _loadUserInfo();
+                            }
+                          },
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 90,
+                                height: 90,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF3B82F6),
                                   shape: BoxShape.circle,
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
                                   border: Border.all(
                                     color: Theme.of(
                                       context,
                                     ).scaffoldBackgroundColor,
-                                    width: 2,
+                                    width: 4,
+                                  ),
+                                  image: _profileImageUrl != null &&
+                                          _profileImageUrl!.isNotEmpty
+                                      ? DecorationImage(
+                                          image: NetworkImage(
+                                            ApiClient.getImageUrl(
+                                              _profileImageUrl!,
+                                            ),
+                                          ),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
+                                ),
+                                child: _profileImageUrl != null &&
+                                        _profileImageUrl!.isNotEmpty
+                                    ? null
+                                    : Icon(
+                                        Icons.person_rounded,
+                                        size: 50,
+                                        color: isDark
+                                            ? const Color(0xFF64748B)
+                                            : const Color(0xFF94A3B8),
+                                      ),
+                              ),
+                              PositionedDirectional(
+                                bottom: 0,
+                                end: 2,
+                                child: Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF3B82F6),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Theme.of(
+                                        context,
+                                      ).scaffoldBackgroundColor,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                    size: 14,
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 10),
                         Text(
@@ -402,37 +431,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           },
                         ),
 
-                        _buildDivider(context),
-                        _buildListItem(
-                          context,
-                          icon: Iconsax.health,
-                          title: 'health_data_sync'.tr(),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const HealthDashboardScreen(),
-                              ),
-                            );
-                          },
-                        ),
 
-                        _buildDivider(context),
-                        _buildListItem(
-                          context,
-                          imagePath: 'assets/images/settings_addresses.png',
-                          title: 'address'.tr(),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const SavedAddressesScreen(),
-                              ),
-                            );
-                          },
-                        ),
 
                         // The three below belong with the patient's own
                         // account rather than in the menu drawer, which is
@@ -595,50 +594,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildGridItem(
-    BuildContext context, {
-    IconData? icon,
-    String? imagePath,
-    Color? color,
-    required String label,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: color != null
-                  ? color.withValues(alpha: 0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: imagePath != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: Image.asset(imagePath, fit: BoxFit.cover),
-                  )
-                : Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              color: AppColors.getTextTitle(context),
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              height: 1.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildListItem(
     BuildContext context, {

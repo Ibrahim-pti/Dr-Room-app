@@ -6,6 +6,8 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../checkout/checkout_details_screen.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../../core/providers/cart_provider.dart';
 
 class UploadPrescriptionScreen extends StatefulWidget {
   const UploadPrescriptionScreen({super.key});
@@ -19,11 +21,51 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        _imageFile = File(image.path);
-      });
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppColors.getSurface(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'هەڵبژاردنی وێنەی ڕەچەتە',
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.getTextTitle(context),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Iconsax.gallery, color: Color(0xFF3B82F6)),
+                title: Text('گالەری (مۆبایل)', style: TextStyle(fontFamily: 'Rabar', color: AppColors.getTextTitle(context))),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Iconsax.camera, color: Color(0xFF10B981)),
+                title: Text('کامێرا', style: TextStyle(fontFamily: 'Rabar', color: AppColors.getTextTitle(context))),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (source != null) {
+      final XFile? image = await _picker.pickImage(source: source, imageQuality: 85);
+      if (image != null) {
+        setState(() {
+          _imageFile = File(image.path);
+        });
+      }
     }
   }
 
@@ -172,6 +214,17 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
               child: ElevatedButton(
                 onPressed: _imageFile != null
                     ? () {
+                        final cart = context.read<CartProvider>();
+                        cart.clearCart();
+                        cart.setServiceType('lab', extraFee: 0.0);
+                        cart.addItem(CartItem(
+                          id: 'prescription_photo',
+                          name: 'پشکنین بەپێی ڕەچەتە (Prescription Order)',
+                          price: 0.0,
+                          extraData: {
+                            'prescription_path': _imageFile?.path,
+                          },
+                        ));
                         Navigator.push(
                           context,
                           MaterialPageRoute(

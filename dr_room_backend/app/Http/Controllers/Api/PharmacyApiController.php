@@ -15,18 +15,31 @@ class PharmacyApiController extends Controller
      */
     public function index()
     {
-        $pharmacies = User::where('role', 'pharmacy')
+        $users = User::with('pharmacy')
+            ->where('role', 'pharmacy')
             ->where('status', 'approved')
-            ->select('id', 'name', 'email', 'phone', 'profile_image')
             ->get();
             
-        // Map the image paths properly
-        $pharmacies->transform(function($pharmacy) {
-            $pharmacy->profile_image = $pharmacy->profile_image ? asset('storage/' . $pharmacy->profile_image) : null;
-            $pharmacy->delivery_fee = 3000; // Mock default
-            $pharmacy->rating = 4.8; // Mock rating
-            $pharmacy->is_open = true; // Mock status
-            return $pharmacy;
+        $pharmacies = $users->map(function($user) {
+            $pharmacy = $user->pharmacy;
+            $image = $pharmacy && $pharmacy->image_path 
+                ? (str_starts_with($pharmacy->image_path, 'http') ? $pharmacy->image_path : asset('storage/' . $pharmacy->image_path)) 
+                : ($user->profile_image ? (str_starts_with($user->profile_image, 'http') ? $user->profile_image : asset('storage/' . $user->profile_image)) : null);
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'name_ar' => $user->name_ar ?? $user->name,
+                'name_en' => $user->name_en ?? $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?? ($pharmacy ? $pharmacy->phone : null),
+                'address' => $pharmacy ? ($pharmacy->location ?? 'هەولێر') : 'هەولێر',
+                'location' => $pharmacy ? ($pharmacy->location ?? 'هەولێر') : 'هەولێر',
+                'profile_image' => $image,
+                'delivery_fee' => 3000,
+                'rating' => $pharmacy && $pharmacy->rating ? (float)$pharmacy->rating : 4.8,
+                'is_open' => true,
+            ];
         });
 
         return response()->json([
@@ -45,7 +58,7 @@ class PharmacyApiController extends Controller
             ->get();
 
         $medications->transform(function($medication) {
-            $medication->image_url = $medication->image_path ? asset('storage/' . $medication->image_path) : null;
+            $medication->image_url = $medication->image_path ? (str_starts_with($medication->image_path, 'http') ? $medication->image_path : asset('storage/' . $medication->image_path)) : null;
             return $medication;
         });
 
@@ -73,7 +86,7 @@ class PharmacyApiController extends Controller
             ->get();
 
         $offers->transform(function($offer) {
-            $offer->image_url = $offer->image_path ? asset('storage/' . $offer->image_path) : null;
+            $offer->image_url = $offer->image_path ? (str_starts_with($offer->image_path, 'http') ? $offer->image_path : asset('storage/' . $offer->image_path)) : null;
             return $offer;
         });
 

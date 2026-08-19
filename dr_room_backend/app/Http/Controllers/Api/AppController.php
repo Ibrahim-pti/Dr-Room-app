@@ -42,8 +42,9 @@ class AppController extends Controller
         return Article::where('is_published', true)->latest()->get();
     }
 
-    public function notifications(Request $request)
+    public function notifications(Request $request = null)
     {
+        $request = $request ?: request();
         $userId = $request->user() ? $request->user()->id : null;
         
         return AppNotification::whereNull('user_id')

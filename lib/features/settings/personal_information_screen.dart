@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
@@ -23,6 +24,8 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
 
   String _selectedGender = 'Female';
   bool _isLoading = false;
+  File? _selectedImage;
+  String? _profileImageUrl;
 
   @override
   void initState() {
@@ -38,6 +41,7 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
       _emailController.text = prefs.getString('user_email') ?? '';
       _selectedGender = prefs.getString('guest_gender') ?? 'Female';
       _dobController.text = prefs.getString('user_dob') ?? '';
+      _profileImageUrl = prefs.getString('user_profile_image');
     });
 
     try {
@@ -62,10 +66,64 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
             if ((u['dob'] ?? '').toString().isNotEmpty) {
               _dobController.text = u['dob'];
             }
+            if ((u['profile_image'] ?? '').toString().isNotEmpty) {
+              _profileImageUrl = u['profile_image'];
+              prefs.setString('user_profile_image', _profileImageUrl!);
+            }
           });
         }
       }
     } catch (_) {}
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppColors.getSurface(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'هەڵبژاردنی وێنەی پڕۆفایل',
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.getTextTitle(context),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Iconsax.gallery, color: Color(0xFF3B82F6)),
+                title: Text('گالەری (مۆبایل)', style: TextStyle(fontFamily: 'Rabar', color: AppColors.getTextTitle(context))),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Iconsax.camera, color: Color(0xFF10B981)),
+                title: Text('کامێرا', style: TextStyle(fontFamily: 'Rabar', color: AppColors.getTextTitle(context))),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (source != null) {
+      final picked = await picker.pickImage(source: source, imageQuality: 85);
+      if (picked != null) {
+        setState(() {
+          _selectedImage = File(picked.path);
+        });
+      }
+    }
   }
 
   Future<void> _saveChanges() async {
@@ -81,19 +139,42 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
       await prefs.setString('user_dob', dob);
       await prefs.setString('guest_gender', _selectedGender);
 
-      await ApiClient.put('/user', body: {
-        'name': name,
-        'email': email,
-        'dob': dob,
-        'gender': _selectedGender,
-      });
+      dynamic response;
+      if (_selectedImage != null) {
+        response = await ApiClient.uploadMultipart(
+          '/user',
+          fields: {
+            'name': name,
+            'email': email,
+            'dob': dob,
+            'gender': _selectedGender,
+          },
+          fileField: 'profile_image',
+          filePath: _selectedImage!.path,
+        );
+      } else {
+        response = await ApiClient.put('/user', body: {
+          'name': name,
+          'email': email,
+          'dob': dob,
+          'gender': _selectedGender,
+        });
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final user = data['user'];
+        if (user != null && user['profile_image'] != null) {
+          await prefs.setString('user_profile_image', user['profile_image'].toString());
+        }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
+            content: const Text(
               'پڕۆفایلەکەت بە سەرکەوتوویی نوێکرایەوە',
-              style: GoogleFonts.poppins(color: Colors.white),
+              style: TextStyle(fontFamily: 'Rabar', color: Colors.white),
             ),
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
@@ -106,9 +187,9 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
+            content: const Text(
               'هەڵەیەک ڕوویدا لە نوێکردنەوەی پڕۆفایل',
-              style: GoogleFonts.poppins(color: Colors.white),
+              style: TextStyle(fontFamily: 'Rabar', color: Colors.white),
             ),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
@@ -148,7 +229,8 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
         ),
         title: Text(
           'personal_information'.tr(),
-          style: GoogleFonts.poppins(
+          style: TextStyle(
+            fontFamily: 'Rabar',
             color: AppColors.getTextTitle(context),
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -160,46 +242,53 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Profile Image
+            // Profile Image Picker
             Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF3B82F6),
-                        width: 3,
-                      ),
-                      image: const DecorationImage(
-                        image: AssetImage('assets/images/doctor2.png'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  PositionedDirectional(
-                    bottom: 0,
-                    end: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.getBackground(context),
-                          width: 2,
+                          color: const Color(0xFF3B82F6),
+                          width: 3,
+                        ),
+                        image: DecorationImage(
+                          image: _selectedImage != null
+                              ? FileImage(_selectedImage!) as ImageProvider
+                              : (_profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                                  ? NetworkImage(ApiClient.getImageUrl(_profileImageUrl!))
+                                  : const AssetImage('assets/images/doctor2.png') as ImageProvider),
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      child: const Icon(
-                        Iconsax.camera,
-                        color: Colors.white,
-                        size: 16,
+                    ),
+                    PositionedDirectional(
+                      bottom: 0,
+                      end: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3B82F6),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.getBackground(context),
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Iconsax.camera,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 32),
@@ -237,25 +326,26 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
               onTap: () async {
                 final date = await showDatePicker(
                   context: context,
-                  initialDate: DateTime(1995, 1, 1),
-                  firstDate: DateTime(1940),
+                  initialDate: DateTime.now().subtract(const Duration(days: 365 * 20)),
+                  firstDate: DateTime(1900),
                   lastDate: DateTime.now(),
                 );
                 if (date != null) {
-                  _dobController.text = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                  _dobController.text = DateFormat('yyyy-MM-dd').format(date);
                 }
               },
             ),
             const SizedBox(height: 16),
 
-            // Gender Selection
+            // Gender Selector
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'gender'.tr(),
-                  style: GoogleFonts.poppins(
-                    color: AppColors.getTextSubtitle(context),
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    color: AppColors.getTextTitle(context),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -263,15 +353,28 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    _buildGenderOption('male'.tr(), Icons.male_rounded),
+                    Expanded(
+                      child: _buildGenderOption(
+                        title: 'male'.tr(),
+                        value: 'Male',
+                        selected: _selectedGender == 'Male',
+                        onTap: () => setState(() => _selectedGender = 'Male'),
+                      ),
+                    ),
                     const SizedBox(width: 16),
-                    _buildGenderOption('female'.tr(), Icons.female_rounded),
+                    Expanded(
+                      child: _buildGenderOption(
+                        title: 'female'.tr(),
+                        value: 'Female',
+                        selected: _selectedGender == 'Female',
+                        onTap: () => setState(() => _selectedGender = 'Female'),
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
-
-            const SizedBox(height: 48),
+            const SizedBox(height: 40),
 
             // Save Button
             SizedBox(
@@ -281,17 +384,25 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                 onPressed: _isLoading ? null : _saveChanges,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  elevation: 0,
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
                     : Text(
                         'save_changes'.tr(),
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -308,8 +419,8 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
     required String label,
     required TextEditingController controller,
     required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
     bool readOnly = false,
+    TextInputType? keyboardType,
     VoidCallback? onTap,
   }) {
     return Column(
@@ -317,8 +428,9 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.poppins(
-            color: AppColors.getTextSubtitle(context),
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            color: AppColors.getTextTitle(context),
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -332,19 +444,15 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
           ),
           child: TextField(
             controller: controller,
-            keyboardType: keyboardType,
             readOnly: readOnly,
+            keyboardType: keyboardType,
             onTap: onTap,
-            style: GoogleFonts.poppins(
+            style: TextStyle(
+              fontFamily: 'Rabar',
               color: AppColors.getTextTitle(context),
               fontSize: 16,
             ),
             decoration: InputDecoration(
-              hintText: label,
-              hintStyle: GoogleFonts.poppins(
-                color: const Color(0xFF94A3B8),
-                fontSize: 14,
-              ),
               prefixIcon: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
@@ -358,51 +466,39 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
     );
   }
 
-  Widget _buildGenderOption(String gender, IconData icon) {
-    final isSelected = _selectedGender == gender;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedGender = gender;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFFE0EEFF)
-                : AppColors.getSurface(context),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected
-                  ? const Color(0xFF3B82F6)
-                  : AppColors.getBorder(context),
-              width: isSelected ? 2 : 1,
-            ),
+  Widget _buildGenderOption({
+    required String title,
+    required String value,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: selected
+              ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
+              : AppColors.getSurface(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected
+                ? const Color(0xFF3B82F6)
+                : AppColors.getBorder(context),
+            width: selected ? 2 : 1,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: isSelected
-                    ? const Color(0xFF3B82F6)
-                    : const Color(0xFF94A3B8),
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                gender,
-                style: GoogleFonts.poppins(
-                  color: isSelected
-                      ? const Color(0xFF3B82F6)
-                      : AppColors.getTextTitle(context),
-                  fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-              ),
-            ],
+        ),
+        child: Center(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              color: selected
+                  ? const Color(0xFF3B82F6)
+                  : AppColors.getTextTitle(context),
+              fontSize: 16,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ),
       ),

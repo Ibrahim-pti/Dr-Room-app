@@ -59,7 +59,7 @@ Route::get('/labs/{id}', [\App\Http\Controllers\Api\LabApiController::class, 'sh
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
-    Route::put('/user', [AuthController::class, 'updateProfile']);
+    Route::match(['put', 'post'], '/user', [AuthController::class, 'updateProfile']);
     Route::delete('/user', [AuthController::class, 'destroy']);
 
     // ─── Patient: Appointment Booking ──────────────────────────────────────
@@ -80,6 +80,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ─── Patient: AI Pill Scanner ───────────────────────────────────────────
     Route::post('/pills/identify', [\App\Http\Controllers\Api\PillIdentifierController::class, 'identify']);
+
+    // ─── Patient: Payments ─────────────────────────────────────────────────
+    Route::post('/payments/create-intent', [\App\Http\Controllers\Api\PaymentController::class, 'createIntent']);
+    Route::post('/payments/confirm', [\App\Http\Controllers\Api\PaymentController::class, 'confirm']);
+    Route::get('/payments/history', [\App\Http\Controllers\Api\PaymentController::class, 'history']);
+    Route::get('/payments/transaction/{id}', [\App\Http\Controllers\Api\PaymentController::class, 'show']);
+    Route::get('/payments/methods', [\App\Http\Controllers\Api\PaymentController::class, 'methods']);
+    Route::post('/payments/methods', [\App\Http\Controllers\Api\PaymentController::class, 'storeMethod']);
+    Route::delete('/payments/methods/{id}', [\App\Http\Controllers\Api\PaymentController::class, 'deleteMethod']);
+    Route::get('/payments/receipt/{id}', [\App\Http\Controllers\Api\PaymentController::class, 'receipt']);
 
     // ─── Doctor: Dashboard API ─────────────────────────────────────────────
     Route::middleware([\App\Http\Middleware\IsDoctor::class])->prefix('doctor')->group(function () {
@@ -107,7 +117,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Orders
         Route::get('/orders', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'index']);
         Route::patch('/orders/{id}/assign-nurse', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'assignNurse']);
+        Route::patch('/orders/{id}/assign-pharmacy', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'assignPharmacy']);
         Route::patch('/orders/{id}/status', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'updateStatus']);
+        Route::delete('/orders/{id}', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'destroy']);
 
         // Doctors
         Route::get('/doctors', [\App\Http\Controllers\Api\Admin\AdminDoctorController::class, 'index']);
@@ -117,24 +129,32 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Nurses
         Route::get('/nurses', [\App\Http\Controllers\Api\Admin\AdminNurseController::class, 'index']);
+        Route::post('/nurses', [\App\Http\Controllers\Api\Admin\AdminNurseController::class, 'store']);
+        Route::put('/nurses/{id}', [\App\Http\Controllers\Api\Admin\AdminNurseController::class, 'update']);
         Route::patch('/nurses/{id}/approve', [\App\Http\Controllers\Api\Admin\AdminNurseController::class, 'approve']);
         Route::patch('/nurses/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminNurseController::class, 'reject']);
         Route::delete('/nurses/{id}', [\App\Http\Controllers\Api\Admin\AdminNurseController::class, 'destroy']);
 
         // Labs
         Route::get('/labs', [\App\Http\Controllers\Api\Admin\AdminLabController::class, 'index']);
+        Route::post('/labs', [\App\Http\Controllers\Api\Admin\AdminLabController::class, 'store']);
+        Route::put('/labs/{id}', [\App\Http\Controllers\Api\Admin\AdminLabController::class, 'update']);
         Route::patch('/labs/{id}/approve', [\App\Http\Controllers\Api\Admin\AdminLabController::class, 'approve']);
         Route::patch('/labs/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminLabController::class, 'reject']);
         Route::delete('/labs/{id}', [\App\Http\Controllers\Api\Admin\AdminLabController::class, 'destroy']);
 
         // Pharmacies
         Route::get('/pharmacies', [\App\Http\Controllers\Api\Admin\AdminPharmacyController::class, 'index']);
+        Route::post('/pharmacies', [\App\Http\Controllers\Api\Admin\AdminPharmacyController::class, 'store']);
+        Route::put('/pharmacies/{id}', [\App\Http\Controllers\Api\Admin\AdminPharmacyController::class, 'update']);
         Route::patch('/pharmacies/{id}/approve', [\App\Http\Controllers\Api\Admin\AdminPharmacyController::class, 'approve']);
         Route::patch('/pharmacies/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminPharmacyController::class, 'reject']);
         Route::delete('/pharmacies/{id}', [\App\Http\Controllers\Api\Admin\AdminPharmacyController::class, 'destroy']);
 
         // X-Rays
         Route::get('/xrays', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'index']);
+        Route::post('/xrays', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'store']);
+        Route::put('/xrays/{id}', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'update']);
         Route::patch('/xrays/{id}/approve', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'approve']);
         Route::patch('/xrays/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'reject']);
         Route::delete('/xrays/{id}', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'destroy']);

@@ -340,7 +340,9 @@ class _VirtualWaitingRoomScreenState extends State<VirtualWaitingRoomScreen>
                           Text('نۆرەی تۆ لە نۆرەگریدا', style: _kStyle(color: Colors.white70, fontSize: 13)),
                           const SizedBox(height: 4),
                           Text(
-                            _queuePosition > 0 ? 'نەفەری $_queuePosition لە $_totalInQueue' : 'نۆرەی تۆیە ئێستا!',
+                            _isAlmostReady && _queuePosition > 0
+                                ? 'نزیک بوویەوە! نۆرەی $_queuePosition'
+                                : (_queuePosition > 0 ? 'نەفەری $_queuePosition لە $_totalInQueue' : 'نۆرەی تۆیە ئێستا!'),
                             style: _kStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ],
