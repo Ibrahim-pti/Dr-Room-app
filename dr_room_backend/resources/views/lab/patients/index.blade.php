@@ -2,70 +2,163 @@
 @section('header_title', 'داواکارییەکانی پشکنین و نەخۆشەکان')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header with Clean Filter Dropdown -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-            <!-- Title & Subtitle -->
-            <div>
-                <div class="flex items-center gap-3">
-                    <h2 class="text-xl font-bold text-slate-800">داواکارییەکانی پشکنینی تاقیگە</h2>
-                    <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
-                        کۆی گشتی: {{ $counts['all'] ?? $orders->total() ?? 0 }} داواکاری
-                    </span>
-                </div>
-                <p class="text-sm text-slate-500 mt-1">سەرجەم داواکارییە نێردراوەکانی نەخۆش لە ڕێگەی ئەپڵیکەیشنەوە لەگەڵ پرۆفایل و وردەکاری تەواو.</p>
-            </div>
+<style>
+    .order-card-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        text-align: right;
+    }
+    .order-card-table th {
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 14px 18px;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    .order-card-table td {
+        padding: 16px 18px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        background: #ffffff;
+        font-size: 0.85rem;
+    }
+    .order-card-table tr:hover td {
+        background: #f8fafc;
+    }
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .badge-home {
+        background: #faf5ff;
+        color: #7e22ce;
+        border: 1px solid #e9d5ff;
+    }
+    .badge-lab {
+        background: #ecfeff;
+        color: #0e7490;
+        border: 1px solid #cffafe;
+    }
+    .badge-ord {
+        background: #f1f5f9;
+        color: #1e293b;
+        font-weight: 800;
+        font-family: monospace;
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        border-radius: 8px;
+        display: inline-block;
+    }
+    .status-select {
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        outline: none;
+        transition: all 0.2s;
+    }
+    .status-pending { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+    .status-progress { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .status-completed { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+    .status-cancelled { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    
+    .test-item-chip {
+        display: inline-block;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 2px 0;
+    }
+    .btn-detail {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #dbeafe;
+        padding: 6px 12px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s;
+    }
+    .btn-detail:hover {
+        background: #2563eb;
+        color: #ffffff;
+    }
+</style>
 
-            <!-- Sleek Styled Filter Dropdown -->
-            <div class="flex items-center gap-2 self-start lg:self-auto">
-                <div class="relative">
-                    <select onchange="location = this.value;" 
-                            class="appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-slate-700 font-bold text-xs rounded-2xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer shadow-sm min-w-[220px]">
-                        <option value="{{ route('lab.patients.index') }}" {{ !$status || $status == 'all' ? 'selected' : '' }}>
-                            🔍 هەموو داواکارییەکان ({{ $counts['all'] ?? 0 }})
-                        </option>
-                        <option value="{{ route('lab.patients.index', ['status' => 'pending']) }}" {{ $status == 'pending' ? 'selected' : '' }}>
-                            ⏳ لە چاوەڕوانیدا ({{ $counts['pending'] ?? 0 }})
-                        </option>
-                        <option value="{{ route('lab.patients.index', ['status' => 'approved']) }}" {{ $status == 'approved' ? 'selected' : '' }}>
-                            🔬 نموونە وەرگیرا / لە کاردایە ({{ $counts['approved'] ?? 0 }})
-                        </option>
-                        <option value="{{ route('lab.patients.index', ['status' => 'completed']) }}" {{ $status == 'completed' ? 'selected' : '' }}>
-                            ✅ تەواوکراو و ئەنجام ئامادەیە ({{ $counts['completed'] ?? 0 }})
-                        </option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-3 text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
+<div class="space-y-6">
+    <!-- Header with Dropdown Filter -->
+    <div style="background: #ffffff; padding: 20px 24px; border-radius: 18px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.03); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">داواکارییەکانی پشکنینی تاقیگە</h2>
+                <span style="background: #eff6ff; color: #2563eb; font-size: 0.75rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; border: 1px solid #dbeafe;">
+                    کۆی گشتی: {{ $counts['all'] ?? $orders->total() ?? 0 }} داواکاری
+                </span>
             </div>
+            <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">سەرجەم داواکارییە نێردراوەکانی نەخۆش لە ڕێگەی ئەپڵیکەیشنەوە.</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <select onchange="location = this.value;" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 0.82rem; font-weight: 700; padding: 8px 16px; border-radius: 12px; cursor: pointer; outline: none;">
+                <option value="{{ route('lab.patients.index') }}" {{ !$status || $status == 'all' ? 'selected' : '' }}>
+                    🔍 هەموو داواکارییەکان ({{ $counts['all'] ?? 0 }})
+                </option>
+                <option value="{{ route('lab.patients.index', ['status' => 'pending']) }}" {{ $status == 'pending' ? 'selected' : '' }}>
+                    ⏳ لە چاوەڕوانیدا ({{ $counts['pending'] ?? 0 }})
+                </option>
+                <option value="{{ route('lab.patients.index', ['status' => 'approved']) }}" {{ $status == 'approved' ? 'selected' : '' }}>
+                    🔬 نموونە وەرگیرا / لە کاردایە ({{ $counts['approved'] ?? 0 }})
+                </option>
+                <option value="{{ route('lab.patients.index', ['status' => 'completed']) }}" {{ $status == 'completed' ? 'selected' : '' }}>
+                    ✅ تەواوکراو و ئەنجام ئامادەیە ({{ $counts['completed'] ?? 0 }})
+                </option>
+            </select>
         </div>
     </div>
 
     @if(session('success'))
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl font-bold flex items-center gap-3 shadow-sm">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <div style="padding: 12px 18px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; border-radius: 14px; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             <span>{{ session('success') }}</span>
         </div>
     @endif
 
-    <!-- Orders List Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-right text-sm">
-                <thead class="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-bold text-xs uppercase tracking-wider">
+    <!-- Orders Table Container -->
+    <div style="background: #ffffff; border-radius: 18px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+        <div style="overflow-x: auto;">
+            <table class="order-card-table">
+                <thead>
                     <tr>
-                        <th class="px-6 py-4">داواکاری & کات</th>
-                        <th class="px-6 py-4">پرۆفایلی نەخۆش</th>
-                        <th class="px-6 py-4">وەرگرتنی نموونە & شوێن</th>
-                        <th class="px-6 py-4">پشکنینەکان</th>
-                        <th class="px-6 py-4">بڕی پارە & شێواز</th>
-                        <th class="px-6 py-4">بارودۆخ</th>
-                        <th class="px-6 py-4 text-center">کردارەکان</th>
+                        <th style="width: 12%;">داواکاری</th>
+                        <th style="width: 22%;">نەخۆش</th>
+                        <th style="width: 18%;">وەرگرتنی نموونە & شوێن</th>
+                        <th style="width: 20%;">پشکنینەکان</th>
+                        <th style="width: 12%;">کۆی نرخ</th>
+                        <th style="width: 16%;">بارودۆخ</th>
+                        <th style="width: 10%; text-align: center;">وردەکاری</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     @forelse($orders as $order)
                         @php
                             $details = is_array($order->patient_details) ? $order->patient_details : (json_decode($order->patient_details, true) ?? []);
@@ -76,130 +169,101 @@
                             $patientGender = $details['gender'] ?? null;
                             $collectionMethod = $details['sample_collection_method'] ?? ($order->extra_fee > 0 ? 'home' : 'lab');
                             $address = $details['address'] ?? $details['location_name'] ?? $loc['address'] ?? 'هەولێر';
-                            $initial = mb_substr($patientName, 0, 1);
                         @endphp
-                        <tr class="hover:bg-slate-50/70 transition-colors">
+                        <tr>
                             <!-- Order ID & Date -->
-                            <td class="px-6 py-4">
-                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 font-black text-xs" dir="ltr">
-                                    #ORD-{{ $order->id }}
-                                </div>
-                                <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-1" dir="ltr">
-                                    <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    {{ $order->created_at->format('Y-m-d H:i') }}
-                                </div>
+                            <td>
+                                <div class="badge-ord">#ORD-{{ $order->id }}</div>
+                                <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px;" dir="ltr">{{ $order->created_at->format('Y-m-d H:i') }}</div>
                             </td>
 
-                            <!-- Patient Profile Card -->
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <!-- Avatar -->
-                                    <div class="w-10 h-10 rounded-full {{ $patientGender == 'female' ? 'bg-pink-100 text-pink-700 border-pink-200' : 'bg-blue-100 text-blue-700 border-blue-200' }} border-2 flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
-                                        {{ $initial }}
-                                    </div>
-                                    <div class="space-y-0.5">
-                                        <div class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                                            <span>{{ $patientName }}</span>
-                                            @if($patientGender)
-                                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold {{ $patientGender == 'female' ? 'bg-pink-50 text-pink-600 border border-pink-200/60' : 'bg-blue-50 text-blue-600 border border-blue-200/60' }}">
-                                                    {{ $patientGender == 'female' ? 'مێ' : 'نێر' }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <div class="flex items-center gap-2 text-xs text-slate-500">
-                                            <a href="tel:{{ $patientPhone }}" class="font-semibold text-blue-600 hover:underline flex items-center gap-1" dir="ltr">
-                                                <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                                {{ $patientPhone }}
-                                            </a>
-                                            @if($patientAge)
-                                                <span class="text-slate-300">•</span>
-                                                <span class="text-slate-500 font-medium">{{ $patientAge }} ساڵ</span>
-                                            @endif
-                                        </div>
-                                    </div>
+                            <!-- Patient Info (Single neat row) -->
+                            <td>
+                                <div style="font-weight: 800; color: #1e293b; font-size: 0.92rem; display: flex; align-items: center; gap: 6px;">
+                                    <span>{{ $patientName }}</span>
+                                    @if($patientGender)
+                                        <span style="font-size: 0.68rem; padding: 1px 6px; border-radius: 6px; font-weight: 700; background: {{ $patientGender == 'female' ? '#fdf2f8; color: #db2777' : '#eff6ff; color: #2563eb' }};">
+                                            {{ $patientGender == 'female' ? 'مێ' : 'نێر' }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div style="font-size: 0.78rem; color: #64748b; margin-top: 3px; display: flex; align-items: center; gap: 8px;">
+                                    <a href="tel:{{ $patientPhone }}" style="color: #2563eb; font-weight: 700; text-decoration: none;" dir="ltr">📞 {{ $patientPhone }}</a>
+                                    @if($patientAge)
+                                        <span>• {{ $patientAge }} ساڵ</span>
+                                    @endif
                                 </div>
                             </td>
 
                             <!-- Sample Collection & Location -->
-                            <td class="px-6 py-4">
+                            <td>
                                 @if($collectionMethod == 'home')
-                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-50 text-purple-700 font-bold text-xs border border-purple-200/60 shadow-xs">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                                        لە ماڵەوە (Home Sample)
-                                    </div>
+                                    <span class="badge-pill badge-home">
+                                        🏠 لە ماڵەوە (Home)
+                                    </span>
                                 @else
-                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-cyan-50 text-cyan-700 font-bold text-xs border border-cyan-200/60 shadow-xs">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                        لە تاقیگە (Lab Visit)
-                                    </div>
+                                    <span class="badge-pill badge-lab">
+                                        🏢 لە تاقیگە (Lab)
+                                    </span>
                                 @endif
-                                <div class="text-xs text-slate-500 mt-1 flex items-center gap-1 max-w-[200px] truncate" title="{{ $address }}">
-                                    <svg class="w-3.5 h-3.5 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    <span class="truncate">{{ $address }}</span>
+                                <div style="font-size: 0.76rem; color: #64748b; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                                    <span>📍</span>
+                                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;" title="{{ $address }}">{{ $address }}</span>
                                 </div>
                             </td>
 
-                            <!-- Ordered Tests Items -->
-                            <td class="px-6 py-4">
-                                <div class="space-y-1.5 max-w-xs">
+                            <!-- Tests List -->
+                            <td>
+                                <div style="max-width: 220px;">
                                     @forelse($order->items as $item)
-                                        <div class="text-xs text-slate-700 font-bold flex items-center justify-between gap-2 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
-                                            <span class="truncate">{{ $item->item_name }}</span>
-                                            <span class="text-blue-600 font-semibold flex-shrink-0" dir="ltr">{{ number_format($item->price) }} د.ع</span>
+                                        <div class="test-item-chip">
+                                            {{ $item->item_name }}
                                         </div>
                                     @empty
-                                        <span class="text-xs text-slate-400">پشکنینی گشتی تاقیگە</span>
+                                        <span style="font-size: 0.75rem; color: #94a3b8;">پشکنینی گشتی</span>
                                     @endforelse
                                 </div>
                             </td>
 
-                            <!-- Price & Payment -->
-                            <td class="px-6 py-4">
-                                <div class="font-black text-slate-800 text-sm" dir="ltr">
+                            <!-- Total Price & Payment -->
+                            <td>
+                                <div style="font-weight: 900; color: #0f172a; font-size: 0.92rem;" dir="ltr">
                                     {{ number_format($order->total_price) }} IQD
                                 </div>
-                                <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
-                                    <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                <div style="font-size: 0.72rem; color: #64748b; margin-top: 2px;">
                                     {{ $order->payment_method ?? 'کاش لەکاتی وەرگرتن' }}
                                 </div>
                             </td>
 
-                            <!-- Status Selector -->
-                            <td class="px-6 py-4">
-                                <form action="{{ route('lab.orders.update_status', $order) }}" method="POST">
+                            <!-- Status Dropdown -->
+                            <td>
+                                <form action="{{ route('lab.orders.update_status', $order) }}" method="POST" style="margin: 0;">
                                     @csrf
                                     @method('PATCH')
                                     <select name="status" onchange="this.form.submit()" 
-                                            class="text-xs font-bold rounded-xl px-3 py-1.5 border transition-all cursor-pointer outline-none shadow-xs
-                                            @if($order->status == 'pending') bg-amber-50 text-amber-700 border-amber-200
-                                            @elseif(in_array($order->status, ['approved', 'confirmed', 'in_progress'])) bg-blue-50 text-blue-700 border-blue-200
-                                            @elseif($order->status == 'completed') bg-emerald-50 text-emerald-700 border-emerald-200
-                                            @else bg-rose-50 text-rose-700 border-rose-200 @endif">
+                                            class="status-select @if($order->status == 'pending') status-pending @elseif(in_array($order->status, ['approved', 'confirmed', 'in_progress'])) status-progress @elseif($order->status == 'completed') status-completed @else status-cancelled @endif">
                                         <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>⏳ چاوەڕوانە</option>
                                         <option value="in_progress" {{ in_array($order->status, ['in_progress', 'approved', 'confirmed']) ? 'selected' : '' }}>🔬 نموونە وەرگیرا / لە کاردایە</option>
-                                        <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>✅ ئەنجام ئامادەیە (تەواو)</option>
+                                        <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>✅ تەواوکراوە</option>
                                         <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>❌ ڕەتکرایەوە</option>
                                     </select>
                                 </form>
                             </td>
 
-                            <!-- Action Modal Button -->
-                            <td class="px-6 py-4 text-center">
+                            <!-- View Form Modal -->
+                            <td style="text-align: center;">
                                 <button type="button" onclick="openOrderModal({{ json_encode($order) }}, {{ json_encode($details) }}, {{ json_encode($loc) }}, {{ json_encode($order->items) }})" 
-                                        class="px-3.5 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 mx-auto shadow-xs border border-blue-100">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    وردەکاری فۆڕم
+                                        class="btn-detail">
+                                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    بینین
                                 </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-16 text-center text-slate-500">
-                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                </div>
-                                <div class="font-bold text-slate-700 text-base">هیچ داواکارییەکی پشکنین نەدۆزرایەوە</div>
-                                <div class="text-xs text-slate-400 mt-1">کاتێک نەخۆش لە ئەپەکەوە داواکاری دەنێرێت لێرە بە وردەکارییەوە دەردەکەوێت.</div>
+                            <td colspan="7" style="text-align: center; padding: 48px; color: #94a3b8;">
+                                <div style="font-weight: 700; color: #64748b; font-size: 1rem;">هیچ داواکارییەکی پشکنین نەدۆزرایەوە</div>
+                                <div style="font-size: 0.8rem; margin-top: 4px;">کاتێک نەخۆش لە ئەپەکەوە داواکاری دەنێرێت لێرە دەردەکەوێت.</div>
                             </td>
                         </tr>
                     @endforelse
@@ -208,9 +272,9 @@
         </div>
 
         <!-- Pagination Footer -->
-        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <div class="font-medium">
-                پیشاندانی <span class="font-bold text-slate-800">{{ $orders->firstItem() ?? 0 }}</span> بۆ <span class="font-bold text-slate-800">{{ $orders->lastItem() ?? 0 }}</span> لە کۆی <span class="font-bold text-blue-600">{{ $orders->total() }}</span> داواکاری
+        <div style="padding: 14px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.78rem; color: #64748b;">
+            <div>
+                پیشاندانی <strong style="color: #0f172a;">{{ $orders->firstItem() ?? 0 }}</strong> بۆ <strong style="color: #0f172a;">{{ $orders->lastItem() ?? 0 }}</strong> لە کۆی <strong style="color: #2563eb;">{{ $orders->total() }}</strong> داواکاری
             </div>
 
             <div>
@@ -221,24 +285,24 @@
 </div>
 
 <!-- Detailed Form Modal -->
-<div id="orderModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 p-6 space-y-6">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+<div id="orderModal" style="position: fixed; inset: 0; z-index: 999; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: #ffffff; border-radius: 20px; max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); padding: 24px; direction: rtl; text-align: right;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px;">
             <div>
-                <h3 class="text-lg font-black text-slate-800" id="modalTitle">وردەکاری تەواوی داواکاری</h3>
-                <p class="text-xs text-slate-400 mt-0.5" id="modalSubtitle">فۆڕمی پڕکراوە لەلایەن نەخۆشەوە</p>
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0;" id="modalTitle">وردەکاری تەواوی داواکاری</h3>
+                <p style="font-size: 0.75rem; color: #94a3b8; margin: 2px 0 0 0;" id="modalSubtitle">فۆڕمی پڕکراوە لەلایەن نەخۆشەوە</p>
             </div>
-            <button type="button" onclick="closeOrderModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors">
+            <button type="button" onclick="closeOrderModal()" style="width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; border: none; color: #64748b; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 ✕
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm" id="modalContent">
-            <!-- Dynamic Content Injected By JS -->
+        <div id="modalContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 16px; font-size: 0.85rem;">
+            <!-- Dynamic JS injection -->
         </div>
 
-        <div class="border-t border-slate-100 pt-4 flex items-center justify-end gap-3">
-            <button type="button" onclick="closeOrderModal()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors">
+        <div style="border-top: 1px solid #f1f5f9; margin-top: 20px; padding-top: 14px; display: flex; justify-content: flex-end;">
+            <button type="button" onclick="closeOrderModal()" style="padding: 8px 20px; background: #f1f5f9; color: #334155; font-weight: 700; border-radius: 10px; border: none; cursor: pointer; font-size: 0.8rem;">
                 داخستن
             </button>
         </div>
@@ -268,69 +332,67 @@ function openOrderModal(order, details, loc, items) {
     let itemsHtml = '';
     if (items && items.length > 0) {
         itemsHtml = items.map(it => `
-            <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-                <span class="font-bold text-slate-800">${it.item_name}</span>
-                <span class="font-bold text-blue-600" dir="ltr">${Number(it.price).toLocaleString()} IQD</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.78rem; margin-bottom: 6px;">
+                <span style="font-weight: 700; color: #1e293b;">${it.item_name}</span>
+                <span style="font-weight: 700; color: #2563eb;" dir="ltr">${Number(it.price).toLocaleString()} IQD</span>
             </div>
         `).join('');
     } else {
-        itemsHtml = '<div class="text-xs text-slate-400 p-2">پشکنینی گشتی</div>';
+        itemsHtml = '<div style="font-size: 0.78rem; color: #94a3b8; padding: 8px;">پشکنینی گشتی</div>';
     }
 
     content.innerHTML = `
-        <div class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/60 space-y-2 md:col-span-2">
-            <div class="text-xs font-bold text-blue-800 uppercase tracking-wider">👤 زانیارییەکانی نەخۆش</div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+        <div style="background: #eff6ff; padding: 14px; border-radius: 14px; border: 1px solid #dbeafe; grid-column: 1 / -1;">
+            <div style="font-size: 0.75rem; font-weight: 800; color: #1e40af; text-transform: uppercase;">👤 زانیارییەکانی نەخۆش</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 8px;">
                 <div>
-                    <span class="text-[11px] text-slate-400 block">ناوی نەخۆش:</span>
-                    <span class="font-bold text-slate-800">${patientName}</span>
+                    <span style="font-size: 0.7rem; color: #64748b; display: block;">ناوی نەخۆش:</span>
+                    <strong style="color: #0f172a;">${patientName}</strong>
                 </div>
                 <div>
-                    <span class="text-[11px] text-slate-400 block">ژمارەی مۆبایل:</span>
-                    <a href="tel:${patientPhone}" class="font-bold text-blue-600 hover:underline" dir="ltr">${patientPhone}</a>
+                    <span style="font-size: 0.7rem; color: #64748b; display: block;">ژمارەی مۆبایل:</span>
+                    <a href="tel:${patientPhone}" style="color: #2563eb; font-weight: 700; text-decoration: none;" dir="ltr">${patientPhone}</a>
                 </div>
                 <div>
-                    <span class="text-[11px] text-slate-400 block">تەمەن:</span>
-                    <span class="font-bold text-slate-800">${patientAge} ساڵ</span>
+                    <span style="font-size: 0.7rem; color: #64748b; display: block;">تەمەن:</span>
+                    <strong style="color: #0f172a;">${patientAge} ساڵ</strong>
                 </div>
                 <div>
-                    <span class="text-[11px] text-slate-400 block">ڕەگەز:</span>
-                    <span class="font-bold text-slate-800">${gender}</span>
+                    <span style="font-size: 0.7rem; color: #64748b; display: block;">ڕەگەز:</span>
+                    <strong style="color: #0f172a;">${gender}</strong>
                 </div>
             </div>
         </div>
 
-        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
-            <div class="text-xs font-bold text-slate-700">📍 شوێن و شێوازی وەرگرتن</div>
-            <div class="text-xs text-slate-600 space-y-1">
-                <div><strong>شێواز:</strong> <span class="text-purple-700 font-bold">${collectionMethod}</span></div>
+        <div style="background: #f8fafc; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0;">
+            <div style="font-size: 0.75rem; font-weight: 800; color: #334155; margin-bottom: 6px;">📍 شوێن و شێوازی وەرگرتن</div>
+            <div style="font-size: 0.78rem; color: #475569; line-height: 1.6;">
+                <div><strong>شێواز:</strong> <span style="color: #7e22ce; font-weight: 700;">${collectionMethod}</span></div>
                 <div><strong>ناونیشان:</strong> ${address}</div>
                 <div><strong>تێبینی نەخۆش:</strong> ${notes}</div>
             </div>
         </div>
 
-        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
-            <div class="text-xs font-bold text-slate-700">💳 پارەدان و کۆی گشتی</div>
-            <div class="text-xs text-slate-600 space-y-1">
+        <div style="background: #f8fafc; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0;">
+            <div style="font-size: 0.75rem; font-weight: 800; color: #334155; margin-bottom: 6px;">💳 پارەدان و کۆی گشتی</div>
+            <div style="font-size: 0.78rem; color: #475569; line-height: 1.6;">
                 <div><strong>شێوازی پارەدان:</strong> ${order.payment_method || 'کاش'}</div>
-                <div><strong>کۆی گشتی:</strong> <span class="font-black text-emerald-600 text-sm" dir="ltr">${Number(order.total_price).toLocaleString()} IQD</span></div>
-                <div><strong>بارودۆخ:</strong> <span class="font-bold text-blue-600">${order.status}</span></div>
+                <div><strong>کۆی گشتی:</strong> <strong style="color: #059669; font-size: 0.95rem;" dir="ltr">${Number(order.total_price).toLocaleString()} IQD</strong></div>
+                <div><strong>بارودۆخ:</strong> <span style="color: #2563eb; font-weight: 700;">${order.status}</span></div>
             </div>
         </div>
 
-        <div class="space-y-2 md:col-span-2">
-            <div class="text-xs font-bold text-slate-700">🧪 لیستی پشکنینە هەڵبژێردراوەکان</div>
-            <div class="space-y-1.5">
-                ${itemsHtml}
-            </div>
+        <div style="grid-column: 1 / -1; margin-top: 4px;">
+            <div style="font-size: 0.75rem; font-weight: 800; color: #334155; margin-bottom: 8px;">🧪 لیستی پشکنینە هەڵبژێردراوەکان</div>
+            ${itemsHtml}
         </div>
     `;
 
-    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
 }
 
 function closeOrderModal() {
-    document.getElementById('orderModal').classList.add('hidden');
+    document.getElementById('orderModal').style.display = 'none';
 }
 </script>
 @endsection
