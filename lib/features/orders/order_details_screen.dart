@@ -139,11 +139,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
     final statusColor = _getStatusColor(_currentOrder.status);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -186,264 +190,27 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         onRefresh: _fetchFreshOrder,
         color: const Color(0xFF3B82F6),
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            // ── Top Summary Card ──
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: borderColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      _currentOrder.icon,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _currentOrder.title,
-                          style: _kStyle(
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'کۆدی داواکاری: #${_currentOrder.id}',
-                            style: _kStyle(
-                              color: const Color(0xFF2563EB),
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.05, end: 0),
-
-            const SizedBox(height: 16),
-
-            // ── Status Banner Card ──
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: statusColor.withValues(alpha: 0.25)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Iconsax.info_circle, color: statusColor, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _getStatusTitle(_currentOrder.status),
-                          style: _kStyle(
-                            color: statusColor,
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _getStatusDescription(_currentOrder.status),
-                          style: _kStyle(
-                            color: isDark ? Colors.white70 : const Color(0xFF475569),
-                            fontSize: 11.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (_currentOrder.status.isActive)
-                    SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: statusColor,
-                      ),
-                    ),
-                ],
-              ),
-            ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.05, end: 0),
-
-            const SizedBox(height: 20),
-
-            // ── Progress Timeline ──
-            OrderProgressTimeline(status: _currentOrder.status)
-                .animate(delay: 150.ms)
-                .fadeIn()
-                .slideY(begin: 0.05, end: 0),
-
-            // ── Assigned Professional Card (if Nurse) ──
-            if (_currentOrder.assignedNurseId != null && _currentOrder.assignedNurseName != null) ...[
-              const SizedBox(height: 20),
+              // ── Top Summary Card ──
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: borderColor),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 26,
-                          backgroundColor: const Color(0xFFEFF6FF),
-                          backgroundImage: _currentOrder.assignedNurseAvatar != null
-                              ? NetworkImage(_currentOrder.assignedNurseAvatar!)
-                              : const AssetImage('assets/images/doc1.png') as ImageProvider,
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _currentOrder.assignedNurseName!,
-                                style: _kStyle(
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'تیمی تەندروستی پەرستاری',
-                                style: _kStyle(
-                                  color: const Color(0xFF64748B),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatScreen(
-                                    doctorName: _currentOrder.assignedNurseName!,
-                                    doctorImage: 'assets/images/doc1.png',
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Iconsax.message, size: 16),
-                            label: Text('گفتوگۆ', style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF3B82F6),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => VideoCallScreen(
-                                    doctorName: _currentOrder.assignedNurseName!,
-                                    doctorImage: 'assets/images/doc1.png',
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Iconsax.call, size: 16, color: Color(0xFF3B82F6)),
-                            label: Text('پەیوەندی', style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF3B82F6))),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFEFF6FF),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                          ),
-                        ),
-                      ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
                     ),
                   ],
-                ),
-              ),
-            ],
-
-            // ── Assigned Pharmacy Card (if Pharmacy) ──
-            if (_currentOrder.assignedPharmacyName != null) ...[
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: borderColor),
                 ),
                 child: Row(
                   children: [
@@ -451,10 +218,25 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                        ),
                         borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF3B82F6,
+                            ).withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: const Icon(Iconsax.hospital, color: Color(0xFF10B981), size: 26),
+                      child: Icon(
+                        _currentOrder.icon,
+                        color: Colors.white,
+                        size: 26,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -462,19 +244,36 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _currentOrder.assignedPharmacyName!,
+                            _currentOrder.title,
                             style: _kStyle(
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                              fontSize: 15,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'دەرمانخانەی جێبەجێکار',
-                            style: _kStyle(
-                              color: const Color(0xFF64748B),
-                              fontSize: 12,
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF3B82F6,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'کۆدی داواکاری: #${_currentOrder.id}',
+                              style: _kStyle(
+                                color: const Color(0xFF2563EB),
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -482,116 +281,397 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ),
                   ],
                 ),
-              ),
-            ],
+              ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.05, end: 0),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-            // ── Order Information Card ──
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: borderColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
+              // ── Status Banner Card ──
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: statusColor.withValues(alpha: 0.25),
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Iconsax.info_circle,
+                        color: statusColor,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _getStatusTitle(_currentOrder.status),
+                            style: _kStyle(
+                              color: statusColor,
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _getStatusDescription(_currentOrder.status),
+                            style: _kStyle(
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF475569),
+                              fontSize: 11.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_currentOrder.status.isActive)
+                      SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: statusColor,
+                        ),
+                      ),
+                  ],
+                ),
+              ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.05, end: 0),
+
+              const SizedBox(height: 20),
+
+              // ── Progress Timeline ──
+              OrderProgressTimeline(
+                status: _currentOrder.status,
+              ).animate(delay: 150.ms).fadeIn().slideY(begin: 0.05, end: 0),
+
+              // ── Assigned Professional Card (if Nurse) ──
+              if (_currentOrder.assignedNurseId != null &&
+                  _currentOrder.assignedNurseName != null) ...[
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 26,
+                            backgroundColor: const Color(0xFFEFF6FF),
+                            backgroundImage:
+                                _currentOrder.assignedNurseAvatar != null
+                                ? NetworkImage(
+                                    _currentOrder.assignedNurseAvatar!,
+                                  )
+                                : const AssetImage('assets/images/doc1.png')
+                                      as ImageProvider,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _currentOrder.assignedNurseName!,
+                                  style: _kStyle(
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'تیمی تەندروستی پەرستاری',
+                                  style: _kStyle(
+                                    color: const Color(0xFF64748B),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatScreen(
+                                      doctorName:
+                                          _currentOrder.assignedNurseName!,
+                                      doctorImage: 'assets/images/doc1.png',
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Iconsax.message, size: 16),
+                              label: Text(
+                                'گفتوگۆ',
+                                style: _kStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF3B82F6),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VideoCallScreen(
+                                      doctorName:
+                                          _currentOrder.assignedNurseName!,
+                                      doctorImage: 'assets/images/doc1.png',
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(
+                                Iconsax.call,
+                                size: 16,
+                                color: Color(0xFF3B82F6),
+                              ),
+                              label: Text(
+                                'پەیوەندی',
+                                style: _kStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF3B82F6),
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFEFF6FF),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // ── Assigned Pharmacy Card (if Pharmacy) ──
+              if (_currentOrder.assignedPharmacyName != null) ...[
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
                           color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Icon(Iconsax.receipt, color: Color(0xFF10B981), size: 18),
+                        child: const Icon(
+                          Iconsax.hospital,
+                          color: Color(0xFF10B981),
+                          size: 26,
+                        ),
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'زانیاریی داواکاری',
-                        style: _kStyle(
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _currentOrder.assignedPharmacyName!,
+                              style: _kStyle(
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'دەرمانخانەی جێبەجێکار',
+                              style: _kStyle(
+                                color: const Color(0xFF64748B),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildDetailRow(
-                    context,
-                    'بەرواری تۆمارکردن',
-                    '${_currentOrder.date.day}/${_currentOrder.date.month}/${_currentOrder.date.year}',
-                    isDark: isDark,
-                  ),
-                  const Divider(height: 24, thickness: 1, color: Color(0xFFF1F5F9)),
-                  _buildDetailRow(
-                    context,
-                    'کاتی داواکاری',
-                    '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}',
-                    isDark: isDark,
-                  ),
-                  if (_currentOrder.paymentMethod != null) ...[
-                    const Divider(height: 24, thickness: 1, color: Color(0xFFF1F5F9)),
+                ),
+              ],
+
+              const SizedBox(height: 20),
+
+              // ── Order Information Card ──
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: borderColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Iconsax.receipt,
+                            color: Color(0xFF10B981),
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'زانیاریی داواکاری',
+                          style: _kStyle(
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     _buildDetailRow(
                       context,
-                      'شێوازی پارەدان',
-                      _currentOrder.paymentMethod!,
+                      'بەرواری تۆمارکردن',
+                      '${_currentOrder.date.day}/${_currentOrder.date.month}/${_currentOrder.date.year}',
+                      isDark: isDark,
+                    ),
+                    const Divider(
+                      height: 24,
+                      thickness: 1,
+                      color: Color(0xFFF1F5F9),
+                    ),
+                    _buildDetailRow(
+                      context,
+                      'کاتی داواکاری',
+                      '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}',
+                      isDark: isDark,
+                    ),
+                    if (_currentOrder.paymentMethod != null) ...[
+                      const Divider(
+                        height: 24,
+                        thickness: 1,
+                        color: Color(0xFFF1F5F9),
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'شێوازی پارەدان',
+                        _currentOrder.paymentMethod!,
+                        isDark: isDark,
+                      ),
+                    ],
+                    const Divider(
+                      height: 24,
+                      thickness: 1,
+                      color: Color(0xFFF1F5F9),
+                    ),
+                    _buildDetailRow(
+                      context,
+                      'کۆی گشتی نرخ',
+                      '${NumberFormat('#,###').format(_currentOrder.price)} د.ع',
+                      isTotal: true,
                       isDark: isDark,
                     ),
                   ],
-                  const Divider(height: 24, thickness: 1, color: Color(0xFFF1F5F9)),
-                  _buildDetailRow(
-                    context,
-                    'کۆی گشتی نرخ',
-                    '${NumberFormat('#,###').format(_currentOrder.price)} د.ع',
-                    isTotal: true,
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.05, end: 0),
-
-            // Order Again Button (if completed or cancelled)
-            if (!_currentOrder.status.isActive) ...[
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: _orderAgain,
-                  icon: const Icon(Iconsax.refresh, size: 18),
-                  label: Text(
-                    'دووبارەکردنەوەی داواکاری',
-                    style: _kStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
                 ),
-              ).animate(delay: 250.ms).fadeIn(),
-            ],
+              ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.05, end: 0),
 
-            const SizedBox(height: 20),
-          ],
+              // Order Again Button (if completed or cancelled)
+              if (!_currentOrder.status.isActive) ...[
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: _orderAgain,
+                    icon: const Icon(Iconsax.refresh, size: 18),
+                    label: Text(
+                      'دووبارەکردنەوەی داواکاری',
+                      style: _kStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3B82F6),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ).animate(delay: 250.ms).fadeIn(),
+              ],
+
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -600,7 +680,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void _orderAgain() {
     context.read<CartProvider>().clearCart();
 
-    final Widget destination = switch (_currentOrder.serviceType.toLowerCase()) {
+    final Widget destination = switch (_currentOrder.serviceType
+        .toLowerCase()) {
       final s when s.contains('lab') => const LabOrderMethodScreen(),
       final s when s.contains('nurs') => const NursingServicesScreen(),
       _ => PharmaciesScreen(),
