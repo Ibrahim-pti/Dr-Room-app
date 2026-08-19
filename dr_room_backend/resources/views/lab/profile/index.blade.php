@@ -36,7 +36,7 @@
             <!-- Name -->
             <div class="space-y-4">
                 <div>
-                    <label for="name" class="block text-sm font-medium text-slate-700 mb-2">ناوی تاقیگە (کوردی)</label>
+                    <label for="name" class="block text-sm font-medium text-slate-700 mb-2">ناوی تاقیگە (کوردی) <span class="text-red-500">*</span></label>
                     <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required
                         class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
                     @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -53,15 +53,68 @@
                 </div>
             </div>
 
-            <!-- Contact & License -->
+            <!-- Contact & Settings -->
             <div class="space-y-4">
                 <div>
-                    <label for="phone" class="block text-sm font-medium text-slate-700 mb-2">ژمارە مۆبایل</label>
+                    <label for="phone" class="block text-sm font-medium text-slate-700 mb-2">ژمارە مۆبایل <span class="text-red-500">*</span></label>
                     <input type="text" id="phone" name="phone" value="{{ old('phone', $user->phone) }}" required dir="ltr"
                         class="w-full text-right px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
                     @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
+                <div>
+                    <label for="city" class="block text-sm font-medium text-slate-700 mb-2">شار</label>
+                    <select id="city" name="city" class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+                        <option value="Erbil" {{ old('city', $lab?->city) == 'Erbil' ? 'selected' : '' }}>هەولێر (Erbil)</option>
+                        <option value="Sulaymaniyah" {{ old('city', $lab?->city) == 'Sulaymaniyah' ? 'selected' : '' }}>سلێمانی (Sulaymaniyah)</option>
+                        <option value="Duhok" {{ old('city', $lab?->city) == 'Duhok' ? 'selected' : '' }}>دهۆک (Duhok)</option>
+                        <option value="Kirkuk" {{ old('city', $lab?->city) == 'Kirkuk' ? 'selected' : '' }}>کەرکووک (Kirkuk)</option>
+                        <option value="Halabja" {{ old('city', $lab?->city) == 'Halabja' ? 'selected' : '' }}>هەڵەبجە (Halabja)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
+        <!-- Location / Address -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
+            <div>
+                <label for="location" class="block text-sm font-medium text-slate-700 mb-2">ناونیشان (کوردی)</label>
+                <input type="text" id="location" name="location" value="{{ old('location', $lab?->location) }}"
+                    placeholder="نموونە: هەولێر - شەقامی پزیشکان"
+                    class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+            </div>
+            <div>
+                <label for="location_ar" class="block text-sm font-medium text-slate-700 mb-2">ناونیشان (عەرەبی)</label>
+                <input type="text" id="location_ar" name="location_ar" value="{{ old('location_ar', $lab?->location_ar) }}" dir="rtl"
+                    placeholder="أربيل - شارع الأطباء"
+                    class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+            </div>
+            <div>
+                <label for="location_en" class="block text-sm font-medium text-slate-700 mb-2">ناونیشان (ئینگلیزی)</label>
+                <input type="text" id="location_en" name="location_en" value="{{ old('location_en', $lab?->location_en) }}" dir="ltr"
+                    placeholder="Erbil - Doctors Street"
+                    class="w-full text-left px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+            </div>
+        </div>
+
+        <!-- Hours, Discount, YouTube -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
+            <div>
+                <label for="opening_hours" class="block text-sm font-medium text-slate-700 mb-2">کاتەکانی دەوام (Opening Hours)</label>
+                <input type="text" id="opening_hours" name="opening_hours" value="{{ old('opening_hours', $lab?->opening_hours ?? '08:00 AM - 10:00 PM') }}"
+                    placeholder="08:00 AM - 10:00 PM" dir="ltr"
+                    class="w-full text-left px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+            </div>
+            <div>
+                <label for="discount" class="block text-sm font-medium text-slate-700 mb-2">داشکاندنی گشتی (%)</label>
+                <input type="number" id="discount" name="discount" min="0" max="100" value="{{ old('discount', $lab?->discount) }}"
+                    placeholder="نموونە: 20" dir="ltr"
+                    class="w-full text-left px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+            </div>
+            <div>
+                <label for="youtube_url" class="block text-sm font-medium text-slate-700 mb-2">لینکی ڤیدیۆی یوتوب (ناساندن)</label>
+                <input type="url" id="youtube_url" name="youtube_url" value="{{ old('youtube_url', $lab?->youtube_url) }}"
+                    placeholder="https://www.youtube.com/watch?v=..." dir="ltr"
+                    class="w-full text-left px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
             </div>
         </div>
 
@@ -149,78 +202,87 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
-function initLabMap() {
-    let latEl = document.getElementById('latitude');
-    let lngEl = document.getElementById('longitude');
-    if (!latEl || !lngEl) return;
-    
-    let savedLat = latEl.value;
-    let savedLng = lngEl.value;
-    let hasSaved = savedLat && savedLng;
+let map, marker;
+const defaultLat = 36.1911; // Erbil
+const defaultLng = 44.0092;
 
-    const DEFAULT_CENTER = [36.1911, 44.0092]; // Erbil Default
-    const map = L.map('map').setView(hasSaved ? [savedLat, savedLng] : DEFAULT_CENTER, hasSaved ? 15 : 12);
+function initLabMap() {
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
     
+    let curLat = parseFloat(latInput.value) || defaultLat;
+    let curLng = parseFloat(lngInput.value) || defaultLng;
+    const hasInitialCoords = Boolean(latInput.value && lngInput.value);
+
+    map = L.map('map').setView([curLat, curLng], hasInitialCoords ? 15 : 12);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
+        attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    let marker = null;
-    const coordsLabel = document.getElementById('coords_label');
-    
-    window.setLocation = function(lat, lng, fly = true) {
-        document.getElementById('latitude').value = lat;
-        document.getElementById('longitude').value = lng;
-        
-        if (coordsLabel) coordsLabel.textContent = `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
-        
-        if (marker) {
-            marker.setLatLng([lat, lng]);
-        } else {
-            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-            marker.on('dragend', function (event) {
-                const position = marker.getLatLng();
-                document.getElementById('latitude').value = position.lat;
-                document.getElementById('longitude').value = position.lng;
-                if (coordsLabel) coordsLabel.textContent = `${parseFloat(position.lat).toFixed(6)}, ${parseFloat(position.lng).toFixed(6)}`;
-            });
-        }
-        
-        if (fly) map.setView([lat, lng], 16);
-    };
-
-    window.clearLocation = function() {
-        document.getElementById('latitude').value = '';
-        document.getElementById('longitude').value = '';
-        if (coordsLabel) coordsLabel.textContent = '';
-        if (marker) {
-            map.removeLayer(marker);
-            marker = null;
-        }
-    };
-
-    window.useMyLocation = function() {
-        if (!navigator.geolocation) {
-            alert('وێبگەڕەکەت پشتگیری شوێن ناکات.');
-            return;
-        }
-        navigator.geolocation.getCurrentPosition(
-            function (pos) { window.setLocation(pos.coords.latitude, pos.coords.longitude, true); },
-            function () { alert('نەتوانرا شوێنەکەت بدۆزرێتەوە. ڕێگەپێدان بپشکنە.'); }
-        );
-    };
-
-    if (hasSaved) {
-        window.setLocation(savedLat, savedLng, false);
+    if (hasInitialCoords) {
+        setMarker(curLat, curLng);
     }
 
-    map.on('click', function (e) {
-        window.setLocation(e.latlng.lat, e.latlng.lng, false);
+    map.on('click', function(e) {
+        setMarker(e.latlng.lat, e.latlng.lng);
     });
+    
+    setTimeout(() => map.invalidateSize(), 500);
+}
 
-    setTimeout(function () {
-        map.invalidateSize();
-    }, 500);
+function setMarker(lat, lng) {
+    if (marker) {
+        marker.setLatLng([lat, lng]);
+    } else {
+        marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        marker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            updateCoords(pos.lat, pos.lng);
+        });
+    }
+    updateCoords(lat, lng);
+}
+
+function updateCoords(lat, lng) {
+    document.getElementById('latitude').value = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+    const label = document.getElementById('coords_label');
+    if (label) {
+        label.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+}
+
+function clearLocation() {
+    if (marker) {
+        map.removeLayer(marker);
+        marker = null;
+    }
+    document.getElementById('latitude').value = '';
+    document.getElementById('longitude').value = '';
+    const label = document.getElementById('coords_label');
+    if (label) {
+        label.textContent = '';
+    }
+}
+
+function useMyLocation() {
+    if (!navigator.geolocation) {
+        alert('گەڕان بەدوای شوێن لە وێبگەڕەکەت پشتگیری ناکرێت.');
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            map.setView([lat, lng], 15);
+            setMarker(lat, lng);
+        },
+        function() {
+            alert('نەتوانرا شوێنی ئێستات بدۆزرێتەوە.');
+        },
+        { enableHighAccuracy: true }
+    );
 }
 
 if (document.readyState === 'loading') {
@@ -239,6 +301,7 @@ async function translateAll() {
 
         const fieldsToTranslate = [
             { source: 'name', ar: 'name_ar', en: 'name_en' },
+            { source: 'location', ar: 'location_ar', en: 'location_en' },
             { source: 'about_us', ar: 'about_us_ar', en: 'about_us_en' }
         ];
 

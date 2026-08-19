@@ -25,6 +25,13 @@ class LabProfileController extends Controller
             'name_en' => 'nullable|string|max:255',
             'name_ar' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20',
+            'city' => 'nullable|string|max:100',
+            'location' => 'nullable|string|max:255',
+            'location_en' => 'nullable|string|max:255',
+            'location_ar' => 'nullable|string|max:255',
+            'opening_hours' => 'nullable|string|max:100',
+            'youtube_url' => 'nullable|url|max:255',
+            'discount' => 'nullable|integer|min:0|max:100',
             'about_us' => 'required|string|max:1000',
             'about_us_en' => 'nullable|string|max:1000',
             'about_us_ar' => 'nullable|string|max:1000',
@@ -43,6 +50,13 @@ class LabProfileController extends Controller
 
         $updateData = [
             'phone' => $request->phone,
+            'city' => $request->city ?? 'Erbil',
+            'location' => $request->location,
+            'location_en' => $request->location_en,
+            'location_ar' => $request->location_ar,
+            'opening_hours' => $request->opening_hours ?? '08:00 AM - 10:00 PM',
+            'youtube_url' => $request->youtube_url,
+            'discount' => $request->discount,
             'about_us' => $request->about_us,
             'about_us_en' => $request->about_us_en,
             'about_us_ar' => $request->about_us_ar,
@@ -66,6 +80,12 @@ class LabProfileController extends Controller
                 if ($request->about_us && !$request->about_us_ar) {
                     $updateData['about_us_ar'] = $tr->setTarget('ar')->translate($request->about_us);
                 }
+                if ($request->location && !$request->location_en) {
+                    $updateData['location_en'] = $tr->setTarget('en')->translate($request->location);
+                }
+                if ($request->location && !$request->location_ar) {
+                    $updateData['location_ar'] = $tr->setTarget('ar')->translate($request->location);
+                }
             }
         } catch (\Exception $e) {
             // Translation failed, ignore
@@ -80,3 +100,4 @@ class LabProfileController extends Controller
         return redirect()->back()->with('success', 'زانیارییەکانی پرۆفایل بە سەرکەوتوویی نوێکرانەوە.');
     }
 }
+
