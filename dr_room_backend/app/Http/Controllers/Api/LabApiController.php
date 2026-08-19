@@ -100,17 +100,17 @@ class LabApiController extends Controller
         
         $packages = ($lab && $lab->packages && $lab->packages->isNotEmpty()) ? $lab->packages->where('is_active', true)->values()->map(function($p) {
             return [
-                'id' => $p->id,
-                'name' => $p->name,
+                'id' => (int)$p->id,
+                'name' => (string)$p->name,
                 'name_ar' => $p->name_ar,
                 'name_en' => $p->name_en,
-                'desc' => $p->description ?? 'پاکێجی تایبەتی تاقیگە بە داشکاندنی ناوازە',
+                'desc' => (string)($p->description ?? 'پاکێجی تایبەتی تاقیگە بە داشکاندنی ناوازە'),
                 'description_ar' => $p->description_ar,
                 'description_en' => $p->description_en,
                 'price' => (int)$p->price,
                 'original_price' => (int)($p->original_price ?? ($p->discount ? round($p->price / (1 - ($p->discount / 100))) : $p->price)),
                 'discount' => (int)($p->discount ?? 0),
-                'test_ids' => $p->test_ids ?? [],
+                'test_ids' => is_array($p->test_ids) ? array_values(array_map('intval', $p->test_ids)) : [],
             ];
         }) : [
             [

@@ -1292,8 +1292,17 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
           separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final pkg = _packages[index];
-            final List<int> testIds = List<int>.from(pkg['test_ids'] ?? []);
+            final List<int> testIds = (pkg['test_ids'] as List?)
+                ?.map((id) => int.tryParse(id.toString()) ?? 0)
+                .where((id) => id > 0)
+                .toList() ?? [];
             final bool isAllSelected = testIds.isNotEmpty && testIds.every((id) => _selectedTestIds.contains(id));
+            final num price = (pkg['price'] is num) ? pkg['price'] as num : (num.tryParse(pkg['price']?.toString() ?? '0') ?? 0);
+            final num origPrice = (pkg['original_price'] is num) ? pkg['original_price'] as num : (num.tryParse(pkg['original_price']?.toString() ?? '0') ?? 0);
+            final String pkgName = pkg['name']?.toString() ?? '';
+            final String pkgDesc = pkg['desc']?.toString() ?? '';
+            final String discount = pkg['discount']?.toString() ?? '0';
+            final IconData iconData = (pkg['icon'] is IconData) ? pkg['icon'] as IconData : Icons.local_offer_rounded;
 
             return Container(
               padding: const EdgeInsets.all(16),
@@ -1326,7 +1335,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                           color: const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(pkg['icon'] as IconData, color: const Color(0xFF3B82F6), size: 22),
+                        child: Icon(iconData, color: const Color(0xFF3B82F6), size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -1338,7 +1347,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    pkg['name'] as String,
+                                    pkgName,
                                     style: _kStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -1353,7 +1362,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    '%${pkg['discount']} داشکاندن',
+                                    '%$discount داشکاندن',
                                     style: _kStyle(
                                       color: const Color(0xFFEF4444),
                                       fontSize: 11,
@@ -1365,7 +1374,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              pkg['desc'] as String,
+                              pkgDesc,
                               style: _kStyle(
                                 fontSize: 11.5,
                                 color: const Color(0xFF64748B),
@@ -1387,22 +1396,24 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                       Row(
                         children: [
                           Text(
-                            '${NumberFormat('#,###').format(pkg['price'])} ${_tr('currency', context)}',
+                            '${NumberFormat('#,###').format(price)} ${_tr('currency', context)}',
                             style: _kStyle(
                               fontSize: 14.5,
                               fontWeight: FontWeight.bold,
                               color: const Color(0xFF0F172A),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            NumberFormat('#,###').format(pkg['original_price']),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF94A3B8),
-                              decoration: TextDecoration.lineThrough,
+                          if (origPrice > price) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              NumberFormat('#,###').format(origPrice),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF94A3B8),
+                                decoration: TextDecoration.lineThrough,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
 
