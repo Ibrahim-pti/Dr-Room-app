@@ -3,36 +3,38 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-3">
+    <!-- Header with Clean Filter Tabs -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <!-- Title & Subtitle -->
+            <div>
                 <h2 class="text-xl font-bold text-slate-800">داواکارییەکانی پشکنینی تاقیگە</h2>
-                <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
-                    کۆی گشتی: {{ $counts['all'] ?? $orders->total() ?? 0 }} داواکاری
-                </span>
+                <p class="text-sm text-slate-500 mt-1">سەرجەم داواکارییە نێردراوەکانی نەخۆشەکان لە ڕێگەی ئەپڵیکەیشنەوە لەگەڵ فۆڕم و وردەکاری تەواو.</p>
             </div>
-            <p class="text-sm text-slate-500 mt-1">سەرجەم داواکارییە نێردراوەکانی نەخۆشەکان لە ڕێگەی ئەپڵیکەیشنەوە لەگەڵ فۆڕم و وردەکاری تەواو.</p>
-        </div>
 
-        <!-- Filter Dropdown / Quick Filter -->
-        <div class="flex items-center gap-3">
-            <label class="text-xs font-bold text-slate-500 whitespace-nowrap">فلتەر بەپێی بارودۆخ:</label>
-            <select onchange="location = this.value;" 
-                    class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-2xl px-4 py-2.5 outline-none focus:border-blue-500 transition-all cursor-pointer shadow-sm">
-                <option value="{{ route('lab.patients.index') }}" {{ !$status || $status == 'all' ? 'selected' : '' }}>
-                    هەموو داواکارییەکان ({{ $counts['all'] ?? 0 }})
-                </option>
-                <option value="{{ route('lab.patients.index', ['status' => 'pending']) }}" {{ $status == 'pending' ? 'selected' : '' }}>
-                    ⏳ لە چاوەڕوانیدا ({{ $counts['pending'] ?? 0 }})
-                </option>
-                <option value="{{ route('lab.patients.index', ['status' => 'approved']) }}" {{ $status == 'approved' ? 'selected' : '' }}>
-                    🔬 نموونە وەرگیرا / لە کاردایە ({{ $counts['approved'] ?? 0 }})
-                </option>
-                <option value="{{ route('lab.patients.index', ['status' => 'completed']) }}" {{ $status == 'completed' ? 'selected' : '' }}>
-                    ✅ تەواوکراو و ئەنجام ئامادەیە ({{ $counts['completed'] ?? 0 }})
-                </option>
-            </select>
+            <!-- Sleek Styled Filter Dropdown -->
+            <div class="flex items-center gap-2 self-start lg:self-auto">
+                <div class="relative">
+                    <select onchange="location = this.value;" 
+                            class="appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-slate-700 font-bold text-xs rounded-2xl pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer shadow-sm min-w-[220px]">
+                        <option value="{{ route('lab.patients.index') }}" {{ !$status || $status == 'all' ? 'selected' : '' }}>
+                            🔍 هەموو داواکارییەکان ({{ $counts['all'] ?? 0 }})
+                        </option>
+                        <option value="{{ route('lab.patients.index', ['status' => 'pending']) }}" {{ $status == 'pending' ? 'selected' : '' }}>
+                            ⏳ لە چاوەڕوانیدا ({{ $counts['pending'] ?? 0 }})
+                        </option>
+                        <option value="{{ route('lab.patients.index', ['status' => 'approved']) }}" {{ $status == 'approved' ? 'selected' : '' }}>
+                            🔬 نموونە وەرگیرا / لە کاردایە ({{ $counts['approved'] ?? 0 }})
+                        </option>
+                        <option value="{{ route('lab.patients.index', ['status' => 'completed']) }}" {{ $status == 'completed' ? 'selected' : '' }}>
+                            ✅ تەواوکراو و ئەنجام ئامادەیە ({{ $counts['completed'] ?? 0 }})
+                        </option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center px-3 text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -44,7 +46,7 @@
     @endif
 
     <!-- Orders List Table -->
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-right text-sm">
                 <thead class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold">
@@ -143,7 +145,7 @@
                                     @csrf
                                     @method('PATCH')
                                     <select name="status" onchange="this.form.submit()" 
-                                            class="text-xs font-bold rounded-xl px-3 py-1.5 border transition-all cursor-pointer outline-none
+                                            class="text-xs font-bold rounded-xl px-3 py-1.5 border transition-all cursor-pointer outline-none shadow-sm
                                             @if($order->status == 'pending') bg-amber-50 text-amber-700 border-amber-200
                                             @elseif(in_array($order->status, ['approved', 'confirmed', 'in_progress'])) bg-blue-50 text-blue-700 border-blue-200
                                             @elseif($order->status == 'completed') bg-emerald-50 text-emerald-700 border-emerald-200
