@@ -4,14 +4,20 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
             <h2 class="text-xl font-bold text-slate-800">دەستکاریکردنی پشکنین</h2>
-            <p class="text-xs text-slate-500 mt-1">زانیاری و نرخی پشکنینەکە نوێبکەرەوە.</p>
+            <p class="text-xs text-slate-500 mt-1">زانیاری و نرخی پشکنینەکە نوێبکەرەوە یان کلیک لە وەرگێڕان بکە بۆ وەرگێڕانی خۆکار.</p>
         </div>
-        <a href="{{ route('lab.tests.index') }}" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors">
-            گەڕانەوە بۆ لیستەکە
-        </a>
+        <div class="flex items-center gap-3">
+            <button type="button" onclick="translateAll()" id="translateBtn" class="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl transition-all text-xs font-bold shadow-sm cursor-pointer whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
+                <span>وەرگێڕانی ئۆتۆماتیکی</span>
+            </button>
+            <a href="{{ route('lab.tests.index') }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors whitespace-nowrap">
+                گەڕانەوە
+            </a>
+        </div>
     </div>
 
     @if($errors->any())
@@ -101,4 +107,47 @@
         </form>
     </div>
 </div>
+
+<script>
+async function translateAll() {
+    const btn = document.getElementById('translateBtn');
+    const nameEl = document.getElementById('name');
+    const nameArEl = document.getElementById('name_ar');
+    const nameEnEl = document.getElementById('name_en');
+
+    if (!nameEl || !nameEl.value.trim()) {
+        alert('تکایە سەرەتا ناوی پشکنین بە کوردی بنووسە!');
+        nameEl.focus();
+        return;
+    }
+
+    const originalText = btn.innerHTML;
+    try {
+        btn.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>وەرگێڕان...</span>';
+        btn.disabled = true;
+
+        const res = await fetch('/api/translate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ text: nameEl.value.trim() })
+        });
+
+        const data = await res.json();
+        if (data.success && data.translations) {
+            if (nameArEl) nameArEl.value = data.translations.ar || '';
+            if (nameEnEl) nameEnEl.value = data.translations.en || '';
+        }
+    } catch (e) {
+        console.error(e);
+        alert('هەڵەیەک ڕوویدا لە کاتی وەرگێڕاندا.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+</script>
 @endsection
