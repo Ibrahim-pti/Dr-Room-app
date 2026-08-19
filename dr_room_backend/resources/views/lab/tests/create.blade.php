@@ -77,31 +77,19 @@
             </div>
 
             <!-- Descriptions in 3 languages -->
+            <!-- Description -->
             <div class="space-y-4 pt-2">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-2" for="description">
-                        ڕوونکردنەوە و وەسفی پشکنین (بە کوردی)
+                        ڕوونکردنەوە و وەسفی پشکنین
                     </label>
                     <textarea class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs text-slate-800 outline-none" 
-                              id="description" name="description" rows="2" placeholder="ڕوونکردنەوە و زانیاری زیاتر دەربارەی پشکنینەکە بە کوردی بنووسە...">{{ old('description') }}</textarea>
+                              id="description" name="description" rows="3" placeholder="ڕوونکردنەوە و زانیاری زیاتر دەربارەی پشکنینەکە بۆ نەخۆش بنووسە...">{{ old('description') }}</textarea>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-2" for="description_ar">
-                            ڕوونکردنەوە و وەسف (بە عەرەبی)
-                        </label>
-                        <textarea class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs text-slate-800 outline-none" 
-                                  id="description_ar" name="description_ar" rows="2" dir="rtl" placeholder="تفاصيل ووصف الفحص باللغة العربية...">{{ old('description_ar') }}</textarea>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-2" for="description_en">
-                            ڕوونکردنەوە و وەسف (بە ئینگلیزی)
-                        </label>
-                        <textarea class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs text-slate-800 outline-none" 
-                                  id="description_en" name="description_en" rows="2" dir="ltr" placeholder="Details and test instructions in English...">{{ old('description_en') }}</textarea>
-                    </div>
-                </div>
+                <!-- Auto-translated hidden descriptions -->
+                <input type="hidden" id="description_ar" name="description_ar" value="{{ old('description_ar') }}">
+                <input type="hidden" id="description_en" name="description_en" value="{{ old('description_en') }}">
             </div>
 
             <!-- Active Status -->
