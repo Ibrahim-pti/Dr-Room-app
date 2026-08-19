@@ -7,7 +7,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
             <h2 class="text-xl font-bold text-slate-800">زیادکردنی پشکنینی نوێ بۆ تاقیگە</h2>
-            <p class="text-xs text-slate-500 mt-1">ناوی پشکنینەکە بنووسە و دەست لەسەر دوگمەی وەرگێڕان دابگرە بۆ پڕکردنەوەی خۆکارانەی عەرەبی و ئینگلیزی.</p>
+            <p class="text-xs text-slate-500 mt-1">ناو و وەسفی کوردی بنووسە و دەست لەسەر دوگمەی وەرگێڕان دابگرە بۆ وەرگێڕانی خۆکارانەی عەرەبی و ئینگلیزی.</p>
         </div>
         <div class="flex items-center gap-3">
             <button type="button" onclick="translateAll()" id="translateBtn" class="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl transition-all text-xs font-bold shadow-sm cursor-pointer whitespace-nowrap">
@@ -76,13 +76,32 @@
                 </div>
             </div>
 
-            <!-- Description -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-2" for="description">
-                    ڕوونکردنەوە و وەسفی پشکنین
-                </label>
-                <textarea class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs text-slate-800 outline-none" 
-                          id="description" name="description" rows="3" placeholder="ڕوونکردنەوە و زانیاری زیاتر دەربارەی پشکنینەکە بۆ نەخۆش بنووسە...">{{ old('description') }}</textarea>
+            <!-- Descriptions in 3 languages -->
+            <div class="space-y-4 pt-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2" for="description">
+                        ڕوونکردنەوە و وەسفی پشکنین (بە کوردی)
+                    </label>
+                    <textarea class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs text-slate-800 outline-none" 
+                              id="description" name="description" rows="2" placeholder="ڕوونکردنەوە و زانیاری زیاتر دەربارەی پشکنینەکە بە کوردی بنووسە...">{{ old('description') }}</textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2" for="description_ar">
+                            ڕوونکردنەوە و وەسف (بە عەرەبی)
+                        </label>
+                        <textarea class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs text-slate-800 outline-none" 
+                                  id="description_ar" name="description_ar" rows="2" dir="rtl" placeholder="تفاصيل ووصف الفحص باللغة العربية...">{{ old('description_ar') }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2" for="description_en">
+                            ڕوونکردنەوە و وەسف (بە ئینگلیزی)
+                        </label>
+                        <textarea class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs text-slate-800 outline-none" 
+                                  id="description_en" name="description_en" rows="2" dir="ltr" placeholder="Details and test instructions in English...">{{ old('description_en') }}</textarea>
+                    </div>
+                </div>
             </div>
 
             <!-- Active Status -->
@@ -113,6 +132,9 @@ async function translateAll() {
     const nameEl = document.getElementById('name');
     const nameArEl = document.getElementById('name_ar');
     const nameEnEl = document.getElementById('name_en');
+    const descEl = document.getElementById('description');
+    const descArEl = document.getElementById('description_ar');
+    const descEnEl = document.getElementById('description_en');
 
     if (!nameEl || !nameEl.value.trim()) {
         alert('تکایە سەرەتا ناوی پشکنین بە کوردی بنووسە!');
@@ -125,7 +147,8 @@ async function translateAll() {
         btn.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>وەرگێڕان...</span>';
         btn.disabled = true;
 
-        const res = await fetch('/api/translate', {
+        // 1. Translate Name
+        const resName = await fetch('/api/translate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -134,11 +157,28 @@ async function translateAll() {
             },
             body: JSON.stringify({ text: nameEl.value.trim() })
         });
+        const dataName = await resName.json();
+        if (dataName.success && dataName.translations) {
+            if (nameArEl) nameArEl.value = dataName.translations.ar || '';
+            if (nameEnEl) nameEnEl.value = dataName.translations.en || '';
+        }
 
-        const data = await res.json();
-        if (data.success && data.translations) {
-            if (nameArEl) nameArEl.value = data.translations.ar || '';
-            if (nameEnEl) nameEnEl.value = data.translations.en || '';
+        // 2. Translate Description if present
+        if (descEl && descEl.value.trim()) {
+            const resDesc = await fetch('/api/translate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ text: descEl.value.trim() })
+            });
+            const dataDesc = await resDesc.json();
+            if (dataDesc.success && dataDesc.translations) {
+                if (descArEl) descArEl.value = dataDesc.translations.ar || '';
+                if (descEnEl) descEnEl.value = dataDesc.translations.en || '';
+            }
         }
     } catch (e) {
         console.error(e);

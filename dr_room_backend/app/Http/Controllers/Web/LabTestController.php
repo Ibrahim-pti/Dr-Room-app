@@ -46,6 +46,8 @@ class LabTestController extends Controller
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|integer|min:0|max:100',
             'description' => 'nullable|string',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
@@ -85,6 +87,8 @@ class LabTestController extends Controller
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|integer|min:0|max:100',
             'description' => 'nullable|string',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
         ]);
 
         $validated['type'] = $request->input('type') ?? $test->type ?? 'general';
