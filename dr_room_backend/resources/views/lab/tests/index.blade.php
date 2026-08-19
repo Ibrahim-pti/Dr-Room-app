@@ -4,39 +4,30 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
         <div>
-            <h2 class="text-xl font-bold text-slate-800">لیستی پشکنینە بەردەستەکانی تاقیگە</h2>
+            <div class="flex items-center gap-3">
+                <h2 class="text-xl font-bold text-slate-800">لیستی پشکنینە بەردەستەکانی تاقیگە</h2>
+                <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
+                    کۆی گشتی: {{ $tests->count() }} پشکنین
+                </span>
+            </div>
             <p class="text-sm text-slate-500 mt-1">ئەو پشکنینانەی لە تاقیگەکەت بەردەستن و لە ئەپڵیکەیشندا بۆ نەخۆشەکان دەردەکەون.</p>
         </div>
-        <a href="{{ route('lab.tests.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-md shadow-blue-200 transition-all text-sm">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            زیادکردنی پشکنینی نوێ
-        </a>
-    </div>
-
-    <!-- Filter Type Buttons -->
-    <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
-        <a href="{{ route('lab.tests.index') }}" 
-           class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ !$type ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50' }}">
-            هەموو جۆرەکان ({{ $tests->count() }})
-        </a>
-        <a href="{{ route('lab.tests.index', ['type' => 'blood']) }}" 
-           class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ $type == 'blood' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50' }}">
-            🩸 پشکنینی خوێن
-        </a>
-        <a href="{{ route('lab.tests.index', ['type' => 'urine']) }}" 
-           class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ $type == 'urine' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50' }}">
-            🧪 پشکنینی میز
-        </a>
-        <a href="{{ route('lab.tests.index', ['type' => 'hormone']) }}" 
-           class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ $type == 'hormone' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50' }}">
-            🧬 پشکنینی هۆرمۆن
-        </a>
-        <a href="{{ route('lab.tests.index', ['type' => 'other']) }}" 
-           class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ $type == 'other' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50' }}">
-            🔬 ئەوانی تر
-        </a>
+        <div class="flex items-center gap-3">
+            <select onchange="location = this.value;" 
+                    class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-2xl px-4 py-2.5 outline-none focus:border-blue-500 transition-all cursor-pointer shadow-sm">
+                <option value="{{ route('lab.tests.index') }}" {{ !$type ? 'selected' : '' }}>هەموو جۆرەکان ({{ $tests->count() }})</option>
+                <option value="{{ route('lab.tests.index', ['type' => 'blood']) }}" {{ $type == 'blood' ? 'selected' : '' }}>🩸 پشکنینی خوێن</option>
+                <option value="{{ route('lab.tests.index', ['type' => 'urine']) }}" {{ $type == 'urine' ? 'selected' : '' }}>🧪 پشکنینی میز</option>
+                <option value="{{ route('lab.tests.index', ['type' => 'hormone']) }}" {{ $type == 'hormone' ? 'selected' : '' }}>🧬 پشکنینی هۆرمۆن</option>
+                <option value="{{ route('lab.tests.index', ['type' => 'other']) }}" {{ $type == 'other' ? 'selected' : '' }}>🔬 پشکنینەکانی تر</option>
+            </select>
+            <a href="{{ route('lab.tests.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-md shadow-blue-200 transition-all text-xs whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                زیادکردنی پشکنین
+            </a>
+        </div>
     </div>
 
     @if(session('success'))

@@ -4,41 +4,46 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-bold text-slate-800">داواکارییەکانی پشکنینی تاقیگە</h2>
+            <div class="flex items-center gap-3">
+                <h2 class="text-xl font-bold text-slate-800">داواکارییەکانی پشکنینی تاقیگە</h2>
+                <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
+                    کۆی گشتی: {{ $counts['all'] ?? $orders->total() ?? 0 }} داواکاری
+                </span>
+            </div>
             <p class="text-sm text-slate-500 mt-1">سەرجەم داواکارییە نێردراوەکانی نەخۆشەکان لە ڕێگەی ئەپڵیکەیشنەوە لەگەڵ فۆڕم و وردەکاری تەواو.</p>
         </div>
 
-        <!-- Filter tabs -->
-        <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-200/60 overflow-x-auto">
-            <a href="{{ route('lab.patients.index') }}" 
-               class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ !$status || $status == 'all' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
-                هەمووی ({{ $counts['all'] ?? 0 }})
-            </a>
-            <a href="{{ route('lab.patients.index', ['status' => 'pending']) }}" 
-               class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ $status == 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
-                چاوەڕوان ({{ $counts['pending'] ?? 0 }})
-            </a>
-            <a href="{{ route('lab.patients.index', ['status' => 'approved']) }}" 
-               class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ $status == 'approved' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
-                پەسەندکراو / لە کاردایە ({{ $counts['approved'] ?? 0 }})
-            </a>
-            <a href="{{ route('lab.patients.index', ['status' => 'completed']) }}" 
-               class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ $status == 'completed' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
-                تەواوکراو ({{ $counts['completed'] ?? 0 }})
-            </a>
+        <!-- Filter Dropdown / Quick Filter -->
+        <div class="flex items-center gap-3">
+            <label class="text-xs font-bold text-slate-500 whitespace-nowrap">فلتەر بەپێی بارودۆخ:</label>
+            <select onchange="location = this.value;" 
+                    class="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-2xl px-4 py-2.5 outline-none focus:border-blue-500 transition-all cursor-pointer shadow-sm">
+                <option value="{{ route('lab.patients.index') }}" {{ !$status || $status == 'all' ? 'selected' : '' }}>
+                    هەموو داواکارییەکان ({{ $counts['all'] ?? 0 }})
+                </option>
+                <option value="{{ route('lab.patients.index', ['status' => 'pending']) }}" {{ $status == 'pending' ? 'selected' : '' }}>
+                    ⏳ لە چاوەڕوانیدا ({{ $counts['pending'] ?? 0 }})
+                </option>
+                <option value="{{ route('lab.patients.index', ['status' => 'approved']) }}" {{ $status == 'approved' ? 'selected' : '' }}>
+                    🔬 نموونە وەرگیرا / لە کاردایە ({{ $counts['approved'] ?? 0 }})
+                </option>
+                <option value="{{ route('lab.patients.index', ['status' => 'completed']) }}" {{ $status == 'completed' ? 'selected' : '' }}>
+                    ✅ تەواوکراو و ئەنجام ئامادەیە ({{ $counts['completed'] ?? 0 }})
+                </option>
+            </select>
         </div>
     </div>
 
     @if(session('success'))
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl font-bold flex items-center gap-3">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            {{ session('success') }}
+        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl font-bold flex items-center gap-3 shadow-sm">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>{{ session('success') }}</span>
         </div>
     @endif
 
-    <!-- Orders List -->
+    <!-- Orders List Table -->
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-right text-sm">
