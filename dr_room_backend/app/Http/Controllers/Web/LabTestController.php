@@ -34,6 +34,10 @@ class LabTestController extends Controller
     {
         $lab = Auth::user()->lab;
         
+        if ($request->has('price')) {
+            $request->merge(['price' => str_replace(',', '', (string)$request->input('price'))]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
@@ -67,6 +71,10 @@ class LabTestController extends Controller
     {
         if ($test->lab_id !== Auth::user()->lab->id) {
             abort(403);
+        }
+
+        if ($request->has('price')) {
+            $request->merge(['price' => str_replace(',', '', (string)$request->input('price'))]);
         }
 
         $validated = $request->validate([
