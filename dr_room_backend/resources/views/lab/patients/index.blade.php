@@ -173,6 +173,7 @@
 
                             $orderPayload = [
                                 'id' => $order->id,
+                                'patient_id' => $order->patient_id ?? $order->user_id,
                                 'date' => $order->created_at->format('Y/m/d h:i A'),
                                 'name' => $patientName,
                                 'phone' => $patientPhone,
@@ -301,7 +302,12 @@
         </div>
 
         <!-- Modal Footer -->
-        <div style="border-top: 1px solid #f1f5f9; margin-top: 22px; padding-top: 16px; display: flex; justify-content: flex-end;">
+        <div style="border-top: 1px solid #f1f5f9; margin-top: 22px; padding-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <a id="modalUploadResultBtn" href="#" style="padding: 9px 20px; background: #059669; color: #ffffff; font-weight: 800; border-radius: 12px; text-decoration: none; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(5,150,105,0.25);">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                تۆمارکردن و ناردنی ئەنجامی پشکنین (PDF/ڕاپۆرت)
+            </a>
+
             <button type="button" onclick="closeOrderModal()" style="padding: 9px 24px; background: #f1f5f9; color: #334155; font-weight: 800; border-radius: 12px; border: none; cursor: pointer; font-size: 0.82rem;">
                 داخستن
             </button>
@@ -320,9 +326,11 @@ function openOrderModal(data) {
     const content = document.getElementById('modalContent');
     const badge = document.getElementById('modalOrderIdBadge');
     const subtitle = document.getElementById('modalSubtitle');
+    const uploadBtn = document.getElementById('modalUploadResultBtn');
 
     badge.textContent = `#ORD-${data.id}`;
     subtitle.textContent = `بەروار و کاتی تۆمارکردن: ${data.date}`;
+    uploadBtn.href = `{{ route('lab.results.create') }}?patient_id=${data.patient_id || ''}&order_id=${data.id}`;
 
     const genderText = data.gender === 'female' ? 'مێ (Female)' : (data.gender === 'male' ? 'نێر (Male)' : 'دیارینەکراو');
     const ageText = data.age ? `${data.age} ساڵ` : 'دیارینەکراو';
