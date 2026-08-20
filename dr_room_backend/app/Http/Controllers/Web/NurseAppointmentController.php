@@ -12,8 +12,21 @@ class NurseAppointmentController extends Controller
     public function index()
     {
         $nurse = Auth::user()->nurse;
-        $appointments = $nurse->nurseAppointments()->with('patient')->orderBy('appointment_date', 'desc')->paginate(15);
-        return view('nurse.appointments.index', compact('appointments'));
+        
+        // Appointments assigned to this nurse
+        $appointments = $nurse->nurseAppointments()
+            ->with('patient')
+            ->orderBy('appointment_date', 'desc')
+            ->paginate(15);
+            
+        // Pending requests without a nurse
+        $unassignedRequests = NurseAppointment::whereNull('nurse_id')
+            ->where('status', 'pending')
+            ->with('patient')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('nurse.appointments.index', compact('appointments', 'unassignedRequests'));
     }
 
     public function updateStatus(Request $request, NurseAppointment $appointment)
@@ -31,5 +44,19 @@ class NurseAppointmentController extends Controller
         $appointment->save();
 
         return back()->with('success', 'دۆخی چاوپێکەوتنەکە نوێکرایەوە.');
+    }
+
+    public function acceptRequest(NurseAppointment $appointment)
+    {
+        // Only allow accepting if it's currently unassigned
+        if ($appointment->nurse_id !== null) {
+            return back()->with('error', 'ئەم داواکارییە پێشتر لەلایەن پەرستارێکی ترەوە وەرگیراوە.');
+        }
+
+        $appointment->nurse_id = Auth::user()->nurse->id;
+        $appointment->status = 'confirmed'; // Auto confirm when accepted
+        $appointment->save();
+
+        return back()->with('success', 'داواکارییەکە بە سەرکەوتوویی وەرگیرا.');
     }
 }

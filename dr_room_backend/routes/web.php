@@ -92,9 +92,14 @@ Route::prefix('nurse')->middleware(['auth', IsNurse::class])->group(function () 
     // Appointments
     Route::get('/appointments', [NurseAppointmentController::class, 'index'])->name('nurse.appointments.index');
     Route::patch('/appointments/{appointment}/status', [NurseAppointmentController::class, 'updateStatus'])->name('nurse.appointments.update_status');
+    Route::post('/appointments/{appointment}/accept', [NurseAppointmentController::class, 'acceptRequest'])->name('nurse.appointments.accept');
     
     // Patients (Patient Care)
     Route::get('/patients', [NursePatientController::class, 'index'])->name('nurse.patients.index');
+    Route::get('/patients/symptoms', fn() => view('shared.placeholder', ['layout' => 'nurse.layouts.app', 'title' => 'تۆمارکردنی نیشانەکان']))->name('nurse.patients.symptoms');
+    Route::get('/patients/monitoring', fn() => view('shared.placeholder', ['layout' => 'nurse.layouts.app', 'title' => 'چاودێریکردنی نەخۆش']))->name('nurse.patients.monitoring');
+    Route::get('/patients/notes', fn() => view('shared.placeholder', ['layout' => 'nurse.layouts.app', 'title' => 'تێبینی ڕۆژانە']))->name('nurse.patients.notes');
+    Route::get('/patients/medication', fn() => view('shared.placeholder', ['layout' => 'nurse.layouts.app', 'title' => 'پێدانی دەرمان']))->name('nurse.patients.medication');
     
     // Earnings
     Route::get('/earnings', [NurseEarningsController::class, 'index'])->name('nurse.earnings.index');

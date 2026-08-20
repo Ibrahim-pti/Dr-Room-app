@@ -38,49 +38,97 @@
     <!-- Content Grid -->
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
 
-        <!-- Appointments -->
-        <div style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;display:flex;flex-direction:column;">
-            <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
-                <h3 style="margin:0;font-size:1rem;font-weight:700;color:#0f172a;">داواکارییەکانی ئەمڕۆ</h3>
-                <a href="{{ route('nurse.appointments.index') }}" style="font-size:0.8rem;font-weight:700;color:#0d9488;text-decoration:none;background:#f0fdfa;padding:6px 14px;border-radius:8px;transition:background 0.2s;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'">هەمووی ببینە</a>
-            </div>
-            <div style="padding:8px 12px;flex:1;">
-                @if(isset($upcomingAppointments) && $upcomingAppointments->count() > 0)
-                    @foreach($upcomingAppointments->take(5) as $appointment)
-                    <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                        <div style="width:52px;text-align:center;">
-                            <div style="font-size:1rem;font-weight:800;color:#0f172a;">{{ $appointment->appointment_date->format('h:i') }}</div>
-                            <div style="font-size:0.65rem;font-weight:700;color:#94a3b8;">{{ $appointment->appointment_date->format('A') == 'AM' ? 'ب.ن' : 'د.ن' }}</div>
+        <!-- New Requests & Appointments -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <!-- Unassigned / Pending Requests -->
+            @if(isset($unassignedRequests) && $unassignedRequests->count() > 0)
+            <div style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;display:flex;flex-direction:column;">
+                <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;background:#fffbeb;">
+                    <h3 style="margin:0;font-size:1rem;font-weight:700;color:#b45309;">داواکارییە نوێیەکان (چاوەڕێکراو)</h3>
+                </div>
+                <div style="padding:8px 12px;">
+                    @foreach($unassignedRequests as $req)
+                    <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid #f1f5f9;background:#fff;">
+                        <div style="width:46px;height:46px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;color:#b45309;font-weight:bold;">
+                            {{ mb_substr($req->patient->name ?? 'ن', 0, 1) }}
                         </div>
-                        <div style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-weight:700;color:#64748b;font-size:0.9rem;flex-shrink:0;overflow:hidden;">
-                            @if($appointment->patient->profile_image)
-                                <img src="{{ asset('storage/' . $appointment->patient->profile_image) }}" style="width:100%;height:100%;object-fit:cover;">
-                            @else
-                                {{ mb_substr($appointment->patient->name, 0, 1) }}
-                            @endif
+                        <div style="flex:1;">
+                            <div style="font-size:0.9rem;font-weight:700;color:#0f172a;">{{ $req->patient->name ?? 'نەخۆش' }}</div>
+                            <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">
+                                @if($req->services)
+                                    {{ implode('، ', array_map(function($s) {
+                                        $map = ['injection' => 'دەرزی', 'cannula' => 'کانیۆلا', 'dressing' => 'پانسیمان', 'checkup' => 'چاودێری'];
+                                        return $map[$s] ?? $s;
+                                    }, is_array($req->services) ? $req->services : json_decode($req->services, true) ?? [])) }}
+                                @else
+                                    پشکنینی گشتی
+                                @endif
+                                 • {{ $req->address ?? 'ناونیشان دیارینەکراوە' }}
+                            </div>
                         </div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:0.88rem;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $appointment->patient->name }}</div>
-                            <div style="font-size:0.78rem;color:#94a3b8;font-weight:500;">{{ $appointment->service->name ?? 'پشکنینی گشتی' }}</div>
+                        <div>
+                            <span style="font-size:0.8rem;font-weight:bold;color:#059669;margin-left:10px;">{{ number_format($req->fee, 0) }} د.ع</span>
+                            <form action="{{ route('nurse.appointments.accept', $req->id) }}" method="POST" style="display:inline-block;">
+                                @csrf
+                                <button type="submit" style="background:#0d9488;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:0.8rem;font-weight:bold;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#0f766e'" onmouseout="this.style.background='#0d9488'">وەرگرتن</button>
+                            </form>
                         </div>
-                        <span style="font-size:0.72rem;font-weight:700;padding:5px 12px;border-radius:8px;white-space:nowrap;{{ $appointment->status == 'completed' ? 'background:#ecfdf5;color:#059669;' : ($appointment->status == 'pending' ? 'background:#fffbeb;color:#d97706;' : 'background:#f0fdfa;color:#0d9488;') }}">
-                            {{ $appointment->status == 'completed' ? 'تەواوکراو' : ($appointment->status == 'pending' ? 'چاوەڕێکراو' : 'بەڕێوەیە') }}
-                        </span>
                     </div>
                     @endforeach
-                @else
-                    {{-- Empty means empty. This branch used to render invented
-                         patients and procedures (blood draw, wound dressing),
-                         which a nurse cannot tell apart from a real round. --}}
-                    <div style="padding:40px 20px;text-align:center;">
-                        <div style="font-size:0.9rem;font-weight:700;color:#0f172a;margin-bottom:6px;">
-                            هیچ سەردانێکی داهاتوو نییە
+                </div>
+            </div>
+            @endif
+
+            <!-- Upcoming Appointments -->
+            <div style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;display:flex;flex-direction:column;">
+                <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
+                    <h3 style="margin:0;font-size:1rem;font-weight:700;color:#0f172a;">داواکارییەکانی ئەمڕۆم</h3>
+                    <a href="{{ route('nurse.appointments.index') }}" style="font-size:0.8rem;font-weight:700;color:#0d9488;text-decoration:none;background:#f0fdfa;padding:6px 14px;border-radius:8px;transition:background 0.2s;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'">هەمووی ببینە</a>
+                </div>
+                <div style="padding:8px 12px;flex:1;">
+                    @if(isset($upcomingAppointments) && $upcomingAppointments->count() > 0)
+                        @foreach($upcomingAppointments->take(5) as $appointment)
+                        <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                            <div style="width:52px;text-align:center;">
+                                <div style="font-size:1rem;font-weight:800;color:#0f172a;">{{ $appointment->appointment_date->format('h:i') }}</div>
+                                <div style="font-size:0.65rem;font-weight:700;color:#94a3b8;">{{ $appointment->appointment_date->format('A') == 'AM' ? 'ب.ن' : 'د.ن' }}</div>
+                            </div>
+                            <div style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-weight:700;color:#64748b;font-size:0.9rem;flex-shrink:0;overflow:hidden;">
+                                @if($appointment->patient && $appointment->patient->profile_image)
+                                    <img src="{{ asset('storage/' . $appointment->patient->profile_image) }}" style="width:100%;height:100%;object-fit:cover;">
+                                @else
+                                    {{ mb_substr($appointment->patient->name ?? 'ن', 0, 1) }}
+                                @endif
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:0.88rem;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $appointment->patient->name ?? 'نەخۆش' }}</div>
+                                <div style="font-size:0.78rem;color:#94a3b8;font-weight:500;">
+                                    @if($appointment->services)
+                                        {{ implode('، ', array_map(function($s) {
+                                            $map = ['injection' => 'دەرزی', 'cannula' => 'کانیۆلا', 'dressing' => 'پانسیمان', 'checkup' => 'چاودێری'];
+                                            return $map[$s] ?? $s;
+                                        }, is_array($appointment->services) ? $appointment->services : json_decode($appointment->services, true) ?? [])) }}
+                                    @else
+                                        پشکنینی گشتی
+                                    @endif
+                                </div>
+                            </div>
+                            <span style="font-size:0.72rem;font-weight:700;padding:5px 12px;border-radius:8px;white-space:nowrap;{{ $appointment->status == 'completed' ? 'background:#ecfdf5;color:#059669;' : ($appointment->status == 'pending' ? 'background:#fffbeb;color:#d97706;' : 'background:#f0fdfa;color:#0d9488;') }}">
+                                {{ $appointment->status == 'completed' ? 'تەواوکراو' : ($appointment->status == 'pending' ? 'چاوەڕێکراو' : 'بەڕێوەیە') }}
+                            </span>
                         </div>
-                        <div style="font-size:0.82rem;color:#94a3b8;line-height:1.7;">
-                            کاتێک نەخۆشێک کات وەردەگرێت، لێرە دەردەکەوێت.
+                        @endforeach
+                    @else
+                        <div style="padding:40px 20px;text-align:center;">
+                            <div style="font-size:0.9rem;font-weight:700;color:#0f172a;margin-bottom:6px;">
+                                هیچ سەردانێکی داهاتوو نییە
+                            </div>
+                            <div style="font-size:0.82rem;color:#94a3b8;line-height:1.7;">
+                                کاتێک نەخۆشێک کات وەردەگرێت، لێرە دەردەکەوێت.
+                            </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
+                </div>
             </div>
         </div>
 

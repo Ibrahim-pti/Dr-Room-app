@@ -14,11 +14,17 @@ class NurseAppointment extends Model
         'type',
         'notes',
         'fee',
+        'address',
+        'phone',
+        'latitude',
+        'longitude',
+        'services',
     ];
 
     protected $casts = [
         'appointment_date' => 'datetime',
         'fee' => 'decimal:2',
+        'services' => 'array',
     ];
 
     public function nurse()

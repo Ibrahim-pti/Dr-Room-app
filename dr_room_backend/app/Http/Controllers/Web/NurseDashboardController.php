@@ -31,6 +31,14 @@ class NurseDashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Unassigned requests that any nurse can claim
+        $unassignedRequests = \App\Models\NurseAppointment::whereNull('nurse_id')
+            ->where('status', 'pending')
+            ->with('patient')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
         // Appointments per day for the last 7 days, oldest first, for the chart.
         $weeklyChart = collect(range(6, 0))->map(function (int $daysAgo) use ($nurse) {
             $day = today()->subDays($daysAgo);
@@ -49,6 +57,7 @@ class NurseDashboardController extends Controller
             'todayAppointments',
             'totalPatients',
             'upcomingAppointments',
+            'unassignedRequests',
             'weeklyChart'
         ));
     }
