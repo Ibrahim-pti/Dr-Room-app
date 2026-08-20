@@ -260,7 +260,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
-  // ─── Curved Hero Photo Header (Clean White & Android Friendly) ───
+  // ─── Curved Hero Photo Header (Doctor Style Curved Header) ───
   Widget _buildHeroCurvedTop({
     required dynamic image,
     required bool isAvailable,
@@ -270,7 +270,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     required String? serviceType,
   }) {
     final topPadding = MediaQuery.of(context).padding.top;
-    final heroHeight = 340.0 + topPadding;
+    final heroHeight = 310.0 + topPadding;
 
     return Column(
       children: [
@@ -281,36 +281,28 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // 1. Curved Image on Pure White Background
+              // 1. Curved Image (Fills the curve completely)
               ClipPath(
                 clipper: const HeroCurveClipper(),
                 child: Container(
-                  color: Colors.white,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      top: topPadding + 35,
-                      bottom: 25,
-                      left: 10,
-                      right: 10,
-                    ),
-                    child: image != null && image.toString().isNotEmpty
-                        ? (image.toString().startsWith('http')
-                            ? Image.network(
-                                image.toString(),
-                                fit: BoxFit.contain,
-                                alignment: Alignment.topCenter,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _buildHeroPlaceholder(name),
-                              )
-                            : Image.asset(
-                                image.toString(),
-                                fit: BoxFit.contain,
-                                alignment: Alignment.topCenter,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _buildHeroPlaceholder(name),
-                              ))
-                        : _buildHeroPlaceholder(name),
-                  ),
+                  color: const Color(0xFFF8FAFC),
+                  child: image != null && image.toString().isNotEmpty
+                      ? (image.toString().startsWith('http')
+                          ? Image.network(
+                              image.toString(),
+                              fit: BoxFit.cover,
+                              alignment: const Alignment(0, -0.08),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildHeroPlaceholder(name),
+                            )
+                          : Image.asset(
+                              image.toString(),
+                              fit: BoxFit.cover,
+                              alignment: const Alignment(0, -0.08),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildHeroPlaceholder(name),
+                            ))
+                      : _buildHeroPlaceholder(name),
                 ),
               ),
 
