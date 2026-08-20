@@ -736,15 +736,8 @@ class _NurseListScreenState extends State<NurseListScreen> {
             ? nurse['name_en']
             : (nurse['name'] ?? '');
 
-    final specialty = (isArabic && nurse['specialty_ar'] != null && nurse['specialty_ar'].toString().isNotEmpty)
-        ? nurse['specialty_ar']
-        : (isEnglish && nurse['specialty_en'] != null && nurse['specialty_en'].toString().isNotEmpty)
-            ? nurse['specialty_en']
-            : (nurse['specialty'] ?? '');
-
     final image = nurse['image'];
     final isAvailable = nurse['is_available'] == true;
-    final fee = nurse['fee'];
     final rating = double.tryParse(nurse['rating']?.toString() ?? '') ?? 0.0;
     final city = nurse['city'] ?? '';
 
@@ -780,68 +773,30 @@ class _NurseListScreenState extends State<NurseListScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Left: Image + Fee Badge ──
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: image != null && image.toString().isNotEmpty
-                      ? (image.toString().startsWith('http')
-                          ? Image.network(
-                              image.toString(),
-                              width: 96,
-                              height: 96,
-                              fit: BoxFit.cover,
-                              alignment: Alignment.topCenter,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildNursePlaceholder(name),
-                            )
-                          : Image.asset(
-                              image.toString(),
-                              width: 96,
-                              height: 96,
-                              fit: BoxFit.cover,
-                              alignment: Alignment.topCenter,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildNursePlaceholder(name),
-                            ))
-                      : _buildNursePlaceholder(name),
-                ),
-                if (fee != null)
-                  PositionedDirectional(
-                    top: 6,
-                    start: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2.5,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                const Color(0xFF0D9488).withValues(alpha: 0.4),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع',
-                        style: _kStyle(
-                          color: Colors.white,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            // ── Image ──
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: image != null && image.toString().isNotEmpty
+                  ? (image.toString().startsWith('http')
+                      ? Image.network(
+                          image.toString(),
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildNursePlaceholder(name),
+                        )
+                      : Image.asset(
+                          image.toString(),
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildNursePlaceholder(name),
+                        ))
+                  : _buildNursePlaceholder(name),
             ),
             const SizedBox(width: 14),
 
@@ -863,7 +818,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                   ),
                   const SizedBox(height: 7),
 
-                  // 2. Middle Row: Location Pin + City + Specialty Pill beside it
+                  // 2. Middle Row: Location Pin + City + Rating Badge beside it
                   Row(
                     children: [
                       const Icon(
@@ -885,133 +840,86 @@ class _NurseListScreenState extends State<NurseListScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (specialty.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 7,
-                              vertical: 2.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF0FDFA),
-                              borderRadius: BorderRadius.circular(7),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Iconsax.health,
-                                  color: Color(0xFF0D9488),
-                                  size: 11,
-                                ),
-                                const SizedBox(width: 3),
-                                Flexible(
-                                  child: Text(
-                                    specialty
-                                        .split(RegExp(r'[،,]'))
-                                        .first
-                                        .trim(),
-                                    style: _kStyle(
-                                      color: const Color(0xFF0F766E),
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                      const SizedBox(width: 10),
+
+                      // Rating Pill beside location
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2.5,
                         ),
-                      ],
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.star_rounded,
+                              color: Color(0xFFD97706),
+                              size: 13,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              rating > 0 ? rating.toStringAsFixed(1) : '4.8',
+                              style: _kStyle(
+                                color: const Color(0xFFB45309),
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
 
-                  // 3. Bottom Row: [ Availability Status Pill + Rating ] & [ "زیاتر ببینە" Button ]
+                  // 3. Bottom Row: [ Availability Status ] & [ "زیاتر ببینە" Button ]
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Open / Closed Status Pill
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isAvailable
-                                  ? const Color(0xFFECFDF5)
-                                  : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: isAvailable
-                                        ? const Color(0xFF10B981)
-                                        : const Color(0xFF94A3B8),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  isAvailable
-                                      ? _tr('available_now', context)
-                                      : _tr('unavailable', context),
-                                  style: _kStyle(
-                                    color: isAvailable
-                                        ? const Color(0xFF047857)
-                                        : const Color(0xFF64748B),
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (rating > 0) ...[
-                            const SizedBox(width: 6),
+                      // Open / Closed Status Pill in the Bottom Row
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isAvailable
+                              ? const Color(0xFFECFDF5)
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 3.5,
-                              ),
+                              width: 6,
+                              height: 6,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFFFBEB),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFFDE68A)),
+                                shape: BoxShape.circle,
+                                color: isAvailable
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF94A3B8),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.star_rounded,
-                                    color: Color(0xFFF59E0B),
-                                    size: 13,
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    rating.toStringAsFixed(1),
-                                    style: _kStyle(
-                                      color: const Color(0xFF92400E),
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isAvailable
+                                  ? _tr('available_now', context)
+                                  : _tr('unavailable', context),
+                              style: _kStyle(
+                                color: isAvailable
+                                    ? const Color(0xFF047857)
+                                    : const Color(0xFF64748B),
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
-                        ],
+                        ),
                       ),
 
                       // "زیاتر ببینە" Button
