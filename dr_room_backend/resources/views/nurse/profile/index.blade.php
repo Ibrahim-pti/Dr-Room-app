@@ -104,7 +104,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-teal-500"></span>
-                    پسپۆڕی و بوارەکان (دەتوانیت چەندین پسپۆڕی زیاد بکەیت)
+                    پسپۆڕی و بوارەکان
                 </h3>
                 <button type="button" onclick="addSpecialtyRow()"
                     class="flex items-center gap-1.5 px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-xl text-xs font-bold border border-teal-200 transition-colors shadow-sm cursor-pointer">
