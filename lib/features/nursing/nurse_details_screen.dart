@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/utils/api_client.dart';
 import 'nurse_reviews_screen.dart';
+import 'nursing_services_screen.dart';
 
 class NurseDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> nurse;
@@ -154,6 +155,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     final phone = nurse['phone']?.toString() ?? '';
     final isAvailable = nurse['is_available'] == true;
     final experienceYears = nurse['experience_years'];
+    final fee = nurse['fee'];
     final rating = double.tryParse(nurse['rating']?.toString() ?? '') ?? 0.0;
     final totalReviews = int.tryParse(nurse['total_reviews']?.toString() ?? '') ?? 0;
     final nurseId = int.tryParse(nurse['id']?.toString() ?? '0') ?? 0;
@@ -239,6 +241,8 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                   ] else ...[
                     // 🩺 Tab 2: پسپۆڕییەکان (Specialties)
                     _buildSpecialtiesSection(allSpecialties),
+                    const SizedBox(height: 14),
+                    _buildServiceRequestCard(fee, nurse),
                   ],
                 ],
               ),
@@ -1360,8 +1364,105 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
   }
 
 
-
-
+  // ─── Service Request Card (Price + Request Button) ───
+  Widget _buildServiceRequestCard(dynamic fee, Map<String, dynamic> nurse) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF0FDFA), Color(0xFFECFDF5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF99F6E4)),
+      ),
+      child: Column(
+        children: [
+          if (fee != null) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Iconsax.money_recive,
+                  color: Color(0xFF0D9488),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'نرخی خزمەتگوزاری',
+                  style: _kStyle(
+                    color: const Color(0xFF475569),
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع',
+                  style: _kStyle(
+                    color: const Color(0xFF0D9488),
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+          ],
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => NursingServicesScreen(
+                    nurse: nurse,
+                    nurseId: nurse['id'],
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Iconsax.calendar_tick,
+                    color: Colors.white,
+                    size: 17,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'داواکردنی خزمەتگوزاری',
+                    style: _kStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class HeroCurveClipper extends CustomClipper<Path> {
