@@ -10,6 +10,9 @@ class Nurse extends Model
 
     protected $casts = [
         'is_approved' => 'boolean',
+        'is_available' => 'boolean',
+        'offered_services' => 'array',
+        'fee' => 'decimal:2',
     ];
 
     public function user()

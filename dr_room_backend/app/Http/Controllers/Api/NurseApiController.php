@@ -22,6 +22,11 @@ class NurseApiController extends Controller
             $query->where('specialty', 'like', '%' . $request->specialty . '%');
         }
 
+        // Filter by service category
+        if ($request->has('service') && $request->service) {
+            $query->whereJsonContains('offered_services', $request->service);
+        }
+
         $nurses = $query->get()->map(function ($nurse) {
             return [
                 'id' => $nurse->id,
@@ -40,14 +45,26 @@ class NurseApiController extends Controller
                     : ($nurse->user->profile_image
                         ? asset('storage/' . $nurse->user->profile_image)
                         : null),
+                'is_available' => $nurse->is_available ?? true,
+                'fee' => $nurse->fee,
+                'offered_services' => $nurse->offered_services ?? [],
                 'completed_appointments' => $nurse->nurseAppointments()
                     ->where('status', 'completed')->count(),
             ];
         });
 
+        // Service categories for the app filter chips
+        $categories = [
+            ['id' => 'injection', 'name' => 'دەرزی', 'name_en' => 'Injection', 'name_ar' => 'حقنة', 'icon' => 'health'],
+            ['id' => 'cannula', 'name' => 'کانیۆلا', 'name_en' => 'Cannula', 'name_ar' => 'كانيولا', 'icon' => 'activity'],
+            ['id' => 'dressing', 'name' => 'پانسیمان', 'name_en' => 'Dressing', 'name_ar' => 'تضميد', 'icon' => 'healing'],
+            ['id' => 'checkup', 'name' => 'چاودێری', 'name_en' => 'Checkup', 'name_ar' => 'فحص', 'icon' => 'heart'],
+        ];
+
         return response()->json([
             'success' => true,
             'nurses' => $nurses,
+            'categories' => $categories,
         ]);
     }
 

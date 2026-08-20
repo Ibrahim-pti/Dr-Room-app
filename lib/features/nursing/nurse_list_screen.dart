@@ -16,11 +16,10 @@ class NurseListScreen extends StatefulWidget {
 class _NurseListScreenState extends State<NurseListScreen> {
   List<Map<String, dynamic>> _allNurses = [];
   List<Map<String, dynamic>> _filteredNurses = [];
+  List<Map<String, dynamic>> _categories = [];
   bool _isLoading = true;
   final TextEditingController _searchCtrl = TextEditingController();
-  String _selectedFilter = 'All';
-
-  final List<String> _filters = ['All', 'available', 'top_experience'];
+  String _selectedCategory = 'all'; // 'all', 'injection', 'cannula', 'dressing', 'checkup'
 
   @override
   void initState() {
@@ -44,14 +43,10 @@ class _NurseListScreenState extends State<NurseListScreen> {
         if (isKurdish) return 'هەموو پەرستارەکان';
         if (isArabic) return 'جميع الممرضين';
         return 'All Nurses';
-      case 'available':
-        if (isKurdish) return 'ئامادەن';
-        if (isArabic) return 'متاحون';
-        return 'Available';
-      case 'top_experience':
-        if (isKurdish) return 'بەئەزمووون';
-        if (isArabic) return 'الأكثر خبرة';
-        return 'Experienced';
+      case 'all':
+        if (isKurdish) return 'هەمووی';
+        if (isArabic) return 'الكل';
+        return 'All';
       case 'search':
         if (isKurdish) return 'گەڕان بۆ ناوی پەرستار...';
         if (isArabic) return 'البحث عن ممرض...';
@@ -60,20 +55,44 @@ class _NurseListScreenState extends State<NurseListScreen> {
         if (isKurdish) return 'هیچ پەرستارێک نەدۆزرایەوە';
         if (isArabic) return 'لم يتم العثور على ممرضين';
         return 'No nurses found';
-      case 'completed_count':
-        if (isKurdish) return 'خزمەتگوزاری تەواوکراو';
-        if (isArabic) return 'خدمة مكتملة';
-        return 'Completed services';
       case 'request_service':
         if (isKurdish) return 'داواکردن';
         if (isArabic) return 'طلب خدمة';
         return 'Request';
-      case 'available_now':
+      case 'available':
         if (isKurdish) return 'ئامادەیە';
         if (isArabic) return 'متاح';
         return 'Available';
+      case 'unavailable':
+        if (isKurdish) return 'ئامادە نییە';
+        if (isArabic) return 'غير متاح';
+        return 'Unavailable';
       default:
         return key.tr();
+    }
+  }
+
+  String _getCategoryName(Map<String, dynamic> cat) {
+    final lang = context.locale.languageCode;
+    final isKurdish = lang == 'ckb' || lang == 'ku';
+    final isArabic = lang == 'ar';
+    if (isArabic) return cat['name_ar'] ?? cat['name'] ?? '';
+    if (!isKurdish) return cat['name_en'] ?? cat['name'] ?? '';
+    return cat['name'] ?? '';
+  }
+
+  IconData _getCategoryIcon(String iconName) {
+    switch (iconName) {
+      case 'health':
+        return Iconsax.health;
+      case 'activity':
+        return Iconsax.activity;
+      case 'healing':
+        return Icons.healing_outlined;
+      case 'heart':
+        return Iconsax.heart;
+      default:
+        return Iconsax.health;
     }
   }
 
@@ -99,9 +118,11 @@ class _NurseListScreenState extends State<NurseListScreen> {
       if (response.statusCode == 200 && mounted) {
         final decoded = jsonDecode(response.body);
         final List<dynamic> nurses = decoded['nurses'] ?? [];
+        final List<dynamic> categories = decoded['categories'] ?? [];
         setState(() {
           _allNurses = nurses.cast<Map<String, dynamic>>();
           _filteredNurses = _allNurses;
+          _categories = categories.cast<Map<String, dynamic>>();
           _isLoading = false;
         });
       }
@@ -114,27 +135,25 @@ class _NurseListScreenState extends State<NurseListScreen> {
   void _filterNurses() {
     final query = _searchCtrl.text.toLowerCase().trim();
     setState(() {
-      var list = _allNurses.where((n) {
+      _filteredNurses = _allNurses.where((n) {
         final name = (n['name'] ?? '').toString().toLowerCase();
         final specialty = (n['specialty'] ?? '').toString().toLowerCase();
         final specialtyEn = (n['specialty_en'] ?? '').toString().toLowerCase();
         final matchesQuery =
             query.isEmpty || name.contains(query) || specialty.contains(query) || specialtyEn.contains(query);
 
-        bool matchesFilter = true;
-        if (_selectedFilter == 'top_experience') {
-          matchesFilter = (n['completed_appointments'] ?? 0) >= 1;
+        bool matchesCategory = true;
+        if (_selectedCategory != 'all') {
+          final offered = n['offered_services'];
+          if (offered is List) {
+            matchesCategory = offered.contains(_selectedCategory);
+          } else {
+            matchesCategory = false;
+          }
         }
 
-        return matchesQuery && matchesFilter;
+        return matchesQuery && matchesCategory;
       }).toList();
-
-      if (_selectedFilter == 'top_experience') {
-        list.sort((a, b) =>
-            (b['completed_appointments'] ?? 0).compareTo(a['completed_appointments'] ?? 0));
-      }
-
-      _filteredNurses = list;
     });
   }
 
@@ -285,55 +304,88 @@ class _NurseListScreenState extends State<NurseListScreen> {
 
           const SizedBox(height: 18),
 
-          // ── Filters Row ──
+          // ── Category Filter Chips (from API) ──
           SizedBox(
             height: 42,
-            child: ListView.builder(
+            child: ListView(
               scrollDirection: Axis.horizontal,
-              itemCount: _filters.length,
-              itemBuilder: (context, index) {
-                final filter = _filters[index];
-                final isSelected = _selectedFilter == filter;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedFilter = filter);
-                    _filterNurses();
-                  },
-                  child: Container(
-                    margin: const EdgeInsetsDirectional.only(end: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF0D9488) : const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(
-                        color: isSelected ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0),
-                        width: 1.2,
-                      ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFF0D9488).withValues(alpha: 0.25),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Text(
-                      filter == 'All' ? _tr('all_nurses') : _tr(filter),
-                      style: _kStyle(
-                        color: isSelected ? Colors.white : const Color(0xFF475569),
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                );
-              },
+              children: [
+                // "All" chip
+                _buildCategoryChip(
+                  id: 'all',
+                  label: _tr('all'),
+                  icon: Iconsax.category,
+                  isSelected: _selectedCategory == 'all',
+                ),
+                // Dynamic categories from API
+                ..._categories.map((cat) {
+                  final id = cat['id'] as String;
+                  return _buildCategoryChip(
+                    id: id,
+                    label: _getCategoryName(cat),
+                    icon: _getCategoryIcon(cat['icon'] ?? ''),
+                    isSelected: _selectedCategory == id,
+                  );
+                }),
+              ],
             ),
           ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip({
+    required String id,
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        setState(() => _selectedCategory = id);
+        _filterNurses();
+      },
+      child: Container(
+        margin: const EdgeInsetsDirectional.only(end: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0D9488) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0),
+            width: 1.2,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF0D9488).withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 15,
+              color: isSelected ? Colors.white : const Color(0xFF64748B),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: _kStyle(
+                color: isSelected ? Colors.white : const Color(0xFF475569),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -344,6 +396,15 @@ class _NurseListScreenState extends State<NurseListScreen> {
     final image = nurse['image'];
     final completedCount = nurse['completed_appointments'] ?? 0;
     final phone = nurse['phone'] ?? '';
+    final isAvailable = nurse['is_available'] == true;
+    final offeredServices = nurse['offered_services'] as List<dynamic>? ?? [];
+    final fee = nurse['fee'];
+
+    // Map service IDs to Kurdish names for display
+    String serviceName(String id) {
+      final map = {'injection': 'دەرزی', 'cannula': 'کانیۆلا', 'dressing': 'پانسیمان', 'checkup': 'چاودێری'};
+      return map[id] ?? id;
+    }
 
     return GestureDetector(
       onTap: () {
@@ -368,7 +429,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
           ],
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Left: Avatar ──
             Stack(
@@ -385,10 +446,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                       colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
                     ),
                     image: image != null
-                        ? DecorationImage(
-                            image: NetworkImage(image),
-                            fit: BoxFit.cover,
-                          )
+                        ? DecorationImage(image: NetworkImage(image), fit: BoxFit.cover)
                         : null,
                   ),
                   child: image == null
@@ -409,27 +467,30 @@ class _NurseListScreenState extends State<NurseListScreen> {
                         )
                       : null,
                 ),
-                // Available badge
+                // Available/Unavailable badge
                 PositionedDirectional(
                   top: 6,
                   start: 6,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                      gradient: LinearGradient(
+                        colors: isAvailable
+                            ? [const Color(0xFF10B981), const Color(0xFF059669)]
+                            : [const Color(0xFF94A3B8), const Color(0xFF64748B)],
                       ),
                       borderRadius: BorderRadius.circular(6),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                          color: (isAvailable ? const Color(0xFF10B981) : const Color(0xFF94A3B8))
+                              .withValues(alpha: 0.4),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
                     child: Text(
-                      _tr('available_now'),
+                      isAvailable ? _tr('available') : _tr('unavailable'),
                       style: _kStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -450,9 +511,9 @@ class _NurseListScreenState extends State<NurseListScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 7),
+                  const SizedBox(height: 5),
 
-                  // 2. Specialty + Experience badge
+                  // 2. Specialty
                   Row(
                     children: [
                       const Icon(Iconsax.health, color: Color(0xFF0D9488), size: 14),
@@ -465,10 +526,8 @@ class _NurseListScreenState extends State<NurseListScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 10),
-
-                      // Completed count pill
-                      if (completedCount > 0)
+                      if (completedCount > 0) ...[
+                        const SizedBox(width: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                           decoration: BoxDecoration(
@@ -482,24 +541,61 @@ class _NurseListScreenState extends State<NurseListScreen> {
                               const SizedBox(width: 3),
                               Text(
                                 '$completedCount',
-                                style: _kStyle(color: const Color(0xFF047857), fontSize: 11, fontWeight: FontWeight.bold),
+                                style: _kStyle(
+                                    color: const Color(0xFF047857), fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
                         ),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
 
-                  // 3. Bottom: Phone + Request Button
+                  // 3. Service tags
+                  if (offeredServices.isNotEmpty)
+                    Wrap(
+                      spacing: 5,
+                      runSpacing: 4,
+                      children: offeredServices.take(4).map<Widget>((s) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDFA),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFCCFBF1)),
+                          ),
+                          child: Text(
+                            serviceName(s.toString()),
+                            style: _kStyle(color: const Color(0xFF0D9488), fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  const SizedBox(height: 10),
+
+                  // 4. Bottom: Phone/Fee + Request Button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Phone
-                      if (phone.isNotEmpty)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
+                      // Phone or fee
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (fee != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع',
+                                style: _kStyle(
+                                    color: const Color(0xFFB45309), fontSize: 10.5, fontWeight: FontWeight.bold),
+                              ),
+                            )
+                          else if (phone.isNotEmpty)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                               decoration: BoxDecoration(
@@ -513,15 +609,16 @@ class _NurseListScreenState extends State<NurseListScreen> {
                                   const SizedBox(width: 4),
                                   Text(
                                     phone,
-                                    style: _kStyle(color: const Color(0xFF64748B), fontSize: 10.5, fontWeight: FontWeight.bold),
+                                    style: _kStyle(
+                                        color: const Color(0xFF64748B), fontSize: 10.5, fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
+                        ],
+                      ),
 
-                      // Request Service Button
+                      // Request button
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
@@ -533,7 +630,8 @@ class _NurseListScreenState extends State<NurseListScreen> {
                           children: [
                             Text(
                               _tr('request_service'),
-                              style: _kStyle(color: const Color(0xFF0D9488), fontSize: 11.5, fontWeight: FontWeight.bold),
+                              style: _kStyle(
+                                  color: const Color(0xFF0D9488), fontSize: 11.5, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(width: 4),
                             const Icon(Icons.arrow_forward_ios, color: Color(0xFF0D9488), size: 9),

@@ -25,6 +25,11 @@ class NurseProfileController extends Controller
             'phone' => 'required|string|max:20',
             'specialty' => 'nullable|string|max:255',
             'bio' => 'nullable|string',
+            'offered_services' => 'nullable|array',
+            'offered_services.*' => 'in:injection,cannula,dressing,checkup',
+            'is_available' => 'nullable|boolean',
+            'fee' => 'nullable|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $user->update([
@@ -36,7 +41,16 @@ class NurseProfileController extends Controller
             $updateData = [
                 'specialty' => $request->specialty,
                 'bio' => $request->bio,
+                'offered_services' => $request->offered_services ?? $nurse->offered_services,
+                'is_available' => $request->has('is_available') ? (bool) $request->is_available : $nurse->is_available,
+                'fee' => $request->fee ?? $nurse->fee,
             ];
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('nurses', 'public');
+                $updateData['image_path'] = $path;
+            }
 
             try {
                 $tr = new \Stichoza\GoogleTranslate\GoogleTranslate();
