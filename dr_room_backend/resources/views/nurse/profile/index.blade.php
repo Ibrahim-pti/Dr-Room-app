@@ -727,7 +727,7 @@
 
 <script>
     let cropper = null;
-    let selectedBgOption = 'white'; // 'white' or 'transparent'
+    let selectedBgOption = 'white'; // default to pure white background
     const imageInput = document.getElementById('image-input');
     const cropperModal = document.getElementById('cropper-modal');
     const cropperImage = document.getElementById('cropper-image');
@@ -736,35 +736,45 @@
     const avatarPlaceholder = document.getElementById('avatar-placeholder');
     const croppedImageInput = document.getElementById('cropped_image');
 
+    // 100% Automatic Background Removal & White Fill on File Selection
     imageInput.addEventListener('change', function(e) {
         const files = e.target.files;
         if (files && files.length > 0) {
             const file = files[0];
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                cropperImage.src = evt.target.result;
-                openCropperModal();
+            reader.onload = async function(evt) {
+                const originalDataUrl = evt.target.result;
+                
+                // Set initial image and show modal with loading
+                cropperImage.src = originalDataUrl;
+                cropperModal.classList.remove('hidden');
+                aiLoadingOverlay.classList.remove('hidden');
+                
+                // Initialize cropper
+                initCropper();
+
+                // Automatically run AI background removal
+                try {
+                    if (typeof imglyRemoveBackground === 'function') {
+                        const blob = await imglyRemoveBackground(originalDataUrl);
+                        const cleanUrl = URL.createObjectURL(blob);
+                        if (cropper) {
+                            cropper.replace(cleanUrl);
+                        } else {
+                            cropperImage.src = cleanUrl;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('AI auto background removal skipped, using original:', err);
+                } finally {
+                    aiLoadingOverlay.classList.add('hidden');
+                }
             };
             reader.readAsDataURL(file);
         }
     });
 
-    function setBackgroundOption(option) {
-        selectedBgOption = option;
-        const whiteBtn = document.getElementById('bg-white-btn');
-        const transparentBtn = document.getElementById('bg-transparent-btn');
-        
-        if (option === 'white') {
-            whiteBtn.className = 'px-2.5 py-1 rounded-lg bg-white shadow-xs text-teal-700 font-bold transition-all';
-            transparentBtn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
-        } else {
-            transparentBtn.className = 'px-2.5 py-1 rounded-lg bg-white shadow-xs text-teal-700 font-bold transition-all';
-            whiteBtn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
-        }
-    }
-
-    function openCropperModal() {
-        cropperModal.classList.remove('hidden');
+    function initCropper() {
         if (cropper) {
             cropper.destroy();
         }
@@ -781,6 +791,20 @@
         }, 150);
     }
 
+    function setBackgroundOption(option) {
+        selectedBgOption = option;
+        const whiteBtn = document.getElementById('bg-white-btn');
+        const transparentBtn = document.getElementById('bg-transparent-btn');
+        
+        if (option === 'white') {
+            whiteBtn.className = 'px-2.5 py-1 rounded-lg bg-white shadow-xs text-teal-700 font-bold transition-all';
+            transparentBtn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+        } else {
+            transparentBtn.className = 'px-2.5 py-1 rounded-lg bg-white shadow-xs text-teal-700 font-bold transition-all';
+            whiteBtn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+        }
+    }
+
     function closeCropperModal() {
         cropperModal.classList.add('hidden');
         if (cropper) {
@@ -790,7 +814,7 @@
         imageInput.value = '';
     }
 
-    // AI Background Removal via @imgly/background-removal
+    // Manual retry if needed
     async function removeBackgroundAI() {
         if (!cropperImage.src) return;
         
@@ -819,7 +843,7 @@
     function applyCrop() {
         if (!cropper) return;
 
-        // Get 700x700 cropped canvas
+        // Get 700x700 cropped canvas with Pure White Background
         const canvasOptions = {
             width: 700,
             height: 700,
