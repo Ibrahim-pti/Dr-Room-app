@@ -260,7 +260,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
-  // ─── Curved Hero Photo Header (Doctor Style Curved Header) ───
+  // ─── Curved Hero Photo Header (Doctor Style with Perfect Notch Clearance) ───
   Widget _buildHeroCurvedTop({
     required dynamic image,
     required bool isAvailable,
@@ -270,7 +270,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     required String? serviceType,
   }) {
     final topPadding = MediaQuery.of(context).padding.top;
-    final heroHeight = 310.0 + topPadding;
+    final heroHeight = 325.0 + topPadding;
 
     return Column(
       children: [
@@ -281,34 +281,62 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // 1. Curved Image (Fills the curve completely)
+              // 1. Curved Image with shifted alignment so face is lower and fully visible
               ClipPath(
                 clipper: const HeroCurveClipper(),
                 child: Container(
-                  color: const Color(0xFFF8FAFC),
-                  child: image != null && image.toString().isNotEmpty
-                      ? (image.toString().startsWith('http')
-                          ? Image.network(
-                              image.toString(),
-                              fit: BoxFit.cover,
-                              alignment: const Alignment(0, -0.08),
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildHeroPlaceholder(name),
-                            )
-                          : Image.asset(
-                              image.toString(),
-                              fit: BoxFit.cover,
-                              alignment: const Alignment(0, -0.08),
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildHeroPlaceholder(name),
-                            ))
-                      : _buildHeroPlaceholder(name),
+                  color: const Color(0xFFF1F5F9),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (image != null && image.toString().isNotEmpty)
+                        image.toString().startsWith('http')
+                            ? Image.network(
+                                image.toString(),
+                                fit: BoxFit.cover,
+                                alignment: const Alignment(0, 0.22),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildHeroPlaceholder(name),
+                              )
+                            : Image.asset(
+                                image.toString(),
+                                fit: BoxFit.cover,
+                                alignment: const Alignment(0, 0.22),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildHeroPlaceholder(name),
+                              )
+                      else
+                        _buildHeroPlaceholder(name),
+
+                      // Subtle top gradient for status bar & action buttons clarity
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: topPadding + 65,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.38),
+                                Colors.black.withValues(alpha: 0.12),
+                                Colors.transparent,
+                              ],
+                              stops: const [0.0, 0.65, 1.0],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
-              // 2. Floating Action Buttons (Clean White Buttons)
+              // 2. Floating Action Buttons (Clean Frosted/White Buttons)
               Positioned(
-                top: topPadding + 6,
+                top: topPadding + 8,
                 left: 16,
                 right: 16,
                 child: Row(
@@ -318,16 +346,18 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
                       child: Container(
-                        width: 40,
-                        height: 40,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Colors.white.withValues(alpha: 0.95),
                           shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(
+                            color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 8,
+                              color: Colors.black.withValues(alpha: 0.10),
+                              blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
                           ],
@@ -346,16 +376,18 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                         setState(() => _isFavorite = !_isFavorite);
                       },
                       child: Container(
-                        width: 40,
-                        height: 40,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Colors.white.withValues(alpha: 0.95),
                           shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(
+                            color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 8,
+                              color: Colors.black.withValues(alpha: 0.10),
+                              blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
                           ],
