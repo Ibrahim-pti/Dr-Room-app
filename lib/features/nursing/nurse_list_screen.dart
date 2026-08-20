@@ -763,8 +763,12 @@ class _NurseListScreenState extends State<NurseListScreen> {
 
     // Prioritize specialties as badges
     final List<String> allServiceBadges = [];
-    if (specialty.isNotEmpty) {
-      final parts = specialty.split(RegExp(r'[،,]')).map((e) => e.trim()).where((e) => e.isNotEmpty);
+    final String specialtyStr = (specialty ?? '').toString();
+    if (specialtyStr.isNotEmpty) {
+      final parts = specialtyStr
+          .split(RegExp(r'[،,]'))
+          .map((e) => e.trim())
+          .where((String e) => e.isNotEmpty);
       allServiceBadges.addAll(parts);
     }
     for (var cs in customServices) {
