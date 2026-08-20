@@ -745,6 +745,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
     final image = nurse['image'];
     final isAvailable = nurse['is_available'] == true;
     final fee = nurse['fee'];
+    final rating = double.tryParse(nurse['rating']?.toString() ?? '') ?? 0.0;
     final city = nurse['city'] ?? '';
 
     return GestureDetector(
@@ -929,50 +930,88 @@ class _NurseListScreenState extends State<NurseListScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // 3. Bottom Row: [ Availability Status Pill ] & [ "زیاتر ببینە" Button ]
+                  // 3. Bottom Row: [ Availability Status Pill + Rating ] & [ "زیاتر ببینە" Button ]
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Open / Closed Status Pill
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isAvailable
-                              ? const Color(0xFFECFDF5)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isAvailable
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFF94A3B8),
-                              ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Open / Closed Status Pill
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3.5,
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              isAvailable
-                                  ? _tr('available_now', context)
-                                  : _tr('unavailable', context),
-                              style: _kStyle(
-                                color: isAvailable
-                                    ? const Color(0xFF047857)
-                                    : const Color(0xFF64748B),
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.bold,
+                            decoration: BoxDecoration(
+                              color: isAvailable
+                                  ? const Color(0xFFECFDF5)
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isAvailable
+                                        ? const Color(0xFF10B981)
+                                        : const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isAvailable
+                                      ? _tr('available_now', context)
+                                      : _tr('unavailable', context),
+                                  style: _kStyle(
+                                    color: isAvailable
+                                        ? const Color(0xFF047857)
+                                        : const Color(0xFF64748B),
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (rating > 0) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 3.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFFBEB),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFFDE68A)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.star_rounded,
+                                    color: Color(0xFFF59E0B),
+                                    size: 13,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    rating.toStringAsFixed(1),
+                                    style: _kStyle(
+                                      color: const Color(0xFF92400E),
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
-                        ),
+                        ],
                       ),
 
                       // "زیاتر ببینە" Button

@@ -136,6 +136,9 @@ Route::prefix('nurse')->middleware(['auth', IsNurse::class])->group(function () 
     Route::get('/reports', fn() => $nursePlaceholder('ڕاپۆرتەکان'))->name('nurse.reports.index');
     Route::get('/reports/progress', fn() => $nursePlaceholder('بەرەوپێشچوونی نەخۆش'))->name('nurse.reports.progress');
     
+    // Reviews & Ratings
+    Route::get('/reviews', [\App\Http\Controllers\Web\NurseReviewController::class, 'index'])->name('nurse.reviews.index');
+
     // Profile sub-routes
     Route::get('/profile/schedule', [\App\Http\Controllers\Web\NurseScheduleController::class, 'index'])->name('nurse.profile.schedule');
 });

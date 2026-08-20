@@ -16,6 +16,7 @@ class Nurse extends Model
         'fee' => 'decimal:2',
         'latitude' => 'float',
         'longitude' => 'float',
+        'rating' => 'decimal:1',
     ];
 
     public function user()
@@ -27,4 +28,23 @@ class Nurse extends Model
     {
         return $this->hasMany(NurseAppointment::class);
     }
+
+    /** Patient reviews left for this nurse */
+    public function reviews()
+    {
+        return $this->hasMany(NurseReview::class);
+    }
+
+    /**
+     * Recalculates the cached `rating` / `total_reviews` columns from the
+     * reviews table. Call after any review is created, changed or removed.
+     */
+    public function refreshRating(): void
+    {
+        $this->update([
+            'rating' => round((float) $this->reviews()->avg('rating'), 1),
+            'total_reviews' => $this->reviews()->count(),
+        ]);
+    }
 }
+

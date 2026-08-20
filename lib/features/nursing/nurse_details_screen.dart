@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:url_launcher/url_launcher.dart';
 
+import 'nurse_reviews_screen.dart';
 import 'nursing_services_screen.dart';
 
 class NurseDetailsScreen extends StatefulWidget {
@@ -150,6 +151,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     final isAvailable = nurse['is_available'] == true;
     final fee = nurse['fee'];
     final experienceYears = nurse['experience_years'];
+    final rating = double.tryParse(nurse['rating']?.toString() ?? '') ?? 0.0;
+    final totalReviews = int.tryParse(nurse['total_reviews']?.toString() ?? '') ?? 0;
+    final nurseId = int.tryParse(nurse['id']?.toString() ?? '0') ?? 0;
     final city = nurse['city']?.toString() ?? '';
     final serviceType = nurse['service_type']?.toString();
     final customServices = nurse['custom_services'] as List<dynamic>? ?? [];
@@ -206,6 +210,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                   city: city,
                   specialty: specialty.toString(),
                   serviceType: serviceType,
+                  rating: rating,
+                  totalReviews: totalReviews,
+                  nurseId: nurseId,
                 ),
                 const SizedBox(height: 18),
 
@@ -225,7 +232,17 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                       // ── 4. Dynamic Tab Content ──
                       if (_selectedTabIndex == 0) ...[
                         // 📋 Tab 1: ناساندن (About)
-                        _buildHighlightFeatures(experienceYears, serviceType, isAvailable),
+                        _buildHighlightFeatures(
+                          experienceYears,
+                          serviceType,
+                          isAvailable,
+                          rating,
+                          totalReviews,
+                          nurseId,
+                          name,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildReviewsCard(nurseId, name, rating, totalReviews),
                         const SizedBox(height: 12),
                         if (bio.isNotEmpty) ...[
                           _buildAboutSection(bio),
@@ -261,6 +278,20 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
+  void _openReviews(int nurseId, String nurseName, dynamic rating) {
+    if (nurseId <= 0) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => NurseReviewsScreen(
+          nurseId: nurseId,
+          nurseName: nurseName,
+          rating: (double.tryParse(rating?.toString() ?? '') ?? 0).toStringAsFixed(1),
+        ),
+      ),
+    );
+  }
+
   // ─── Curved Hero Photo Header (Doctor Style with Perfect Notch Clearance) ───
   Widget _buildHeroCurvedTop({
     required dynamic image,
@@ -269,6 +300,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     required String city,
     required String specialty,
     required String? serviceType,
+    required double rating,
+    required int totalReviews,
+    required int nurseId,
   }) {
     final topPadding = MediaQuery.of(context).padding.top;
     final heroHeight = 325.0 + topPadding;
@@ -424,6 +458,19 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              GestureDetector(
+                onTap: () => _openReviews(nurseId, name, rating),
+                child: _heroPill(
+                  icon: Iconsax.star_1,
+                  label: rating > 0
+                      ? '${rating.toStringAsFixed(1)} ★ ($totalReviews)'
+                      : 'فیدباک و ئەستێرەدان',
+                  color: const Color(0xFFF59E0B),
+                  bgColor: const Color(0xFFFFFBEB),
+                  borderColor: const Color(0xFFFDE68A),
+                ),
+              ),
+              const SizedBox(width: 8),
               if (specialty.isNotEmpty) ...[
                 _heroPill(
                   icon: Iconsax.health,
@@ -697,6 +744,10 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     dynamic experienceYears,
     String? serviceType,
     bool isAvailable,
+    double rating,
+    int totalReviews,
+    int nurseId,
+    String nurseName,
   ) {
     final expStr = (experienceYears != null && experienceYears.toString() != '0')
         ? '${experienceYears.toString()} ساڵ'
@@ -704,71 +755,202 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
 
     final highlights = [
       {
+        'icon': Iconsax.star_1,
+        'title': rating > 0 ? '${rating.toStringAsFixed(1)} ★' : 'پێدانی ئەستێرە',
+        'desc': totalReviews > 0 ? '$totalReviews هەڵسەنگاندن' : 'فیدباک بنووسە',
+        'color': const Color(0xFFF59E0B),
+        'onTap': () => _openReviews(nurseId, nurseName, rating),
+      },
+      {
         'icon': Iconsax.award,
         'title': expStr,
         'desc': 'ساڵی ئەزموون',
-        'color': const Color(0xFFF59E0B),
+        'color': const Color(0xFF2563EB),
+        'onTap': null,
       },
       {
         'icon': Iconsax.home_2,
         'title': _serviceTypeKurdish(serviceType),
-        'desc': 'جۆری خزمەتگوزاری',
+        'desc': 'خزمەتگوزاری',
         'color': const Color(0xFF0D9488),
+        'onTap': null,
       },
     ];
 
     return Row(
       children: highlights.map((h) {
         final color = h['color'] as Color;
+        final onTap = h['onTap'] as VoidCallback?;
         return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 3),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(h['icon'] as IconData, color: color, size: 17),
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 9),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: onTap != null
+                      ? const Color(0xFFFDE68A)
+                      : const Color(0xFFE2E8F0),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(h['icon'] as IconData, color: color, size: 16),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    h['title'] as String,
+                    style: _kStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F172A),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    h['desc'] as String,
+                    style: _kStyle(
+                      fontSize: 9.5,
+                      color: const Color(0xFF64748B),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildReviewsCard(int nurseId, String name, double rating, int totalReviews) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFBEB),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Iconsax.star_1, color: Color(0xFFF59E0B), size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'فیدباک و هەڵسەنگاندنەکان',
+                    style: _kStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
+              ),
+              if (rating > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 14),
+                      const SizedBox(width: 3),
                       Text(
-                        h['title'] as String,
+                        rating.toStringAsFixed(1),
                         style: _kStyle(
-                          fontSize: 11.5,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        h['desc'] as String,
-                        style: _kStyle(
-                          fontSize: 10,
-                          color: const Color(0xFF64748B),
+                          color: const Color(0xFF92400E),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            totalReviews > 0
+                ? 'ئەم پەرستارە $totalReviews هەڵسەنگاندنی لەلایەن نەخۆشەکانەوە پێدراوە.'
+                : 'تا ئێستا هیچ فیدباکێک تۆمار نەکراوە، یەکەم کەس بە کە فیدباک دەنووسێت و ئەستێرە دەدات.',
+            style: _kStyle(
+              fontSize: 12,
+              color: const Color(0xFF64748B),
+              height: 1.5,
             ),
           ),
-        );
-      }).toList(),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _openReviews(nurseId, name, rating),
+              icon: const Icon(Iconsax.edit_2, size: 16),
+              label: Text(
+                'نووسینی فیدباک و پێدانی ئەستێرە',
+                style: _kStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0D9488),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 11),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -60,6 +60,7 @@ Route::get('/labs/{id}/reviews', [\App\Http\Controllers\Api\LabReviewController:
 // ─── Nursing Services ─────────────────────────────────────────────────
 Route::get('/nurses', [\App\Http\Controllers\Api\NurseApiController::class, 'index']);
 Route::get('/nurses/{id}', [\App\Http\Controllers\Api\NurseApiController::class, 'show']);
+Route::get('/nurses/{id}/reviews', [\App\Http\Controllers\Api\NurseReviewController::class, 'index']);
 Route::get('/nursing/services', [\App\Http\Controllers\Api\NurseApiController::class, 'getServices']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -73,9 +74,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments', [AppointmentBookingController::class, 'store']);
     Route::delete('/appointments/{id}', [AppointmentBookingController::class, 'destroy']);
 
-    // ─── Patient: Doctor & Lab Reviews ─────────────────────────────────────
+    // ─── Patient: Doctor, Lab & Nurse Reviews ──────────────────────────────
     Route::post('/doctors/{id}/reviews', [\App\Http\Controllers\Api\DoctorReviewController::class, 'store']);
     Route::post('/labs/{id}/reviews', [\App\Http\Controllers\Api\LabReviewController::class, 'store']);
+    Route::post('/nurses/{id}/reviews', [\App\Http\Controllers\Api\NurseReviewController::class, 'store']);
 
     // ─── Patient: Orders (Labs, Pharmacy, Nursing) ──────────────────────────
     Route::post('/nursing/book', [\App\Http\Controllers\Api\NurseApiController::class, 'book']);
