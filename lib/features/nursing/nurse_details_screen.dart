@@ -285,17 +285,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               ClipPath(
                 clipper: const HeroCurveClipper(),
                 child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0xFFE2E8F0),
-                        Color(0xFFF1F5F9),
-                        Color(0xFFF8FAFC),
-                      ],
-                    ),
-                  ),
+                  color: Colors.white,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
