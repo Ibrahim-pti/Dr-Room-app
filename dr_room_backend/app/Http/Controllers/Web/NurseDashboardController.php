@@ -36,7 +36,7 @@ class NurseDashboardController extends Controller
         $upcomingAppointments = Order::where('assigned_nurse_id', $userId)
             ->where('service_type', 'Nursing Services')
             ->where('status', 'processing')
-            ->with('patient')
+            ->with(['patient', 'items'])
             ->orderBy('created_at', 'asc')
             ->take(5)
             ->get();

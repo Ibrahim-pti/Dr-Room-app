@@ -90,8 +90,8 @@
                         @foreach($upcomingAppointments->take(5) as $appointment)
                         <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                             <div style="width:52px;text-align:center;">
-                                <div style="font-size:1rem;font-weight:800;color:#0f172a;">{{ $appointment->appointment_date->format('h:i') }}</div>
-                                <div style="font-size:0.65rem;font-weight:700;color:#94a3b8;">{{ $appointment->appointment_date->format('A') == 'AM' ? 'ب.ن' : 'د.ن' }}</div>
+                                <div style="font-size:1rem;font-weight:800;color:#0f172a;">{{ $appointment->created_at->format('h:i') }}</div>
+                                <div style="font-size:0.65rem;font-weight:700;color:#94a3b8;">{{ $appointment->created_at->format('A') == 'AM' ? 'ب.ن' : 'د.ن' }}</div>
                             </div>
                             <div style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-weight:700;color:#64748b;font-size:0.9rem;flex-shrink:0;overflow:hidden;">
                                 @if($appointment->patient && $appointment->patient->profile_image)
@@ -103,13 +103,10 @@
                             <div style="flex:1;min-width:0;">
                                 <div style="font-size:0.88rem;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $appointment->patient->name ?? 'نەخۆش' }}</div>
                                 <div style="font-size:0.78rem;color:#94a3b8;font-weight:500;">
-                                    @if($appointment->services)
-                                        {{ implode('، ', array_map(function($s) {
-                                            $map = ['injection' => 'دەرزی', 'cannula' => 'کانیۆلا', 'dressing' => 'پانسیمان', 'checkup' => 'چاودێری'];
-                                            return $map[$s] ?? $s;
-                                        }, is_array($appointment->services) ? $appointment->services : json_decode($appointment->services, true) ?? [])) }}
+                                    @if($appointment->items && $appointment->items->count() > 0)
+                                        {{ $appointment->items->pluck('item_name')->join('، ') }}
                                     @else
-                                        پشکنینی گشتی
+                                        خزمەتگوزاری پەرستاری
                                     @endif
                                 </div>
                             </div>

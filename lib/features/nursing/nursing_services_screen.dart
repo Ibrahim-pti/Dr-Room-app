@@ -10,10 +10,12 @@ import '../../core/providers/cart_provider.dart';
 
 class NursingServicesScreen extends StatefulWidget {
   final int? nurseId;
+  final Map<String, dynamic>? nurse;
 
   const NursingServicesScreen({
     super.key,
     this.nurseId,
+    this.nurse,
   });
 
   @override
@@ -21,36 +23,97 @@ class NursingServicesScreen extends StatefulWidget {
 }
 
 class _NursingServicesScreenState extends State<NursingServicesScreen> {
-  final List<Map<String, dynamic>> _services = [
-    {
-      'titleKey': 'injection',
-      'subtitleKey': 'injection_desc',
-      'icon': Iconsax.health,
-      'color': const Color(0xFF3B82F6),
-      'selected': false,
-    },
-    {
-      'titleKey': 'cannula',
-      'subtitleKey': 'cannula_desc',
-      'icon': Iconsax.activity,
-      'color': const Color(0xFF10B981),
-      'selected': false,
-    },
-    {
-      'titleKey': 'wound_dressing',
-      'subtitleKey': 'wound_desc',
-      'icon': Icons.healing_outlined,
-      'color': const Color(0xFFF59E0B),
-      'selected': false,
-    },
-    {
-      'titleKey': 'quick_care',
-      'subtitleKey': 'quick_care_desc',
-      'icon': Iconsax.heart,
-      'color': const Color(0xFFEF4444),
-      'selected': false,
-    },
-  ];
+  final List<Map<String, dynamic>> _services = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initServices();
+  }
+
+  void _initServices() {
+    final nurse = widget.nurse;
+    final nurseFee = nurse != null && nurse['fee'] != null
+        ? (double.tryParse(nurse['fee'].toString()) ?? 25000.0)
+        : 25000.0;
+
+    // Standard base services
+    _services.addAll([
+      {
+        'id': 'injection',
+        'titleKey': 'injection',
+        'title': 'دەرزی لێدان',
+        'subtitleKey': 'injection_desc',
+        'subtitle': 'دەرزی ماسولکە، دەمار یان ژێر پێست',
+        'icon': Iconsax.health,
+        'color': const Color(0xFF3B82F6),
+        'price': nurseFee,
+        'selected': false,
+      },
+      {
+        'id': 'cannula',
+        'titleKey': 'cannula',
+        'title': 'دانانی کانیۆلا',
+        'subtitleKey': 'cannula_desc',
+        'subtitle': 'دانان و چاودێریکردنی کانیۆلای دەمار',
+        'icon': Iconsax.activity,
+        'color': const Color(0xFF10B981),
+        'price': nurseFee,
+        'selected': false,
+      },
+      {
+        'id': 'wound_dressing',
+        'titleKey': 'wound_dressing',
+        'title': 'پانسیمان و پێچانەوەی برین',
+        'subtitleKey': 'wound_desc',
+        'subtitle': 'پاککردنەوە و پێچانەوەی برین و دوای نەشتەرگەری',
+        'icon': Icons.healing_outlined,
+        'color': const Color(0xFFF59E0B),
+        'price': nurseFee,
+        'selected': false,
+      },
+      {
+        'id': 'quick_care',
+        'titleKey': 'quick_care',
+        'title': 'چاودێری خێرا',
+        'subtitleKey': 'quick_care_desc',
+        'subtitle': 'پشکنینی گشتی و چاودێری نیشانە سەرەکییەکان',
+        'icon': Iconsax.heart,
+        'color': const Color(0xFFEF4444),
+        'price': nurseFee,
+        'selected': false,
+      },
+    ]);
+
+    // If the nurse provided custom services from profile, add them!
+    if (nurse != null && nurse['custom_services'] is List) {
+      final customList = nurse['custom_services'] as List;
+      for (int i = 0; i < customList.length; i++) {
+        final cs = customList[i];
+        if (cs is Map && (cs['name'] != null && cs['name'].toString().isNotEmpty)) {
+          final customPrice = cs['price'] != null
+              ? (double.tryParse(cs['price'].toString()) ?? nurseFee)
+              : nurseFee;
+          
+          _services.add({
+            'id': 'custom_${i}_${cs['name']}',
+            'titleKey': null,
+            'title': cs['name'].toString(),
+            'title_en': cs['name_en'],
+            'title_ar': cs['name_ar'],
+            'subtitleKey': null,
+            'subtitle': cs['description']?.toString().isNotEmpty == true
+                ? cs['description'].toString()
+                : 'خزمەتگوزاری تایبەتی پەرستار',
+            'icon': Iconsax.verify,
+            'color': const Color(0xFF0D9488),
+            'price': customPrice,
+            'selected': false,
+          });
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +215,9 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                service['titleKey'].toString().tr(),
+                                service['titleKey'] != null
+                                    ? service['titleKey'].toString().tr()
+                                    : (service['title'] ?? ''),
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -161,12 +226,25 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                service['subtitleKey'].toString().tr(),
+                                service['subtitleKey'] != null
+                                    ? service['subtitleKey'].toString().tr()
+                                    : (service['subtitle'] ?? ''),
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   color: AppColors.getTextSubtitle(context),
                                 ),
                               ),
+                              if (service['price'] != null) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${(service['price'] as num).toInt()} د.ع',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0D9488),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -239,12 +317,19 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
                               cart.clearCart();
                               cart.setServiceType('Nursing Services', extraFee: 0.0);
                               
+                              final chosenNurseId = widget.nurse?['id'] ?? widget.nurseId;
+
                               for (var s in _services.where((s) => s['selected'] == true)) {
+                                final itemName = s['titleKey'] != null
+                                    ? s['titleKey'].toString().tr()
+                                    : (s['title'] ?? 'خزمەتگوزاری پەرستاری');
+                                final itemPrice = (s['price'] as num?)?.toDouble() ?? 25000.0;
+
                                 cart.addItem(CartItem(
-                                  id: s['titleKey'],
-                                  name: s['titleKey'].toString().tr(),
-                                  price: 25000.0, // Default price for nursing services, in dinars
-                                  extraData: widget.nurseId != null ? {'nurse_id': widget.nurseId} : null,
+                                  id: s['id']?.toString() ?? s['titleKey']?.toString() ?? 'nurse_service',
+                                  name: itemName,
+                                  price: itemPrice,
+                                  extraData: chosenNurseId != null ? {'nurse_id': chosenNurseId} : null,
                                 ));
                               }
 

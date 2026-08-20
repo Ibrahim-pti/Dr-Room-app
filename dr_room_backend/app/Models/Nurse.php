@@ -12,7 +12,10 @@ class Nurse extends Model
         'is_approved' => 'boolean',
         'is_available' => 'boolean',
         'offered_services' => 'array',
+        'custom_services' => 'array',
         'fee' => 'decimal:2',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     public function user()

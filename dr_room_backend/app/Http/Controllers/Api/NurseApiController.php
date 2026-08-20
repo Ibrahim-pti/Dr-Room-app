@@ -46,6 +46,11 @@ class NurseApiController extends Controller
                 'bio_ar' => $nurse->bio_ar ?? '',
                 'phone' => $nurse->phone ?? '',
                 'city' => $nurse->city ?? '',
+                'address' => $nurse->address ?? '',
+                'address_en' => $nurse->address_en ?? '',
+                'address_ar' => $nurse->address_ar ?? '',
+                'latitude' => $nurse->latitude,
+                'longitude' => $nurse->longitude,
                 'service_type' => $nurse->service_type ?? 'home_nursing',
                 'image' => $nurse->image_path
                     ? asset('storage/' . $nurse->image_path)
@@ -55,6 +60,7 @@ class NurseApiController extends Controller
                 'is_available' => $nurse->is_available ?? true,
                 'fee' => $nurse->fee,
                 'offered_services' => $nurse->offered_services ?? [],
+                'custom_services' => $nurse->custom_services ?? [],
                 'completed_appointments' => $nurse->nurseAppointments()
                     ->where('status', 'completed')->count(),
             ];
@@ -132,6 +138,17 @@ class NurseApiController extends Controller
                 'bio_en' => $nurse->bio_en ?? '',
                 'bio_ar' => $nurse->bio_ar ?? '',
                 'phone' => $nurse->phone ?? '',
+                'city' => $nurse->city ?? '',
+                'address' => $nurse->address ?? '',
+                'address_en' => $nurse->address_en ?? '',
+                'address_ar' => $nurse->address_ar ?? '',
+                'latitude' => $nurse->latitude,
+                'longitude' => $nurse->longitude,
+                'service_type' => $nurse->service_type ?? 'home_nursing',
+                'fee' => $nurse->fee,
+                'is_available' => $nurse->is_available ?? true,
+                'offered_services' => $nurse->offered_services ?? [],
+                'custom_services' => $nurse->custom_services ?? [],
                 'image' => $nurse->image_path
                     ? asset('storage/' . $nurse->image_path)
                     : ($nurse->user->profile_image

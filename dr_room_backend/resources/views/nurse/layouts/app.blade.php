@@ -108,53 +108,17 @@
                     داشبۆرد
                 </a>
 
-                <div class="nav-label">بەڕێوەبردن</div>
-
-                <button class="nav-item" onclick="toggleNav('patients')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    چاودێری نەخۆش
-                    <svg class="chevron" id="chevron-patients" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </button>
-                <div class="nav-sub" id="sub-patients">
-                    <a href="{{ route('nurse.patients.index') }}" class="{{ request()->routeIs('nurse.patients.index') ? 'active' : '' }}">لیستی نەخۆشەکان</a>
-                    <a href="{{ route('nurse.patients.symptoms') }}">تۆمارکردنی نیشانەکان</a>
-                    <a href="{{ route('nurse.patients.monitoring') }}">چاودێریکردنی نەخۆش</a>
-                    <a href="{{ route('nurse.patients.notes') }}">تێبینی ڕۆژانە</a>
-                    <a href="{{ route('nurse.patients.medication') }}">پێدانی دەرمان</a>
-                </div>
-
-                <button class="nav-item" onclick="toggleNav('appointments')">
+                <a href="{{ route('nurse.appointments.index') }}" class="nav-item {{ request()->routeIs('nurse.appointments.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    بەڕێوەبردنی چاوپێکەوتن
-                    <svg class="chevron" id="chevron-appointments" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </button>
-                <div class="nav-sub" id="sub-appointments">
-                    <a href="{{ route('nurse.appointments.index') }}" class="{{ request()->routeIs('nurse.appointments.index') ? 'active' : '' }}">بینینی چاوپێکەوتنەکان</a>
-                    <a href="{{ route('nurse.appointments.confirm') }}">دڵنیابوونەوە لە کات</a>
-                    <a href="{{ route('nurse.appointments.prepare') }}">ئامادەکردنی نەخۆش</a>
-                </div>
+                    چاوپێکەوتنەکان
+                </a>
 
-                <button class="nav-item" onclick="toggleNav('communication')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    پەیوەندی
-                    <svg class="chevron" id="chevron-communication" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </button>
-                <div class="nav-sub" id="sub-communication">
-                    <a href="{{ route('nurse.communication.doctor') }}">چات لەگەڵ دکتۆر</a>
-                    <a href="{{ route('nurse.communication.patient') }}">چات لەگەڵ نەخۆش</a>
-                </div>
+                <a href="{{ route('nurse.patients.index') }}" class="nav-item {{ request()->routeIs('nurse.patients.*') ? 'active' : '' }}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    نەخۆشەکان
+                </a>
 
-                <button class="nav-item" onclick="toggleNav('reports')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    ڕاپۆرتەکان
-                    <svg class="chevron" id="chevron-reports" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </button>
-                <div class="nav-sub" id="sub-reports">
-                    <a href="{{ route('nurse.reports.index') }}">ڕاپۆرتی پەرستاری</a>
-                    <a href="{{ route('nurse.reports.progress') }}">بەرەوپێشچوونی نەخۆش</a>
-                </div>
-
-                <div class="nav-label">تر</div>
+                <div class="nav-label">داهات و پرۆفایل</div>
 
                 <a href="{{ route('nurse.earnings.index') }}" class="nav-item {{ request()->routeIs('nurse.earnings.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -221,17 +185,7 @@
             }
             function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
 
-            let openMenu = null;
-            function toggleNav(name) {
-                const sub = document.getElementById('sub-' + name);
-                const chev = document.getElementById('chevron-' + name);
-                if (openMenu && openMenu !== name) { const ps = document.getElementById('sub-' + openMenu); const pc = document.getElementById('chevron-' + openMenu); if(ps) ps.classList.remove('open'); if(pc) pc.classList.remove('open'); }
-                if (sub.classList.contains('open')) { sub.classList.remove('open'); if(chev) chev.classList.remove('open'); openMenu = null; } else { sub.classList.add('open'); if(chev) chev.classList.add('open'); openMenu = name; }
-            }
-
             document.addEventListener('DOMContentLoaded', function() {
-                const url = window.location.href.split('?')[0];
-                document.querySelectorAll('.nav-sub a').forEach(link => { if (link.href && link.href.split('?')[0] === url) { link.classList.add('active'); const sub = link.closest('.nav-sub'); if(sub) { sub.classList.add('open'); const id = sub.id.replace('sub-',''); const c = document.getElementById('chevron-'+id); if(c) c.classList.add('open'); openMenu = id; } } });
                 if (window.innerWidth < 1024) document.getElementById('mobileLogo').style.display = 'block';
                 window.addEventListener('resize', () => { document.getElementById('mobileLogo').style.display = window.innerWidth < 1024 ? 'block' : 'none'; if (window.innerWidth >= 1024) closeSidebar(); });
             });

@@ -726,12 +726,33 @@ class _NurseListScreenState extends State<NurseListScreen> {
   }
 
   Widget _buildPremiumNurseCard(Map<String, dynamic> nurse, int index) {
-    final name = nurse['name'] ?? '';
-    final specialty = nurse['specialty'] ?? '';
+    final lang = context.locale.languageCode;
+    final isArabic = lang == 'ar';
+    final isEnglish = lang == 'en';
+
+    final name = (isArabic && nurse['name_ar'] != null && nurse['name_ar'].toString().isNotEmpty)
+        ? nurse['name_ar']
+        : (isEnglish && nurse['name_en'] != null && nurse['name_en'].toString().isNotEmpty)
+            ? nurse['name_en']
+            : (nurse['name'] ?? '');
+
+    final specialty = (isArabic && nurse['specialty_ar'] != null && nurse['specialty_ar'].toString().isNotEmpty)
+        ? nurse['specialty_ar']
+        : (isEnglish && nurse['specialty_en'] != null && nurse['specialty_en'].toString().isNotEmpty)
+            ? nurse['specialty_en']
+            : (nurse['specialty'] ?? '');
+
+    final address = (isArabic && nurse['address_ar'] != null && nurse['address_ar'].toString().isNotEmpty)
+        ? nurse['address_ar']
+        : (isEnglish && nurse['address_en'] != null && nurse['address_en'].toString().isNotEmpty)
+            ? nurse['address_en']
+            : (nurse['address'] ?? '');
+
     final image = nurse['image'];
     final phone = nurse['phone'] ?? '';
     final isAvailable = nurse['is_available'] == true;
     final offeredServices = nurse['offered_services'] as List<dynamic>? ?? [];
+    final customServices = nurse['custom_services'] as List<dynamic>? ?? [];
     final fee = nurse['fee'];
     final city = nurse['city'] ?? '';
 
@@ -740,9 +761,33 @@ class _NurseListScreenState extends State<NurseListScreen> {
       return map[id] ?? id;
     }
 
+    // Combine standard and custom services for visual badges
+    final List<String> allServiceBadges = [];
+    for (var s in offeredServices) {
+      allServiceBadges.add(serviceName(s.toString()));
+    }
+    for (var cs in customServices) {
+      if (cs is Map && cs['name'] != null && cs['name'].toString().isNotEmpty) {
+        final csName = (isArabic && cs['name_ar'] != null && cs['name_ar'].toString().isNotEmpty)
+            ? cs['name_ar']
+            : (isEnglish && cs['name_en'] != null && cs['name_en'].toString().isNotEmpty)
+                ? cs['name_en']
+                : cs['name'].toString();
+        allServiceBadges.add(csName);
+      }
+    }
+
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => NursingServicesScreen(nurseId: nurse['id'])));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => NursingServicesScreen(
+              nurse: nurse,
+              nurseId: nurse['id'],
+            ),
+          ),
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -873,14 +918,31 @@ class _NurseListScreenState extends State<NurseListScreen> {
                       ],
                     ],
                   ),
+                  if (address.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.place_outlined, color: Color(0xFF94A3B8), size: 12),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            address,
+                            style: _kStyle(color: const Color(0xFF94A3B8), fontSize: 11),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 8),
 
-                  // Service tags
-                  if (offeredServices.isNotEmpty)
+                  // Service tags (Standard + Custom)
+                  if (allServiceBadges.isNotEmpty)
                     Wrap(
                       spacing: 5,
                       runSpacing: 4,
-                      children: offeredServices.take(4).map<Widget>((s) {
+                      children: allServiceBadges.take(4).map<Widget>((s) {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
@@ -889,7 +951,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                             border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
                           child: Text(
-                            serviceName(s.toString()),
+                            s,
                             style: _kStyle(color: const Color(0xFF475569), fontSize: 10, fontWeight: FontWeight.bold),
                           ),
                         );
