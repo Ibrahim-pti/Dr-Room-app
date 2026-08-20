@@ -145,8 +145,28 @@ class NurseProfileController extends Controller
                 'phone' => $request->phone,
             ];
 
-            // Handle image upload
-            if ($request->hasFile('image')) {
+            // Handle image upload (Cropped base64 or File)
+            if ($request->filled('cropped_image')) {
+                try {
+                    $imageData = $request->input('cropped_image');
+                    // Extract base64 part
+                    if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $type)) {
+                        $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                        $type = strtolower($type[1]); // jpg, png, jpeg
+                        if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png', 'webp'])) {
+                            $type = 'jpg';
+                        }
+                        $decodedImage = base64_decode($imageData);
+                        if ($decodedImage !== false) {
+                            $filename = 'nurses/' . uniqid('nurse_', true) . '.' . $type;
+                            \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $decodedImage);
+                            $updateData['image_path'] = $filename;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Error saving cropped nurse image: ' . $e->getMessage());
+                }
+            } elseif ($request->hasFile('image')) {
                 $path = $request->file('image')->store('nurses', 'public');
                 $updateData['image_path'] = $path;
             }

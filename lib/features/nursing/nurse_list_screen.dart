@@ -29,7 +29,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
   String _selectedServiceType = 'All';
   
   List<String> _dynamicCities = ['All'];
-  List<Map<String, dynamic>> _dynamicServiceTypes = [
+  final List<Map<String, dynamic>> _dynamicServiceTypes = [
     {'id': 'all', 'name': 'All', 'name_en': 'All', 'name_ar': 'الكل'},
     {'id': 'home_nursing', 'name': 'پەرستاری ماڵ', 'name_en': 'Home Nursing', 'name_ar': 'تمريض منزلي'},
     {'id': 'clinic', 'name': 'کلینیک', 'name_en': 'Clinic', 'name_ar': 'عيادة'},
@@ -742,47 +742,10 @@ class _NurseListScreenState extends State<NurseListScreen> {
             ? nurse['specialty_en']
             : (nurse['specialty'] ?? '');
 
-    final address = (isArabic && nurse['address_ar'] != null && nurse['address_ar'].toString().isNotEmpty)
-        ? nurse['address_ar']
-        : (isEnglish && nurse['address_en'] != null && nurse['address_en'].toString().isNotEmpty)
-            ? nurse['address_en']
-            : (nurse['address'] ?? '');
-
-    final bio = (isArabic && nurse['bio_ar'] != null && nurse['bio_ar'].toString().isNotEmpty)
-        ? nurse['bio_ar']
-        : (isEnglish && nurse['bio_en'] != null && nurse['bio_en'].toString().isNotEmpty)
-            ? nurse['bio_en']
-            : (nurse['bio'] ?? '');
-
     final image = nurse['image'];
-    final phone = nurse['phone'] ?? '';
     final isAvailable = nurse['is_available'] == true;
-    final customServices = nurse['custom_services'] as List<dynamic>? ?? [];
     final fee = nurse['fee'];
     final city = nurse['city'] ?? '';
-
-    // Prioritize specialties as badges
-    final List<String> allServiceBadges = [];
-    final String specialtyStr = (specialty ?? '').toString();
-    if (specialtyStr.isNotEmpty) {
-      final parts = specialtyStr
-          .split(RegExp(r'[،,]'))
-          .map((e) => e.trim())
-          .where((String e) => e.isNotEmpty);
-      allServiceBadges.addAll(parts);
-    }
-    for (var cs in customServices) {
-      if (cs is Map && cs['name'] != null && cs['name'].toString().isNotEmpty) {
-        final csName = (isArabic && cs['name_ar'] != null && cs['name_ar'].toString().isNotEmpty)
-            ? cs['name_ar']
-            : (isEnglish && cs['name_en'] != null && cs['name_en'].toString().isNotEmpty)
-                ? cs['name_en']
-                : cs['name'].toString();
-        if (!allServiceBadges.contains(csName)) {
-          allServiceBadges.add(csName);
-        }
-      }
-    }
 
     return GestureDetector(
       onTap: () {
@@ -801,226 +764,244 @@ class _NurseListScreenState extends State<NurseListScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFFE2E8F0).withValues(alpha: 0.8), width: 1),
+          border: Border.all(
+            color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
+            width: 1,
+          ),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 16, offset: const Offset(0, 4)),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Avatar ──
+            // ── Left: Image + Fee Badge ──
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
-                    ),
-                    image: image != null ? DecorationImage(image: NetworkImage(image), fit: BoxFit.cover) : null,
-                  ),
-                  child: image == null
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Iconsax.health, color: Colors.white, size: 32),
-                              const SizedBox(height: 4),
-                              Text(
-                                name.isNotEmpty ? name.split(' ').first : 'ن',
-                                style: _kStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        )
-                      : null,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: image != null && image.toString().isNotEmpty
+                      ? (image.toString().startsWith('http')
+                          ? Image.network(
+                              image.toString(),
+                              width: 96,
+                              height: 96,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.topCenter,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildNursePlaceholder(name),
+                            )
+                          : Image.asset(
+                              image.toString(),
+                              width: 96,
+                              height: 96,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.topCenter,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildNursePlaceholder(name),
+                            ))
+                      : _buildNursePlaceholder(name),
                 ),
-                // Badge
-                PositionedDirectional(
-                  top: 6,
-                  start: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: isAvailable
-                            ? [const Color(0xFF10B981), const Color(0xFF059669)]
-                            : [const Color(0xFF94A3B8), const Color(0xFF64748B)],
+                if (fee != null)
+                  PositionedDirectional(
+                    top: 6,
+                    start: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2.5,
                       ),
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (isAvailable ? const Color(0xFF10B981) : const Color(0xFF94A3B8)).withValues(alpha: 0.4),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
                         ),
-                      ],
-                    ),
-                    child: Text(
-                      isAvailable ? _tr('available', context) : _tr('unavailable', context),
-                      style: _kStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                const Color(0xFF0D9488).withValues(alpha: 0.4),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع',
+                        style: _kStyle(
+                          color: Colors.white,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             const SizedBox(width: 14),
 
-            // ── Details ──
+            // ── Right: Details ──
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name
+                  // 1. Nurse Name
                   Text(
-                    name,
-                    style: _kStyle(fontSize: 15.5, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                    name.isNotEmpty ? name : 'پەرستار',
+                    style: _kStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F172A),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 7),
 
-                  // Specialty + city
+                  // 2. Middle Row: Location Pin + City + Specialty Pill beside it
                   Row(
                     children: [
-                      const Icon(Iconsax.health, color: Color(0xFF0D9488), size: 14),
+                      const Icon(
+                        Iconsax.location,
+                        color: Color(0xFF0D9488),
+                        size: 14,
+                      ),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          specialty,
-                          style: _kStyle(color: const Color(0xFF64748B), fontSize: 12),
+                          _getLocalizedCityName(
+                              '${city.isNotEmpty ? city : 'Erbil'}', context),
+                          style: _kStyle(
+                            color: const Color(0xFF64748B),
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (city.isNotEmpty) ...[
+                      if (specialty.isNotEmpty) ...[
                         const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF0FDFA),
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Iconsax.location, color: Color(0xFF0D9488), size: 11),
-                              const SizedBox(width: 3),
-                              Text(
-                                _cityKurdish(city),
-                                style: _kStyle(color: const Color(0xFF0D9488), fontSize: 10, fontWeight: FontWeight.bold),
-                              ),
-                            ],
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 2.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0FDFA),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Iconsax.health,
+                                  color: Color(0xFF0D9488),
+                                  size: 11,
+                                ),
+                                const SizedBox(width: 3),
+                                Flexible(
+                                  child: Text(
+                                    specialty
+                                        .split(RegExp(r'[،,]'))
+                                        .first
+                                        .trim(),
+                                    style: _kStyle(
+                                      color: const Color(0xFF0F766E),
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ],
                   ),
-                  if (address.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.place_outlined, color: Color(0xFF94A3B8), size: 12),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          child: Text(
-                            address,
-                            style: _kStyle(color: const Color(0xFF94A3B8), fontSize: 11),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (bio.isNotEmpty) ...[
-                    const SizedBox(height: 5),
-                    Text(
-                      bio,
-                      style: _kStyle(color: const Color(0xFF64748B), fontSize: 11.5, height: 1.3),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
-                  // Service / Specialty tags
-                  if (allServiceBadges.isNotEmpty)
-                    Wrap(
-                      spacing: 5,
-                      runSpacing: 4,
-                      children: allServiceBadges.take(4).map<Widget>((s) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Text(
-                            s,
-                            style: _kStyle(color: const Color(0xFF475569), fontSize: 10, fontWeight: FontWeight.bold),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  const SizedBox(height: 10),
-
-                  // Bottom: fee/phone + request
+                  // 3. Bottom Row: [ Availability Status Pill ] & [ "زیاتر ببینە" Button ]
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      if (fee != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFEF3C7),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع',
-                            style: _kStyle(color: const Color(0xFFB45309), fontSize: 10.5, fontWeight: FontWeight.bold),
-                          ),
-                        )
-                      else if (phone.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Iconsax.call, color: Color(0xFF64748B), size: 12),
-                              const SizedBox(width: 4),
-                              Text(phone, style: _kStyle(color: const Color(0xFF64748B), fontSize: 10.5, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        )
-                      else
-                        const SizedBox.shrink(),
-
+                      // Open / Closed Status Pill
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3.5,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0D9488),
+                          color: isAvailable
+                              ? const Color(0xFFECFDF5)
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isAvailable
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF94A3B8),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isAvailable
+                                  ? _tr('available_now', context)
+                                  : _tr('unavailable', context),
+                              style: _kStyle(
+                                color: isAvailable
+                                    ? const Color(0xFF047857)
+                                    : const Color(0xFF64748B),
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // "زیاتر ببینە" Button
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDFA),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(_tr('request_service', context), style: _kStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                            Text(
+                              _tr('view_more', context),
+                              style: _kStyle(
+                                color: const Color(0xFF0D9488),
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 9),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              color: Color(0xFF0D9488),
+                              size: 9,
+                            ),
                           ],
                         ),
                       ),
@@ -1035,14 +1016,35 @@ class _NurseListScreenState extends State<NurseListScreen> {
     ).animate().fadeIn(delay: (60 * index).ms).slideY(begin: 0.08, end: 0);
   }
 
-  String _cityKurdish(String city) {
-    final map = {
-      'Erbil': 'هەولێر',
-      'Sulaymaniyah': 'سلێمانی',
-      'Duhok': 'دهۆک',
-      'Kirkuk': 'کەرکووک',
-      'Halabja': 'هەڵەبجە',
-    };
-    return map[city] ?? city;
+  Widget _buildNursePlaceholder(String name) {
+    return Container(
+      width: 96,
+      height: 96,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDFA),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Iconsax.health, color: Color(0xFF0D9488), size: 32),
+            if (name.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                name.split(' ').first,
+                style: _kStyle(
+                  color: const Color(0xFF0D9488),
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

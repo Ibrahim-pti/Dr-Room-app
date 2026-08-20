@@ -335,7 +335,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
   // ─── Hero Image Banner ───
   Widget _buildHeroBanner(dynamic image, bool isAvailable, String name) {
     return Container(
-      height: 190,
+      height: 215,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
@@ -357,6 +357,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                 ? Image.network(
                     image.toString(),
                     fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
                     errorBuilder: (context, error, stackTrace) =>
                         _buildHeroPlaceholder(name),
                   )

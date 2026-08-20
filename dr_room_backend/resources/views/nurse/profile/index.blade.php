@@ -23,27 +23,57 @@
     </div>
 @endif
 
+<!-- Cropper.js CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+<style>
+    .cropper-view-box, .cropper-face {
+        border-radius: 12px;
+    }
+</style>
+
 <form id="profile-form" action="{{ route('nurse.profile.update') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 md:p-8 max-w-4xl">
     @csrf
     @method('PUT')
     
+    <!-- Hidden input for base64 cropped image -->
+    <input type="hidden" id="cropped_image" name="cropped_image" value="">
+
     <div class="space-y-8">
-        <!-- Profile Image -->
+        <!-- Profile Image with Interactive Crop -->
         <div>
             <label class="block text-sm font-bold text-slate-700 mb-3">وێنەی پڕۆفایل</label>
-            <div class="flex items-center gap-5">
-                @if($nurse && $nurse->image_path)
-                    <img src="{{ asset('storage/' . $nurse->image_path) }}" class="w-20 h-20 rounded-2xl object-cover border-2 border-teal-200 shadow-sm">
-                @elseif($user->profile_image)
-                    <img src="{{ asset('storage/' . $user->profile_image) }}" class="w-20 h-20 rounded-2xl object-cover border-2 border-teal-200 shadow-sm">
-                @else
-                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-sm">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <div class="flex items-center gap-5 flex-wrap">
+                <div class="relative group">
+                    @php
+                        $avatarUrl = null;
+                        if ($nurse && $nurse->image_path) {
+                            $avatarUrl = asset('storage/' . $nurse->image_path);
+                        } elseif ($user->profile_image) {
+                            $avatarUrl = asset('storage/' . $user->profile_image);
+                        }
+                    @endphp
+                    
+                    <img id="avatar-preview" src="{{ $avatarUrl ?? 'https://images.unsplash.com/photo-1594824813527-b671607519ff?w=400' }}" 
+                         class="w-24 h-24 rounded-2xl object-cover border-2 border-teal-300 shadow-md {{ $avatarUrl ? '' : 'hidden' }}">
+                    
+                    <div id="avatar-placeholder" class="w-24 h-24 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-md {{ $avatarUrl ? 'hidden' : '' }}">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     </div>
-                @endif
-                <div>
-                    <input type="file" id="image" name="image" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 transition-all cursor-pointer">
-                    <p class="text-xs text-slate-400 mt-1.5">JPEG, PNG, WebP (حەجمی بەرز: 3MB)</p>
+
+                    <button type="button" onclick="document.getElementById('image-input').click()" 
+                            class="absolute -bottom-2 -right-2 bg-teal-600 text-white p-2 rounded-xl shadow-lg hover:bg-teal-700 transition-all hover:scale-105 cursor-pointer" title="گۆڕینی وێنە">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </button>
+                </div>
+
+                <div class="flex-1">
+                    <input type="file" id="image-input" accept="image/*" class="hidden">
+                    <button type="button" onclick="document.getElementById('image-input').click()"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        هەڵبژاردن و بڕینی وێنە (Crop Photo)
+                    </button>
+                    <p class="text-xs text-slate-400 mt-2">دەتوانیت وێنەکەت ڕێک بخەیت و کرۆپی بکەیت تاوەکو لە ئەپەکەدا بە جوانی و بێ بڕین دەرکەوێت.</p>
                 </div>
             </div>
         </div>
@@ -606,5 +636,129 @@
         btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> پاشەکەوت دەکرێت...';
         btn.classList.add('opacity-70', 'cursor-not-allowed');
     });
+</script>
+
+<!-- Cropper.js Modal -->
+<div id="cropper-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                ڕێکخستن و بڕینی وێنە (Crop Photo)
+            </h3>
+            <button type="button" onclick="closeCropperModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="relative bg-slate-900 rounded-2xl overflow-hidden flex-1 min-h-[300px] max-h-[420px] flex items-center justify-center">
+            <img id="cropper-image" src="" alt="Crop image" class="max-w-full block">
+        </div>
+
+        <!-- Cropper Controls -->
+        <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-100 flex-wrap">
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="cropper.rotate(90)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="سوڕاندن">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
+                <button type="button" onclick="cropper.zoom(0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="گەورەکردن">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                </button>
+                <button type="button" onclick="cropper.zoom(-0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="بچووککردن">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                </button>
+                <button type="button" onclick="cropper.reset()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+                    ڕیسێت
+                </button>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="closeCropperModal()" class="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-bold transition-all">
+                    پاشگەزبوونەوە
+                </button>
+                <button type="button" onclick="applyCrop()" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shadow-md shadow-teal-500/20 transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    بڕین و پاشەکەوتکردن (Crop & Save)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cropper.js Script -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script>
+    let cropper = null;
+    const imageInput = document.getElementById('image-input');
+    const cropperModal = document.getElementById('cropper-modal');
+    const cropperImage = document.getElementById('cropper-image');
+    const avatarPreview = document.getElementById('avatar-preview');
+    const avatarPlaceholder = document.getElementById('avatar-placeholder');
+    const croppedImageInput = document.getElementById('cropped_image');
+
+    imageInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                cropperImage.src = evt.target.result;
+                openCropperModal();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function openCropperModal() {
+        cropperModal.classList.remove('hidden');
+        if (cropper) {
+            cropper.destroy();
+        }
+        setTimeout(() => {
+            cropper = new Cropper(cropperImage, {
+                aspectRatio: 1, // 1:1 square for perfect portrait
+                viewMode: 1,
+                autoCropArea: 0.9,
+                responsive: true,
+                guides: true,
+                highlight: false,
+                background: false,
+            });
+        }, 150);
+    }
+
+    function closeCropperModal() {
+        cropperModal.classList.add('hidden');
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        imageInput.value = '';
+    }
+
+    function applyCrop() {
+        if (!cropper) return;
+
+        // Get 600x600 cropped canvas
+        const canvas = cropper.getCroppedCanvas({
+            width: 600,
+            height: 600,
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        });
+
+        if (canvas) {
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            // Put in hidden input
+            croppedImageInput.value = dataUrl;
+            
+            // Update preview
+            avatarPreview.src = dataUrl;
+            avatarPreview.classList.remove('hidden');
+            if (avatarPlaceholder) avatarPlaceholder.classList.add('hidden');
+            
+            closeCropperModal();
+        }
+    }
 </script>
 @endsection
