@@ -748,23 +748,24 @@ class _NurseListScreenState extends State<NurseListScreen> {
             ? nurse['address_en']
             : (nurse['address'] ?? '');
 
+    final bio = (isArabic && nurse['bio_ar'] != null && nurse['bio_ar'].toString().isNotEmpty)
+        ? nurse['bio_ar']
+        : (isEnglish && nurse['bio_en'] != null && nurse['bio_en'].toString().isNotEmpty)
+            ? nurse['bio_en']
+            : (nurse['bio'] ?? '');
+
     final image = nurse['image'];
     final phone = nurse['phone'] ?? '';
     final isAvailable = nurse['is_available'] == true;
-    final offeredServices = nurse['offered_services'] as List<dynamic>? ?? [];
     final customServices = nurse['custom_services'] as List<dynamic>? ?? [];
     final fee = nurse['fee'];
     final city = nurse['city'] ?? '';
 
-    String serviceName(String id) {
-      final map = {'injection': 'دەرزی', 'cannula': 'کانیۆلا', 'dressing': 'پانسیمان', 'checkup': 'چاودێری'};
-      return map[id] ?? id;
-    }
-
-    // Combine standard and custom services or split specialty for visual badges
+    // Prioritize specialties as badges
     final List<String> allServiceBadges = [];
-    for (var s in offeredServices) {
-      allServiceBadges.add(serviceName(s.toString()));
+    if (specialty.isNotEmpty) {
+      final parts = specialty.split(RegExp(r'[،,]')).map((e) => e.trim()).where((e) => e.isNotEmpty);
+      allServiceBadges.addAll(parts);
     }
     for (var cs in customServices) {
       if (cs is Map && cs['name'] != null && cs['name'].toString().isNotEmpty) {
@@ -773,13 +774,10 @@ class _NurseListScreenState extends State<NurseListScreen> {
             : (isEnglish && cs['name_en'] != null && cs['name_en'].toString().isNotEmpty)
                 ? cs['name_en']
                 : cs['name'].toString();
-        allServiceBadges.add(csName);
+        if (!allServiceBadges.contains(csName)) {
+          allServiceBadges.add(csName);
+        }
       }
-    }
-
-    if (allServiceBadges.isEmpty && specialty.isNotEmpty) {
-      final parts = specialty.split(RegExp(r'[،,]')).map((e) => e.trim()).where((e) => e.isNotEmpty);
-      allServiceBadges.addAll(parts);
     }
 
     return GestureDetector(
@@ -940,9 +938,18 @@ class _NurseListScreenState extends State<NurseListScreen> {
                       ],
                     ),
                   ],
+                  if (bio.isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    Text(
+                      bio,
+                      style: _kStyle(color: const Color(0xFF64748B), fontSize: 11.5, height: 1.3),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   const SizedBox(height: 8),
 
-                  // Service tags (Standard + Custom)
+                  // Service / Specialty tags
                   if (allServiceBadges.isNotEmpty)
                     Wrap(
                       spacing: 5,
