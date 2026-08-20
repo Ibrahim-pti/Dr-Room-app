@@ -761,7 +761,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
       return map[id] ?? id;
     }
 
-    // Combine standard and custom services for visual badges
+    // Combine standard and custom services or split specialty for visual badges
     final List<String> allServiceBadges = [];
     for (var s in offeredServices) {
       allServiceBadges.add(serviceName(s.toString()));
@@ -775,6 +775,11 @@ class _NurseListScreenState extends State<NurseListScreen> {
                 : cs['name'].toString();
         allServiceBadges.add(csName);
       }
+    }
+
+    if (allServiceBadges.isEmpty && specialty.isNotEmpty) {
+      final parts = specialty.split(RegExp(r'[،,]')).map((e) => e.trim()).where((e) => e.isNotEmpty);
+      allServiceBadges.addAll(parts);
     }
 
     return GestureDetector(

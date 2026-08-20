@@ -166,4 +166,67 @@ class NurseProfileController extends Controller
 
         return back()->with('success', 'زانیارییەکانی پڕۆفایل بە سەرکەوتوویی نوێکرانەوە و وەرگێڕدران.');
     }
+
+    /**
+     * AJAX Translate All fields to English and Arabic in real time
+     */
+    public function translateAll(Request $request)
+    {
+        $request->validate([
+            'name' => 'nullable|string',
+            'specialty' => 'nullable|string',
+            'city' => 'nullable|string',
+            'address' => 'nullable|string',
+            'bio' => 'nullable|string',
+        ]);
+
+        $translations = [
+            'name_en' => '',
+            'name_ar' => '',
+            'specialty_en' => '',
+            'specialty_ar' => '',
+            'city_en' => '',
+            'city_ar' => '',
+            'address_en' => '',
+            'address_ar' => '',
+            'bio_en' => '',
+            'bio_ar' => '',
+        ];
+
+        try {
+            $tr = new \Stichoza\GoogleTranslate\GoogleTranslate();
+
+            if ($request->filled('name')) {
+                $translations['name_en'] = $tr->setTarget('en')->translate($request->name);
+                $translations['name_ar'] = $tr->setTarget('ar')->translate($request->name);
+            }
+            if ($request->filled('specialty')) {
+                $translations['specialty_en'] = $tr->setTarget('en')->translate($request->specialty);
+                $translations['specialty_ar'] = $tr->setTarget('ar')->translate($request->specialty);
+            }
+            if ($request->filled('city')) {
+                $translations['city_en'] = $tr->setTarget('en')->translate($request->city);
+                $translations['city_ar'] = $tr->setTarget('ar')->translate($request->city);
+            }
+            if ($request->filled('address')) {
+                $translations['address_en'] = $tr->setTarget('en')->translate($request->address);
+                $translations['address_ar'] = $tr->setTarget('ar')->translate($request->address);
+            }
+            if ($request->filled('bio')) {
+                $translations['bio_en'] = $tr->setTarget('en')->translate($request->bio);
+                $translations['bio_ar'] = $tr->setTarget('ar')->translate($request->bio);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $translations,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'وەرگێڕان سەرکەوتوو نەبوو: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }
+
