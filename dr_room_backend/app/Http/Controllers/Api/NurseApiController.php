@@ -22,9 +22,14 @@ class NurseApiController extends Controller
             $query->where('specialty', 'like', '%' . $request->specialty . '%');
         }
 
-        // Filter by service category
-        if ($request->has('service') && $request->service) {
-            $query->whereJsonContains('offered_services', $request->service);
+        // Filter by city
+        if ($request->has('city') && $request->city) {
+            $query->where('city', $request->city);
+        }
+
+        // Filter by service_type (home_nursing, clinic, hospital)
+        if ($request->has('service_type') && $request->service_type) {
+            $query->where('service_type', $request->service_type);
         }
 
         $nurses = $query->get()->map(function ($nurse) {
@@ -40,6 +45,8 @@ class NurseApiController extends Controller
                 'bio_en' => $nurse->bio_en ?? '',
                 'bio_ar' => $nurse->bio_ar ?? '',
                 'phone' => $nurse->phone ?? '',
+                'city' => $nurse->city ?? '',
+                'service_type' => $nurse->service_type ?? 'home_nursing',
                 'image' => $nurse->image_path
                     ? asset('storage/' . $nurse->image_path)
                     : ($nurse->user->profile_image
@@ -53,13 +60,47 @@ class NurseApiController extends Controller
             ];
         });
 
-        // Service categories for the app filter chips
-        $categories = [
-            ['id' => 'injection', 'name' => 'دەرزی', 'name_en' => 'Injection', 'name_ar' => 'حقنة', 'icon' => 'health'],
-            ['id' => 'cannula', 'name' => 'کانیۆلا', 'name_en' => 'Cannula', 'name_ar' => 'كانيولا', 'icon' => 'activity'],
-            ['id' => 'dressing', 'name' => 'پانسیمان', 'name_en' => 'Dressing', 'name_ar' => 'تضميد', 'icon' => 'healing'],
-            ['id' => 'checkup', 'name' => 'چاودێری', 'name_en' => 'Checkup', 'name_ar' => 'فحص', 'icon' => 'heart'],
+        // Dynamic city categories from database
+        $cities = Nurse::where('is_approved', true)
+            ->whereNotNull('city')
+            ->where('city', '!=', '')
+            ->distinct()
+            ->pluck('city')
+            ->toArray();
+
+        // Build city categories with Kurdish/Arabic/English names
+        $cityMap = [
+            'Erbil'         => ['name' => 'هەولێر',     'name_en' => 'Erbil',         'name_ar' => 'أربيل'],
+            'Sulaymaniyah'  => ['name' => 'سلێمانی',    'name_en' => 'Sulaymaniyah',  'name_ar' => 'السليمانية'],
+            'Duhok'         => ['name' => 'دهۆک',       'name_en' => 'Duhok',         'name_ar' => 'دهوك'],
+            'Kirkuk'        => ['name' => 'کەرکووک',    'name_en' => 'Kirkuk',        'name_ar' => 'كركوك'],
+            'Halabja'       => ['name' => 'هەڵەبجە',    'name_en' => 'Halabja',       'name_ar' => 'حلبجة'],
         ];
+
+        $categories = [];
+
+        // Always include "Home Nursing" category
+        $categories[] = [
+            'id' => 'home_nursing',
+            'name' => 'پەرستاری ماڵ',
+            'name_en' => 'Home Nursing',
+            'name_ar' => 'تمريض منزلي',
+            'type' => 'service_type',
+            'icon' => 'home',
+        ];
+
+        // Add dynamic city categories from DB
+        foreach ($cities as $city) {
+            $mapped = $cityMap[$city] ?? ['name' => $city, 'name_en' => $city, 'name_ar' => $city];
+            $categories[] = [
+                'id' => $city,
+                'name' => $mapped['name'],
+                'name_en' => $mapped['name_en'],
+                'name_ar' => $mapped['name_ar'],
+                'type' => 'city',
+                'icon' => 'location',
+            ];
+        }
 
         return response()->json([
             'success' => true,

@@ -44,6 +44,8 @@ class NurseProfileController extends Controller
                 'offered_services' => $request->offered_services ?? $nurse->offered_services,
                 'is_available' => $request->has('is_available') ? (bool) $request->is_available : $nurse->is_available,
                 'fee' => $request->fee ?? $nurse->fee,
+                'city' => $request->city ?? $nurse->city,
+                'service_type' => $request->service_type ?? $nurse->service_type,
             ];
 
             // Handle image upload

@@ -73,6 +73,35 @@
             </div>
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- City -->
+            <div>
+                <label for="city" class="block text-sm font-medium text-slate-700 mb-2">شار</label>
+                <select id="city" name="city"
+                    class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700">
+                    <option value="">شارەکەت هەڵبژێرە</option>
+                    <option value="Erbil" {{ old('city', $nurse->city) == 'Erbil' ? 'selected' : '' }}>هەولێر</option>
+                    <option value="Sulaymaniyah" {{ old('city', $nurse->city) == 'Sulaymaniyah' ? 'selected' : '' }}>سلێمانی</option>
+                    <option value="Duhok" {{ old('city', $nurse->city) == 'Duhok' ? 'selected' : '' }}>دهۆک</option>
+                    <option value="Kirkuk" {{ old('city', $nurse->city) == 'Kirkuk' ? 'selected' : '' }}>کەرکووک</option>
+                    <option value="Halabja" {{ old('city', $nurse->city) == 'Halabja' ? 'selected' : '' }}>هەڵەبجە</option>
+                </select>
+                @error('city') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <!-- Service Type -->
+            <div>
+                <label for="service_type" class="block text-sm font-medium text-slate-700 mb-2">جۆری خزمەتگوزاری</label>
+                <select id="service_type" name="service_type"
+                    class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700">
+                    <option value="home_nursing" {{ old('service_type', $nurse->service_type) == 'home_nursing' ? 'selected' : '' }}>پەرستاری ماڵ</option>
+                    <option value="clinic" {{ old('service_type', $nurse->service_type) == 'clinic' ? 'selected' : '' }}>کلینیک</option>
+                    <option value="hospital" {{ old('service_type', $nurse->service_type) == 'hospital' ? 'selected' : '' }}>نەخۆشخانە</option>
+                </select>
+                @error('service_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
         <!-- Offered Services -->
         <div>
             <label class="block text-sm font-medium text-slate-700 mb-3">خزمەتگوزارییەکانی پێشکەشکراو</label>

@@ -19,7 +19,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
   List<Map<String, dynamic>> _categories = [];
   bool _isLoading = true;
   final TextEditingController _searchCtrl = TextEditingController();
-  String _selectedCategory = 'all'; // 'all', 'injection', 'cannula', 'dressing', 'checkup'
+  String _selectedCategory = 'all';
 
   @override
   void initState() {
@@ -83,16 +83,12 @@ class _NurseListScreenState extends State<NurseListScreen> {
 
   IconData _getCategoryIcon(String iconName) {
     switch (iconName) {
-      case 'health':
-        return Iconsax.health;
-      case 'activity':
-        return Iconsax.activity;
-      case 'healing':
-        return Icons.healing_outlined;
-      case 'heart':
-        return Iconsax.heart;
+      case 'home':
+        return Iconsax.home_2;
+      case 'location':
+        return Iconsax.location;
       default:
-        return Iconsax.health;
+        return Iconsax.category;
     }
   }
 
@@ -100,14 +96,12 @@ class _NurseListScreenState extends State<NurseListScreen> {
     double fontSize = 14,
     FontWeight fontWeight = FontWeight.normal,
     Color color = const Color(0xFF0F172A),
-    double? height,
   }) {
     return TextStyle(
       fontFamily: 'Rabar',
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
-      height: height,
     );
   }
 
@@ -139,16 +133,23 @@ class _NurseListScreenState extends State<NurseListScreen> {
         final name = (n['name'] ?? '').toString().toLowerCase();
         final specialty = (n['specialty'] ?? '').toString().toLowerCase();
         final specialtyEn = (n['specialty_en'] ?? '').toString().toLowerCase();
+        final city = (n['city'] ?? '').toString();
+        final serviceType = (n['service_type'] ?? '').toString();
+
         final matchesQuery =
             query.isEmpty || name.contains(query) || specialty.contains(query) || specialtyEn.contains(query);
 
         bool matchesCategory = true;
         if (_selectedCategory != 'all') {
-          final offered = n['offered_services'];
-          if (offered is List) {
-            matchesCategory = offered.contains(_selectedCategory);
-          } else {
-            matchesCategory = false;
+          // Find the category to check its type
+          final cat = _categories.where((c) => c['id'] == _selectedCategory).firstOrNull;
+          if (cat != null) {
+            final catType = cat['type'] ?? '';
+            if (catType == 'city') {
+              matchesCategory = city == _selectedCategory;
+            } else if (catType == 'service_type') {
+              matchesCategory = serviceType == _selectedCategory;
+            }
           }
         }
 
@@ -175,7 +176,6 @@ class _NurseListScreenState extends State<NurseListScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSearchAndFilters(),
-
                   if (_isLoading)
                     const SizedBox(
                       height: 300,
@@ -304,7 +304,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
 
           const SizedBox(height: 18),
 
-          // ── Category Filter Chips (from API) ──
+          // ── Category Filter Chips (from API — cities + home nursing) ──
           SizedBox(
             height: 42,
             child: ListView(
@@ -370,11 +370,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 15,
-              color: isSelected ? Colors.white : const Color(0xFF64748B),
-            ),
+            Icon(icon, size: 15, color: isSelected ? Colors.white : const Color(0xFF64748B)),
             const SizedBox(width: 6),
             Text(
               label,
@@ -394,13 +390,12 @@ class _NurseListScreenState extends State<NurseListScreen> {
     final name = nurse['name'] ?? '';
     final specialty = nurse['specialty'] ?? '';
     final image = nurse['image'];
-    final completedCount = nurse['completed_appointments'] ?? 0;
     final phone = nurse['phone'] ?? '';
     final isAvailable = nurse['is_available'] == true;
     final offeredServices = nurse['offered_services'] as List<dynamic>? ?? [];
     final fee = nurse['fee'];
+    final city = nurse['city'] ?? '';
 
-    // Map service IDs to Kurdish names for display
     String serviceName(String id) {
       final map = {'injection': 'دەرزی', 'cannula': 'کانیۆلا', 'dressing': 'پانسیمان', 'checkup': 'چاودێری'};
       return map[id] ?? id;
@@ -416,22 +411,15 @@ class _NurseListScreenState extends State<NurseListScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFFE2E8F0).withValues(alpha: 0.8), width: 1),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 16, offset: const Offset(0, 4)),
           ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Left: Avatar ──
+            // ── Avatar ──
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -445,9 +433,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                       end: Alignment.bottomRight,
                       colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
                     ),
-                    image: image != null
-                        ? DecorationImage(image: NetworkImage(image), fit: BoxFit.cover)
-                        : null,
+                    image: image != null ? DecorationImage(image: NetworkImage(image), fit: BoxFit.cover) : null,
                   ),
                   child: image == null
                       ? Center(
@@ -467,7 +453,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                         )
                       : null,
                 ),
-                // Available/Unavailable badge
+                // Badge
                 PositionedDirectional(
                   top: 6,
                   start: 6,
@@ -482,8 +468,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                       borderRadius: BorderRadius.circular(6),
                       boxShadow: [
                         BoxShadow(
-                          color: (isAvailable ? const Color(0xFF10B981) : const Color(0xFF94A3B8))
-                              .withValues(alpha: 0.4),
+                          color: (isAvailable ? const Color(0xFF10B981) : const Color(0xFF94A3B8)).withValues(alpha: 0.4),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -499,12 +484,12 @@ class _NurseListScreenState extends State<NurseListScreen> {
             ),
             const SizedBox(width: 14),
 
-            // ── Right: Details ──
+            // ── Details ──
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Name
+                  // Name
                   Text(
                     name,
                     style: _kStyle(fontSize: 15.5, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
@@ -513,7 +498,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                   ),
                   const SizedBox(height: 5),
 
-                  // 2. Specialty
+                  // Specialty + city
                   Row(
                     children: [
                       const Icon(Iconsax.health, color: Color(0xFF0D9488), size: 14),
@@ -526,23 +511,22 @@ class _NurseListScreenState extends State<NurseListScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (completedCount > 0) ...[
-                        const SizedBox(width: 10),
+                      if (city.isNotEmpty) ...[
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0FDF4),
+                            color: const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(7),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Iconsax.tick_circle, color: Color(0xFF059669), size: 13),
+                              const Icon(Iconsax.location, color: Color(0xFF3B82F6), size: 11),
                               const SizedBox(width: 3),
                               Text(
-                                '$completedCount',
-                                style: _kStyle(
-                                    color: const Color(0xFF047857), fontSize: 11, fontWeight: FontWeight.bold),
+                                _cityKurdish(city),
+                                style: _kStyle(color: const Color(0xFF2563EB), fontSize: 10, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -552,7 +536,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                   ),
                   const SizedBox(height: 8),
 
-                  // 3. Service tags
+                  // Service tags
                   if (offeredServices.isNotEmpty)
                     Wrap(
                       spacing: 5,
@@ -574,51 +558,41 @@ class _NurseListScreenState extends State<NurseListScreen> {
                     ),
                   const SizedBox(height: 10),
 
-                  // 4. Bottom: Phone/Fee + Request Button
+                  // Bottom: fee/phone + request
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Phone or fee
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (fee != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFEF3C7),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع',
-                                style: _kStyle(
-                                    color: const Color(0xFFB45309), fontSize: 10.5, fontWeight: FontWeight.bold),
-                              ),
-                            )
-                          else if (phone.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Iconsax.call, color: Color(0xFF64748B), size: 12),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    phone,
-                                    style: _kStyle(
-                                        color: const Color(0xFF64748B), fontSize: 10.5, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
+                      if (fee != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع',
+                            style: _kStyle(color: const Color(0xFFB45309), fontSize: 10.5, fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      else if (phone.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Iconsax.call, color: Color(0xFF64748B), size: 12),
+                              const SizedBox(width: 4),
+                              Text(phone, style: _kStyle(color: const Color(0xFF64748B), fontSize: 10.5, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        )
+                      else
+                        const SizedBox.shrink(),
 
-                      // Request button
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
@@ -628,11 +602,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              _tr('request_service'),
-                              style: _kStyle(
-                                  color: const Color(0xFF0D9488), fontSize: 11.5, fontWeight: FontWeight.bold),
-                            ),
+                            Text(_tr('request_service'), style: _kStyle(color: const Color(0xFF0D9488), fontSize: 11.5, fontWeight: FontWeight.bold)),
                             const SizedBox(width: 4),
                             const Icon(Icons.arrow_forward_ios, color: Color(0xFF0D9488), size: 9),
                           ],
@@ -647,5 +617,16 @@ class _NurseListScreenState extends State<NurseListScreen> {
         ),
       ),
     ).animate().fadeIn(delay: (60 * index).ms).slideY(begin: 0.08, end: 0);
+  }
+
+  String _cityKurdish(String city) {
+    final map = {
+      'Erbil': 'هەولێر',
+      'Sulaymaniyah': 'سلێمانی',
+      'Duhok': 'دهۆک',
+      'Kirkuk': 'کەرکووک',
+      'Halabja': 'هەڵەبجە',
+    };
+    return map[city] ?? city;
   }
 }
