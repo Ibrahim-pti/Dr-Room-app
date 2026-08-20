@@ -638,60 +638,100 @@
     });
 </script>
 
-<!-- Cropper.js Modal -->
+<!-- Cropper.js & AI Background Removal Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/bundle.js"></script>
+
+<!-- Cropper.js Modal with AI Background Removal -->
 <div id="cropper-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                ڕێکخستن و بڕینی وێنە (Crop Photo)
-            </h3>
+            <div>
+                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    ڕێکخستن و بڕینی وێنە (Crop & AI Background)
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">دەتوانیت باکگراوندی وێنەکە بە زیرەکی دەستکرد لابدەیت یان سپی بکەیت.</p>
+            </div>
             <button type="button" onclick="closeCropperModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
 
-        <div class="relative bg-slate-900 rounded-2xl overflow-hidden flex-1 min-h-[300px] max-h-[420px] flex items-center justify-center">
+        <!-- Image Workspace with AI Loading Overlay -->
+        <div class="relative bg-slate-900 rounded-2xl overflow-hidden flex-1 min-h-[300px] max-h-[400px] flex items-center justify-center">
             <img id="cropper-image" src="" alt="Crop image" class="max-w-full block">
+            
+            <!-- AI Processing Loading Indicator -->
+            <div id="ai-loading-overlay" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex flex-col items-center justify-center gap-3 z-20 text-white">
+                <div class="w-12 h-12 rounded-full border-4 border-teal-400 border-t-transparent animate-spin"></div>
+                <div class="text-center">
+                    <p class="text-sm font-bold text-teal-300">لابردنی باکگراوند بە زیرەکی دەستکرد...</p>
+                    <p class="text-xs text-slate-300 mt-1">تکایە کەمێک چاوەڕێبە</p>
+                </div>
+            </div>
         </div>
 
-        <!-- Cropper Controls -->
-        <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-100 flex-wrap">
-            <div class="flex items-center gap-2">
-                <button type="button" onclick="cropper.rotate(90)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="سوڕاندن">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <!-- AI Tools & Image Options -->
+        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+                <!-- AI Remove Background Button -->
+                <button type="button" id="ai-bg-remove-btn" onclick="removeBackgroundAI()" 
+                    class="inline-flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-violet-500/20 transition-all cursor-pointer transform active:scale-95">
+                    <svg class="w-4 h-4 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd"/></svg>
+                    <span>✨ لابردنی پاشبنەما (AI Remove Background)</span>
                 </button>
-                <button type="button" onclick="cropper.zoom(0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="گەورەکردن">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                </button>
-                <button type="button" onclick="cropper.zoom(-0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="بچووککردن">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
-                </button>
-                <button type="button" onclick="cropper.reset()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
-                    ڕیسێت
-                </button>
+
+                <!-- Background Color Fill Selector -->
+                <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-700">
+                    <span class="px-2 text-slate-500 text-[11px]">پاشبنەما:</span>
+                    <button type="button" id="bg-white-btn" onclick="setBackgroundOption('white')" class="px-2.5 py-1 rounded-lg bg-white shadow-xs text-teal-700 font-bold transition-all">
+                        ⚪ سپی (White)
+                    </button>
+                    <button type="button" id="bg-transparent-btn" onclick="setBackgroundOption('transparent')" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                        🏁 بێ ڕەنگ (PNG)
+                    </button>
+                </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <button type="button" onclick="closeCropperModal()" class="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-bold transition-all">
-                    پاشگەزبوونەوە
-                </button>
-                <button type="button" onclick="applyCrop()" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shadow-md shadow-teal-500/20 transition-all flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    بڕین و پاشەکەوتکردن (Crop & Save)
-                </button>
+            <!-- Standard Cropper Controls -->
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100/60 flex-wrap">
+                <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="cropper && cropper.rotate(90)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="سوڕاندن">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                    <button type="button" onclick="cropper && cropper.zoom(0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="گەورەکردن">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </button>
+                    <button type="button" onclick="cropper && cropper.zoom(-0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="بچووککردن">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                    </button>
+                    <button type="button" onclick="cropper && cropper.reset()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+                        ڕیسێت
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closeCropperModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-bold transition-all">
+                        پاشگەزبوونەوە
+                    </button>
+                    <button type="button" onclick="applyCrop()" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shadow-md shadow-teal-500/20 transition-all flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        بڕین و پاشەکەوتکردن
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Cropper.js Script -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
     let cropper = null;
+    let selectedBgOption = 'white'; // 'white' or 'transparent'
     const imageInput = document.getElementById('image-input');
     const cropperModal = document.getElementById('cropper-modal');
     const cropperImage = document.getElementById('cropper-image');
+    const aiLoadingOverlay = document.getElementById('ai-loading-overlay');
     const avatarPreview = document.getElementById('avatar-preview');
     const avatarPlaceholder = document.getElementById('avatar-placeholder');
     const croppedImageInput = document.getElementById('cropped_image');
@@ -709,6 +749,20 @@
         }
     });
 
+    function setBackgroundOption(option) {
+        selectedBgOption = option;
+        const whiteBtn = document.getElementById('bg-white-btn');
+        const transparentBtn = document.getElementById('bg-transparent-btn');
+        
+        if (option === 'white') {
+            whiteBtn.className = 'px-2.5 py-1 rounded-lg bg-white shadow-xs text-teal-700 font-bold transition-all';
+            transparentBtn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+        } else {
+            transparentBtn.className = 'px-2.5 py-1 rounded-lg bg-white shadow-xs text-teal-700 font-bold transition-all';
+            whiteBtn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+        }
+    }
+
     function openCropperModal() {
         cropperModal.classList.remove('hidden');
         if (cropper) {
@@ -718,11 +772,11 @@
             cropper = new Cropper(cropperImage, {
                 aspectRatio: 1, // 1:1 square for perfect portrait
                 viewMode: 1,
-                autoCropArea: 0.9,
+                autoCropArea: 0.92,
                 responsive: true,
                 guides: true,
                 highlight: false,
-                background: false,
+                background: true,
             });
         }, 150);
     }
@@ -736,19 +790,54 @@
         imageInput.value = '';
     }
 
+    // AI Background Removal via @imgly/background-removal
+    async function removeBackgroundAI() {
+        if (!cropperImage.src) return;
+        
+        aiLoadingOverlay.classList.remove('hidden');
+        try {
+            if (typeof imglyRemoveBackground === 'function') {
+                const blob = await imglyRemoveBackground(cropperImage.src);
+                const url = URL.createObjectURL(blob);
+                
+                if (cropper) {
+                    cropper.replace(url);
+                } else {
+                    cropperImage.src = url;
+                }
+            } else {
+                alert('پاکێجی لابردنی باکگراوند ئامادە نییە، تکایە ئینتەرنێتەکەت بپشکنە.');
+            }
+        } catch (err) {
+            console.error('AI background removal error:', err);
+            alert('کێشەیەک لە لابردنی باکگراوند ڕوویدا. دەتوانیت بە دەست کرۆپی بکەیت.');
+        } finally {
+            aiLoadingOverlay.classList.add('hidden');
+        }
+    }
+
     function applyCrop() {
         if (!cropper) return;
 
-        // Get 600x600 cropped canvas
-        const canvas = cropper.getCroppedCanvas({
-            width: 600,
-            height: 600,
+        // Get 700x700 cropped canvas
+        const canvasOptions = {
+            width: 700,
+            height: 700,
             imageSmoothingEnabled: true,
             imageSmoothingQuality: 'high',
-        });
+        };
+
+        if (selectedBgOption === 'white') {
+            canvasOptions.fillColor = '#FFFFFF';
+        }
+
+        const canvas = cropper.getCroppedCanvas(canvasOptions);
 
         if (canvas) {
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            const format = selectedBgOption === 'transparent' ? 'image/png' : 'image/jpeg';
+            const quality = selectedBgOption === 'transparent' ? 1.0 : 0.95;
+            const dataUrl = canvas.toDataURL(format, quality);
+            
             // Put in hidden input
             croppedImageInput.value = dataUrl;
             
