@@ -108,14 +108,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     }
   }
 
-  void _openDirections(double lat, double lng) async {
-    final uri = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
-    );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -167,12 +160,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     final city = nurse['city']?.toString() ?? '';
     final customServices = nurse['custom_services'] as List<dynamic>? ?? [];
 
-    final double? lat = nurse['latitude'] != null
-        ? double.tryParse(nurse['latitude'].toString())
-        : null;
-    final double? lng = nurse['longitude'] != null
-        ? double.tryParse(nurse['longitude'].toString())
-        : null;
+
 
     // Collect all specialty chips
     final List<String> allSpecialties = [];
@@ -228,8 +216,8 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── 2. Quick Action Buttons (Call, Map, Review) ──
-                  _buildActionButtons(phone, lat, lng),
+                  // ── 2. Quick Action Buttons (Call, Review) ──
+                  _buildActionButtons(phone),
                   const SizedBox(height: 14),
 
                   // ── 3. Segmented Tab Bar ──
@@ -799,8 +787,8 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
-  // ─── Action Buttons Row (Exact like Lab Details Screenshot: Call, Map, Review) ───
-  Widget _buildActionButtons(String phone, double? lat, double? lng) {
+  // ─── Action Buttons Row (Call, Review) ───
+  Widget _buildActionButtons(String phone) {
     return Row(
       children: [
         // 1. Call
@@ -815,25 +803,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
             },
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
 
-        // 2. Map
-        Expanded(
-          child: _buildActionButton(
-            icon: Iconsax.map,
-            label: 'نەخشە',
-            color: const Color(0xFF8B5CF6),
-            bgColor: const Color(0xFFF5F3FF),
-            onTap: () {
-              if (lat != null && lng != null) {
-                _openDirections(lat, lng);
-              }
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-
-        // 3. Review / هەڵسەنگاندن (Exact like screenshot)
+        // 2. Review / هەڵسەنگاندن
         Expanded(
           child: _buildActionButton(
             icon: Icons.star_rate_rounded,
