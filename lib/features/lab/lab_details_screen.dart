@@ -1168,60 +1168,58 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
           // Rating summary badge
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(vertical: 20),
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: const Color(0xFFF1F5F9)),
             ),
-            child: Row(
-              children: [
-                Text(
-                  ratingVal.toStringAsFixed(1),
-                  style: _kStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF0F172A),
+            child: Center(
+              child: Column(
+                children: [
+                  Text(
+                    ratingVal.toStringAsFixed(1),
+                    style: _kStyle(
+                      fontSize: 38,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF0F172A),
+                      height: 1.1,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: List.generate(
-                          5,
-                          (i) => Icon(
-                            Icons.star_rounded,
-                            color: i < ratingVal.round() ? const Color(0xFFF59E0B) : const Color(0xFFCBD5E1),
-                            size: 16,
-                          ),
-                        ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(
+                      5,
+                      (i) => Icon(
+                        Icons.star_rounded,
+                        color: i < ratingVal.round() ? const Color(0xFFF59E0B) : const Color(0xFFCBD5E1),
+                        size: 20,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'لە کۆی $reviewsCount هەڵسەنگاندنی نەخۆش',
-                        style: _kStyle(
-                          fontSize: 11,
-                          color: const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Text(
+                    'لە کۆی $reviewsCount فیدباک',
+                    style: _kStyle(
+                      fontSize: 11.5,
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           // Reviews List
           if (_reviews.isNotEmpty) ...[
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _reviews.take(4).length,
-              separatorBuilder: (context, index) => const Divider(height: 16, color: Color(0xFFF1F5F9)),
+              itemCount: _reviews.take(5).length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final rev = _reviews[index];
                 final String patientName = rev['patient_name'] ?? 'نەخۆش';
@@ -1229,69 +1227,104 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 final String? comment = rev['comment'];
                 final String date = rev['formatted_date'] ?? '';
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 14,
-                              backgroundColor: const Color(0xFFEFF6FF),
-                              child: Text(
-                                patientName.isNotEmpty ? patientName[0] : 'ن',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6)),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              patientName,
-                              style: _kStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Row(
-                              children: List.generate(
-                                5,
-                                (i) => Icon(
-                                  Icons.star_rounded,
-                                  color: i < stars ? const Color(0xFFF59E0B) : const Color(0xFFCBD5E1),
-                                  size: 13,
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFF1F5F9)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: const Color(0xFFE0F2FE),
+                                child: Text(
+                                  patientName.isNotEmpty ? patientName[0] : 'ن',
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
                                 ),
                               ),
-                            ),
-                            if (date.isNotEmpty) ...[
-                              const SizedBox(width: 6),
-                              Text(
-                                date,
-                                style: _kStyle(fontSize: 10.5, color: const Color(0xFF94A3B8)),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    patientName,
+                                    style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                                  ),
+                                  if (date.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      date,
+                                      style: _kStyle(fontSize: 10, color: const Color(0xFF94A3B8)),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ],
-                          ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFFDE68A)),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  '$stars.0',
+                                  style: _kStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFFB45309)),
+                                ),
+                                const SizedBox(width: 3),
+                                const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 13),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (comment != null && comment.trim().isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          comment,
+                          style: _kStyle(fontSize: 12, color: const Color(0xFF475569), height: 1.6),
                         ),
                       ],
-                    ),
-                    if (comment != null && comment.trim().isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        comment,
-                        style: _kStyle(fontSize: 11.5, color: const Color(0xFF475569), height: 1.4),
-                      ),
                     ],
-                  ],
+                  ),
                 );
               },
             ),
           ] else ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'هێشتا هیچ سەرنجێک نەنووسراوە. یەکەم کەس بە کە سەرنج بنووسێت!',
-                style: _kStyle(fontSize: 11.5, color: const Color(0xFF94A3B8)),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.forum_rounded, color: Color(0xFF94A3B8), size: 32),
+                  const SizedBox(height: 8),
+                  Text(
+                    'هێشتا هیچ فیدباکێک نییە',
+                    style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF64748B)),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'یەکەم کەس بە کە ڕا و بۆچوونی خۆت دەنووسیت',
+                    style: _kStyle(fontSize: 11, color: const Color(0xFF94A3B8)),
+                  ),
+                ],
               ),
             ),
           ],
@@ -1464,7 +1497,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
                       : Text(
-                          'ناردنی هەڵسەنگاندن',
+                          'تۆمارکردن',
                           style: _kStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                 ),
