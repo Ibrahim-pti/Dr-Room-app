@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import '../../core/utils/api_client.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'nursing_services_screen.dart';
+import '../../core/utils/api_client.dart';
+import 'nurse_details_screen.dart';
 
 class NurseListScreen extends StatefulWidget {
   const NurseListScreen({super.key});
@@ -789,9 +789,8 @@ class _NurseListScreenState extends State<NurseListScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => NursingServicesScreen(
+            builder: (_) => NurseDetailsScreen(
               nurse: nurse,
-              nurseId: nurse['id'],
             ),
           ),
         );
