@@ -9,7 +9,12 @@ import 'package:provider/provider.dart';
 import '../../core/providers/cart_provider.dart';
 
 class NursingServicesScreen extends StatefulWidget {
-  const NursingServicesScreen({super.key});
+  final int? nurseId;
+
+  const NursingServicesScreen({
+    super.key,
+    this.nurseId,
+  });
 
   @override
   State<NursingServicesScreen> createState() => _NursingServicesScreenState();
@@ -239,6 +244,7 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
                                   id: s['titleKey'],
                                   name: s['titleKey'].toString().tr(),
                                   price: 25000.0, // Default price for nursing services, in dinars
+                                  extraData: widget.nurseId != null ? {'nurse_id': widget.nurseId} : null,
                                 ));
                               }
 

@@ -742,7 +742,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const NursingServicesScreen()));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => NursingServicesScreen(nurseId: nurse['id'])));
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),

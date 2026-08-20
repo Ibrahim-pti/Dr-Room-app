@@ -94,6 +94,14 @@ Route::prefix('nurse')->middleware(['auth', IsNurse::class])->group(function () 
     Route::patch('/appointments/{appointment}/status', [NurseAppointmentController::class, 'updateStatus'])->name('nurse.appointments.update_status');
     Route::post('/appointments/{appointment}/accept', [NurseAppointmentController::class, 'acceptRequest'])->name('nurse.appointments.accept');
     
+    // New Feature Placeholders (Nurse)
+    $nursePlaceholder = function ($title) {
+        return view('shared.placeholder', ['layout' => 'nurse.layouts.app', 'title' => $title]);
+    };
+    
+    Route::get('/appointments/confirm', fn() => $nursePlaceholder('دڵنیابوونەوە لە کات'))->name('nurse.appointments.confirm');
+    Route::get('/appointments/prepare', fn() => $nursePlaceholder('ئامادەکردنی نەخۆش'))->name('nurse.appointments.prepare');
+
     // Patients (Patient Care)
     Route::get('/patients', [NursePatientController::class, 'index'])->name('nurse.patients.index');
     Route::get('/patients/symptoms', fn() => view('shared.placeholder', ['layout' => 'nurse.layouts.app', 'title' => 'تۆمارکردنی نیشانەکان']))->name('nurse.patients.symptoms');
@@ -116,9 +124,7 @@ Route::prefix('nurse')->middleware(['auth', IsNurse::class])->group(function () 
     // Patient Care sub-routes (converted to resource)
     Route::resource('/patient_cares', \App\Http\Controllers\Web\NursePatientCareController::class, ['as' => 'nurse']);
     
-    // Appointments sub-routes
-    Route::get('/appointments/confirm', fn() => $nursePlaceholder('دڵنیابوونەوە لە کات'))->name('nurse.appointments.confirm');
-    Route::get('/appointments/prepare', fn() => $nursePlaceholder('ئامادەکردنی نەخۆش'))->name('nurse.appointments.prepare');
+    // Appointments are defined above
     
     // Communication
     Route::get('/communication', fn() => $nursePlaceholder('پەیوەندی'))->name('nurse.communication.index');

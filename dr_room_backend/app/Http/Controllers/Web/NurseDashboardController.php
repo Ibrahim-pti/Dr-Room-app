@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Order;
 
 class NurseDashboardController extends Controller
 {
@@ -17,39 +18,61 @@ class NurseDashboardController extends Controller
             return redirect()->route('nurse.login')->withErrors(['error' => 'No nurse profile found.']);
         }
 
+        $userId = Auth::id();
+
         // Fetch appointments specific to this nurse
-        $todayAppointments = $nurse->nurseAppointments()->today()->count();
+        $todayAppointments = Order::where('assigned_nurse_id', $userId)
+            ->where('service_type', 'Nursing Services')
+            ->whereDate('created_at', today())
+            ->count();
         
         // Total unique patients
-        $totalPatients = $nurse->nurseAppointments()->distinct('patient_id')->count('patient_id');
+        $totalPatients = Order::where('assigned_nurse_id', $userId)
+            ->where('service_type', 'Nursing Services')
+            ->distinct('patient_id')
+            ->count('patient_id');
         
         // Upcoming appointments
-        $upcomingAppointments = $nurse->nurseAppointments()
-            ->upcoming()
+        $upcomingAppointments = Order::where('assigned_nurse_id', $userId)
+            ->where('service_type', 'Nursing Services')
+            ->where('status', 'processing')
             ->with('patient')
-            ->orderBy('appointment_date', 'asc')
+            ->orderBy('created_at', 'asc')
             ->take(5)
             ->get();
 
         // Unassigned requests that any nurse can claim
-        $unassignedRequests = \App\Models\NurseAppointment::whereNull('nurse_id')
+        $unassignedRequests = Order::whereNull('assigned_nurse_id')
+            ->where('service_type', 'Nursing Services')
             ->where('status', 'pending')
-            ->with('patient')
+            ->with(['patient', 'items'])
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
         // Appointments per day for the last 7 days, oldest first, for the chart.
-        $weeklyChart = collect(range(6, 0))->map(function (int $daysAgo) use ($nurse) {
+        $weeklyChart = collect(range(6, 0))->map(function (int $daysAgo) use ($userId) {
             $day = today()->subDays($daysAgo);
 
             return [
                 'label' => $day->translatedFormat('D'),
-                'count' => $nurse->nurseAppointments()
-                    ->whereDate('appointment_date', $day)
+                'count' => Order::where('assigned_nurse_id', $userId)
+                    ->where('service_type', 'Nursing Services')
+                    ->whereDate('created_at', $day)
                     ->count(),
             ];
         });
+
+        // Completed vs Pending for dashboard cards
+        $completedAppointments = Order::where('assigned_nurse_id', $userId)
+            ->where('service_type', 'Nursing Services')
+            ->where('status', 'completed')
+            ->count();
+
+        $pendingAppointments = Order::where('assigned_nurse_id', $userId)
+            ->where('service_type', 'Nursing Services')
+            ->where('status', 'processing')
+            ->count();
 
         return view('nurse.dashboard.index', compact(
             'user',
@@ -58,7 +81,9 @@ class NurseDashboardController extends Controller
             'totalPatients',
             'upcomingAppointments',
             'unassignedRequests',
-            'weeklyChart'
+            'weeklyChart',
+            'completedAppointments',
+            'pendingAppointments'
         ));
     }
 }

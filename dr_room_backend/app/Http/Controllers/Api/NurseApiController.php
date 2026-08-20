@@ -191,6 +191,7 @@ class NurseApiController extends Controller
     public function book(Request $request)
     {
         $request->validate([
+            'nurse_id' => 'nullable|exists:nurses,id',
             'services' => 'required|array',
             'address' => 'required|string',
             'phone' => 'required|string',
@@ -200,9 +201,20 @@ class NurseApiController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $nurseId = $request->nurse_id;
+        $fee = 0;
+
+        if ($nurseId) {
+            $nurse = Nurse::find($nurseId);
+            // In a real app, fee calculation might be more complex. For now, use the nurse's base fee.
+            $fee = $nurse->fee ?? $this->calculateTotalFee($request->services);
+        } else {
+            $fee = $this->calculateTotalFee($request->services);
+        }
+
         $appointment = NurseAppointment::create([
             'patient_id' => Auth::id(),
-            'nurse_id' => null, // Will be assigned by admin or claimed by a nurse
+            'nurse_id' => $nurseId,
             'services' => $request->services, // ['injection', 'cannula']
             'address' => $request->address,
             'phone' => $request->phone,
@@ -212,7 +224,7 @@ class NurseApiController extends Controller
             'notes' => $request->notes,
             'status' => 'pending',
             'type' => 'home_visit', // Usually home visit from the app
-            'fee' => $this->calculateTotalFee($request->services),
+            'fee' => $fee,
         ]);
 
         return response()->json([
