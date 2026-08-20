@@ -1521,7 +1521,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             left: 20,
             right: 20,
             top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom + 24,
           ),
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -1621,7 +1621,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               // Submit Button
               SizedBox(
                 width: double.infinity,
-                height: 48,
+                height: 54,
                 child: ElevatedButton(
                   onPressed: isSubmitting
                       ? null
