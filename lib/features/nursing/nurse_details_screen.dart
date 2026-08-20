@@ -260,7 +260,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
-  // ─── Curved Hero Photo Header (Same as Doctor Screen) ───
+  // ─── Curved Hero Photo Header (Safe Area & Android Friendly) ───
   Widget _buildHeroCurvedTop({
     required dynamic image,
     required bool isAvailable,
@@ -270,7 +270,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     required String? serviceType,
   }) {
     final topPadding = MediaQuery.of(context).padding.top;
-    final heroHeight = 280.0 + topPadding;
+    final heroHeight = 310.0 + topPadding;
 
     return Column(
       children: [
@@ -281,28 +281,37 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // 1. Curved Image
+              // 1. Curved Image with Safe Area Padding
               ClipPath(
                 clipper: const HeroCurveClipper(),
                 child: Container(
-                  color: const Color(0xFFF1F5F9),
-                  child: image != null && image.toString().isNotEmpty
-                      ? (image.toString().startsWith('http')
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFFE2E8F0), Color(0xFFF1F5F9)],
+                    ),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(top: topPadding > 0 ? topPadding * 0.7 : 24),
+                    child: image != null && image.toString().isNotEmpty
+                        ? (image.toString().startsWith('http')
                             ? Image.network(
                                 image.toString(),
                                 fit: BoxFit.cover,
-                                alignment: const Alignment(0, -0.2),
+                                alignment: const Alignment(0, 0.1),
                                 errorBuilder: (context, error, stackTrace) =>
                                     _buildHeroPlaceholder(name),
                               )
                             : Image.asset(
                                 image.toString(),
                                 fit: BoxFit.cover,
-                                alignment: const Alignment(0, -0.2),
+                                alignment: const Alignment(0, 0.1),
                                 errorBuilder: (context, error, stackTrace) =>
                                     _buildHeroPlaceholder(name),
                               ))
-                      : _buildHeroPlaceholder(name),
+                        : _buildHeroPlaceholder(name),
+                  ),
                 ),
               ),
 
@@ -319,7 +328,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withValues(alpha: 0.45),
+                          Colors.black.withValues(alpha: 0.35),
                           Colors.transparent,
                         ],
                       ),
