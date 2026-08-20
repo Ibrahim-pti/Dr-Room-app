@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/utils/api_client.dart';
 import 'nurse_reviews_screen.dart';
-import 'nursing_services_screen.dart';
 
 class NurseDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> nurse;
@@ -161,7 +160,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     final image = nurse['image'];
     final phone = nurse['phone']?.toString() ?? '';
     final isAvailable = nurse['is_available'] == true;
-    final fee = nurse['fee'];
+    final experienceYears = nurse['experience_years'];
     final rating = double.tryParse(nurse['rating']?.toString() ?? '') ?? 0.0;
     final totalReviews = int.tryParse(nurse['total_reviews']?.toString() ?? '') ?? 0;
     final nurseId = int.tryParse(nurse['id']?.toString() ?? '0') ?? 0;
@@ -205,70 +204,59 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 90),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── 1. Curved Hero Photo Header ──
-                _buildHeroCurvedTop(
-                  image: image,
-                  isAvailable: isAvailable,
-                  name: name,
-                  city: city,
-                  specialty: specialty.toString(),
-                  rating: rating,
-                  totalReviews: totalReviews,
-                  nurseId: nurseId,
-                ),
-                const SizedBox(height: 18),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── 2. Quick Action Buttons (Call, Map, Request) ──
-                      _buildActionButtons(phone, lat, lng),
-                      const SizedBox(height: 14),
-
-                      // ── 3. Segmented Tab Bar ──
-                      _buildTabsHeader(allSpecialties.length),
-                      const SizedBox(height: 14),
-
-                      // ── 4. Dynamic Tab Content ──
-                      if (_selectedTabIndex == 0) ...[
-                        // 📋 Tab 1: ناساندن (About)
-                        if (bio.isNotEmpty) ...[
-                          _buildAboutSection(bio),
-                          const SizedBox(height: 14),
-                        ],
-                        if (phone.isNotEmpty) ...[
-                          _buildContactSection(phone),
-                          const SizedBox(height: 14),
-                        ],
-                        _buildReviewsSection(nurseId, name),
-                      ] else ...[
-                        // 🩺 Tab 2: پسپۆڕییەکان (Specialties)
-                        _buildSpecialtiesSection(allSpecialties),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 36),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── 1. Curved Hero Photo Header ──
+            _buildHeroCurvedTop(
+              image: image,
+              isAvailable: isAvailable,
+              name: name,
+              city: city,
+              specialty: specialty.toString(),
+              experienceYears: experienceYears,
+              rating: rating,
+              totalReviews: totalReviews,
+              nurseId: nurseId,
             ),
-          ),
+            const SizedBox(height: 18),
 
-          // ── Sticky Bottom Request Button ──
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: _buildBottomRequestBar(fee, nurse),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── 2. Quick Action Buttons (Call, Map, Review) ──
+                  _buildActionButtons(phone, lat, lng),
+                  const SizedBox(height: 14),
+
+                  // ── 3. Segmented Tab Bar ──
+                  _buildTabsHeader(allSpecialties.length),
+                  const SizedBox(height: 14),
+
+                  // ── 4. Dynamic Tab Content ──
+                  if (_selectedTabIndex == 0) ...[
+                    // 📋 Tab 1: دەربارەی پەرستار (About)
+                    if (bio.isNotEmpty) ...[
+                      _buildAboutSection(bio),
+                      const SizedBox(height: 14),
+                    ],
+                    if (phone.isNotEmpty) ...[
+                      _buildContactSection(phone),
+                      const SizedBox(height: 14),
+                    ],
+                    _buildReviewsSection(nurseId, name),
+                  ] else ...[
+                    // 🩺 Tab 2: پسپۆڕییەکان (Specialties)
+                    _buildSpecialtiesSection(allSpecialties),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -499,6 +487,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     required String name,
     required String city,
     required String specialty,
+    required dynamic experienceYears,
     required double rating,
     required int totalReviews,
     required int nurseId,
@@ -699,7 +688,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         ),
         const SizedBox(height: 8),
 
-        // ── Badges Pill Row (Specialty + Status) ──
+        // ── Badges Pill Row (Experience + Specialty + Status) ──
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
@@ -707,6 +696,18 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              if (experienceYears != null &&
+                  experienceYears.toString().isNotEmpty &&
+                  experienceYears.toString() != '0') ...[
+                _heroPill(
+                  icon: Iconsax.award,
+                  label: '$experienceYears ساڵ ئەزموون',
+                  color: const Color(0xFF2563EB),
+                  bgColor: const Color(0xFFEFF6FF),
+                  borderColor: const Color(0xFFBFDBFE),
+                ),
+                const SizedBox(width: 8),
+              ],
               if (specialty.isNotEmpty) ...[
                 _heroPill(
                   icon: Iconsax.health,
@@ -1180,7 +1181,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               const Icon(Iconsax.user, color: Color(0xFF0D9488), size: 18),
               const SizedBox(width: 8),
               Text(
-                'دەربارەی پەرستار و ئەزموون',
+                'دەربارەی پەرستار',
                 style: _kStyle(
                   fontSize: 15.5,
                   fontWeight: FontWeight.bold,
@@ -1189,15 +1190,17 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            bio,
-            style: _kStyle(
-              fontSize: 13.5,
-              color: const Color(0xFF475569),
-              height: 1.6,
+          if (bio.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              bio,
+              style: _kStyle(
+                fontSize: 13.5,
+                color: const Color(0xFF475569),
+                height: 1.6,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -1386,100 +1389,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
 
 
 
-  // ─── Sticky Bottom Request Bar ───
-  Widget _buildBottomRequestBar(dynamic fee, Map<String, dynamic> nurse) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          if (fee != null) ...[
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'نرخی خزمەتگوزاری',
-                  style: _kStyle(color: const Color(0xFF64748B), fontSize: 10),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع',
-                  style: _kStyle(
-                    color: const Color(0xFF0D9488),
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 16),
-          ],
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => NursingServicesScreen(
-                      nurse: nurse,
-                      nurseId: nurse['id'],
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0D9488).withValues(alpha: 0.35),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Iconsax.calendar_tick,
-                      color: Colors.white,
-                      size: 17,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'داواکردنی خزمەتگوزاری',
-                      style: _kStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 }
 
 class HeroCurveClipper extends CustomClipper<Path> {
