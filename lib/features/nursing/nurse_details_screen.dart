@@ -281,53 +281,49 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // 1. Curved Image with shifted alignment so face is lower and fully visible
+              // 1. Curved Image with top offset so head starts safely below the notch
               ClipPath(
                 clipper: const HeroCurveClipper(),
                 child: Container(
-                  color: const Color(0xFFF1F5F9),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFFE2E8F0),
+                        Color(0xFFF1F5F9),
+                        Color(0xFFF8FAFC),
+                      ],
+                    ),
+                  ),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      if (image != null && image.toString().isNotEmpty)
-                        image.toString().startsWith('http')
-                            ? Image.network(
-                                image.toString(),
-                                fit: BoxFit.cover,
-                                alignment: const Alignment(0, 0.22),
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _buildHeroPlaceholder(name),
-                              )
-                            : Image.asset(
-                                image.toString(),
-                                fit: BoxFit.cover,
-                                alignment: const Alignment(0, 0.22),
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _buildHeroPlaceholder(name),
-                              )
-                      else
-                        _buildHeroPlaceholder(name),
-
-                      // Subtle top gradient for status bar & action buttons clarity
+                      // Nurse image positioned slightly higher up
                       Positioned(
-                        top: 0,
+                        top: topPadding * 0.87,
+                        bottom: 0,
                         left: 0,
                         right: 0,
-                        height: topPadding + 65,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.black.withValues(alpha: 0.38),
-                                Colors.black.withValues(alpha: 0.12),
-                                Colors.transparent,
-                              ],
-                              stops: const [0.0, 0.65, 1.0],
-                            ),
-                          ),
-                        ),
+                        child: image != null && image.toString().isNotEmpty
+                            ? (image.toString().startsWith('http')
+                                  ? Image.network(
+                                      image.toString(),
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.topCenter,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              _buildHeroPlaceholder(name),
+                                    )
+                                  : Image.asset(
+                                      image.toString(),
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.topCenter,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              _buildHeroPlaceholder(name),
+                                    ))
+                            : _buildHeroPlaceholder(name),
                       ),
                     ],
                   ),
@@ -352,7 +348,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                           color: Colors.white.withValues(alpha: 0.95),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
+                            color: const Color(
+                              0xFFE2E8F0,
+                            ).withValues(alpha: 0.8),
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -382,7 +380,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                           color: Colors.white.withValues(alpha: 0.95),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
+                            color: const Color(
+                              0xFFE2E8F0,
+                            ).withValues(alpha: 0.8),
                           ),
                           boxShadow: [
                             BoxShadow(
