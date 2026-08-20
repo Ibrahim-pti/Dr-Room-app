@@ -7,6 +7,7 @@ import '../doctors/all_doctors_screen.dart';
 import '../pharmacy/screens/pharmacies_screen.dart';
 import '../lab/all_labs_screen.dart';
 import '../nursing/nursing_services_screen.dart';
+import '../nursing/nurse_list_screen.dart';
 
 class AllCategoriesScreen extends StatelessWidget {
   const AllCategoriesScreen({super.key});
@@ -152,7 +153,7 @@ class AllCategoriesScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const NursingServicesScreen(),
+                builder: (context) => const NurseListScreen(),
               ),
             );
           } else if (id == 'doctor') {

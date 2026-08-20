@@ -58,6 +58,8 @@ Route::get('/labs/{id}', [\App\Http\Controllers\Api\LabApiController::class, 'sh
 Route::get('/labs/{id}/reviews', [\App\Http\Controllers\Api\LabReviewController::class, 'index']);
 
 // ─── Nursing Services ─────────────────────────────────────────────────
+Route::get('/nurses', [\App\Http\Controllers\Api\NurseApiController::class, 'index']);
+Route::get('/nurses/{id}', [\App\Http\Controllers\Api\NurseApiController::class, 'show']);
 Route::get('/nursing/services', [\App\Http\Controllers\Api\NurseApiController::class, 'getServices']);
 
 Route::middleware('auth:sanctum')->group(function () {

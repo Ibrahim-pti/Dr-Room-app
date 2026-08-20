@@ -9,6 +9,7 @@ import '../../doctors/all_doctors_screen.dart';
 import '../../emergency/sos_screen.dart';
 import '../../lab/all_labs_screen.dart';
 import '../../nursing/nursing_services_screen.dart';
+import '../../nursing/nurse_list_screen.dart';
 import '../../pharmacy/screens/pharmacies_screen.dart';
 import '../../ai_assistant/ai_symptom_checker_screen.dart';
 import '../../prescriptions/pill_reminder_screen.dart';
@@ -308,7 +309,7 @@ class ServicesCategoryGrid extends StatelessWidget {
     if (id == 'lab') {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const AllLabsScreen()));
     } else if (id == 'nursing') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const NursingServicesScreen()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const NurseListScreen()));
     } else if (id == 'doctor') {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const AllDoctorsScreen()));
     } else if (id == 'pharmacy') {

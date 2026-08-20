@@ -3,12 +3,88 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Nurse;
 use App\Models\NurseAppointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class NurseApiController extends Controller
 {
+    /**
+     * List all approved nurses (like the doctor listing).
+     */
+    public function index(Request $request)
+    {
+        $query = Nurse::where('is_approved', true)
+            ->with(['user:id,name,name_en,name_ar,email,profile_image']);
+
+        if ($request->has('specialty') && $request->specialty) {
+            $query->where('specialty', 'like', '%' . $request->specialty . '%');
+        }
+
+        $nurses = $query->get()->map(function ($nurse) {
+            return [
+                'id' => $nurse->id,
+                'name' => $nurse->user->name ?? '',
+                'name_en' => $nurse->user->name_en ?? '',
+                'name_ar' => $nurse->user->name_ar ?? '',
+                'specialty' => $nurse->specialty ?? '',
+                'specialty_en' => $nurse->specialty_en ?? '',
+                'specialty_ar' => $nurse->specialty_ar ?? '',
+                'bio' => $nurse->bio ?? '',
+                'bio_en' => $nurse->bio_en ?? '',
+                'bio_ar' => $nurse->bio_ar ?? '',
+                'phone' => $nurse->phone ?? '',
+                'image' => $nurse->image_path
+                    ? asset('storage/' . $nurse->image_path)
+                    : ($nurse->user->profile_image
+                        ? asset('storage/' . $nurse->user->profile_image)
+                        : null),
+                'completed_appointments' => $nurse->nurseAppointments()
+                    ->where('status', 'completed')->count(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'nurses' => $nurses,
+        ]);
+    }
+
+    /**
+     * Show a single nurse's details.
+     */
+    public function show($id)
+    {
+        $nurse = Nurse::where('is_approved', true)
+            ->with(['user:id,name,name_en,name_ar,email,profile_image'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'nurse' => [
+                'id' => $nurse->id,
+                'name' => $nurse->user->name ?? '',
+                'name_en' => $nurse->user->name_en ?? '',
+                'name_ar' => $nurse->user->name_ar ?? '',
+                'specialty' => $nurse->specialty ?? '',
+                'specialty_en' => $nurse->specialty_en ?? '',
+                'specialty_ar' => $nurse->specialty_ar ?? '',
+                'bio' => $nurse->bio ?? '',
+                'bio_en' => $nurse->bio_en ?? '',
+                'bio_ar' => $nurse->bio_ar ?? '',
+                'phone' => $nurse->phone ?? '',
+                'image' => $nurse->image_path
+                    ? asset('storage/' . $nurse->image_path)
+                    : ($nurse->user->profile_image
+                        ? asset('storage/' . $nurse->user->profile_image)
+                        : null),
+                'completed_appointments' => $nurse->nurseAppointments()
+                    ->where('status', 'completed')->count(),
+            ],
+        ]);
+    }
+
     /**
      * Get the list of available nursing services.
      */
