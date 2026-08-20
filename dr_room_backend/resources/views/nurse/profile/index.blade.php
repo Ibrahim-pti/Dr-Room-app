@@ -99,59 +99,63 @@
         </div>
 
         @if($nurse)
-        <!-- Specialty & Skills -->
+        <!-- Specialty & Skills (Multi-Specialty Dynamic List) -->
         <div class="border-t border-slate-100 pt-6">
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center justify-between mb-4">
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-teal-500"></span>
-                    پسپۆڕی و بوارەکان
+                    پسپۆڕی و بوارەکان (دەتوانیت چەندین پسپۆڕی زیاد بکەیت)
                 </h3>
+                <button type="button" onclick="addSpecialtyRow()"
+                    class="flex items-center gap-1.5 px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-xl text-xs font-bold border border-teal-200 transition-colors shadow-sm cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    + زیادکردنی پسپۆڕی نوێ
+                </button>
             </div>
-            <p class="text-xs text-slate-400 mb-4">دەتوانیت هەر پسپۆڕییەک دەتەوێت زیادی بکەیت یان لەم نموونانەی خوارەوە بە کلیکێک زیادی بکەیت:</p>
 
-            <!-- Quick Specialty Tags -->
-            <div class="flex flex-wrap gap-2 mb-4">
-                @php
-                    $suggestedSpecialties = [
-                        'پەرستاری فریاکەوتن و برینپێچی',
-                        'پەرستاری ماڵەوە',
-                        'چاودێری نەخۆشی شەکرە و پەستان',
-                        'دانانی کانیۆلا و پێدانی سەقا',
-                        'پانسیمان و پاککردنەوەی برین',
-                        'پەرستاری منداڵان و کۆرپە',
-                        'چاودێری بەساڵاچووان',
+            @php
+                $existingKurdish = array_filter(array_map('trim', preg_split('/[،,]/', $nurse->specialty ?? '')));
+                $existingEnglish = array_filter(array_map('trim', preg_split('/[،,]/', $nurse->specialty_en ?? '')));
+                $existingArabic = array_filter(array_map('trim', preg_split('/[،,]/', $nurse->specialty_ar ?? '')));
+
+                $maxCount = max(count($existingKurdish), 1);
+                $specialtiesRows = [];
+                for ($i = 0; $i < $maxCount; $i++) {
+                    $specialtiesRows[] = [
+                        'name' => $existingKurdish[$i] ?? '',
+                        'name_en' => $existingEnglish[$i] ?? '',
+                        'name_ar' => $existingArabic[$i] ?? '',
                     ];
-                @endphp
-                @foreach($suggestedSpecialties as $suggestion)
-                    <button type="button" onclick="appendSpecialty('{{ $suggestion }}')"
-                        class="px-3 py-1.5 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300 border border-slate-200 text-slate-700 rounded-xl text-xs font-medium transition-all">
-                        + {{ $suggestion }}
-                    </button>
+                }
+            @endphp
+
+            <div id="specialties-container" class="space-y-3 mb-5">
+                @foreach($specialtiesRows as $idx => $sRow)
+                    <div class="specialty-row bg-slate-50 border border-slate-200/80 rounded-2xl p-4 transition-all hover:border-teal-300 relative">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                            <div class="md:col-span-4">
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">پسپۆڕی (کوردی)</label>
+                                <input type="text" name="specialties[{{ $idx }}][name]" value="{{ $sRow['name'] }}" placeholder="وەک: پەرستاری فریاکەوتن"
+                                    class="specialty-kurdish-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                            </div>
+                            <div class="md:col-span-4">
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">پسپۆڕی (ئینگلیزی)</label>
+                                <input type="text" name="specialties[{{ $idx }}][name_en]" value="{{ $sRow['name_en'] }}" dir="ltr" placeholder="Emergency Nursing"
+                                    class="specialty-english-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">پسپۆڕی (عەرەبی)</label>
+                                <input type="text" name="specialties[{{ $idx }}][name_ar]" value="{{ $sRow['name_ar'] }}" dir="rtl" placeholder="تمريض طوارئ"
+                                    class="specialty-arabic-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                            </div>
+                            <div class="md:col-span-1 flex justify-end pt-2 md:pt-4">
+                                <button type="button" onclick="removeSpecialtyRow(this)" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors" title="سڕینەوە">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 @endforeach
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-                <!-- Specialty (Kurdish) -->
-                <div>
-                    <label for="specialty" class="block text-xs font-bold text-slate-600 mb-1.5">پسپۆڕی و شارەزایی (کوردی)</label>
-                    <textarea id="specialty" name="specialty" rows="2" placeholder="وەک: پەرستاری فریاکەوتن، دانانی کانیۆلا، برینپێچی..."
-                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">{{ old('specialty', $nurse->specialty) }}</textarea>
-                    @error('specialty') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <!-- Specialty (English) -->
-                <div>
-                    <label for="specialty_en" class="block text-xs font-bold text-slate-600 mb-1.5">پسپۆڕی (ئینگلیزی)</label>
-                    <textarea id="specialty_en" name="specialty_en" rows="2" dir="ltr" placeholder="Emergency Nursing, Wound Care..."
-                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">{{ old('specialty_en', $nurse->specialty_en) }}</textarea>
-                </div>
-
-                <!-- Specialty (Arabic) -->
-                <div>
-                    <label for="specialty_ar" class="block text-xs font-bold text-slate-600 mb-1.5">پسپۆڕی (عەرەبی)</label>
-                    <textarea id="specialty_ar" name="specialty_ar" rows="2" dir="rtl" placeholder="تمريض طوارئ، تضميد جروح..."
-                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">{{ old('specialty_ar', $nurse->specialty_ar) }}</textarea>
-                </div>
             </div>
 
             <!-- City & Service Type -->
@@ -300,21 +304,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
-    // Append specialty to textarea
-    function appendSpecialty(text) {
-        const input = document.getElementById('specialty');
-        if (!input) return;
-        const current = input.value.trim();
-        if (current.length > 0) {
-            if (!current.includes(text)) {
-                input.value = current + '، ' + text;
-            }
-        } else {
-            input.value = text;
-        }
-        input.focus();
-    }
-
     // Map initialization
     const DEFAULT_CENTER = [36.1911, 44.0092]; // Erbil
     const latInput = document.getElementById('latitude');
@@ -450,6 +439,54 @@
 
     setTimeout(function () { map.invalidateSize(); }, 300);
 
+    // Dynamic Specialty Rows Management
+    let specialtyRowIdx = {{ count($specialtiesRows) }};
+
+    function addSpecialtyRow() {
+        const container = document.getElementById('specialties-container');
+        if (!container) return;
+
+        const row = document.createElement('div');
+        row.className = 'specialty-row bg-slate-50 border border-slate-200/80 rounded-2xl p-4 transition-all hover:border-teal-300 relative animate-fadeIn';
+        row.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                <div class="md:col-span-4">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">پسپۆڕی (کوردی)</label>
+                    <input type="text" name="specialties[${specialtyRowIdx}][name]" placeholder="وەک: پەرستاری فریاکەوتن"
+                        class="specialty-kurdish-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                </div>
+                <div class="md:col-span-4">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">پسپۆڕی (ئینگلیزی)</label>
+                    <input type="text" name="specialties[${specialtyRowIdx}][name_en]" dir="ltr" placeholder="Emergency Nursing"
+                        class="specialty-english-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">پسپۆڕی (عەرەبی)</label>
+                    <input type="text" name="specialties[${specialtyRowIdx}][name_ar]" dir="rtl" placeholder="تمريض طوارئ"
+                        class="specialty-arabic-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
+                </div>
+                <div class="md:col-span-1 flex justify-end pt-2 md:pt-4">
+                    <button type="button" onclick="removeSpecialtyRow(this)" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors" title="سڕینەوە">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(row);
+        specialtyRowIdx++;
+    }
+
+    function removeSpecialtyRow(btn) {
+        const rows = document.querySelectorAll('.specialty-row');
+        if (rows.length > 1) {
+            btn.closest('.specialty-row').remove();
+        } else {
+            // If only one row, just clear its inputs
+            const row = btn.closest('.specialty-row');
+            row.querySelectorAll('input').forEach(i => i.value = '');
+        }
+    }
+
     // Translate All Function
     async function handleTranslateAll() {
         const btn = document.getElementById('translate-all-btn');
@@ -457,12 +494,27 @@
         const token = document.querySelector('input[name="_token"]')?.value;
 
         const nameVal = document.getElementById('name')?.value || '';
-        const specialtyVal = document.getElementById('specialty')?.value || '';
         const cityVal = document.getElementById('city')?.value || '';
         const addressVal = document.getElementById('address')?.value || '';
         const bioVal = document.getElementById('bio')?.value || '';
 
-        if (!nameVal && !specialtyVal && !addressVal && !bioVal) {
+        // Collect all specialties from dynamic rows
+        const specialtyRows = document.querySelectorAll('.specialty-row');
+        const specialtiesPayload = [];
+        specialtyRows.forEach(row => {
+            const kInput = row.querySelector('.specialty-kurdish-input');
+            const eInput = row.querySelector('.specialty-english-input');
+            const aInput = row.querySelector('.specialty-arabic-input');
+            if (kInput && kInput.value.trim()) {
+                specialtiesPayload.push({
+                    name: kInput.value.trim(),
+                    name_en: eInput ? eInput.value.trim() : '',
+                    name_ar: aInput ? aInput.value.trim() : '',
+                });
+            }
+        });
+
+        if (!nameVal && specialtiesPayload.length === 0 && !addressVal && !bioVal) {
             alert('تکایە سەرەتا خانە کوردییەکان پڕبکەرەوە.');
             return;
         }
@@ -481,7 +533,7 @@
                 },
                 body: JSON.stringify({
                     name: nameVal,
-                    specialty: specialtyVal,
+                    specialties: specialtiesPayload,
                     city: cityVal,
                     address: addressVal,
                     bio: bioVal,
@@ -493,11 +545,10 @@
             if (json.success && json.data) {
                 const d = json.data;
 
+                // Set Name, Address, Bio
                 const fields = [
                     { id: 'name_en', val: d.name_en },
                     { id: 'name_ar', val: d.name_ar },
-                    { id: 'specialty_en', val: d.specialty_en },
-                    { id: 'specialty_ar', val: d.specialty_ar },
                     { id: 'address_en', val: d.address_en },
                     { id: 'address_ar', val: d.address_ar },
                     { id: 'bio_en', val: d.bio_en },
@@ -514,6 +565,27 @@
                         }, 2000);
                     }
                 });
+
+                // Set Translated Specialties into rows
+                if (d.specialties_translated && Array.isArray(d.specialties_translated)) {
+                    specialtyRows.forEach((row, i) => {
+                        const item = d.specialties_translated[i];
+                        if (item) {
+                            const eInput = row.querySelector('.specialty-english-input');
+                            const aInput = row.querySelector('.specialty-arabic-input');
+                            if (eInput && item.name_en) {
+                                eInput.value = item.name_en;
+                                eInput.classList.add('ring-2', 'ring-teal-400', 'bg-teal-50/40');
+                                setTimeout(() => eInput.classList.remove('ring-2', 'ring-teal-400', 'bg-teal-50/40'), 2000);
+                            }
+                            if (aInput && item.name_ar) {
+                                aInput.value = item.name_ar;
+                                aInput.classList.add('ring-2', 'ring-teal-400', 'bg-teal-50/40');
+                                setTimeout(() => aInput.classList.remove('ring-2', 'ring-teal-400', 'bg-teal-50/40'), 2000);
+                            }
+                        }
+                    });
+                }
 
                 btnText.textContent = '✓ هەمووی وەرگێڕدرا';
                 setTimeout(() => {
