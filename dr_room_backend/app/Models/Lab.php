@@ -29,4 +29,20 @@ class Lab extends Model
     {
         return $this->hasMany(LabPackage::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(LabReview::class);
+    }
+
+    public function recalculateRating()
+    {
+        $avg = $this->reviews()->avg('rating');
+        $count = $this->reviews()->count();
+
+        $this->update([
+            'rating' => $avg ? round($avg, 1) : 5.0,
+            'total_reviews' => $count,
+        ]);
+    }
 }

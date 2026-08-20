@@ -151,6 +151,9 @@ Route::prefix('lab')->middleware(['auth', \App\Http\Middleware\IsLab::class])->g
         // Results
         Route::resource('/results', \App\Http\Controllers\Web\LabResultController::class, ['as' => 'lab']);
         
+        // Reviews & Feedback
+        Route::get('/reviews', [\App\Http\Controllers\Web\LabReviewController::class, 'index'])->name('lab.reviews.index');
+        
         // Management
         Route::get('/management/approve', [\App\Http\Controllers\Web\LabManagementController::class, 'approve'])->name('lab.management.approve');
         Route::get('/management/complete', [\App\Http\Controllers\Web\LabManagementController::class, 'complete'])->name('lab.management.complete');

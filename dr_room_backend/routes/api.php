@@ -55,6 +55,7 @@ Route::get('/pharmacies/{id}/offers', [\App\Http\Controllers\Api\PharmacyApiCont
 // ─── Lab Mobile App API ─────────────────────────────────────────────────
 Route::get('/labs', [\App\Http\Controllers\Api\LabApiController::class, 'index']);
 Route::get('/labs/{id}', [\App\Http\Controllers\Api\LabApiController::class, 'show']);
+Route::get('/labs/{id}/reviews', [\App\Http\Controllers\Api\LabReviewController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -67,8 +68,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments', [AppointmentBookingController::class, 'store']);
     Route::delete('/appointments/{id}', [AppointmentBookingController::class, 'destroy']);
 
-    // ─── Patient: Doctor Reviews ────────────────────────────────────────────
+    // ─── Patient: Doctor & Lab Reviews ─────────────────────────────────────
     Route::post('/doctors/{id}/reviews', [\App\Http\Controllers\Api\DoctorReviewController::class, 'store']);
+    Route::post('/labs/{id}/reviews', [\App\Http\Controllers\Api\LabReviewController::class, 'store']);
 
     // ─── Patient: Orders (Labs, Pharmacy, Nursing) ──────────────────────────
     Route::get('/orders', [OrderController::class, 'index']);

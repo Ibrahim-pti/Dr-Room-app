@@ -94,6 +94,10 @@ class LabApiController extends Controller
         }
 
         $lab = $user->lab;
+        if ($lab) {
+            $lab->increment('views_count');
+        }
+
         $image = $lab && $lab->image_path ? $lab->image_path : ($user->profile_image ? 'storage/' . $user->profile_image : 'assets/images/laboratory.jpg');
         $discount = $lab && $lab->discount !== null ? (int)$lab->discount : (($user->id == 12 || $user->id % 3 == 0) ? 25 : ($user->id % 4 == 0 ? 15 : null));
         $isOpen = ($user->id % 2 != 0 || $user->id == 12);
@@ -152,8 +156,9 @@ class LabApiController extends Controller
             'location' => $lab && $lab->location ? $lab->location : 'هەولێر - شەقامی پزیشکان',
             'location_ar' => $lab && $lab->location_ar ? $lab->location_ar : 'أربيل - شارع الأطباء',
             'location_en' => $lab && $lab->location_en ? $lab->location_en : 'Erbil - Doctors Street',
-            'rating' => $lab && $lab->rating ? (float)$lab->rating : 4.8,
-            'reviews' => $lab && $lab->total_reviews ? (int)$lab->total_reviews : 120,
+            'rating' => $lab && $lab->rating ? (float)$lab->rating : 5.0,
+            'reviews' => $lab ? (int)($lab->total_reviews ?? $lab->reviews()->count()) : 0,
+            'views_count' => $lab ? (int)$lab->views_count : 0,
             'discount' => $discount,
             'is_open' => $isOpen,
             'opening_hours' => $lab && $lab->opening_hours ? $lab->opening_hours : '08:00 AM - 10:00 PM',

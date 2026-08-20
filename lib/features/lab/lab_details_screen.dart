@@ -33,6 +33,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   int _selectedTabIndex = 0; // 0: ناساندن, 1: پشکنینەکان, 2: ئۆفەر و پاکێج
   YoutubePlayerController? _youtubeController;
   bool _isVideoPlaying = false;
+  List<Map<String, dynamic>> _reviews = [];
 
   List<Map<String, dynamic>> _packages = [
     {
@@ -189,6 +190,23 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   return map;
                 }),
               );
+            }
+          });
+        }
+      }
+
+      // Fetch Reviews
+      final revRes = await ApiClient.get('/labs/$labId/reviews');
+      if (revRes.statusCode == 200 && mounted) {
+        final revDecoded = jsonDecode(revRes.body);
+        if (revDecoded is Map && revDecoded['reviews'] is List) {
+          setState(() {
+            _reviews = List<Map<String, dynamic>>.from(revDecoded['reviews']);
+            if (revDecoded['rating'] != null) {
+              _labData['rating'] = revDecoded['rating'];
+            }
+            if (revDecoded['total_reviews'] != null) {
+              _labData['reviews'] = revDecoded['total_reviews'];
             }
           });
         }
@@ -382,6 +400,8 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   _buildAboutSection(aboutUs),
                   const SizedBox(height: 14),
                   _buildVideoSection(),
+                  const SizedBox(height: 14),
+                  _buildReviewsSection(),
                 ] else if (_selectedTabIndex == 1) ...[
                   // 🧪 تاب ٢: لیستی پشکنینە بەردەستەکان
                   _buildTestsSection(),
@@ -710,7 +730,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             onTap: () => _makePhoneCall(null),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: _buildActionButton(
             icon: Iconsax.map,
@@ -718,6 +738,16 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             color: const Color(0xFF8B5CF6),
             bgColor: const Color(0xFFF5F3FF),
             onTap: _openMap,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildActionButton(
+            icon: Icons.star_rate_rounded,
+            label: 'هەڵسەنگاندن',
+            color: const Color(0xFFD97706),
+            bgColor: const Color(0xFFFEF3C7),
+            onTap: _showReviewBottomSheet,
           ),
         ),
       ],
@@ -1071,6 +1101,376 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   backgroundColor: Colors.black,
                 )
               : _buildVideoPoster(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReviewsSection() {
+    final double ratingVal = double.tryParse('${_labData['rating'] ?? 5.0}') ?? 5.0;
+    final int reviewsCount = _reviews.isNotEmpty ? _reviews.length : (int.tryParse('${_labData['reviews'] ?? 0}') ?? 0);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 20),
+                  const SizedBox(width: 6),
+                  Text(
+                    'هەڵسەنگاندن و فیدباک ($reviewsCount)',
+                    style: _kStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
+              ),
+              GestureDetector(
+                onTap: _showReviewBottomSheet,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add_comment_rounded, color: Color(0xFFB45309), size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        'سەرنج بنووسە',
+                        style: _kStyle(
+                          color: const Color(0xFFB45309),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Rating summary badge
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFF1F5F9)),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  ratingVal.toStringAsFixed(1),
+                  style: _kStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: List.generate(
+                          5,
+                          (i) => Icon(
+                            Icons.star_rounded,
+                            color: i < ratingVal.round() ? const Color(0xFFF59E0B) : const Color(0xFFCBD5E1),
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'لە کۆی $reviewsCount هەڵسەنگاندنی نەخۆش',
+                        style: _kStyle(
+                          fontSize: 11,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Reviews List
+          if (_reviews.isNotEmpty) ...[
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _reviews.take(4).length,
+              separatorBuilder: (context, index) => const Divider(height: 16, color: Color(0xFFF1F5F9)),
+              itemBuilder: (context, index) {
+                final rev = _reviews[index];
+                final String patientName = rev['patient_name'] ?? 'نەخۆش';
+                final int stars = (rev['rating'] as num?)?.toInt() ?? 5;
+                final String? comment = rev['comment'];
+                final String date = rev['formatted_date'] ?? '';
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 14,
+                              backgroundColor: const Color(0xFFEFF6FF),
+                              child: Text(
+                                patientName.isNotEmpty ? patientName[0] : 'ن',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6)),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              patientName,
+                              style: _kStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Row(
+                              children: List.generate(
+                                5,
+                                (i) => Icon(
+                                  Icons.star_rounded,
+                                  color: i < stars ? const Color(0xFFF59E0B) : const Color(0xFFCBD5E1),
+                                  size: 13,
+                                ),
+                              ),
+                            ),
+                            if (date.isNotEmpty) ...[
+                              const SizedBox(width: 6),
+                              Text(
+                                date,
+                                style: _kStyle(fontSize: 10.5, color: const Color(0xFF94A3B8)),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                    if (comment != null && comment.trim().isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        comment,
+                        style: _kStyle(fontSize: 11.5, color: const Color(0xFF475569), height: 1.4),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ] else ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'هێشتا هیچ سەرنجێک نەنووسراوە. یەکەم کەس بە کە سەرنج بنووسێت!',
+                style: _kStyle(fontSize: 11.5, color: const Color(0xFF94A3B8)),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showReviewBottomSheet() {
+    int selectedStars = 5;
+    final TextEditingController commentController = TextEditingController();
+    bool isSubmitting = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'هەڵسەنگاندنی تاقیگە',
+                style: _kStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'تکایە ئەستێرە دیاری بکە و ڕا و بۆچوونی خۆت بنووسە دەربارەی خزمەتگوزارییەکان:',
+                style: _kStyle(
+                  fontSize: 12,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Star Selector
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(5, (index) {
+                    final starIndex = index + 1;
+                    return GestureDetector(
+                      onTap: () {
+                        setModalState(() {
+                          selectedStars = starIndex;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Icon(
+                          Icons.star_rounded,
+                          size: 38,
+                          color: starIndex <= selectedStars ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Comment Input
+              TextField(
+                controller: commentController,
+                maxLines: 3,
+                style: _kStyle(fontSize: 13, color: const Color(0xFF0F172A)),
+                decoration: InputDecoration(
+                  hintText: 'سەرنج و بۆچوونی خۆت لێرە بنووسە (ئارەزوومەندانە)...',
+                  hintStyle: _kStyle(fontSize: 12, color: const Color(0xFF94A3B8)),
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final labId = _labData['id'];
+                          if (labId == null) return;
+
+                          setModalState(() => isSubmitting = true);
+
+                          try {
+                            final res = await ApiClient.post(
+                              '/labs/$labId/reviews',
+                              body: {
+                                'rating': selectedStars,
+                                'comment': commentController.text.trim(),
+                              },
+                            );
+
+                            if (res.statusCode == 200 && mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('هەڵسەنگاندنەکەت بە سەرکەوتوویی نێردرا، سوپاس!'),
+                                  backgroundColor: Color(0xFF059669),
+                                ),
+                              );
+                              _fetchLabDetails();
+                            } else {
+                              final decoded = jsonDecode(res.body);
+                              final msg = decoded['message'] ?? 'نەتوانرا بنێردرێت';
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(msg.toString()), backgroundColor: Colors.red),
+                              );
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('هەڵەیەک ڕوویدا'), backgroundColor: Colors.red),
+                            );
+                          } finally {
+                            if (mounted) setModalState(() => isSubmitting = false);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3B82F6),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : Text(
+                          'ناردنی هەڵسەنگاندن',
+                          style: _kStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
