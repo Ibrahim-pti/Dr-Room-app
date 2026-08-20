@@ -260,7 +260,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
-  // ─── Curved Hero Photo Header (Safe Area & Android Friendly) ───
+  // ─── Curved Hero Photo Header (Clean White & Android Friendly) ───
   Widget _buildHeroCurvedTop({
     required dynamic image,
     required bool isAvailable,
@@ -270,7 +270,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     required String? serviceType,
   }) {
     final topPadding = MediaQuery.of(context).padding.top;
-    final heroHeight = 310.0 + topPadding;
+    final heroHeight = 340.0 + topPadding;
 
     return Column(
       children: [
@@ -281,32 +281,31 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // 1. Curved Image with Safe Area Padding
+              // 1. Curved Image on Pure White Background
               ClipPath(
                 clipper: const HeroCurveClipper(),
                 child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFE2E8F0), Color(0xFFF1F5F9)],
-                    ),
-                  ),
+                  color: Colors.white,
                   child: Padding(
-                    padding: EdgeInsets.only(top: topPadding > 0 ? topPadding * 0.7 : 24),
+                    padding: EdgeInsets.only(
+                      top: topPadding + 35,
+                      bottom: 25,
+                      left: 10,
+                      right: 10,
+                    ),
                     child: image != null && image.toString().isNotEmpty
                         ? (image.toString().startsWith('http')
                             ? Image.network(
                                 image.toString(),
-                                fit: BoxFit.cover,
-                                alignment: const Alignment(0, 0.1),
+                                fit: BoxFit.contain,
+                                alignment: Alignment.topCenter,
                                 errorBuilder: (context, error, stackTrace) =>
                                     _buildHeroPlaceholder(name),
                               )
                             : Image.asset(
                                 image.toString(),
-                                fit: BoxFit.cover,
-                                alignment: const Alignment(0, 0.1),
+                                fit: BoxFit.contain,
+                                alignment: Alignment.topCenter,
                                 errorBuilder: (context, error, stackTrace) =>
                                     _buildHeroPlaceholder(name),
                               ))
@@ -315,29 +314,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                 ),
               ),
 
-              // 2. Top Dark Gradient for floating buttons contrast
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: topPadding + 65,
-                child: IgnorePointer(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.35),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // 3. Floating Action Buttons (Back & Favorite)
+              // 2. Floating Action Buttons (Clean White Buttons)
               Positioned(
                 top: topPadding + 6,
                 left: 16,
@@ -349,16 +326,24 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
                       child: Container(
-                        width: 42,
-                        height: 42,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.35),
+                          color: Colors.white,
                           shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: const Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
-                          size: 18,
+                          color: Color(0xFF0F172A),
+                          size: 16,
                         ),
                       ),
                     ),
@@ -369,18 +354,26 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                         setState(() => _isFavorite = !_isFavorite);
                       },
                       child: Container(
-                        width: 42,
-                        height: 42,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.35),
+                          color: Colors.white,
                           shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Icon(
                           _isFavorite ? Icons.favorite_rounded : Iconsax.heart,
                           color: _isFavorite
                               ? const Color(0xFFEF4444)
-                              : Colors.white,
-                          size: 20,
+                              : const Color(0xFF0F172A),
+                          size: 19,
                         ),
                       ),
                     ),
