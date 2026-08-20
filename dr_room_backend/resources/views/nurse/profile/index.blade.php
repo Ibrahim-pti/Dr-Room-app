@@ -118,12 +118,19 @@
                     @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Fee -->
+                <!-- Experience Years -->
                 <div>
-                    <label for="fee" class="block text-xs font-bold text-slate-600 mb-1.5">نرخی سەردان / خزمەتگوزاری (دینار)</label>
-                    <input type="number" step="500" id="fee" name="fee" value="{{ old('fee', $nurse ? (float)$nurse->fee : 15000) }}" dir="ltr" placeholder="15000"
-                        class="w-full text-right px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">
-                    @error('fee') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label for="experience_years" class="block text-xs font-bold text-slate-600 mb-1.5">
+                        ساڵی ئەزموون 
+                        <span class="text-slate-400 font-normal">(چەند ساڵ ئەزموونت هەیە؟)</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="experience_years" name="experience_years" min="0" max="70" dir="ltr"
+                            value="{{ old('experience_years', $nurse ? $nurse->experience_years : '') }}" placeholder="5"
+                            class="w-full text-right px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm pr-16">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">ساڵ</span>
+                    </div>
+                    @error('experience_years') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
         </div>

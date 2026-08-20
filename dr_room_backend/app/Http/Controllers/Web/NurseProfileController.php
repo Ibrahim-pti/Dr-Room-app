@@ -44,6 +44,7 @@ class NurseProfileController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
             'is_available' => 'nullable|boolean',
             'fee' => 'nullable|numeric|min:0',
+            'experience_years' => 'nullable|integer|min:0|max:70',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
 
@@ -140,6 +141,7 @@ class NurseProfileController extends Controller
                 'longitude' => $request->filled('longitude') ? $request->longitude : null,
                 'is_available' => $request->has('is_available') ? (bool) $request->is_available : $nurse->is_available,
                 'fee' => $request->fee ?? $nurse->fee,
+                'experience_years' => $request->filled('experience_years') ? (int) $request->experience_years : $nurse->experience_years,
                 'city' => $request->city ?? $nurse->city,
                 'service_type' => $request->service_type ?? $nurse->service_type,
                 'phone' => $request->phone,

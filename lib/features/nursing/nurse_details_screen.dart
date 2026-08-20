@@ -149,6 +149,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     final phone = nurse['phone']?.toString() ?? '';
     final isAvailable = nurse['is_available'] == true;
     final fee = nurse['fee'];
+    final experienceYears = nurse['experience_years'];
     final city = nurse['city']?.toString() ?? '';
     final serviceType = nurse['service_type']?.toString();
     final customServices = nurse['custom_services'] as List<dynamic>? ?? [];
@@ -224,7 +225,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                       // ── 4. Dynamic Tab Content ──
                       if (_selectedTabIndex == 0) ...[
                         // 📋 Tab 1: ناساندن (About)
-                        _buildHighlightFeatures(fee, serviceType, isAvailable),
+                        _buildHighlightFeatures(experienceYears, serviceType, isAvailable),
                         const SizedBox(height: 12),
                         if (bio.isNotEmpty) ...[
                           _buildAboutSection(bio),
@@ -693,19 +694,19 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
   // ─── Tab 1: ناساندن (About) ───
 
   Widget _buildHighlightFeatures(
-    dynamic fee,
+    dynamic experienceYears,
     String? serviceType,
     bool isAvailable,
   ) {
-    final feeStr = fee != null
-        ? '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع'
+    final expStr = (experienceYears != null && experienceYears.toString() != '0')
+        ? '${experienceYears.toString()} ساڵ'
         : 'دیارینەکراوە';
 
     final highlights = [
       {
-        'icon': Iconsax.card,
-        'title': feeStr,
-        'desc': 'نرخی خزمەتگوزاری',
+        'icon': Iconsax.award,
+        'title': expStr,
+        'desc': 'ساڵی ئەزموون',
         'color': const Color(0xFFF59E0B),
       },
       {

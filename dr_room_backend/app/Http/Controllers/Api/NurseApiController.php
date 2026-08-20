@@ -59,6 +59,7 @@ class NurseApiController extends Controller
                         : null),
                 'is_available' => $nurse->is_available ?? true,
                 'fee' => $nurse->fee,
+                'experience_years' => $nurse->experience_years ?? 0,
                 'offered_services' => $nurse->offered_services ?? [],
                 'custom_services' => $nurse->custom_services ?? [],
                 'completed_appointments' => $nurse->nurseAppointments()
