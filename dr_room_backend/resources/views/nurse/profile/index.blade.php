@@ -672,54 +672,31 @@
             </div>
         </div>
 
-        <!-- AI Tools & Image Options -->
-        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-3">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-                <!-- AI Remove Background Button -->
-                <button type="button" id="ai-bg-remove-btn" onclick="removeBackgroundAI()" 
-                    class="inline-flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-violet-500/20 transition-all cursor-pointer transform active:scale-95">
-                    <svg class="w-4 h-4 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd"/></svg>
-                    <span>✨ لابردنی پاشبنەما (AI Remove Background)</span>
+        <!-- Cropper Controls -->
+        <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-100 flex-wrap">
+            <div class="flex items-center gap-1.5">
+                <button type="button" onclick="cropper && cropper.rotate(90)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="سوڕاندن">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 </button>
-
-                <!-- Background Color Fill Selector -->
-                <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-700">
-                    <span class="px-2 text-slate-500 text-[11px]">پاشبنەما:</span>
-                    <button type="button" id="bg-white-btn" onclick="setBackgroundOption('white')" class="px-2.5 py-1 rounded-lg bg-white shadow-xs text-teal-700 font-bold transition-all">
-                        ⚪ سپی (White)
-                    </button>
-                    <button type="button" id="bg-transparent-btn" onclick="setBackgroundOption('transparent')" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition-all">
-                        🏁 بێ ڕەنگ (PNG)
-                    </button>
-                </div>
+                <button type="button" onclick="cropper && cropper.zoom(0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="گەورەکردن">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                </button>
+                <button type="button" onclick="cropper && cropper.zoom(-0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="بچووککردن">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                </button>
+                <button type="button" onclick="cropper && cropper.reset()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+                    ڕیسێت
+                </button>
             </div>
 
-            <!-- Standard Cropper Controls -->
-            <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100/60 flex-wrap">
-                <div class="flex items-center gap-1.5">
-                    <button type="button" onclick="cropper && cropper.rotate(90)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="سوڕاندن">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    </button>
-                    <button type="button" onclick="cropper && cropper.zoom(0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="گەورەکردن">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    </button>
-                    <button type="button" onclick="cropper && cropper.zoom(-0.1)" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all" title="بچووککردن">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
-                    </button>
-                    <button type="button" onclick="cropper && cropper.reset()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
-                        ڕیسێت
-                    </button>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="closeCropperModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-bold transition-all">
-                        پاشگەزبوونەوە
-                    </button>
-                    <button type="button" onclick="applyCrop()" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shadow-md shadow-teal-500/20 transition-all flex items-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        بڕین و پاشەکەوتکردن
-                    </button>
-                </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="closeCropperModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-bold transition-all">
+                    پاشگەزبوونەوە
+                </button>
+                <button type="button" onclick="applyCrop()" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shadow-md shadow-teal-500/20 transition-all flex items-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    بڕین و پاشەکەوتکردن
+                </button>
             </div>
         </div>
     </div>
