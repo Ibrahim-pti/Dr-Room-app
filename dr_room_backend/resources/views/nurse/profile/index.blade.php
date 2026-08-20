@@ -114,19 +114,13 @@
             </div>
 
             @php
-                $existingKurdish = array_filter(array_map('trim', preg_split('/[،,]/', $nurse->specialty ?? '')));
-                $existingEnglish = array_filter(array_map('trim', preg_split('/[،,]/', $nurse->specialty_en ?? '')));
-                $existingArabic = array_filter(array_map('trim', preg_split('/[،,]/', $nurse->specialty_ar ?? '')));
-
-                $maxCount = max(count($existingKurdish), 1);
-                $specialtiesRows = [];
-                for ($i = 0; $i < $maxCount; $i++) {
-                    $specialtiesRows[] = [
-                        'name' => $existingKurdish[$i] ?? '',
-                        'name_en' => $existingEnglish[$i] ?? '',
-                        'name_ar' => $existingArabic[$i] ?? '',
-                    ];
-                }
+                $specialtiesRows = [
+                    [
+                        'name' => $nurse->specialty ?? '',
+                        'name_en' => $nurse->specialty_en ?? '',
+                        'name_ar' => $nurse->specialty_ar ?? '',
+                    ]
+                ];
             @endphp
 
             <div id="specialties-container" class="space-y-3 mb-5">
@@ -135,7 +129,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                             <div class="md:col-span-4">
                                 <label class="block text-[11px] font-bold text-slate-600 mb-1">پسپۆڕی (کوردی)</label>
-                                <input type="text" name="specialties[{{ $idx }}][name]" value="{{ $sRow['name'] }}" placeholder="وەک: پەرستاری فریاکەوتن"
+                                <input type="text" name="specialties[{{ $idx }}][name]" value="{{ $sRow['name'] }}" placeholder="وەک: پەرستاری فریاکەوتن و برینپێچی"
                                     class="specialty-kurdish-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500">
                             </div>
                             <div class="md:col-span-4">
