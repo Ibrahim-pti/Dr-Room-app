@@ -93,17 +93,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     }
   }
 
-  String _serviceTypeKurdish(String? type) {
-    switch (type) {
-      case 'clinic':
-        return 'کلینیک';
-      case 'hospital':
-        return 'نەخۆشخانە';
-      case 'home_nursing':
-      default:
-        return 'پەرستاری ماڵەوە';
-    }
-  }
+
 
   void _makePhoneCall(String phone) async {
     final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
@@ -168,27 +158,14 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         ? nurse['bio_en']
         : (nurse['bio'] ?? '');
 
-    final address =
-        (isArabic &&
-            nurse['address_ar'] != null &&
-            nurse['address_ar'].toString().isNotEmpty)
-        ? nurse['address_ar']
-        : (isEnglish &&
-              nurse['address_en'] != null &&
-              nurse['address_en'].toString().isNotEmpty)
-        ? nurse['address_en']
-        : (nurse['address'] ?? '');
-
     final image = nurse['image'];
     final phone = nurse['phone']?.toString() ?? '';
     final isAvailable = nurse['is_available'] == true;
     final fee = nurse['fee'];
-    final experienceYears = nurse['experience_years'];
     final rating = double.tryParse(nurse['rating']?.toString() ?? '') ?? 0.0;
     final totalReviews = int.tryParse(nurse['total_reviews']?.toString() ?? '') ?? 0;
     final nurseId = int.tryParse(nurse['id']?.toString() ?? '0') ?? 0;
     final city = nurse['city']?.toString() ?? '';
-    final serviceType = nurse['service_type']?.toString();
     final customServices = nurse['custom_services'] as List<dynamic>? ?? [];
 
     final double? lat = nurse['latitude'] != null
@@ -242,7 +219,6 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                   name: name,
                   city: city,
                   specialty: specialty.toString(),
-                  serviceType: serviceType,
                   rating: rating,
                   totalReviews: totalReviews,
                   nurseId: nurseId,
@@ -265,13 +241,6 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                       // ── 4. Dynamic Tab Content ──
                       if (_selectedTabIndex == 0) ...[
                         // 📋 Tab 1: ناساندن (About)
-                        _buildHighlightFeatures(
-                          experienceYears,
-                          serviceType,
-                        ),
-                        const SizedBox(height: 14),
-                        _buildReviewsSection(nurseId, name),
-                        const SizedBox(height: 14),
                         if (bio.isNotEmpty) ...[
                           _buildAboutSection(bio),
                           const SizedBox(height: 14),
@@ -280,12 +249,10 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                           _buildContactSection(phone),
                           const SizedBox(height: 14),
                         ],
-                      ] else if (_selectedTabIndex == 1) ...[
+                        _buildReviewsSection(nurseId, name),
+                      ] else ...[
                         // 🩺 Tab 2: پسپۆڕییەکان (Specialties)
                         _buildSpecialtiesSection(allSpecialties),
-                      ] else ...[
-                        // 📍 Tab 3: ناونیشان (Location)
-                        _buildLocationSection(address, city, lat, lng),
                       ],
                     ],
                   ),
@@ -532,7 +499,6 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     required String name,
     required String city,
     required String specialty,
-    required String? serviceType,
     required double rating,
     required int totalReviews,
     required int nurseId,
@@ -923,7 +889,6 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         'title': 'پسپۆڕییەکان ($specialtiesCount)',
         'icon': Iconsax.health,
       },
-      {'id': 2, 'title': 'ناونیشان', 'icon': Iconsax.location},
     ];
 
     return Container(
@@ -993,95 +958,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
-  // ─── Tab 1: ناساندن (About) ───
 
-  Widget _buildHighlightFeatures(
-    dynamic experienceYears,
-    String? serviceType,
-  ) {
-    final expStr = (experienceYears != null && experienceYears.toString() != '0')
-        ? '${experienceYears.toString()} ساڵ'
-        : 'دیارینەکراوە';
-
-    final highlights = [
-      {
-        'icon': Iconsax.award,
-        'title': expStr,
-        'desc': 'ساڵی ئەزموون',
-        'color': const Color(0xFF0D9488),
-      },
-      {
-        'icon': Iconsax.home_2,
-        'title': _serviceTypeKurdish(serviceType),
-        'desc': 'جۆری خزمەتگوزاری',
-        'color': const Color(0xFF3B82F6),
-      },
-    ];
-
-    return Row(
-      children: highlights.map((h) {
-        final color = h['color'] as Color;
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        h['title'] as String,
-                        style: _kStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        h['desc'] as String,
-                        style: _kStyle(
-                          fontSize: 10.5,
-                          color: const Color(0xFF64748B),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(h['icon'] as IconData, color: color, size: 18),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
 
   Widget _buildReviewsSection(int nurseId, String name) {
     return Container(
@@ -1507,194 +1384,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
-  // ─── Tab 3: ناونیشان (Location) ───
-  Widget _buildLocationSection(
-    String address,
-    String city,
-    double? lat,
-    double? lng,
-  ) {
-    return Column(
-      children: [
-        // Address Card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(
-                    Iconsax.location,
-                    color: Color(0xFF8B5CF6),
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'ناونیشان و شوێن',
-                    style: _kStyle(
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
 
-              // City
-              if (city.isNotEmpty)
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F3FF),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(
-                            0xFF8B5CF6,
-                          ).withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Iconsax.building_3,
-                          color: Color(0xFF8B5CF6),
-                          size: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'شار: ',
-                        style: _kStyle(
-                          color: const Color(0xFF64748B),
-                          fontSize: 12,
-                        ),
-                      ),
-                      Text(
-                        _cityKurdish(city),
-                        style: _kStyle(
-                          color: const Color(0xFF0F172A),
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              // Address
-              if (address.isNotEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDFA),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: const Color(0xFF0D9488).withValues(alpha: 0.15),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(
-                            0xFF0D9488,
-                          ).withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Iconsax.map_1,
-                          color: Color(0xFF0D9488),
-                          size: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          address,
-                          style: _kStyle(
-                            color: const Color(0xFF1E293B),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              // Map Directions Button
-              if (lat != null && lng != null) ...[
-                const SizedBox(height: 14),
-                GestureDetector(
-                  onTap: () => _openDirections(lat, lng),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.directions,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'کردنەوە لەسەر نەخشە',
-                          style: _kStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   // ─── Sticky Bottom Request Bar ───
   Widget _buildBottomRequestBar(dynamic fee, Map<String, dynamic> nurse) {

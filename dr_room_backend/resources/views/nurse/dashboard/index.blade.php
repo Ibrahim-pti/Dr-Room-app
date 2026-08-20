@@ -16,22 +16,23 @@
     </div>
 
     <!-- Stats -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
         @php
             $stats = [
-                ['label' => 'داواکارییەکانی ئەمڕۆ', 'value' => $todayAppointments ?? 12, 'color' => '#0d9488', 'bg' => '#f0fdfa', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
-                ['label' => 'پشکنینی تەواوکراو', 'value' => $completedAppointments ?? 8, 'color' => '#059669', 'bg' => '#ecfdf5', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                ['label' => 'لە چاوەڕوانیدا', 'value' => $pendingAppointments ?? 4, 'color' => '#d97706', 'bg' => '#fffbeb', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['label' => 'داواکارییەکانی ئەمڕۆ', 'value' => $todayAppointments ?? 0, 'color' => '#0d9488', 'bg' => '#f0fdfa', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'link' => route('nurse.appointments.index')],
+                ['label' => 'پشکنینی تەواوکراو', 'value' => $completedAppointments ?? 0, 'color' => '#059669', 'bg' => '#ecfdf5', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'link' => route('nurse.appointments.index')],
+                ['label' => 'لە چاوەڕوانیدا', 'value' => $pendingAppointments ?? 0, 'color' => '#d97706', 'bg' => '#fffbeb', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'link' => route('nurse.appointments.index')],
+                ['label' => 'هەڵسەنگاندنەکان', 'value' => ($nurse->rating > 0 ? $nurse->rating : '5.0') . ' ★', 'color' => '#d97706', 'bg' => '#fef3c7', 'icon' => 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', 'link' => route('nurse.reviews.index')],
             ];
         @endphp
         @foreach($stats as $s)
-        <div style="background:#fff;border-radius:14px;padding:22px;border:1px solid #e2e8f0;transition:transform 0.2s ease,box-shadow 0.2s ease;cursor:default;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.06)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+        <a href="{{ $s['link'] ?? '#' }}" style="text-decoration:none;background:#fff;border-radius:14px;padding:22px;border:1px solid #e2e8f0;transition:transform 0.2s ease,box-shadow 0.2s ease;display:block;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.06)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
             <div style="width:44px;height:44px;border-radius:12px;background:{{ $s['bg'] }};display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
                 <svg width="22" height="22" fill="none" stroke="{{ $s['color'] }}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $s['icon'] }}"/></svg>
             </div>
-            <div style="font-size:1.75rem;font-weight:800;color:#0f172a;margin-bottom:4px;" dir="ltr">{{ $s['value'] }}</div>
+            <div style="font-size:1.6rem;font-weight:800;color:#0f172a;margin-bottom:4px;" dir="ltr">{{ $s['value'] }}</div>
             <div style="font-size:0.8rem;color:#64748b;font-weight:600;">{{ $s['label'] }}</div>
-        </div>
+        </a>
         @endforeach
     </div>
 
