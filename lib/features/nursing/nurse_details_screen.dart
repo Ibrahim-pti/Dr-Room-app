@@ -9,10 +9,7 @@ import 'nursing_services_screen.dart';
 class NurseDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> nurse;
 
-  const NurseDetailsScreen({
-    super.key,
-    required this.nurse,
-  });
+  const NurseDetailsScreen({super.key, required this.nurse});
 
   @override
   State<NurseDetailsScreen> createState() => _NurseDetailsScreenState();
@@ -90,7 +87,8 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
 
   void _openDirections(double lat, double lng) async {
     final uri = Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+    );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
@@ -103,45 +101,49 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     final isEnglish = lang == 'en';
     final nurse = widget.nurse;
 
-    final name = (isArabic &&
-                nurse['name_ar'] != null &&
-                nurse['name_ar'].toString().isNotEmpty)
-            ? nurse['name_ar']
-            : (isEnglish &&
-                    nurse['name_en'] != null &&
-                    nurse['name_en'].toString().isNotEmpty)
-                ? nurse['name_en']
-                : (nurse['name'] ?? '');
+    final name =
+        (isArabic &&
+            nurse['name_ar'] != null &&
+            nurse['name_ar'].toString().isNotEmpty)
+        ? nurse['name_ar']
+        : (isEnglish &&
+              nurse['name_en'] != null &&
+              nurse['name_en'].toString().isNotEmpty)
+        ? nurse['name_en']
+        : (nurse['name'] ?? '');
 
-    final specialty = (isArabic &&
-                nurse['specialty_ar'] != null &&
-                nurse['specialty_ar'].toString().isNotEmpty)
-            ? nurse['specialty_ar']
-            : (isEnglish &&
-                    nurse['specialty_en'] != null &&
-                    nurse['specialty_en'].toString().isNotEmpty)
-                ? nurse['specialty_en']
-                : (nurse['specialty'] ?? '');
+    final specialty =
+        (isArabic &&
+            nurse['specialty_ar'] != null &&
+            nurse['specialty_ar'].toString().isNotEmpty)
+        ? nurse['specialty_ar']
+        : (isEnglish &&
+              nurse['specialty_en'] != null &&
+              nurse['specialty_en'].toString().isNotEmpty)
+        ? nurse['specialty_en']
+        : (nurse['specialty'] ?? '');
 
-    final bio = (isArabic &&
-                nurse['bio_ar'] != null &&
-                nurse['bio_ar'].toString().isNotEmpty)
-            ? nurse['bio_ar']
-            : (isEnglish &&
-                    nurse['bio_en'] != null &&
-                    nurse['bio_en'].toString().isNotEmpty)
-                ? nurse['bio_en']
-                : (nurse['bio'] ?? '');
+    final bio =
+        (isArabic &&
+            nurse['bio_ar'] != null &&
+            nurse['bio_ar'].toString().isNotEmpty)
+        ? nurse['bio_ar']
+        : (isEnglish &&
+              nurse['bio_en'] != null &&
+              nurse['bio_en'].toString().isNotEmpty)
+        ? nurse['bio_en']
+        : (nurse['bio'] ?? '');
 
-    final address = (isArabic &&
-                nurse['address_ar'] != null &&
-                nurse['address_ar'].toString().isNotEmpty)
-            ? nurse['address_ar']
-            : (isEnglish &&
-                    nurse['address_en'] != null &&
-                    nurse['address_en'].toString().isNotEmpty)
-                ? nurse['address_en']
-                : (nurse['address'] ?? '');
+    final address =
+        (isArabic &&
+            nurse['address_ar'] != null &&
+            nurse['address_ar'].toString().isNotEmpty)
+        ? nurse['address_ar']
+        : (isEnglish &&
+              nurse['address_en'] != null &&
+              nurse['address_en'].toString().isNotEmpty)
+        ? nurse['address_en']
+        : (nurse['address'] ?? '');
 
     final image = nurse['image'];
     final phone = nurse['phone']?.toString() ?? '';
@@ -169,18 +171,17 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
       allSpecialties.addAll(parts);
     }
     for (var cs in customServices) {
-      if (cs is Map &&
-          cs['name'] != null &&
-          cs['name'].toString().isNotEmpty) {
-        final csName = (isArabic &&
-                    cs['name_ar'] != null &&
-                    cs['name_ar'].toString().isNotEmpty)
-                ? cs['name_ar']
-                : (isEnglish &&
-                        cs['name_en'] != null &&
-                        cs['name_en'].toString().isNotEmpty)
-                    ? cs['name_en']
-                    : cs['name'].toString();
+      if (cs is Map && cs['name'] != null && cs['name'].toString().isNotEmpty) {
+        final csName =
+            (isArabic &&
+                cs['name_ar'] != null &&
+                cs['name_ar'].toString().isNotEmpty)
+            ? cs['name_ar']
+            : (isEnglish &&
+                  cs['name_en'] != null &&
+                  cs['name_en'].toString().isNotEmpty)
+            ? cs['name_en']
+            : cs['name'].toString();
         if (!allSpecialties.contains(csName)) {
           allSpecialties.add(csName);
         }
@@ -189,55 +190,60 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: _buildAppBar(context),
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
+            padding: const EdgeInsets.only(bottom: 90),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 1. Unified Nurse Profile Hero Card ──
-                _buildUnifiedProfileHero(
+                // ── 1. Curved Hero Photo Header ──
+                _buildHeroCurvedTop(
                   image: image,
                   isAvailable: isAvailable,
                   name: name,
                   city: city,
                   specialty: specialty.toString(),
                   serviceType: serviceType,
-                  fee: fee,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 18),
 
-                // ── 2. Quick Action Buttons (Call, Map, Request) ──
-                _buildActionButtons(phone, lat, lng),
-                const SizedBox(height: 14),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── 2. Quick Action Buttons (Call, Map, Request) ──
+                      _buildActionButtons(phone, lat, lng),
+                      const SizedBox(height: 14),
 
-                // ── 3. Segmented Tab Bar ──
-                _buildTabsHeader(allSpecialties.length),
-                const SizedBox(height: 14),
+                      // ── 3. Segmented Tab Bar ──
+                      _buildTabsHeader(allSpecialties.length),
+                      const SizedBox(height: 14),
 
-                // ── 4. Dynamic Tab Content ──
-                if (_selectedTabIndex == 0) ...[
-                  // 📋 Tab 1: ناساندن (About)
-                  _buildHighlightFeatures(fee, serviceType, isAvailable),
-                  const SizedBox(height: 12),
-                  if (bio.isNotEmpty) ...[
-                    _buildAboutSection(bio),
-                    const SizedBox(height: 14),
-                  ],
-                  if (phone.isNotEmpty) ...[
-                    _buildContactSection(phone),
-                    const SizedBox(height: 14),
-                  ],
-                ] else if (_selectedTabIndex == 1) ...[
-                  // 🩺 Tab 2: پسپۆڕییەکان (Specialties)
-                  _buildSpecialtiesSection(allSpecialties),
-                ] else ...[
-                  // 📍 Tab 3: ناونیشان (Location)
-                  _buildLocationSection(
-                      address, city, lat, lng),
-                ],
+                      // ── 4. Dynamic Tab Content ──
+                      if (_selectedTabIndex == 0) ...[
+                        // 📋 Tab 1: ناساندن (About)
+                        _buildHighlightFeatures(fee, serviceType, isAvailable),
+                        const SizedBox(height: 12),
+                        if (bio.isNotEmpty) ...[
+                          _buildAboutSection(bio),
+                          const SizedBox(height: 14),
+                        ],
+                        if (phone.isNotEmpty) ...[
+                          _buildContactSection(phone),
+                          const SizedBox(height: 14),
+                        ],
+                      ] else if (_selectedTabIndex == 1) ...[
+                        // 🩺 Tab 2: پسپۆڕییەکان (Specialties)
+                        _buildSpecialtiesSection(allSpecialties),
+                      ] else ...[
+                        // 📍 Tab 3: ناونیشان (Location)
+                        _buildLocationSection(address, city, lat, lng),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -254,182 +260,119 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
-  // ─── AppBar (same style as lab) ───
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: const Color(0xFFF8FAFC),
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      centerTitle: true,
-      leadingWidth: 64,
-      leading: Padding(
-        padding: const EdgeInsetsDirectional.only(start: 16),
-        child: Center(
-          child: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Color(0xFF0F172A),
-                size: 16,
-              ),
-            ),
-          ),
-        ),
-      ),
-      title: Text(
-        'وردەکاریی پەرستار',
-        style: _kStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.bold,
-          color: const Color(0xFF0F172A),
-        ),
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsetsDirectional.only(end: 16),
-          child: GestureDetector(
-            onTap: () {
-              setState(() => _isFavorite = !_isFavorite);
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(
-                _isFavorite ? Icons.favorite_rounded : Iconsax.heart,
-                color: _isFavorite
-                    ? const Color(0xFFEF4444)
-                    : const Color(0xFF0F172A),
-                size: 19,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─── Clean Nurse Profile Hero Card ───
-  Widget _buildUnifiedProfileHero({
+  // ─── Curved Hero Photo Header (Same as Doctor Screen) ───
+  Widget _buildHeroCurvedTop({
     required dynamic image,
     required bool isAvailable,
     required String name,
     required String city,
     required String specialty,
     required String? serviceType,
-    required dynamic fee,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 18,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Top Row: Status Badges
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final topPadding = MediaQuery.of(context).padding.top;
+    final heroHeight = 280.0 + topPadding;
+
+    return Column(
+      children: [
+        // ── Curved Photo Container ──
+        SizedBox(
+          height: heroHeight,
+          width: double.infinity,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              // Availability Badge
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: isAvailable
-                      ? const Color(0xFFECFDF5)
-                      : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isAvailable
-                        ? const Color(0xFFA7F3D0)
-                        : const Color(0xFFCBD5E1),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isAvailable
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFF94A3B8),
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      isAvailable ? 'ئامادەیە بۆ وەرگرتنی داواکاری' : 'بەردەست نییە',
-                      style: _kStyle(
-                        color: isAvailable
-                            ? const Color(0xFF047857)
-                            : const Color(0xFF64748B),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+              // 1. Curved Image
+              ClipPath(
+                clipper: const HeroCurveClipper(),
+                child: Container(
+                  color: const Color(0xFFF1F5F9),
+                  child: image != null && image.toString().isNotEmpty
+                      ? (image.toString().startsWith('http')
+                            ? Image.network(
+                                image.toString(),
+                                fit: BoxFit.cover,
+                                alignment: const Alignment(0, -0.2),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildHeroPlaceholder(name),
+                              )
+                            : Image.asset(
+                                image.toString(),
+                                fit: BoxFit.cover,
+                                alignment: const Alignment(0, -0.2),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildHeroPlaceholder(name),
+                              ))
+                      : _buildHeroPlaceholder(name),
                 ),
               ),
 
-              // Service Type Pill
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDFA),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFCCFBF1)),
+              // 2. Top Dark Gradient for floating buttons contrast
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: topPadding + 65,
+                child: IgnorePointer(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.45),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
+              ),
+
+              // 3. Floating Action Buttons (Back & Favorite)
+              Positioned(
+                top: topPadding + 6,
+                left: 16,
+                right: 16,
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Iconsax.hospital,
-                        color: Color(0xFF0D9488), size: 13),
-                    const SizedBox(width: 4),
-                    Text(
-                      _serviceTypeKurdish(serviceType),
-                      style: _kStyle(
-                        color: const Color(0xFF0F766E),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                    // Back Button
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+
+                    // Favorite Button
+                    GestureDetector(
+                      onTap: () {
+                        setState(() => _isFavorite = !_isFavorite);
+                      },
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _isFavorite ? Icons.favorite_rounded : Iconsax.heart,
+                          color: _isFavorite
+                              ? const Color(0xFFEF4444)
+                              : Colors.white,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ],
@@ -437,157 +380,105 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               ),
             ],
           ),
+        ),
 
-          const SizedBox(height: 16),
+        const SizedBox(height: 10),
 
-          // Nurse Avatar with Premium Double Ring
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF0D9488), Color(0xFF14B8A6), Color(0xFF5EEAD4)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF0D9488).withValues(alpha: 0.22),
-                  blurRadius: 18,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(3),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-              ),
-              child: ClipOval(
-                child: Container(
-                  width: 104,
-                  height: 104,
-                  color: const Color(0xFFF8FAFC),
-                  child: image != null && image.toString().isNotEmpty
-                      ? (image.toString().startsWith('http')
-                          ? Image.network(
-                              image.toString(),
-                              width: 104,
-                              height: 104,
-                              fit: BoxFit.cover,
-                              alignment: Alignment.topCenter,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildHeroPlaceholder(name),
-                            )
-                          : Image.asset(
-                              image.toString(),
-                              width: 104,
-                              height: 104,
-                              fit: BoxFit.cover,
-                              alignment: Alignment.topCenter,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildHeroPlaceholder(name),
-                            ))
-                      : _buildHeroPlaceholder(name),
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          // Full Name
-          Text(
+        // ── Name ──
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
             name.isNotEmpty ? name : 'پەرستار',
             textAlign: TextAlign.center,
             style: _kStyle(
-              fontSize: 20,
+              fontSize: 21,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF0F172A),
             ),
           ),
+        ),
+        const SizedBox(height: 8),
 
-          const SizedBox(height: 5),
-
-          // Specialty Title
-          if (specialty.isNotEmpty)
-            Text(
-              specialty.split(RegExp(r'[،,]')).first.trim(),
-              textAlign: TextAlign.center,
-              style: _kStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF0D9488),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-
-          const SizedBox(height: 12),
-
-          // City & Fee Badges Row
-          Row(
+        // ── Badges Pill Row ──
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (city.isNotEmpty) ...[
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(9),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Iconsax.location,
-                          color: Color(0xFF64748B), size: 13),
-                      const SizedBox(width: 4),
-                      Text(
-                        _cityKurdish(city),
-                        style: _kStyle(
-                          color: const Color(0xFF334155),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+              if (specialty.isNotEmpty) ...[
+                _heroPill(
+                  icon: Iconsax.health,
+                  label: specialty.split(RegExp(r'[،,]')).first.trim(),
+                  color: const Color(0xFF0D9488),
+                  bgColor: const Color(0xFFF0FDFA),
+                  borderColor: const Color(0xFF99F6E4),
                 ),
                 const SizedBox(width: 8),
               ],
-              if (fee != null)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(9),
-                    border: Border.all(color: const Color(0xFFFDE68A)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Iconsax.card,
-                          color: Color(0xFFD97706), size: 13),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع',
-                        style: _kStyle(
-                          color: const Color(0xFFB45309),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+              if (city.isNotEmpty) ...[
+                _heroPill(
+                  icon: Iconsax.location,
+                  label: _cityKurdish(city),
+                  color: const Color(0xFF3B82F6),
+                  bgColor: const Color(0xFFEFF6FF),
+                  borderColor: const Color(0xFFBFDBFE),
                 ),
+                const SizedBox(width: 8),
+              ],
+              _heroPill(
+                icon: isAvailable
+                    ? Icons.check_circle_rounded
+                    : Icons.cancel_rounded,
+                label: isAvailable ? 'ئامادەیە' : 'بەردەست نییە',
+                color: isAvailable
+                    ? const Color(0xFF10B981)
+                    : const Color(0xFF94A3B8),
+                bgColor: isAvailable
+                    ? const Color(0xFFECFDF5)
+                    : const Color(0xFFF1F5F9),
+                borderColor: isAvailable
+                    ? const Color(0xFFA7F3D0)
+                    : const Color(0xFFE2E8F0),
+              ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _heroPill({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required Color bgColor,
+    required Color borderColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: _kStyle(
+              color: color,
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.05);
+    );
   }
 
   Widget _buildHeroPlaceholder(String name) {
@@ -713,11 +604,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         'title': 'پسپۆڕییەکان ($specialtiesCount)',
         'icon': Iconsax.health,
       },
-      {
-        'id': 2,
-        'title': 'ناونیشان',
-        'icon': Iconsax.location,
-      },
+      {'id': 2, 'title': 'ناونیشان', 'icon': Iconsax.location},
     ];
 
     return Container(
@@ -790,7 +677,10 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
   // ─── Tab 1: ناساندن (About) ───
 
   Widget _buildHighlightFeatures(
-      dynamic fee, String? serviceType, bool isAvailable) {
+    dynamic fee,
+    String? serviceType,
+    bool isAvailable,
+  ) {
     final feeStr = fee != null
         ? '${double.tryParse(fee.toString())?.toInt() ?? fee} د.ع'
         : 'دیارینەکراوە';
@@ -816,8 +706,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         return Expanded(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 3),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(15),
@@ -831,8 +720,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     color: color.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(h['icon'] as IconData,
-                      color: color, size: 17),
+                  child: Icon(h['icon'] as IconData, color: color, size: 17),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -881,11 +769,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         children: [
           Row(
             children: [
-              const Icon(
-                Iconsax.user,
-                color: Color(0xFF0D9488),
-                size: 18,
-              ),
+              const Icon(Iconsax.user, color: Color(0xFF0D9488), size: 18),
               const SizedBox(width: 8),
               Text(
                 'دەربارەی پەرستار و ئەزموون',
@@ -928,8 +812,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Iconsax.call,
-                color: Color(0xFF3B82F6), size: 20),
+            child: const Icon(Iconsax.call, color: Color(0xFF3B82F6), size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -938,8 +821,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               children: [
                 Text(
                   'ژمارەی پەیوەندی',
-                  style: _kStyle(
-                      color: const Color(0xFF64748B), fontSize: 11),
+                  style: _kStyle(color: const Color(0xFF64748B), fontSize: 11),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -957,15 +839,13 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           GestureDetector(
             onTap: () => _makePhoneCall(phone),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: const Color(0xFF3B82F6),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3B82F6)
-                        .withValues(alpha: 0.3),
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -999,13 +879,11 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         ),
         child: Column(
           children: [
-            const Icon(Iconsax.health,
-                color: Color(0xFF94A3B8), size: 40),
+            const Icon(Iconsax.health, color: Color(0xFF94A3B8), size: 40),
             const SizedBox(height: 12),
             Text(
               'هیچ پسپۆڕییەک زیادنەکراوە',
-              style: _kStyle(
-                  color: const Color(0xFF94A3B8), fontSize: 14),
+              style: _kStyle(color: const Color(0xFF94A3B8), fontSize: 14),
             ),
           ],
         ),
@@ -1025,8 +903,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         children: [
           Row(
             children: [
-              const Icon(Iconsax.health,
-                  color: Color(0xFF0D9488), size: 18),
+              const Icon(Iconsax.health, color: Color(0xFF0D9488), size: 18),
               const SizedBox(width: 8),
               Text(
                 'پسپۆڕی و بوارەکان (${allSpecialties.length})',
@@ -1055,14 +932,13 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
             return Container(
               width: double.infinity,
               margin: EdgeInsets.only(
-                  bottom: idx < allSpecialties.length - 1 ? 8 : 0),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 10),
+                bottom: idx < allSpecialties.length - 1 ? 8 : 0,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(14),
-                border:
-                    Border.all(color: color.withValues(alpha: 0.2)),
+                border: Border.all(color: color.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -1073,8 +949,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                       color: color.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.check_circle,
-                        color: color, size: 16),
+                    child: Icon(Icons.check_circle, color: color, size: 16),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1087,8 +962,11 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                       ),
                     ),
                   ),
-                  Icon(Iconsax.arrow_left_2,
-                      color: color.withValues(alpha: 0.5), size: 16),
+                  Icon(
+                    Iconsax.arrow_left_2,
+                    color: color.withValues(alpha: 0.5),
+                    size: 16,
+                  ),
                 ],
               ),
             ).animate().fadeIn(delay: (idx * 80).ms).slideX(begin: -0.05);
@@ -1121,8 +999,11 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Iconsax.location,
-                      color: Color(0xFF8B5CF6), size: 18),
+                  const Icon(
+                    Iconsax.location,
+                    color: Color(0xFF8B5CF6),
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'ناونیشان و شوێن',
@@ -1142,25 +1023,31 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F3FF),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                        color: const Color(0xFF8B5CF6)
-                            .withValues(alpha: 0.15)),
+                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                    ),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6)
-                              .withValues(alpha: 0.12),
+                          color: const Color(
+                            0xFF8B5CF6,
+                          ).withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Iconsax.building_3,
-                            color: Color(0xFF8B5CF6), size: 16),
+                        child: const Icon(
+                          Iconsax.building_3,
+                          color: Color(0xFF8B5CF6),
+                          size: 16,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Text(
@@ -1187,25 +1074,31 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF0FDFA),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                        color: const Color(0xFF0D9488)
-                            .withValues(alpha: 0.15)),
+                      color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+                    ),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0D9488)
-                              .withValues(alpha: 0.12),
+                          color: const Color(
+                            0xFF0D9488,
+                          ).withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Iconsax.map_1,
-                            color: Color(0xFF0D9488), size: 16),
+                        child: const Icon(
+                          Iconsax.map_1,
+                          color: Color(0xFF0D9488),
+                          size: 16,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -1232,16 +1125,12 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF8B5CF6),
-                          Color(0xFF7C3AED),
-                        ],
+                        colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
                       ),
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF8B5CF6)
-                              .withValues(alpha: 0.3),
+                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -1250,8 +1139,11 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.directions,
-                            color: Colors.white, size: 18),
+                        const Icon(
+                          Icons.directions,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'کردنەوە لەسەر نەخشە',
@@ -1298,8 +1190,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               children: [
                 Text(
                   'نرخی خزمەتگوزاری',
-                  style: _kStyle(
-                      color: const Color(0xFF64748B), fontSize: 10),
+                  style: _kStyle(color: const Color(0xFF64748B), fontSize: 10),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -1336,8 +1227,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0D9488)
-                          .withValues(alpha: 0.35),
+                      color: const Color(0xFF0D9488).withValues(alpha: 0.35),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -1346,8 +1236,11 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Iconsax.calendar_tick,
-                        color: Colors.white, size: 17),
+                    const Icon(
+                      Iconsax.calendar_tick,
+                      color: Colors.white,
+                      size: 17,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'داواکردنی خزمەتگوزاری',
@@ -1366,4 +1259,38 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
       ),
     );
   }
+}
+
+class HeroCurveClipper extends CustomClipper<Path> {
+  const HeroCurveClipper();
+
+  static const double _sideInset = 48;
+  static const double _sideCorner = 20;
+  static const double _tipCorner = 26;
+
+  @override
+  Path getClip(Size size) {
+    final w = size.width;
+    final h = size.height;
+    final edge = h - _sideInset;
+    final mid = w / 2;
+
+    final slope = Offset(mid, h - edge);
+    final length = slope.distance;
+    final backX = mid * (_tipCorner / length);
+    final backY = (h - edge) * (_tipCorner / length);
+
+    return Path()
+      ..lineTo(0, edge - _sideCorner)
+      ..quadraticBezierTo(0, edge, _sideCorner, edge + _sideCorner * 0.35)
+      ..lineTo(mid - backX, h - backY)
+      ..quadraticBezierTo(mid, h, mid + backX, h - backY)
+      ..lineTo(w - _sideCorner, edge + _sideCorner * 0.35)
+      ..quadraticBezierTo(w, edge, w, edge - _sideCorner)
+      ..lineTo(w, 0)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
