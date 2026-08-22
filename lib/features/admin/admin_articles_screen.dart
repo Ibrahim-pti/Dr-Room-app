@@ -350,7 +350,12 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                           GestureDetector(
                             onTap: () async {
                               final picker = ImagePicker();
-                              final img = await picker.pickImage(source: ImageSource.gallery);
+                              // Compressed to stay under PHP's 2MB upload_max_filesize.
+                              final img = await picker.pickImage(
+                                source: ImageSource.gallery,
+                                imageQuality: 50,
+                                maxWidth: 1000,
+                              );
                               if (img != null) {
                                 setModalState(() => selectedImage = File(img.path));
                               }
@@ -459,11 +464,27 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                         request.fields['when_to_call_ambulance'] = ambulanceController.text.trim();
 
                                         if (selectedImage != null) {
+                                          // The server rejects anything over PHP's 2MB upload limit.
+                                          final sizeInMb = await selectedImage!.length() / (1024 * 1024);
+                                          if (sizeInMb > 2) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'وێنەکە زۆر گەورەیە (زیاتر لە ٢MB). تکایە وێنەیەکی بچووکتر هەڵبژێرە.',
+                                                    style: TextStyle(fontFamily: 'Rabar'),
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            setModalState(() => isSubmitting = false);
+                                            return;
+                                          }
+
                                           request.files.add(
                                             await http.MultipartFile.fromPath('image', selectedImage!.path),
                                           );
                                         }
-
                                         final streamedResponse = await request.send();
                                         final resp = await http.Response.fromStream(streamedResponse);
 
