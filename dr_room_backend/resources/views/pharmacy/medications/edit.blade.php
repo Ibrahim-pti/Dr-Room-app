@@ -33,12 +33,9 @@
                 <div>
                     <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">پۆلێن (کەتیگۆری)</label>
                     <select name="category" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none; background: white;">
-                        <option value="ئازارشکێن" {{ old('category', $medication->category) == 'ئازارشکێن' ? 'selected' : '' }}>ئازارشکێن ⚡</option>
-                        <option value="دژەهەوکردن" {{ old('category', $medication->category) == 'دژەهەوکردن' ? 'selected' : '' }}>دژەهەوکردن 🛡️</option>
-                        <option value="ڤیتامین" {{ old('category', $medication->category) == 'ڤیتامین' ? 'selected' : '' }}>ڤیتامین 🍊</option>
-                        <option value="گەدە و هەرس" {{ old('category', $medication->category) == 'گەدە و هەرس' ? 'selected' : '' }}>گەدە و هەرس 🫀</option>
-                        <option value="منداڵان" {{ old('category', $medication->category) == 'منداڵان' ? 'selected' : '' }}>منداڵان 👶</option>
-                        <option value="تەندروستی گشتی" {{ old('category', $medication->category) == 'تەندروستی گشتی' ? 'selected' : '' }}>تەندروستی گشتی 💊</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->name }}" {{ old('category', $medication->category) == $cat->name ? 'selected' : '' }}>{{ $cat->name }} {{ $cat->icon }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>

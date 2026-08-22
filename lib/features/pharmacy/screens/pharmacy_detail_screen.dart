@@ -31,6 +31,14 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
 
   List<Medication> _medications = [];
   List<PharmacyOffer> _offers = [];
+  List<Map<String, String>> _categories = [
+    {'name': 'هەمووی', 'icon': '💊'},
+    {'name': 'ئازارشکێن', 'icon': '⚡'},
+    {'name': 'دژەهەوکردن', 'icon': '🛡️'},
+    {'name': 'ڤیتامین', 'icon': '🍊'},
+    {'name': 'گەدە و هەرس', 'icon': '🫀'},
+    {'name': 'منداڵان', 'icon': '👶'},
+  ];
   List<String> _pharmacyGallery = [];
   bool _isLoading = true;
   String _selectedCategory = 'هەمووی';
@@ -98,13 +106,18 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       final results = await Future.wait([
         _repository.getMedications(widget.pharmacy.id),
         _repository.getOffers(widget.pharmacy.id),
+        _repository.getCategories(),
       ]);
       final meds = results[0] as List<Medication>;
       final offers = results[1] as List<PharmacyOffer>;
+      final cats = results[2] as List<Map<String, String>>;
 
       if (mounted) {
         setState(() {
           _offers = offers;
+          if (cats.isNotEmpty) {
+            _categories = cats;
+          }
           if (meds.isNotEmpty) {
             _medications = meds;
           } else {
@@ -1758,18 +1771,9 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           scrollDirection: Axis.horizontal,
                           physics: const BouncingScrollPhysics(),
                           child: Row(
-                            children:
-                                [
-                                  {'name': 'هەمووی', 'icon': '💊'},
-                                  {'name': 'ئازارشکێن', 'icon': '⚡'},
-                                  {'name': 'دژەهەوکردن', 'icon': '🛡️'},
-                                  {'name': 'ڤیتامین', 'icon': '🍊'},
-                                  {'name': 'گەدە و هەرس', 'icon': '🫀'},
-                                  {'name': 'منداڵان', 'icon': '👶'},
-                                ].map((cat) {
-                                  final isSel =
-                                      _selectedCategory == cat['name'];
-                                  return Padding(
+                            children: _categories.map((cat) {
+                              final isSel = _selectedCategory == cat['name'];
+                              return Padding(
                                     padding: const EdgeInsetsDirectional.only(
                                       end: 8,
                                     ),

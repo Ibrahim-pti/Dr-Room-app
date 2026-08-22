@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Medication;
+use App\Models\MedicationCategory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,7 +19,8 @@ class PharmacyMedicationController extends Controller
 
     public function create()
     {
-        return view('pharmacy.medications.create');
+        $categories = MedicationCategory::where('is_active', true)->where('name', '!=', 'هەمووی')->orderBy('sort_order')->get();
+        return view('pharmacy.medications.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -56,7 +58,8 @@ class PharmacyMedicationController extends Controller
     {
         if ($medication->user_id !== Auth::id()) abort(403);
         
-        return view('pharmacy.medications.edit', compact('medication'));
+        $categories = MedicationCategory::where('is_active', true)->where('name', '!=', 'هەمووی')->orderBy('sort_order')->get();
+        return view('pharmacy.medications.edit', compact('medication', 'categories'));
     }
 
     public function update(Request $request, Medication $medication)
