@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
@@ -139,7 +140,10 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', ''), style: _kStyle(color: Colors.white)),
+            content: Text(
+              e.toString().replaceAll('Exception: ', ''),
+              style: _kStyle(color: Colors.white),
+            ),
             backgroundColor: const Color(0xFFEF4444),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -222,21 +226,30 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         !place.street!.toLowerCase().contains('unnamed')) {
       String st = place.street!;
       for (final entry in translationMap.entries) {
-        st = st.replaceAll(RegExp(entry.key, caseSensitive: false), entry.value);
+        st = st.replaceAll(
+          RegExp(entry.key, caseSensitive: false),
+          entry.value,
+        );
       }
       parts.add(st);
     }
     if (place.subLocality != null && place.subLocality!.isNotEmpty) {
       String sub = place.subLocality!;
       for (final entry in translationMap.entries) {
-        sub = sub.replaceAll(RegExp(entry.key, caseSensitive: false), entry.value);
+        sub = sub.replaceAll(
+          RegExp(entry.key, caseSensitive: false),
+          entry.value,
+        );
       }
       parts.add(sub);
     }
     if (place.locality != null && place.locality!.isNotEmpty) {
       String loc = place.locality!;
       for (final entry in translationMap.entries) {
-        loc = loc.replaceAll(RegExp(entry.key, caseSensitive: false), entry.value);
+        loc = loc.replaceAll(
+          RegExp(entry.key, caseSensitive: false),
+          entry.value,
+        );
       }
       parts.add(loc);
     }
@@ -257,7 +270,6 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
     if (_formKey.currentState!.validate() &&
         _selectedGender != null &&
         (isLab || _selectedNurseGender != null)) {
-      
       String finalLocation = 'سەردانی تاقیگە';
       if (_sampleCollectionMethod == 'home') {
         final customAddr = _addressController.text.trim();
@@ -289,10 +301,14 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLab = context.watch<CartProvider>().serviceType == 'lab';
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -338,7 +354,10 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -348,7 +367,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                            color: const Color(
+                              0xFF3B82F6,
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Icon(
@@ -363,9 +384,13 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isLab ? 'زانیاری کەسی پشکنینکراو' : 'who_is_this_for'.tr(),
+                                isLab
+                                    ? 'زانیاری کەسی پشکنینکراو'
+                                    : 'who_is_this_for'.tr(),
                                 style: _kStyle(
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -424,8 +449,6 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                             },
                           ),
 
-
-
                           // If Lab service, show sample collection preference
                           if (isLab) ...[
                             const SizedBox(height: 18),
@@ -446,6 +469,10 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                   icon: Iconsax.calendar_1,
                                   hint: '٣٠',
                                   keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(3),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: 14),
@@ -457,6 +484,10 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                   icon: Iconsax.call,
                                   hint: '0750 000 0000',
                                   keyboardType: TextInputType.phone,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(11),
+                                  ],
                                 ),
                               ),
                             ],
@@ -470,36 +501,48 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                     // ── Location Section (Only if home collection or general) ──
                     if (!isLab || _sampleCollectionMethod == 'home') ...[
                       Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Iconsax.location,
-                              color: Color(0xFF10B981),
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            isLab ? 'ناونیشانی وەرگرتنی نموونە' : 'service_location'.tr(),
-                            style: _kStyle(
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ).animate().fadeIn(delay: 250.ms).slideX(begin: -0.05, end: 0),
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF10B981,
+                                  ).withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Iconsax.location,
+                                  color: Color(0xFF10B981),
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                isLab
+                                    ? 'ناونیشانی وەرگرتنی نموونە'
+                                    : 'service_location'.tr(),
+                                style: _kStyle(
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          )
+                          .animate()
+                          .fadeIn(delay: 250.ms)
+                          .slideX(begin: -0.05, end: 0),
 
                       const SizedBox(height: 12),
 
                       // Location text badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
                         margin: const EdgeInsets.only(bottom: 10),
                         decoration: BoxDecoration(
                           color: cardBg,
@@ -508,12 +551,19 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Iconsax.map, color: Color(0xFF3B82F6), size: 16),
+                            const Icon(
+                              Iconsax.map,
+                              color: Color(0xFF3B82F6),
+                              size: 16,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _locationDetails,
-                                style: _kStyle(fontSize: 12.5, color: const Color(0xFF475569)),
+                                style: _kStyle(
+                                  fontSize: 12.5,
+                                  color: const Color(0xFF475569),
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -545,7 +595,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                   _mapController = controller;
                                 },
                                 initialCameraPosition: CameraPosition(
-                                  target: _currentLatLng ?? const LatLng(36.1911, 44.0092),
+                                  target:
+                                      _currentLatLng ??
+                                      const LatLng(36.1911, 44.0092),
                                   zoom: 15.0,
                                 ),
                                 onCameraIdle: () {
@@ -562,9 +614,14 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                 markers: _currentLatLng != null
                                     ? {
                                         Marker(
-                                          markerId: const MarkerId('selected_location'),
+                                          markerId: const MarkerId(
+                                            'selected_location',
+                                          ),
                                           position: _currentLatLng!,
-                                          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                                          icon:
+                                              BitmapDescriptor.defaultMarkerWithHue(
+                                                BitmapDescriptor.hueRed,
+                                              ),
                                         ),
                                       }
                                     : {},
@@ -572,10 +629,16 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                 myLocationButtonEnabled: false,
                                 zoomControlsEnabled: true,
                                 mapToolbarEnabled: true,
-                                padding: const EdgeInsets.only(bottom: 20, right: 10),
-                                gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                                  Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
-                                },
+                                padding: const EdgeInsets.only(
+                                  bottom: 20,
+                                  right: 10,
+                                ),
+                                gestureRecognizers:
+                                    <Factory<OneSequenceGestureRecognizer>>{
+                                      Factory<OneSequenceGestureRecognizer>(
+                                        () => EagerGestureRecognizer(),
+                                      ),
+                                    },
                               ),
                               // Floating map controls
                               Positioned(
@@ -590,7 +653,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                       shape: BoxShape.circle,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.1),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.1,
+                                          ),
                                           blurRadius: 8,
                                         ),
                                       ],
@@ -599,7 +664,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                         ? const SizedBox(
                                             width: 18,
                                             height: 18,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
                                           )
                                         : const Icon(
                                             Icons.my_location,
@@ -626,7 +693,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
                 color: cardBg,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
                 border: Border(top: BorderSide(color: borderColor)),
                 boxShadow: [
                   BoxShadow(
@@ -637,24 +706,29 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                 ],
               ),
               child: SafeArea(
+                top: false,
                 child: SizedBox(
                   width: double.infinity,
-                  height: 52,
+                  height: 54,
                   child: ElevatedButton(
                     onPressed: _submitForm,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF3B82F6),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
                     ),
-                    child: Text(
+                    child: const Text(
                       'بەردەوامبوون بۆ شێوازی پارەدان',
-                      style: _kStyle(
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        height: 1.2,
                       ),
                     ),
                   ),
@@ -719,7 +793,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
           border: Border.all(
-            color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFE2E8F0),
+            color: isSelected
+                ? const Color(0xFF3B82F6)
+                : const Color(0xFFE2E8F0),
             width: isSelected ? 1.5 : 1,
           ),
           borderRadius: BorderRadius.circular(14),
@@ -729,14 +805,18 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF64748B),
+              color: isSelected
+                  ? const Color(0xFF3B82F6)
+                  : const Color(0xFF64748B),
               size: 18,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: _kStyle(
-                color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF334155),
+                color: isSelected
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF334155),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 fontSize: 13,
               ),
@@ -753,6 +833,8 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
     required IconData icon,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+    TextDirection? textDirection,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -769,38 +851,59 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
+          textDirection: textDirection,
           style: _kStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF0F172A),
           ),
-          autovalidateMode: _hasSubmitted ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
-          validator: (value) => value == null || value.isEmpty ? 'تکایە ئەم بەشە پڕبکەرەوە' : null,
+          autovalidateMode: _hasSubmitted
+              ? AutovalidateMode.onUserInteraction
+              : AutovalidateMode.disabled,
+          validator: (value) =>
+              value == null || value.trim().isEmpty ? 'پڕبکەرەوە' : null,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: _kStyle(
-              color: const Color(0xFF94A3B8),
-              fontSize: 13,
+            hintTextDirection: textDirection,
+            hintStyle: _kStyle(color: const Color(0xFF94A3B8), fontSize: 13),
+            errorStyle: const TextStyle(
+              fontFamily: 'Rabar',
+              color: Color(0xFFEF4444),
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
             ),
             prefixIcon: Icon(icon, color: const Color(0xFF64748B), size: 18),
             filled: true,
             fillColor: const Color(0xFFF8FAFC),
-            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 16,
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+              borderSide: const BorderSide(
+                color: Color(0xFF3B82F6),
+                width: 1.5,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
+              ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
+              ),
             ),
           ),
         ),
@@ -852,10 +955,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
             padding: const EdgeInsets.only(top: 6, left: 4),
             child: Text(
               'تکایە ڕەگەز دیاری بکە',
-              style: _kStyle(
-                color: const Color(0xFFEF4444),
-                fontSize: 11.5,
-              ),
+              style: _kStyle(color: const Color(0xFFEF4444), fontSize: 11.5),
             ),
           ),
       ],
@@ -876,7 +976,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
           border: Border.all(
-            color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFE2E8F0),
+            color: isSelected
+                ? const Color(0xFF3B82F6)
+                : const Color(0xFFE2E8F0),
             width: isSelected ? 1.5 : 1,
           ),
           borderRadius: BorderRadius.circular(14),
@@ -886,14 +988,18 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF64748B),
+              color: isSelected
+                  ? const Color(0xFF3B82F6)
+                  : const Color(0xFF64748B),
               size: 18,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: _kStyle(
-                color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF334155),
+                color: isSelected
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF334155),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 fontSize: 13,
               ),
