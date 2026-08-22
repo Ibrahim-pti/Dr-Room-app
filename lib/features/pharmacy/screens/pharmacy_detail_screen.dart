@@ -1660,9 +1660,9 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       if (!matchesQuery) return false;
 
       if (_selectedCategory != 'هەمووی' && _selectedCategory.isNotEmpty) {
-        final medCat = med.category?.trim().toLowerCase() ?? '';
-        final selCat = _selectedCategory.trim().toLowerCase();
-        if (medCat != selCat && !medCat.contains(selCat) && !selCat.contains(medCat)) {
+        final medCat = (med.category ?? '').trim();
+        final selCat = _selectedCategory.trim();
+        if (medCat != selCat) {
           return false;
         }
       }

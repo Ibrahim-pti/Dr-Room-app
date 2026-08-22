@@ -19,8 +19,12 @@ class PharmacyMedicationController extends Controller
 
     public function create()
     {
-        $categories = MedicationCategory::where('is_active', true)->where('name', '!=', 'هەمووی')->orderBy('sort_order')->get();
-        return view('pharmacy.medications.create', compact('categories'));
+        $existingCategories = Medication::where('user_id', Auth::id())
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->pluck('category');
+        return view('pharmacy.medications.create', compact('existingCategories'));
     }
 
     public function store(Request $request)
@@ -40,22 +44,10 @@ class PharmacyMedicationController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
 
-        $data = $request->except(['image', 'is_active', 'custom_category']);
+        $data = $request->except(['image', 'is_active']);
         $data['user_id'] = Auth::id();
+        $data['category'] = trim($request->category ?? '');
         $data['is_active'] = $request->has('is_active') ? true : true;
-
-        $category = $request->category;
-        if ($category === '__custom__' || $request->filled('custom_category')) {
-            $customName = trim($request->custom_category);
-            if (!empty($customName)) {
-                $category = $customName;
-                MedicationCategory::firstOrCreate(
-                    ['name' => $customName],
-                    ['icon' => '💊', 'is_active' => true, 'sort_order' => 99]
-                );
-            }
-        }
-        $data['category'] = $category;
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('medications', 'public');
@@ -71,8 +63,12 @@ class PharmacyMedicationController extends Controller
     {
         if ($medication->user_id !== Auth::id()) abort(403);
         
-        $categories = MedicationCategory::where('is_active', true)->where('name', '!=', 'هەمووی')->orderBy('sort_order')->get();
-        return view('pharmacy.medications.edit', compact('medication', 'categories'));
+        $existingCategories = Medication::where('user_id', Auth::id())
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->pluck('category');
+        return view('pharmacy.medications.edit', compact('medication', 'existingCategories'));
     }
 
     public function update(Request $request, Medication $medication)
@@ -95,21 +91,9 @@ class PharmacyMedicationController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
 
-        $data = $request->except(['image', 'is_active', 'custom_category']);
+        $data = $request->except(['image', 'is_active']);
+        $data['category'] = trim($request->category ?? '');
         $data['is_active'] = $request->has('is_active');
-
-        $category = $request->category;
-        if ($category === '__custom__' || $request->filled('custom_category')) {
-            $customName = trim($request->custom_category);
-            if (!empty($customName)) {
-                $category = $customName;
-                MedicationCategory::firstOrCreate(
-                    ['name' => $customName],
-                    ['icon' => '💊', 'is_active' => true, 'sort_order' => 99]
-                );
-            }
-        }
-        $data['category'] = $category;
 
         if ($request->hasFile('image')) {
             if ($medication->image_path && !str_starts_with($medication->image_path, 'http')) {

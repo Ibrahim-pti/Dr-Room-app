@@ -57,18 +57,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pt-4 border-t border-slate-100">
                 <!-- Category -->
                 <div>
-                    <label for="category_select" class="block text-xs font-bold text-slate-600 mb-1.5">پۆلێن (کەتەگۆری)</label>
-                    <select id="category_select" name="category" onchange="handleCategoryChange(this)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->name }}" {{ old('category', $medication->category) == $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
-                        @endforeach
-                        <option value="__custom__" {{ old('category') == '__custom__' ? 'selected' : '' }}>✨ + زیادکردنی کەتەگۆری نوێ (کەستەم / دەستی)</option>
-                    </select>
-
-                    <div id="custom_category_wrap" class="mt-2" style="display: {{ old('category') == '__custom__' ? 'block' : 'none' }};">
-                        <input type="text" id="custom_category" name="custom_category" value="{{ old('custom_category') }}" placeholder="ناوی کەتەگۆرییە نوێیەکە لێرە بنووسە..."
-                            class="w-full px-4 py-2 bg-emerald-50/60 border border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-bold text-emerald-900 placeholder:text-emerald-500/70">
-                    </div>
+                    <label for="category" class="block text-xs font-bold text-slate-600 mb-1.5">پۆلێن (کەتەگۆری)</label>
+                    <input type="text" id="category" name="category" list="category_list" value="{{ old('category', $medication->category) }}" placeholder="ناوی کەتەگۆری بنووسە یان هەڵیبژێرە..."
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
+                    <datalist id="category_list">
+                        @if(isset($existingCategories))
+                            @foreach($existingCategories as $catName)
+                                <option value="{{ $catName }}">
+                            @endforeach
+                        @endif
+                    </datalist>
                 </div>
 
                 <!-- Dosage Form -->
@@ -153,18 +151,6 @@
 
 @section('scripts')
 <script>
-function handleCategoryChange(selectEl) {
-    const wrap = document.getElementById('custom_category_wrap');
-    const input = document.getElementById('custom_category');
-    if (selectEl.value === '__custom__') {
-        wrap.style.display = 'block';
-        input.focus();
-    } else {
-        wrap.style.display = 'none';
-        input.value = '';
-    }
-}
-
 async function translateAll() {
     const btn = document.getElementById('translateBtn');
     const originalText = btn.innerHTML;
