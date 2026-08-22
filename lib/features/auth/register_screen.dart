@@ -504,7 +504,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       : const Color(0xFF0F172A),
                                 ),
                                 decoration: const InputDecoration(
-                                  hintText: '0750 000 0000',
+                                  hintText: '0000 000 0750',
                                   hintStyle: TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 14,
