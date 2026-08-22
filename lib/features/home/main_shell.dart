@@ -80,7 +80,7 @@ class _MainShellState extends State<MainShell> {
   static const List<Map<String, dynamic>> _navItems = [
     {'title': 'nav_home', 'icon': Iconsax.home_2},
     {'title': 'nav_emergency', 'icon': Icons.medical_services_outlined},
-    {'title': 'nav_ai_consultant', 'icon': Iconsax.message_programming, 'isAi': true},
+    {'title': 'nav_ai_consultant', 'icon': Icons.document_scanner_rounded, 'isAi': true},
     {'title': 'nav_records', 'icon': Iconsax.folder_2},
     {'title': 'nav_orders', 'icon': Iconsax.box},
     {'title': 'nav_settings', 'icon': Iconsax.setting_2},
