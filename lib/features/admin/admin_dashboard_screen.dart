@@ -15,7 +15,6 @@ import 'admin_notifications_screen.dart';
 import 'admin_nurses_screen.dart';
 import 'admin_orders_screen.dart';
 import 'admin_pharmacies_screen.dart';
-import 'admin_reviews_screen.dart';
 import 'admin_transactions_screen.dart';
 import 'admin_users_screen.dart';
 import 'admin_xrays_screen.dart';
@@ -66,14 +65,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  int get _totalPendingItems {
+  int get _totalPending {
     if (_stats == null) return 0;
-    final int pendingDoctors = (_stats?['pending_doctors'] ?? 0) as int;
-    final int pendingNurses = (_stats?['pending_nurses'] ?? 0) as int;
-    final int pendingLabs = (_stats?['pending_labs'] ?? 0) as int;
-    final int pendingPharmacies = (_stats?['pending_pharmacies'] ?? 0) as int;
-    final int pendingOrders = (_stats?['pending_orders'] ?? 0) as int;
-    return pendingDoctors + pendingNurses + pendingLabs + pendingPharmacies + pendingOrders;
+    final int docs = (_stats?['pending_doctors'] ?? 0) as int;
+    final int nurses = (_stats?['pending_nurses'] ?? 0) as int;
+    final int labs = (_stats?['pending_labs'] ?? 0) as int;
+    final int pharms = (_stats?['pending_pharmacies'] ?? 0) as int;
+    final int orders = (_stats?['pending_orders'] ?? 0) as int;
+    return docs + nurses + labs + pharms + orders;
   }
 
   @override
@@ -88,7 +87,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             RichText(
               text: TextSpan(
                 style: GoogleFonts.poppins(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   height: 1,
                 ),
@@ -110,18 +109,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
                 color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: const Text(
                 'ئەدمین',
                 style: TextStyle(
                   fontFamily: 'Rabar',
-                  fontSize: 11,
+                  fontSize: 10.5,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF2563EB),
                 ),
@@ -133,67 +132,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         iconColor: Colors.white,
         iconBackgroundColor: Colors.transparent,
         actions: [
-          GestureDetector(
-            onTap: () {
+          IconButton(
+            tooltip: 'ئەپی نەخۆش',
+            icon: const Icon(Iconsax.mobile, color: Color(0xFF475569), size: 20),
+            onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const MainShell(),
-                ),
+                MaterialPageRoute(builder: (context) => const MainShell()),
               );
             },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(
-                    Iconsax.mobile,
-                    color: Color(0xFF475569),
-                    size: 15,
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    'ئەپی نەخۆش',
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      color: Color(0xFF475569),
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () => _openScreen(const AdminNotificationsScreen()),
-            child: Container(
-              padding: const EdgeInsets.all(9),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Iconsax.notification,
-                color: Color(0xFF0F172A),
-                size: 18,
-              ),
-            ),
+          IconButton(
+            tooltip: 'ئاگادارییەکان',
+            icon: const Icon(Iconsax.notification, color: Color(0xFF0F172A), size: 20),
+            onPressed: () => _openScreen(const AdminNotificationsScreen()),
           ),
         ],
       ),
@@ -202,33 +154,29 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         color: const Color(0xFF2563EB),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(18, 14, 18, 110),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (_isLoading)
                 _buildLoadingShimmer()
               else ...[
-                // 1. Sleek Hero Overview
-                _buildHeroBanner(),
-                const SizedBox(height: 16),
-
-                // 2. Pending Approval Alert (if any)
-                if (_totalPendingItems > 0) ...[
-                  _buildPendingNoticeCard(),
-                  const SizedBox(height: 16),
+                // 1. Pending Banner (Slim, only when needed)
+                if (_totalPending > 0) ...[
+                  _buildSlimPendingAlert(),
+                  const SizedBox(height: 12),
                 ],
 
-                // 3. Key Metrics (2x2 Grid)
-                _buildStatsCards(),
-                const SizedBox(height: 24),
+                // 2. Compact 4-Metric Stats Row
+                _buildCompactStatsRow(),
+                const SizedBox(height: 16),
 
-                // 4. Main Health Hub & Services (8 Services)
-                _buildCoreServicesGrid(),
-                const SizedBox(height: 24),
+                // 3. Compact Main Services Grid
+                _buildCompactServicesGrid(),
+                const SizedBox(height: 14),
 
-                // 5. Quick Admin Tools (Banners, Push, Finance, Reviews)
-                _buildQuickTools(),
+                // 4. Quick Direct Action Chips
+                _buildQuickActionChips(),
               ],
             ],
           ),
@@ -237,331 +185,168 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // ── 1. Hero Overview Banner ──
-  Widget _buildHeroBanner() {
-    final int totalDoctors = (_stats?['total_doctors'] ?? 0) as int;
-    final int totalNurses = (_stats?['total_nurses'] ?? 0) as int;
-    final int totalLabs = (_stats?['total_labs'] ?? 0) as int;
-    final int totalPharmacies = (_stats?['total_pharmacies'] ?? 0) as int;
-    final int totalMedicalStaff = totalDoctors + totalNurses + totalLabs + totalPharmacies;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [
-            Color(0xFF0F172A),
-            Color(0xFF1E293B),
+  // ── 1. Slim Pending Alert ──
+  Widget _buildSlimPendingAlert() {
+    return GestureDetector(
+      onTap: () {
+        if ((_stats?['pending_doctors'] ?? 0) > 0) {
+          _openScreen(const AdminDoctorsScreen());
+        } else if ((_stats?['pending_orders'] ?? 0) > 0) {
+          _openScreen(const AdminOrdersScreen());
+        } else {
+          _openScreen(const AdminNursesScreen());
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFDE68A)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Iconsax.info_circle, color: Color(0xFFD97706), size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '$_totalPending داواکاری چاوەڕوانی پەسەندکردنە',
+                style: const TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF92400E),
+                ),
+              ),
+            ),
+            const Text(
+              'پیشاندان',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 11.5,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFD97706),
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFD97706), size: 11),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.18),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF10B981),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0xFF10B981),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'سیستەم چالاکە',
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      color: Color(0xFF94A3B8),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                ),
-                child: const Text(
-                  'کۆنترۆڵ پەنێڵ',
-                  style: TextStyle(
-                    fontFamily: 'Rabar',
-                    color: Color(0xFFE2E8F0),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'بەخێربێیت بۆ بەڕێوەبەرایەتی دکتۆر ڕووم',
-            style: TextStyle(
-              fontFamily: 'Rabar',
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'کۆی گشتی $totalMedicalStaff پزیشک و ناوەندی پزیشکی بەستراونەتەوە بە ئەپەکە.',
-            style: const TextStyle(
-              fontFamily: 'Rabar',
-              color: Color(0xFF94A3B8),
-              fontSize: 13,
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn().slideY(begin: 0.06, end: 0);
-  }
-
-  // ── 2. Pending Notice Alert ──
-  Widget _buildPendingNoticeCard() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFEF3C7),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFDE68A)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFD97706),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Iconsax.warning_2,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'داواکاری نوێ بۆ پەسەندکردن',
-                  style: TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF92400E),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '$_totalPendingItems داواکاری پێویستیان بە پێداچوونەوە و پەسەندکردنە',
-                  style: const TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 12,
-                    color: Color(0xFFB45309),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: Color(0xFF92400E),
-            size: 14,
-          ),
-        ],
       ),
     ).animate().fadeIn().slideY(begin: 0.05, end: 0);
   }
 
-  // ── 3. Key Stats (2x2 Grid) ──
-  Widget _buildStatsCards() {
+  // ── 2. Compact 4-Metric Stats Row ──
+  Widget _buildCompactStatsRow() {
     final totalUsers = '${_stats?['total_users'] ?? 0}';
-    final totalDoctors = '${_stats?['total_doctors'] ?? 0}';
+    final totalDocs = '${_stats?['total_doctors'] ?? 0}';
     final totalOrders = '${_stats?['total_orders'] ?? 0}';
-    final totalAppointments = '${_stats?['total_appointments'] ?? 0}';
+    final totalAppts = '${_stats?['total_appointments'] ?? 0}';
 
-    final int pendingDocs = (_stats?['pending_doctors'] ?? 0) as int;
-    final int pendingOrds = (_stats?['pending_orders'] ?? 0) as int;
-
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.5,
-      children: [
-        _buildStatTile(
-          title: 'بەکارهێنەران',
-          value: totalUsers,
-          subtitle: 'نەخۆشە تۆمارکراوەکان',
-          icon: Iconsax.people,
-          color: const Color(0xFF0284C7),
-          bg: const Color(0xFFF0F9FF),
-          onTap: () => _openScreen(const AdminUsersScreen()),
-        ),
-        _buildStatTile(
-          title: 'پزیشکەکان',
-          value: totalDoctors,
-          subtitle: 'تەواوی پزیشکەکان',
-          icon: Iconsax.health,
-          color: const Color(0xFF2563EB),
-          bg: const Color(0xFFEFF6FF),
-          badge: pendingDocs > 0 ? '$pendingDocs چاوەڕوان' : null,
-          onTap: () => _openScreen(const AdminDoctorsScreen()),
-        ),
-        _buildStatTile(
-          title: 'داواکارییەکان',
-          value: totalOrders,
-          subtitle: 'ئۆردەری خزمەتگوزاری',
-          icon: Iconsax.box,
-          color: const Color(0xFFF59E0B),
-          bg: const Color(0xFFFFFBEB),
-          badge: pendingOrds > 0 ? '$pendingOrds نوێ' : null,
-          onTap: () => _openScreen(const AdminOrdersScreen()),
-        ),
-        _buildStatTile(
-          title: 'چاوپێکەوتنەکان',
-          value: totalAppointments,
-          subtitle: 'نۆرە تۆمارکراوەکان',
-          icon: Iconsax.calendar_1,
-          color: const Color(0xFF7C3AED),
-          bg: const Color(0xFFF5F3FF),
-          onTap: () => _openScreen(const AdminAppointmentsScreen()),
-        ),
-      ],
-    ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05, end: 0);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _buildMiniStatItem(
+            title: 'نەخۆش',
+            value: totalUsers,
+            icon: Iconsax.people,
+            color: const Color(0xFF0284C7),
+            onTap: () => _openScreen(const AdminUsersScreen()),
+          ),
+          _buildStatDivider(),
+          _buildMiniStatItem(
+            title: 'پزیشک',
+            value: totalDocs,
+            icon: Iconsax.health,
+            color: const Color(0xFF2563EB),
+            onTap: () => _openScreen(const AdminDoctorsScreen()),
+          ),
+          _buildStatDivider(),
+          _buildMiniStatItem(
+            title: 'داواکاری',
+            value: totalOrders,
+            icon: Iconsax.box,
+            color: const Color(0xFFF59E0B),
+            onTap: () => _openScreen(const AdminOrdersScreen()),
+          ),
+          _buildStatDivider(),
+          _buildMiniStatItem(
+            title: 'نۆرەکان',
+            value: totalAppts,
+            icon: Iconsax.calendar_1,
+            color: const Color(0xFF7C3AED),
+            onTap: () => _openScreen(const AdminAppointmentsScreen()),
+          ),
+        ],
+      ),
+    ).animate().fadeIn().slideY(begin: 0.04, end: 0);
   }
 
-  Widget _buildStatTile({
+  Widget _buildStatDivider() {
+    return Container(
+      height: 28,
+      width: 1,
+      color: const Color(0xFFF1F5F9),
+    );
+  }
+
+  Widget _buildMiniStatItem({
     required String title,
     required String value,
-    required String subtitle,
     required IconData icon,
     required Color color,
-    required Color bg,
-    String? badge,
-    VoidCallback? onTap,
+    required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+    return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF0F172A),
+                height: 1.1,
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: bg,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(icon, color: color, size: 20),
-                  ),
-                  if (badge != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        badge,
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFEF4444),
-                        ),
-                      ),
-                    ),
-                ],
+            ),
+            const SizedBox(height: 1),
+            Text(
+              title,
+              style: const TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF64748B),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F172A),
-                      height: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ── 4. Main Health Hub & Services Grid ──
-  Widget _buildCoreServicesGrid() {
+  // ── 3. Compact Main Services Grid (8 Services) ──
+  Widget _buildCompactServicesGrid() {
     final int pendingDocs = (_stats?['pending_doctors'] ?? 0) as int;
     final int pendingNurses = (_stats?['pending_nurses'] ?? 0) as int;
     final int pendingLabs = (_stats?['pending_labs'] ?? 0) as int;
@@ -571,319 +356,215 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final List<Map<String, dynamic>> services = [
       {
         'title': 'پزیشکەکان',
-        'desc': 'پەسەندکردن و بەڕێوەبردن',
         'icon': Iconsax.health,
         'color': const Color(0xFF2563EB),
         'bg': const Color(0xFFEFF6FF),
-        'badge': pendingDocs > 0 ? '$pendingDocs چاوەڕوان' : null,
+        'badge': pendingDocs > 0 ? '$pendingDocs' : null,
         'screen': const AdminDoctorsScreen(),
       },
       {
         'title': 'پەرستارەکان',
-        'desc': 'خزمەتگوزاری ماڵەوە',
         'icon': Iconsax.profile_2user,
         'color': const Color(0xFFEC4899),
         'bg': const Color(0xFFFDF2F8),
-        'badge': pendingNurses > 0 ? '$pendingNurses نوێ' : null,
+        'badge': pendingNurses > 0 ? '$pendingNurses' : null,
         'screen': const AdminNursesScreen(),
       },
       {
         'title': 'سەنتەری تیشک',
-        'desc': 'تیشک، سۆنەر و MRI',
         'icon': Iconsax.scan,
         'color': const Color(0xFF6366F1),
         'bg': const Color(0xFFEEF2FF),
+        'badge': null,
         'screen': const AdminXRaysScreen(),
       },
       {
         'title': 'تاقیگەکان',
-        'desc': 'تاقیگە و پشکنینەکان',
         'icon': Iconsax.microscope,
         'color': const Color(0xFF8B5CF6),
         'bg': const Color(0xFFF5F3FF),
-        'badge': pendingLabs > 0 ? '$pendingLabs نوێ' : null,
+        'badge': pendingLabs > 0 ? '$pendingLabs' : null,
         'screen': const AdminLabsScreen(),
       },
       {
         'title': 'دەرمانخانەکان',
-        'desc': 'دەرمان و کۆگاکان',
         'icon': Iconsax.reserve,
         'color': const Color(0xFF0D9488),
         'bg': const Color(0xFFF0FDFA),
-        'badge': pendingPharmacies > 0 ? '$pendingPharmacies نوێ' : null,
+        'badge': pendingPharmacies > 0 ? '$pendingPharmacies' : null,
         'screen': const AdminPharmaciesScreen(),
       },
       {
         'title': 'داواکارییەکان',
-        'desc': 'ئۆردەری نەخۆشەکان',
         'icon': Iconsax.box,
         'color': const Color(0xFFF59E0B),
         'bg': const Color(0xFFFFFBEB),
-        'badge': pendingOrders > 0 ? '$pendingOrders نوێ' : null,
+        'badge': pendingOrders > 0 ? '$pendingOrders' : null,
         'screen': const AdminOrdersScreen(),
       },
       {
         'title': 'فریاگوزاری',
-        'desc': 'ڕێنمایی و وتارە پزیشکییەکان',
         'icon': Iconsax.firstline,
         'color': const Color(0xFFDC2626),
         'bg': const Color(0xFFFEF2F2),
+        'badge': null,
         'screen': const AdminArticlesScreen(),
       },
       {
         'title': 'بەکارهێنەران',
-        'desc': 'نەخۆش و هەژمارەکان',
         'icon': Iconsax.people,
         'color': const Color(0xFF0284C7),
         'bg': const Color(0xFFF0F9FF),
+        'badge': null,
         'screen': const AdminUsersScreen(),
       },
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'بەشە سەرەکییەکان و ناوەندە پزیشکییەکان',
-          style: TextStyle(
-            fontFamily: 'Rabar',
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF0F172A),
-          ),
-        ),
-        const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: services.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.45,
-          ),
-          itemBuilder: (context, index) {
-            final item = services[index];
-            final color = item['color'] as Color;
-            final bg = item['bg'] as Color;
-            final badge = item['badge'] as String?;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: services.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 2.1,
+      ),
+      itemBuilder: (context, index) {
+        final item = services[index];
+        final color = item['color'] as Color;
+        final bg = item['bg'] as Color;
+        final badge = item['badge'] as String?;
 
-            return Material(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              child: InkWell(
-                onTap: () => _openScreen(item['screen'] as Widget),
-                borderRadius: BorderRadius.circular(18),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+        return Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: () => _openScreen(item['screen'] as Widget),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.015),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: bg,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(item['icon'] as IconData, color: color, size: 20),
-                          ),
-                          if (badge != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444).withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                badge,
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFEF4444),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        item['title'] as String,
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item['desc'] as String,
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 11,
-                          color: Color(0xFF64748B),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
-            );
-          },
-        ),
-      ],
-    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05, end: 0);
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(item['icon'] as IconData, color: color, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      item['title'] as String,
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (badge != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF4444),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        badge,
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.04, end: 0);
   }
 
-  // ── 5. Quick Tools & Management Bar ──
-  Widget _buildQuickTools() {
-    final List<Map<String, dynamic>> tools = [
+  // ── 4. Quick Direct Action Chips ──
+  Widget _buildQuickActionChips() {
+    final List<Map<String, dynamic>> actions = [
       {
         'title': 'بانەرەکان',
-        'subtitle': 'ڕیکلام و پۆستەر',
         'icon': Iconsax.slider_horizontal,
         'color': const Color(0xFF6366F1),
         'screen': const AdminBannersScreen(),
       },
       {
         'title': 'ئاگاداری گشتی',
-        'subtitle': 'Push Notification',
         'icon': Iconsax.notification_bing,
         'color': const Color(0xFFD97706),
         'screen': const AdminNotificationsScreen(),
       },
       {
-        'title': 'داهات و مامەڵە',
-        'subtitle': 'تۆماری دارایی',
+        'title': 'دارایی و داهات',
         'icon': Iconsax.wallet_3,
         'color': const Color(0xFF059669),
         'screen': const AdminTransactionsScreen(),
       },
-      {
-        'title': 'هەڵسەنگاندن',
-        'subtitle': 'کۆمێنتی نەخۆش',
-        'icon': Iconsax.star,
-        'color': const Color(0xFFE11D48),
-        'screen': const AdminReviewsScreen(),
-      },
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'ئامرازە خێراکان',
-          style: TextStyle(
-            fontFamily: 'Rabar',
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF0F172A),
-          ),
-        ),
-        const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: tools.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 2.2,
-          ),
-          itemBuilder: (context, index) {
-            final tool = tools[index];
-            final color = tool['color'] as Color;
-
-            return Material(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              child: InkWell(
-                onTap: () => _openScreen(tool['screen'] as Widget),
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: actions.map((act) {
+          final color = act['color'] as Color;
+          return InkWell(
+            onTap: () => _openScreen(act['screen'] as Widget),
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(act['icon'] as IconData, color: color, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    act['title'] as String,
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF334155),
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(tool['icon'] as IconData, color: color, size: 18),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              tool['title'] as String,
-                              style: const TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F172A),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              tool['subtitle'] as String,
-                              style: const TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 10.5,
-                                color: Color(0xFF64748B),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
-            );
-          },
-        ),
-      ],
-    ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.05, end: 0);
+            ),
+          );
+        }).toList(),
+      ),
+    ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.04, end: 0);
   }
 
   // ── Skeleton Shimmer Loading ──
@@ -891,11 +572,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Column(
       children: [
         Container(
-          height: 140,
+          height: 65,
           width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(18),
           ),
         ),
         const SizedBox(height: 16),
@@ -903,33 +584,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.5,
-          children: List.generate(
-            4,
-            (index) => Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.45,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 2.1,
           children: List.generate(
             8,
             (index) => Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
           ),
