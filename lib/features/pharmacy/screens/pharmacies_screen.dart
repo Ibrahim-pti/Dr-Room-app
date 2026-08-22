@@ -21,9 +21,10 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
 
   final List<String> _filters = [
     'هەمووی',
-    'کراوەیە ئێستا',
-    'بەرزترین هەڵسەنگاندن',
-    'کەمترین کرێ',
+    'ئێشکگر (٢٤/٧)',
+    'ناودارترین',
+    'نزیکترین',
+    'گەیاندنی خێرا',
   ];
 
   final List<String> _cities = ['هەموو شارەکان', 'هەولێر', 'سلێمانی', 'دهۆک', 'کەرکووک', 'هەڵەبجە'];
@@ -143,12 +144,14 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
       }
 
       // Quick filter chips
-      if (_selectedFilter == 'کراوەیە ئێستا') {
+      if (_selectedFilter == 'ئێشکگر (٢٤/٧)' || _selectedFilter == 'کراوەیە ئێستا') {
         return pharmacy.isOpen;
-      } else if (_selectedFilter == 'بەرزترین هەڵسەنگاندن') {
+      } else if (_selectedFilter == 'ناودارترین' || _selectedFilter == 'بەرزترین هەڵسەنگاندن') {
         return pharmacy.rating >= 4.8;
-      } else if (_selectedFilter == 'کەمترین کرێ') {
-        return pharmacy.deliveryFee <= 2500;
+      } else if (_selectedFilter == 'گەیاندنی خێرا' || _selectedFilter == 'کەمترین کرێ') {
+        return pharmacy.deliveryFee <= 3000;
+      } else if (_selectedFilter == 'نزیکترین') {
+        return true;
       }
 
       return true;
