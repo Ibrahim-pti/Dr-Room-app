@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -18,592 +17,628 @@ class AdminNotificationsScreen extends StatefulWidget {
 }
 
 class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
-  List<dynamic> _notifications = [];
-  bool _isLoading = true;
+  final _titleController = TextEditingController();
+  final _messageController = TextEditingController();
+  File? _selectedImage;
+  String _selectedType = 'general';
+  bool _isSubmitting = false;
+
+  final List<Map<String, dynamic>> _types = [
+    {'key': 'general', 'label': 'گشتی 📢', 'color': Color(0xFF3B82F6)},
+    {'key': 'promo', 'label': 'داشکاندن 🎁', 'color': Color(0xFFEC4899)},
+    {'key': 'alert', 'label': 'ئاگاداری ⚠️', 'color': Color(0xFFF59E0B)},
+    {'key': 'system', 'label': 'سیستەم ⚙️', 'color': Color(0xFF10B981)},
+  ];
 
   @override
-  void initState() {
-    super.initState();
-    _fetchNotifications();
+  void dispose() {
+    _titleController.dispose();
+    _messageController.dispose();
+    super.dispose();
   }
 
-  Future<void> _fetchNotifications() async {
-    setState(() => _isLoading = true);
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1024,
+    );
+    if (picked != null) {
+      setState(() => _selectedImage = File(picked.path));
+    }
+  }
+
+  Future<void> _sendNotification() async {
+    final title = _titleController.text.trim();
+    final message = _messageController.text.trim();
+
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'تکایە ناونیشانی ئاگادارکردنەوە بنووسە',
+            style: TextStyle(fontFamily: 'Rabar'),
+          ),
+          backgroundColor: Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (message.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'تکایە دەقی پەیامەکە بنووسە',
+            style: TextStyle(fontFamily: 'Rabar'),
+          ),
+          backgroundColor: Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
     try {
-      final response = await ApiClient.get('/admin/notifications');
-      if (response.statusCode == 200 && mounted) {
-        setState(() {
-          _notifications = jsonDecode(response.body);
-          _isLoading = false;
-        });
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiClient.baseUrl}/admin/notifications'),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Accept'] = 'application/json';
+      request.fields['title'] = title;
+      request.fields['message'] = message;
+      request.fields['type'] = _selectedType;
+
+      // Optional background translation
+      try {
+        final trFields = await TranslationHelper.translateFields({
+          'title': title,
+          'message': message,
+        }).timeout(const Duration(seconds: 3));
+
+        if (trFields.isNotEmpty) {
+          request.fields['title_en'] = trFields['title']?['en'] ?? '';
+          request.fields['title_ar'] = trFields['title']?['ar'] ?? '';
+          request.fields['message_en'] = trFields['message']?['en'] ?? '';
+          request.fields['message_ar'] = trFields['message']?['ar'] ?? '';
+        }
+      } catch (e) {
+        debugPrint('Translation skipped: $e');
+      }
+
+      if (_selectedImage != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('image', _selectedImage!.path),
+        );
+      }
+
+      final streamedRes = await request.send().timeout(const Duration(seconds: 15));
+      final res = await http.Response.fromStream(streamedRes);
+
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          _titleController.clear();
+          _messageController.clear();
+          setState(() {
+            _selectedImage = null;
+            _selectedType = 'general';
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                  SizedBox(width: 10),
+                  Text(
+                    'ئاگادارکردنەوەکە بە سەرکەوتوویی بۆ هەمووان نێردرا 🎉',
+                    style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              backgroundColor: Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'ناردن سەرکەوتوو نەبوو (${res.statusCode})',
+                style: const TextStyle(fontFamily: 'Rabar'),
+              ),
+              backgroundColor: const Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _deleteNotification(int id) async {
-    try {
-      final response = await ApiClient.delete('/admin/notifications/$id');
-      if (response.statusCode == 204) _fetchNotifications();
-    } catch (e) {
-      debugPrint('Error: $e');
-    }
-  }
-
-  Future<void> _showAddNotificationModal() async {
-    File? selectedImage;
-    final titleController = TextEditingController();
-    final messageController = TextEditingController();
-    bool isSubmitting = false;
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-                left: 24,
-                right: 24,
-                top: 24,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.getBorder(context),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'ناردنی نۆتیفیکەیشنی نوێ',
-                      style: TextStyle(
-                        color: AppColors.getTextTitle(context),
-                        fontFamily: 'Rabar',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDarkInput(controller: titleController, hint: 'ناونیشانی ئاگادارکەرەوە', context: context),
-                    const SizedBox(height: 12),
-                    _buildDarkInput(controller: messageController, hint: 'نامەی ئاگادارکەرەوە', maxLines: 3, context: context),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () async {
-                        final picker = ImagePicker();
-                        final xfile = await picker.pickImage(
-                          source: ImageSource.gallery,
-                          imageQuality: 50,
-                          maxWidth: 1000,
-                        );
-                        if (xfile != null) {
-                          setModalState(() => selectedImage = File(xfile.path));
-                        }
-                      },
-                      child: Container(
-                        height: 140,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.getBackground(context),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: selectedImage != null
-                                ? const Color(0xFFF59E0B)
-                                : AppColors.getBorder(context),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: selectedImage != null
-                            ? Stack(
-                                children: [
-                                  Positioned.fill(
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: Image.file(selectedImage!, fit: BoxFit.cover),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: GestureDetector(
-                                      onTap: () => setModalState(() => selectedImage = null),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(6),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.black54,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(Icons.close, color: Colors.white, size: 18),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Iconsax.image, color: Color(0xFFF59E0B), size: 30),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'وێنە زیاد بکە (ئارەزوومەندانە)',
-                                    style: TextStyle(
-                                      color: AppColors.getTextSubtitle(context),
-                                      fontFamily: 'Rabar',
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: isSubmitting
-                            ? null
-                            : () async {
-                                final title = titleController.text.trim();
-                                final message = messageController.text.trim();
-                                if (title.isEmpty || message.isEmpty) return;
-                                
-                                setModalState(() => isSubmitting = true);
-                                
-                                try {
-                                  final prefs = await SharedPreferences.getInstance();
-                                  final token = prefs.getString('auth_token');
-                                  var request = http.MultipartRequest(
-                                    'POST',
-                                    Uri.parse('${ApiClient.baseUrl}/admin/notifications'),
-                                  );
-                                  request.headers['Authorization'] = 'Bearer $token';
-                                  request.headers['Accept'] = 'application/json';
-                                  request.fields['title'] = title;
-                                  request.fields['message'] = message;
-                                  request.fields['type'] = 'general';
-
-                                  try {
-                                    final trFields = await TranslationHelper.translateFields({
-                                      'title': title,
-                                      'message': message,
-                                    }).timeout(const Duration(seconds: 4));
-                                    if (trFields.isNotEmpty) {
-                                      request.fields['title_en'] = trFields['title']?['en'] ?? '';
-                                      request.fields['title_ar'] = trFields['title']?['ar'] ?? '';
-                                      request.fields['message_en'] = trFields['message']?['en'] ?? '';
-                                      request.fields['message_ar'] = trFields['message']?['ar'] ?? '';
-                                    }
-                                  } catch (e) {
-                                    debugPrint('Client translation skipped: $e');
-                                  }
-                                  
-                                  if (selectedImage != null) {
-                                    request.files.add(
-                                      await http.MultipartFile.fromPath('image', selectedImage!.path),
-                                    );
-                                  }
-                                  
-                                  var streamedRes = await request.send().timeout(const Duration(seconds: 15));
-                                  var res = await http.Response.fromStream(streamedRes);
-                                  
-                                  if (ctx.mounted) {
-                                    setModalState(() => isSubmitting = false);
-                                  }
-                                  
-                                  if (res.statusCode >= 200 && res.statusCode < 300) {
-                                    if (ctx.mounted) {
-                                      Navigator.pop(ctx);
-                                    }
-                                    _fetchNotifications();
-                                    if (ctx.mounted) {
-                                      ScaffoldMessenger.of(ctx).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'ئاگادارکردنەوەکە بە سەرکەوتوویی نێردرا',
-                                            style: TextStyle(fontFamily: 'Rabar'),
-                                          ),
-                                          backgroundColor: Color(0xFF10B981),
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
-                                      );
-                                    }
-                                  } else {
-
-                                    if (ctx.mounted) {
-                                      ScaffoldMessenger.of(ctx).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'ناردن سەرکەوتوو نەبوو (${res.statusCode}): ${res.body}',
-                                            style: const TextStyle(fontFamily: 'Rabar'),
-                                          ),
-                                          backgroundColor: const Color(0xFFEF4444),
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                } catch (e) {
-                                  if (ctx.mounted) {
-                                    setModalState(() => isSubmitting = false);
-                                    ScaffoldMessenger.of(ctx).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'هەڵە ڕوویدا لە ناردن: $e',
-                                          style: const TextStyle(fontFamily: 'Rabar'),
-                                        ),
-                                        backgroundColor: const Color(0xFFEF4444),
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                  }
-                                }
-
-                              },
-
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFF59E0B),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
-                          disabledBackgroundColor: const Color(0xFFF59E0B).withValues(alpha: 0.6),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: isSubmitting
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'ناردن',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontFamily: 'Rabar', 
-                                    fontSize: 16, 
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.2,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildDarkInput({
-    required TextEditingController controller,
-    required String hint,
-    required BuildContext context,
-    int maxLines = 1,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.getBackground(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.getBorder(context)),
-      ),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        style: TextStyle(
-          color: AppColors.getTextTitle(context),
-          fontFamily: 'Rabar',
-          fontSize: 14,
-        ),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(
-            color: AppColors.getTextSubtitle(context),
-            fontFamily: 'Rabar',
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'هەڵە ڕوویدا لە پەیوەندی: $e',
+              style: const TextStyle(fontFamily: 'Rabar'),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
           ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-      ),
-    );
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       backgroundColor: AppColors.getBackground(context),
-      body: SafeArea(
+      appBar: AppBar(
+        backgroundColor: AppColors.getSurface(context),
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_rounded,
+            size: 20,
+            color: AppColors.getTextTitle(context),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'ناردنی ئاگادارکردنەوە',
+          style: TextStyle(
+            color: AppColors.getTextTitle(context),
+            fontFamily: 'Rabar',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+            // Top Info Card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF3B82F6),
+                    const Color(0xFF1D4ED8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 12),
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.getSurface(context),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Iconsax.notification_bing,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ناردنی نۆتیفیکەیشنی ڕاستەوخۆ',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Rabar',
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'پەیامەکەت ڕاستەوخۆ دەگاتە مۆبایلی هەموو بەکارهێنەران',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn().slideY(begin: -0.1, end: 0),
+
+            const SizedBox(height: 24),
+
+            // Type Selector
+            const Text(
+              'جۆری ئاگادارکردنەوە',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _types.map((type) {
+                  final isSelected = _selectedType == type['key'];
+                  final Color typeColor = type['color'];
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        setState(() => _selectedType = type['key']);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? typeColor
+                              : AppColors.getSurface(context),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected
+                                ? typeColor
+                                : AppColors.getBorder(context),
+                            width: 1.5,
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: typeColor.withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  )
+                                ]
+                              : [],
+                        ),
+                        child: Text(
+                          type['label'],
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.getTextTitle(context),
+                            fontFamily: 'Rabar',
+                            fontSize: 13,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+
+            const SizedBox(height: 22),
+
+            // Title Field
+            const Text(
+              'ناونیشانی ئاگادارکردنەوە',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.getSurface(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.getBorder(context)),
+              ),
+              child: TextField(
+                controller: _titleController,
+                style: TextStyle(
+                  color: AppColors.getTextTitle(context),
+                  fontFamily: 'Rabar',
+                  fontSize: 14,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'نموونە: داشکاندنی نوێ لە پشکنینەکان',
+                  hintStyle: TextStyle(
+                    color: AppColors.getTextSubtitle(context),
+                    fontFamily: 'Rabar',
+                    fontSize: 13,
+                  ),
+                  prefixIcon: const Icon(Iconsax.edit_2, color: Color(0xFF3B82F6), size: 20),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Message Field
+            const Text(
+              'دەقی پەیامەکە',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.getSurface(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.getBorder(context)),
+              ),
+              child: TextField(
+                controller: _messageController,
+                maxLines: 4,
+                style: TextStyle(
+                  color: AppColors.getTextTitle(context),
+                  fontFamily: 'Rabar',
+                  fontSize: 14,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'دەقی پەیام و زانیارییەکان لێرە بنووسە...',
+                  hintStyle: TextStyle(
+                    color: AppColors.getTextSubtitle(context),
+                    fontFamily: 'Rabar',
+                    fontSize: 13,
+                  ),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.only(bottom: 54),
+                    child: Icon(Iconsax.message_text, color: Color(0xFF3B82F6), size: 20),
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Image Upload Section
+            const Text(
+              'وێنەی ئاگادارکردنەوە (ئارەزوومەندانە)',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                width: double.infinity,
+                height: _selectedImage != null ? 180 : 100,
+                decoration: BoxDecoration(
+                  color: AppColors.getSurface(context),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                    style: BorderStyle.solid,
+                    width: 1.5,
+                  ),
+                ),
+                child: _selectedImage != null
+                    ? Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(15),
+                            child: Image.file(
+                              _selectedImage!,
+                              width: double.infinity,
+                              height: 180,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedImage = null),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.close, color: Colors.white, size: 18),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Iconsax.image, color: Color(0xFF3B82F6), size: 32),
+                          const SizedBox(height: 8),
+                          Text(
+                            'کلیک بکە بۆ دیاریکردنی وێنە',
+                            style: TextStyle(
+                              color: AppColors.getTextSubtitle(context),
+                              fontFamily: 'Rabar',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: AppColors.getTextTitle(context),
-                        size: 20,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Live Preview Card
+            if (_titleController.text.isNotEmpty || _messageController.text.isNotEmpty) ...[
+              const Text(
+                'پێشبینینی نۆتیفیکەیشن (Preview)',
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
                       ),
-                    ),
-                  ),
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Iconsax.notification, color: Color(0xFFF59E0B), size: 22),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ئاگادارکەرەوەکان',
-                        style: TextStyle(
-                          color: AppColors.getTextTitle(context),
-                          fontFamily: 'Rabar',
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/app_icon.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) => const Icon(
+                            Icons.notifications_active_rounded,
+                            color: Color(0xFF3B82F6),
+                            size: 22,
+                          ),
                         ),
                       ),
-                      Text(
-                        '${_notifications.length} sent',
-                        style: TextStyle(
-                          color: AppColors.getTextSubtitle(context),
-                          fontFamily: 'Rabar',
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: _showAddNotificationModal,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.send_rounded, color: Color(0xFFF59E0B), size: 16),
-                          const SizedBox(width: 4),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _titleController.text.isEmpty
+                                      ? 'ناونیشانی ئاگادارکردنەوە'
+                                      : _titleController.text,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'Rabar',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const Text(
+                                'Dr-Room',
+                                style: TextStyle(
+                                  color: Color(0xFF60A5FA),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_messageController.text.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              _messageController.text,
+                              style: const TextStyle(
+                                color: Color(0xFFCBD5E1),
+                                fontFamily: 'Rabar',
+                                fontSize: 12,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fadeIn().slideY(begin: 0.1, end: 0),
+              const SizedBox(height: 24),
+            ],
+
+            // Submit Button
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: _isSubmitting ? null : _sendNotification,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3B82F6),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                  disabledBackgroundColor: const Color(0xFF3B82F6).withValues(alpha: 0.6),
+                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                          SizedBox(width: 8),
                           Text(
-                            'ناردن',
+                            'ناردنی ئاگادارکردنەوە بۆ هەمووان',
                             style: TextStyle(
-                              color: const Color(0xFFF59E0B),
+                              color: Colors.white,
                               fontFamily: 'Rabar',
-                              fontSize: 14,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                ],
-              ).animate().fadeIn().slideY(begin: -0.1, end: 0),
+              ),
             ),
-
-            // Content
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFFF59E0B)))
-                  : _notifications.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  color: AppColors.getTextSubtitle(context).withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Iconsax.notification_bing,
-                                  color: AppColors.getTextSubtitle(context),
-                                  size: 48,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'هیچ ئاگادارکەرەوەیەک نییە',
-                                style: TextStyle(
-                                  color: AppColors.getTextTitle(context),
-                                  fontFamily: 'Rabar',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'تائێستا هیچ نۆتیفیکەیشنێک نەنێردراوە',
-                                style: TextStyle(
-                                  color: AppColors.getTextSubtitle(context),
-                                  fontFamily: 'Rabar',
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ).animate().fadeIn().slideY(begin: 0.2, end: 0),
-                        )
-                      : RefreshIndicator(
-                          onRefresh: _fetchNotifications,
-                          color: const Color(0xFFF59E0B),
-                          backgroundColor: AppColors.getSurface(context),
-                          child: ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(24, 0, 24, 110),
-                            itemCount: _notifications.length,
-                            itemBuilder: (context, index) {
-                              final notif = _notifications[index];
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.getSurface(context),
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.03),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (notif['image_path'] != null)
-                                      ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                                        child: Image.network(
-                                          '${ApiClient.storageUrl}/${notif['image_path']}',
-                                          height: 130,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (c, e, s) => Container(
-                                            height: 130,
-                                            color: AppColors.getBackground(context),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons.image_not_supported,
-                                                color: AppColors.getBorder(context),
-                                                size: 32,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          if (notif['image_path'] == null)
-                                            Container(
-                                              width: 48,
-                                              height: 48,
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
-                                                borderRadius: BorderRadius.circular(16),
-                                              ),
-                                              child: const Icon(Iconsax.notification, color: Color(0xFFF59E0B), size: 24),
-                                            ),
-                                          if (notif['image_path'] == null) const SizedBox(width: 16),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  notif['title'] ?? '',
-                                                  style: TextStyle(
-                                                    color: AppColors.getTextTitle(context),
-                                                    fontFamily: 'Rabar',
-                                                    fontSize: 15,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  notif['message'] ?? '',
-                                                  maxLines: 2,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    color: AppColors.getTextSubtitle(context),
-                                                    fontFamily: 'Rabar',
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          GestureDetector(
-                                            onTap: () => _deleteNotification(notif['id']),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.error.withValues(alpha: 0.1),
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              child: const Icon(Iconsax.trash, color: AppColors.error, size: 18),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ).animate(delay: Duration(milliseconds: index * 60)).fadeIn().slideX(begin: 0.05, end: 0);
-                            },
-                          ),
-                        ),
-            ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
