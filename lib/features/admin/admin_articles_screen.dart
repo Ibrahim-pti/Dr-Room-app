@@ -122,6 +122,8 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
         .toList();
 
     bool isSubmitting = false;
+    // Shown inside the sheet: a SnackBar here lands behind the modal barrier.
+    String? errorMessage;
 
     await showModalBottomSheet(
       context: context,
@@ -350,11 +352,10 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                           GestureDetector(
                             onTap: () async {
                               final picker = ImagePicker();
-                              // Compressed to stay under PHP's 2MB upload_max_filesize.
                               final img = await picker.pickImage(
                                 source: ImageSource.gallery,
-                                imageQuality: 50,
-                                maxWidth: 1000,
+                                imageQuality: 85,
+                                maxWidth: 1920,
                               );
                               if (img != null) {
                                 setModalState(() => selectedImage = File(img.path));
@@ -401,10 +402,41 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                           ),
                           const SizedBox(height: 22),
 
+                          if (errorMessage != null) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.35)),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.error_outline, size: 18, color: Color(0xFFEF4444)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      errorMessage!,
+                                      style: const TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 12,
+                                        height: 1.4,
+                                        color: Color(0xFFB91C1C),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+
                           // Submit Button
                           SizedBox(
                             width: double.infinity,
-                            height: 50,
+                            height: 56,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2563EB),
@@ -415,18 +447,15 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                   ? null
                                   : () async {
                                       if (titleController.text.trim().isEmpty || contentController.text.trim().isEmpty) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'تکایە ناونیشان و ناوەڕۆک پڕبکەرەوە',
-                                              style: TextStyle(fontFamily: 'Rabar'),
-                                            ),
-                                          ),
-                                        );
+                                        setModalState(() => errorMessage =
+                                            'تکایە ناونیشان و ناوەڕۆکی فریاگوزاری پڕبکەرەوە (لە سەرەوەی فۆرمەکە).');
                                         return;
                                       }
 
-                                      setModalState(() => isSubmitting = true);
+                                      setModalState(() {
+                                        errorMessage = null;
+                                        isSubmitting = true;
+                                      });
 
                                       try {
                                         final prefs = await SharedPreferences.getInstance();
@@ -466,18 +495,12 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                         if (selectedImage != null) {
                                           // The server rejects anything over PHP's 2MB upload limit.
                                           final sizeInMb = await selectedImage!.length() / (1024 * 1024);
-                                          if (sizeInMb > 2) {
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'وێنەکە زۆر گەورەیە (زیاتر لە ٢MB). تکایە وێنەیەکی بچووکتر هەڵبژێرە.',
-                                                    style: TextStyle(fontFamily: 'Rabar'),
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                            setModalState(() => isSubmitting = false);
+                                          if (sizeInMb > 8) {
+                                            setModalState(() {
+                                              errorMessage =
+                                                  'وێنەکە زۆر گەورەیە (${sizeInMb.toStringAsFixed(1)}MB). زۆرترین قەبارە ٨MBـە.';
+                                              isSubmitting = false;
+                                            });
                                             return;
                                           }
 
@@ -492,18 +515,10 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                           if (ctx.mounted) Navigator.of(ctx).pop();
                                           _fetchArticles();
                                         } else {
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('هەڵە ڕوویدا: ${resp.body}')),
-                                            );
-                                          }
+                                          setModalState(() => errorMessage = _readableError(resp.statusCode, resp.body));
                                         }
                                       } catch (e) {
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('کێشەیەک لە پەیوەندی هەیە: $e')),
-                                          );
-                                        }
+                                        setModalState(() => errorMessage = 'کێشەیەک لە پەیوەندی هەیە: $e');
                                       } finally {
                                         setModalState(() => isSubmitting = false);
                                       }
@@ -516,11 +531,13 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                     )
                                   : Text(
                                       isEditing ? 'نوێکردنەوەی فریاگوزاری' : 'بڵاوکردنەوەی فریاگوزاری',
+                                      maxLines: 1,
                                       style: const TextStyle(
                                         fontFamily: 'Rabar',
                                         color: Colors.white,
-                                        fontSize: 14.5,
+                                        fontSize: 17,
                                         fontWeight: FontWeight.bold,
+                                        height: 1.5,
                                       ),
                                     ),
                             ),
@@ -536,6 +553,32 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
         );
       },
     );
+  }
+
+  /// Turns a Laravel validation/error payload into one Kurdish sentence.
+  String _readableError(int statusCode, String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map) {
+        if (decoded['errors'] is Map) {
+          final first = (decoded['errors'] as Map).values.first;
+          final text = first is List ? first.first.toString() : first.toString();
+          if (text.contains('image failed to upload') || text.contains('greater than')) {
+            return 'وێنەکە زۆر گەورەیە بۆ سێرڤەرەکە. تکایە وێنەیەکی بچووکتر هەڵبژێرە.';
+          }
+          return text;
+        }
+        if (decoded['message'] != null) return decoded['message'].toString();
+      }
+    } catch (_) {}
+
+    if (statusCode == 401 || statusCode == 403) {
+      return 'دەسەڵاتت نییە. تکایە دووبارە بچۆ ژوورەوە.';
+    }
+    if (statusCode == 413) {
+      return 'وێنەکە زۆر گەورەیە بۆ سێرڤەرەکە.';
+    }
+    return 'هەڵە ڕوویدا ($statusCode). تکایە دووبارە هەوڵ بدەرەوە.';
   }
 
   /// The API may hand these back as a real List or as a raw JSON string,
@@ -731,6 +774,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
         style: const TextStyle(
           fontFamily: 'Rabar',
           fontSize: 13.5,
+          height: 1.6,
           color: Color(0xFF0F172A),
         ),
         decoration: InputDecoration(
@@ -739,6 +783,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
             fontFamily: 'Rabar',
             color: Color(0xFF94A3B8),
             fontSize: 12.5,
+            height: 1.6,
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           border: InputBorder.none,
