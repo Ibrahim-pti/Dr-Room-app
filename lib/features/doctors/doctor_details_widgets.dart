@@ -85,7 +85,7 @@ class DoctorDetailsCard extends StatelessWidget {
             ? null
             : [
                 BoxShadow(
-                  color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                  color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)).withValues(alpha: 0.04),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),

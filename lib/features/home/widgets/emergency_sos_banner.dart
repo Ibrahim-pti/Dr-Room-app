@@ -37,7 +37,7 @@ class EmergencySosBanner extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.emergency, color: Colors.white, size: 24),
+                child: Icon(Icons.emergency, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -46,7 +46,7 @@ class EmergencySosBanner extends StatelessWidget {
                   children: [
                     Text(
                       'sos_title'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Rabar',
                         color: Colors.white,
                         fontSize: 14.5,
@@ -68,7 +68,7 @@ class EmergencySosBanner extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(

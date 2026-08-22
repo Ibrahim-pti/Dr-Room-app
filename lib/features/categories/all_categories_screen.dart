@@ -21,7 +21,7 @@ class AllCategoriesScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new,
             color: Color(0xFF0F172A),
             size: 20,
@@ -31,7 +31,7 @@ class AllCategoriesScreen extends StatelessWidget {
         title: Text(
           'categories'.tr(),
           style: GoogleFonts.poppins(
-            color: const Color(0xFF0F172A),
+            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),

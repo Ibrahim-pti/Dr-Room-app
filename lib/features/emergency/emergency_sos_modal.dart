@@ -203,7 +203,7 @@ class _EmergencySosSheet extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.medical_services_outlined, color: Color(0xFF3B82F6), size: 22),
+                  Icon(Icons.medical_services_outlined, color: Color(0xFF3B82F6), size: 22),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -219,7 +219,7 @@ class _EmergencySosSheet extends StatelessWidget {
                         ),
                         Text(
                           'emergency_guide_sub'.tr(),
-                          style: _kStyle(fontSize: 11.5, color: const Color(0xFF64748B)),
+                          style: _kStyle(fontSize: 11.5, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                         ),
                       ],
                     ),

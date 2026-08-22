@@ -85,7 +85,7 @@ class LabOrderMethodScreen extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Iconsax.health, color: Color(0xFF3B82F6), size: 14),
+                  Icon(Iconsax.health, color: Color(0xFF3B82F6), size: 14),
                   const SizedBox(width: 6),
                   Text(
                     'خزمەتگوزارییە مۆدێرنەکانی تاقیگە',
@@ -116,7 +116,7 @@ class LabOrderMethodScreen extends StatelessWidget {
             Text(
               'choose_lab_method'.tr(),
               style: _kStyle(
-                color: const Color(0xFF64748B),
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                 fontSize: 13.5,
                 height: 1.6,
               ),
@@ -291,7 +291,7 @@ class LabOrderMethodScreen extends StatelessWidget {
                       Text(
                         description,
                         style: _kStyle(
-                          color: const Color(0xFF64748B),
+                          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                           fontSize: 12.5,
                           height: 1.5,
                         ),

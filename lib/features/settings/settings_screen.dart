@@ -647,7 +647,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Rabar',
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,

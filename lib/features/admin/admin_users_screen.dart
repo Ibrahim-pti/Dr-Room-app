@@ -121,7 +121,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       color: const Color(0xFFF0FDF4),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Iconsax.people,
                       color: Color(0xFF10B981),
                       size: 24,
@@ -143,7 +143,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         ),
                         Text(
                           '${filtered.length} لە کۆی ${_users.length} بەکارهێنەر',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Rabar',
                             color: Color(0xFF64748B),
                             fontSize: 12,
@@ -162,9 +162,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                 ),
                 child: TextField(
                   controller: _searchController,
@@ -277,7 +277,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                                 borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
                                   color: isBlocked

@@ -100,7 +100,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                       color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Iconsax.receipt_2,
                       size: 36,
                       color: Color(0xFF3B82F6),
@@ -120,7 +120,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     'مێژووی پارەدان و پسوولەکانت لێرەدا دەردەکەون',
                     style: _kStyle(
                       fontSize: 13,
-                      color: const Color(0xFF64748B),
+                      color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     ),
                   ),
                 ],
@@ -199,7 +199,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 Text(
                   '${transaction.formattedDate} • ${transaction.formattedTime}',
                   style: _kStyle(
-                    color: const Color(0xFF64748B),
+                    color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     fontSize: 11.5,
                   ),
                 ),

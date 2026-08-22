@@ -66,7 +66,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new,
             color: Color(0xFF0F172A),
             size: 20,
@@ -76,7 +76,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
         title: Text(
           'top_doctors'.tr(),
           style: GoogleFonts.poppins(
-            color: const Color(0xFF0F172A),
+            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -137,7 +137,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
@@ -180,7 +180,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
                                     Text(
                                       name,
                                       style: GoogleFonts.poppins(
-                                        color: const Color(0xFF0F172A),
+                                        color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -191,7 +191,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
                                     Text(
                                       specialty,
                                       style: GoogleFonts.poppins(
-                                        color: const Color(0xFF64748B),
+                                        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                       ),

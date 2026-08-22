@@ -132,7 +132,7 @@ class _VirtualWaitingRoomScreenState extends State<VirtualWaitingRoomScreen>
                     color: const Color(0xFF10B981).withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check_circle,
                     color: Color(0xFF10B981),
                     size: 60,
@@ -152,7 +152,7 @@ class _VirtualWaitingRoomScreenState extends State<VirtualWaitingRoomScreen>
                   'پزیشک ئێستا ئامادەیە بۆ بینینت.\nتکایە بچۆ ژووری ژمارە ٣.',
                   textAlign: TextAlign.center,
                   style: _kStyle(
-                    color: const Color(0xFF64748B),
+                    color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     fontSize: 13.5,
                     height: 1.5,
                   ),

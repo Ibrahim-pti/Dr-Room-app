@@ -61,8 +61,8 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
 
     return Container(
       height: size.height * 0.88,
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
@@ -99,7 +99,7 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
                     color: const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.shield_outlined,
                     color: Color(0xFF2563EB),
                     size: 24,
@@ -115,7 +115,7 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
                         style: GoogleFonts.poppins(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -123,7 +123,7 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
                         'last_updated'.tr(),
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: const Color(0xFF64748B),
+                          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                         ),
                       ),
                     ],
@@ -137,7 +137,7 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
                       color: const Color(0xFFF1F5F9),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close_rounded,
                       size: 18,
                       color: Color(0xFF64748B),
@@ -157,7 +157,7 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
               height: 48,
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: TabBar(
@@ -165,7 +165,7 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
                 indicator: BoxDecoration(
-                  color: Colors.white,
+                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
@@ -584,7 +584,7 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
-                        color: const Color(0xFF64748B),
+                        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                         height: 1.5,
                       ),
                     ),

@@ -302,7 +302,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                         ? 'پارەدان بە دەست لە کاتی سەردان یان وەرگرتنی نموونە'
                                         : 'تەواوکردنی پارەدان لە ڕێگەی ئۆنلاین',
                                     style: _kStyle(
-                                      color: const Color(0xFF64748B),
+                                      color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                       fontSize: 11.5,
                                     ),
                                   ),
@@ -457,7 +457,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
       crossAxisAlignment: isTotal ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
         if (!isTotal) ...[
-          Icon(icon, size: 17, color: const Color(0xFF64748B)),
+          Icon(icon, size: 17, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
           const SizedBox(width: 10),
         ],
         Expanded(
@@ -496,7 +496,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: _kStyle(
-                    color: const Color(0xFF0F172A),
+                    color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                   ),

@@ -118,9 +118,9 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               child: TextField(
                 controller: _searchController,
@@ -144,7 +144,7 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
                             _searchController.clear();
                             setState(() => _searchQuery = '');
                           },
-                          child: const Icon(
+                          child: Icon(
                             Icons.close,
                             color: Color(0xFF94A3B8),
                             size: 18,
@@ -167,9 +167,9 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               child: TabBar(
                 controller: _tabController,
@@ -267,9 +267,9 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
             margin: const EdgeInsets.only(bottom: 14),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
             child: Column(
               children: [

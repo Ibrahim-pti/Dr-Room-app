@@ -302,8 +302,8 @@ class _NurseListScreenState extends State<NurseListScreen> {
           builder: (context, setModalState) {
             return Container(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 30),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(32),
                   topRight: Radius.circular(32),
@@ -336,7 +336,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                           style: _kStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0F172A),
+                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                           ),
                         ),
                         GestureDetector(
@@ -571,12 +571,12 @@ class _NurseListScreenState extends State<NurseListScreen> {
                                   ),
                                 ],
                               ),
-                              child: const Icon(Iconsax.search_normal_1, size: 48, color: Color(0xFF94A3B8)),
+                              child: Icon(Iconsax.search_normal_1, size: 48, color: Color(0xFF94A3B8)),
                             ),
                             const SizedBox(height: 24),
                             Text(
                               _tr('no_nurses', context),
-                              style: _kStyle(color: const Color(0xFF475569), fontSize: 16, fontWeight: FontWeight.bold),
+                              style: _kStyle(color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)), fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1),
@@ -619,18 +619,18 @@ class _NurseListScreenState extends State<NurseListScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
-              child: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0F172A), size: 16),
+              child: Icon(Icons.arrow_back_ios_new, color: Color(0xFF0F172A), size: 16),
             ),
           ),
         ),
       ),
       title: Text(
         _tr('all_nurses', context),
-        style: _kStyle(color: const Color(0xFF0F172A), fontSize: 17, fontWeight: FontWeight.bold),
+        style: _kStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)), fontSize: 17, fontWeight: FontWeight.bold),
       ),
       actions: const [SizedBox(width: 64)],
     );
@@ -652,18 +652,18 @@ class _NurseListScreenState extends State<NurseListScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   ),
                   child: Row(
                     children: [
                       const SizedBox(width: 16),
-                      const Icon(Iconsax.search_normal_1, color: Color(0xFF94A3B8), size: 20),
+                      Icon(Iconsax.search_normal_1, color: Color(0xFF94A3B8), size: 20),
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: _searchCtrl,
                           onChanged: (_) => _filterNurses(),
-                          style: _kStyle(color: const Color(0xFF0F172A), fontSize: 14),
+                          style: _kStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)), fontSize: 14),
                           decoration: InputDecoration(
                             hintText: _tr('search', context),
                             hintStyle: _kStyle(color: const Color(0xFF94A3B8), fontSize: 13),
@@ -804,7 +804,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
             color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
@@ -861,7 +861,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                     style: _kStyle(
                       fontSize: 15.5,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -871,7 +871,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                   // 2. Middle Row: Location Pin + City + Rating Badge beside it
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Iconsax.location,
                         color: Color(0xFF0D9488),
                         size: 14,
@@ -882,7 +882,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
                           _getLocalizedCityName(
                               '${city.isNotEmpty ? city : 'Erbil'}', context),
                           style: _kStyle(
-                            color: const Color(0xFF64748B),
+                            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             fontSize: 12,
                             fontWeight: FontWeight.normal,
                           ),

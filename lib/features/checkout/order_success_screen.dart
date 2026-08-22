@@ -59,7 +59,7 @@ class OrderSuccessScreen extends StatelessWidget {
                             child: Container(
                               width: 68,
                               height: 68,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 color: Color(0xFF10B981),
                                 shape: BoxShape.circle,
                               ),
@@ -107,7 +107,7 @@ class OrderSuccessScreen extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Iconsax.receipt_1, color: Color(0xFF2563EB), size: 16),
+                              Icon(Iconsax.receipt_1, color: Color(0xFF2563EB), size: 16),
                               const SizedBox(width: 6),
                               Text(
                                 '${'order_id'.tr()}: #$orderId',
@@ -167,7 +167,7 @@ class OrderSuccessScreen extends StatelessWidget {
                               Text(
                                 'order_received_desc'.tr(),
                                 style: _kStyle(
-                                  color: const Color(0xFF64748B),
+                                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                   fontSize: 12.5,
                                   height: 1.6,
                                 ),

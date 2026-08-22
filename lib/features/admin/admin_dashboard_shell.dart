@@ -70,7 +70,7 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
               child: Container(
                 height: 70,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                   borderRadius: BorderRadius.circular(35),
                   boxShadow: [
                     BoxShadow(

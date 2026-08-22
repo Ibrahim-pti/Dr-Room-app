@@ -285,8 +285,8 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: EdgeInsets.only(
@@ -315,13 +315,13 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                 style: _kStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'تکایە ئەستێرە دیاری بکە و ڕا و بۆچوونی خۆت بنووسە دەربارەی خزمەتگوزارییەکان:',
-                style: _kStyle(fontSize: 12, color: const Color(0xFF64748B)),
+                style: _kStyle(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
               ),
               const SizedBox(height: 16),
 
@@ -357,7 +357,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               TextField(
                 controller: commentController,
                 maxLines: 3,
-                style: _kStyle(fontSize: 13, color: const Color(0xFF0F172A)),
+                style: _kStyle(fontSize: 13, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A))),
                 decoration: InputDecoration(
                   hintText:
                       'سەرنج و بۆچوونی خۆت لێرە بنووسە (ئارەزوومەندانە)...',
@@ -366,7 +366,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     color: const Color(0xFF94A3B8),
                   ),
                   filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
+                  fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -505,7 +505,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               ClipPath(
                 clipper: const HeroCurveClipper(),
                 child: Container(
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -555,12 +555,10 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                         width: 42,
                         height: 42,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.95),
+                          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white.withValues(alpha: 0.95),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(
-                              0xFFE2E8F0,
-                            ).withValues(alpha: 0.8),
+                            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0).withValues(alpha: 0.8),
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -587,12 +585,10 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                         width: 42,
                         height: 42,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.95),
+                          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white.withValues(alpha: 0.95),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(
-                              0xFFE2E8F0,
-                            ).withValues(alpha: 0.8),
+                            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0).withValues(alpha: 0.8),
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -606,7 +602,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                           _isFavorite ? Icons.favorite_rounded : Iconsax.heart,
                           color: _isFavorite
                               ? const Color(0xFFEF4444)
-                              : const Color(0xFF0F172A),
+                              : (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                           size: 19,
                         ),
                       ),
@@ -623,15 +619,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         // ── Name Centered (Matching Lab Details Screen) ──
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            name.isNotEmpty ? name : 'پەرستار',
-            textAlign: TextAlign.center,
-            style: _kStyle(
-              fontSize: 18.5,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF0F172A),
-            ),
-          ),
+          child: Text(name.isNotEmpty ? name : 'پەرستار', textAlign: TextAlign.center, style: _kStyle(fontSize: 18.5, fontWeight: FontWeight.bold)),
         ),
         const SizedBox(height: 6),
 
@@ -640,11 +628,11 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Iconsax.location, color: Color(0xFF3B82F6), size: 14),
+            Icon(Iconsax.location, color: Color(0xFF3B82F6), size: 14),
             const SizedBox(width: 4),
             Text(
               _cityKurdish(city.isNotEmpty ? city : 'Erbil'),
-              style: _kStyle(color: const Color(0xFF475569), fontSize: 12),
+              style: _kStyle(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569), fontSize: 12),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -744,12 +732,13 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     required Color bgColor,
     required Color borderColor,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: isDark ? color.withValues(alpha: 0.15) : bgColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: isDark ? color.withValues(alpha: 0.35) : borderColor),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -835,12 +824,13 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     required Color bgColor,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: isDark ? color.withValues(alpha: 0.15) : bgColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
@@ -876,9 +866,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: tabs.map((t) {
@@ -891,7 +881,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
+                  color: isSelected ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : Colors.white) : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: isSelected
                       ? [
@@ -919,8 +909,8 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                         t['title'] as String,
                         style: _kStyle(
                           color: isSelected
-                              ? const Color(0xFF0F172A)
-                              : const Color(0xFF64748B),
+                              ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A))
+                              : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                           fontSize: 11.5,
                           fontWeight: isSelected
                               ? FontWeight.bold
@@ -947,9 +937,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -957,7 +947,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           // Header Row with inline rating
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.star_rounded,
                 color: Color(0xFFD97706),
                 size: 18,
@@ -968,7 +958,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                 style: _kStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1076,7 +1066,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                                 style: _kStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF0F172A),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -1100,7 +1090,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                               overflow: TextOverflow.ellipsis,
                               style: _kStyle(
                                 fontSize: 12,
-                                color: const Color(0xFF64748B),
+                                color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                 height: 1.4,
                               ),
                             ),
@@ -1142,23 +1132,23 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Iconsax.user, color: Color(0xFF0D9488), size: 18),
+              Icon(Iconsax.user, color: Color(0xFF0D9488), size: 18),
               const SizedBox(width: 8),
               Text(
                 'دەربارەی پەرستار',
                 style: _kStyle(
                   fontSize: 15.5,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
             ],
@@ -1169,7 +1159,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               bio,
               style: _kStyle(
                 fontSize: 13.5,
-                color: const Color(0xFF475569),
+                color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                 height: 1.6,
               ),
             ),
@@ -1184,19 +1174,19 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
+              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2563EB).withValues(alpha: 0.18) : const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Iconsax.call, color: Color(0xFF3B82F6), size: 20),
+            child: Icon(Iconsax.call, color: Color(0xFF3B82F6), size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1205,13 +1195,13 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               children: [
                 Text(
                   'ژمارەی پەیوەندی',
-                  style: _kStyle(color: const Color(0xFF64748B), fontSize: 11),
+                  style: _kStyle(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 11),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   phone,
                   style: _kStyle(
-                    color: const Color(0xFF0F172A),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1257,9 +1247,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         ),
         child: Column(
           children: [
@@ -1278,23 +1268,23 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Iconsax.health, color: Color(0xFF0D9488), size: 18),
+              Icon(Iconsax.health, color: Color(0xFF0D9488), size: 18),
               const SizedBox(width: 8),
               Text(
                 'پسپۆڕی و بوارەکان (${allSpecialties.length})',
                 style: _kStyle(
                   fontSize: 15.5,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
             ],
@@ -1340,7 +1330,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     child: Text(
                       s,
                       style: _kStyle(
-                        color: const Color(0xFF0F172A),
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1381,7 +1371,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Iconsax.money_recive,
                   color: Color(0xFF0D9488),
                   size: 18,
@@ -1390,7 +1380,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                 Text(
                   'نرخی خزمەتگوزاری',
                   style: _kStyle(
-                    color: const Color(0xFF475569),
+                    color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                     fontSize: 13,
                   ),
                 ),

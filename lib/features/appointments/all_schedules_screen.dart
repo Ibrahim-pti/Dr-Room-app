@@ -217,7 +217,7 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                         Text(
                           appointment.doctorSpecialty,
                           style: _kStyle(
-                            color: const Color(0xFF64748B),
+                            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             fontSize: 12.5,
                           ),
                           maxLines: 1,

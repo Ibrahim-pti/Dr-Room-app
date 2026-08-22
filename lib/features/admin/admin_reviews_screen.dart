@@ -87,7 +87,7 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           ),
           child: Text(
             review['comment'] ?? '(بێ کۆمێنت)',

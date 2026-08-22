@@ -24,9 +24,9 @@ class AdminUi {
   );
 
   static BoxDecoration get cardDecoration => BoxDecoration(
-        color: Colors.white,
+        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -276,7 +276,7 @@ class AdminUi {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: TextField(
         controller: controller,
@@ -354,8 +354,8 @@ class AdminUi {
             void setError(String? message) => setSheetState(() => errorMessage = message);
 
             return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
               padding: EdgeInsets.only(
@@ -386,7 +386,7 @@ class AdminUi {
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         child: IconButton(
                           onPressed: () => Navigator.of(ctx).pop(),

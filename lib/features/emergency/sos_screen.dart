@@ -276,7 +276,7 @@ class _SosScreenState extends State<SosScreen> {
           child: CircleAvatar(
             backgroundColor: Colors.white,
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black),
+              icon: Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -290,7 +290,7 @@ class _SosScreenState extends State<SosScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8)],
               ),

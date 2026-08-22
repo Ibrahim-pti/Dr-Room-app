@@ -1239,7 +1239,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'تکایە ئەستێرە دیاری بکە و ڕا و بۆچوونی خۆت بنووسە دەربارەی خزمەتگوزاری و دەرمانەکان:',
-                  style: _kStyle(fontSize: 12, color: const Color(0xFF64748B)),
+                  style: _kStyle(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                 ),
                 const SizedBox(height: 16),
 

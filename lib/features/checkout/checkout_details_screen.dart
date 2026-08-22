@@ -401,7 +401,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                     ? 'fill_lab_patient_details'.tr()
                                     : 'provide_person_details'.tr(),
                                 style: _kStyle(
-                                  color: const Color(0xFF64748B),
+                                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                   fontSize: 12.5,
                                 ),
                               ),
@@ -511,7 +511,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                   ).withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Iconsax.location,
                                   color: Color(0xFF10B981),
                                   size: 18,
@@ -563,7 +563,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                 _locationDetails,
                                 style: _kStyle(
                                   fontSize: 12.5,
-                                  color: const Color(0xFF475569),
+                                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -751,7 +751,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           style: _kStyle(
             fontSize: 13.5,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0F172A),
+            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
           ),
         ),
         const SizedBox(height: 8),
@@ -845,7 +845,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           style: _kStyle(
             fontSize: 13.5,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0F172A),
+            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
           ),
         ),
         const SizedBox(height: 8),
@@ -857,7 +857,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           style: _kStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF0F172A),
+            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
           ),
           autovalidateMode: _hasSubmitted
               ? AutovalidateMode.onUserInteraction
@@ -868,15 +868,15 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
             hintText: hint,
             hintTextDirection: textDirection,
             hintStyle: _kStyle(color: const Color(0xFF94A3B8), fontSize: 13),
-            errorStyle: const TextStyle(
+            errorStyle: TextStyle(
               fontFamily: 'Rabar',
               color: Color(0xFFEF4444),
               fontSize: 11,
               fontWeight: FontWeight.bold,
             ),
-            prefixIcon: Icon(icon, color: const Color(0xFF64748B), size: 18),
+            prefixIcon: Icon(icon, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)), size: 18),
             filled: true,
-            fillColor: const Color(0xFFF8FAFC),
+            fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
             contentPadding: const EdgeInsets.symmetric(
               vertical: 14,
               horizontal: 16,
@@ -926,7 +926,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           style: _kStyle(
             fontSize: 13.5,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0F172A),
+            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
           ),
         ),
         const SizedBox(height: 8),

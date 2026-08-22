@@ -119,9 +119,9 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               child: TextField(
                 controller: _searchController,
@@ -145,7 +145,7 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
                             _searchController.clear();
                             setState(() => _searchQuery = '');
                           },
-                          child: const Icon(
+                          child: Icon(
                             Icons.close,
                             color: Color(0xFF94A3B8),
                             size: 18,
@@ -168,9 +168,9 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               child: TabBar(
                 controller: _tabController,
@@ -266,9 +266,9 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
             margin: const EdgeInsets.only(bottom: 14),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
             child: Column(
               children: [
@@ -421,8 +421,8 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
@@ -453,7 +453,7 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(ctx),
-                    icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                    icon: Icon(Icons.close, color: Color(0xFF64748B)),
                   ),
                 ],
               ),
@@ -489,7 +489,7 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
                               children: [
                                 Text(
                                   name,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -551,7 +551,7 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -642,11 +642,11 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF64748B), size: 18),
+          Icon(icon, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)), size: 18),
           const SizedBox(width: 10),
           Text('$title: ', style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFF64748B))),
           Expanded(

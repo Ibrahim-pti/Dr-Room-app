@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 20),
             height: 155,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
               borderRadius: BorderRadius.circular(24),
             ),
           ),
@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: index == 0 ? 20 : 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),

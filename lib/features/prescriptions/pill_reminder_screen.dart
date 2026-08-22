@@ -371,11 +371,11 @@ class _PillReminderScreenState extends State<PillReminderScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.access_time, size: 12, color: Color(0xFF64748B)),
+                                Icon(Icons.access_time, size: 12, color: Color(0xFF64748B)),
                                 const SizedBox(width: 4),
                                 Text(
                                   item['time'] as String,
-                                  style: _kStyle(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF64748B)),
+                                  style: _kStyle(fontSize: 11, fontWeight: FontWeight.bold, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                                 ),
                               ],
                             ),

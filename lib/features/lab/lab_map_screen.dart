@@ -134,7 +134,7 @@ class _LabMapScreenState extends State<LabMapScreen> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
@@ -167,7 +167,7 @@ class _LabMapScreenState extends State<LabMapScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
@@ -180,12 +180,12 @@ class _LabMapScreenState extends State<LabMapScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.gps_fixed_rounded, color: Color(0xFF3B82F6), size: 18),
+                        Icon(Icons.gps_fixed_rounded, color: Color(0xFF3B82F6), size: 18),
                         const SizedBox(width: 6),
                         Text(
                           'شوێنی تاقیگە',
                           style: _kStyle(
-                            color: const Color(0xFF0F172A),
+                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                           ),
@@ -212,7 +212,7 @@ class _LabMapScreenState extends State<LabMapScreen> {
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
@@ -234,7 +234,7 @@ class _LabMapScreenState extends State<LabMapScreen> {
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
@@ -244,7 +244,7 @@ class _LabMapScreenState extends State<LabMapScreen> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.remove, color: Color(0xFF0F172A), size: 20),
+                    child: Icon(Icons.remove, color: Color(0xFF0F172A), size: 20),
                   ),
                 ),
               ],
@@ -259,7 +259,7 @@ class _LabMapScreenState extends State<LabMapScreen> {
             child: Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
@@ -283,7 +283,7 @@ class _LabMapScreenState extends State<LabMapScreen> {
                           style: _kStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0F172A),
+                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -298,7 +298,7 @@ class _LabMapScreenState extends State<LabMapScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 14),
+                            Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 14),
                             const SizedBox(width: 3),
                             Text(
                               rating,
@@ -324,7 +324,7 @@ class _LabMapScreenState extends State<LabMapScreen> {
                         child: Text(
                           location,
                           style: _kStyle(
-                            color: const Color(0xFF64748B),
+                            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             fontSize: 12.5,
                           ),
                           maxLines: 1,
@@ -336,12 +336,12 @@ class _LabMapScreenState extends State<LabMapScreen> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Iconsax.clock, color: Color(0xFF10B981), size: 15),
+                      Icon(Iconsax.clock, color: Color(0xFF10B981), size: 15),
                       const SizedBox(width: 6),
                       Text(
                         openingHours,
                         style: _kStyle(
-                          color: const Color(0xFF64748B),
+                          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                           fontSize: 12.5,
                         ),
                       ),

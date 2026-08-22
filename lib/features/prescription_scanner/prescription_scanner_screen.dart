@@ -186,7 +186,7 @@ class _PrescriptionScannerScreenState extends State<PrescriptionScannerScreen> {
                       color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.document_scanner_rounded,
                       color: Colors.white,
                       size: 28,
@@ -268,7 +268,7 @@ class _PrescriptionScannerScreenState extends State<PrescriptionScannerScreen> {
                       textAlign: TextAlign.center,
                       style: _kStyle(
                         fontSize: 12.5,
-                        color: const Color(0xFF64748B),
+                        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -382,11 +382,11 @@ class _PrescriptionScannerScreenState extends State<PrescriptionScannerScreen> {
                       }),
                       child: Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: Colors.black54,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.refresh,
                           color: Colors.white,
                           size: 20,
@@ -497,7 +497,7 @@ class _PrescriptionScannerScreenState extends State<PrescriptionScannerScreen> {
                             'ژەم: ${med.frequency}',
                             style: _kStyle(
                               fontSize: 12.5,
-                              color: const Color(0xFF64748B),
+                              color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             ),
                           ),
                         ],
@@ -505,7 +505,7 @@ class _PrescriptionScannerScreenState extends State<PrescriptionScannerScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.restaurant_outlined,
                             color: Color(0xFF64748B),
                             size: 15,
@@ -515,7 +515,7 @@ class _PrescriptionScannerScreenState extends State<PrescriptionScannerScreen> {
                             'کاتی خواردن: ${med.timing}',
                             style: _kStyle(
                               fontSize: 12.5,
-                              color: const Color(0xFF64748B),
+                              color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             ),
                           ),
                         ],

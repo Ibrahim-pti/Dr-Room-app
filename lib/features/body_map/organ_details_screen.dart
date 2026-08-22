@@ -483,7 +483,7 @@ class _OrganDetailsScreenState extends State<OrganDetailsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(

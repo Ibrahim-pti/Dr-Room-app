@@ -102,7 +102,7 @@ class PaymentMethodScreen extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Iconsax.card_tick,
                               color: Color(0xFF3B82F6),
                               size: 14,
@@ -135,7 +135,7 @@ class PaymentMethodScreen extends StatelessWidget {
                       Text(
                         'تکایە یەکێک لەم شێوازانە هەڵبژێرە بۆ تەواوکردنی داواکارییەکەت',
                         style: _kStyle(
-                          color: const Color(0xFF64748B),
+                          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                           fontSize: 13,
                         ),
                       ).animate().fadeIn(delay: 100.ms),
@@ -426,7 +426,7 @@ class PaymentMethodScreen extends StatelessWidget {
                   Text(
                     subtitle,
                     style: _kStyle(
-                      color: const Color(0xFF64748B),
+                      color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       fontSize: 11.5,
                     ),
                   ),

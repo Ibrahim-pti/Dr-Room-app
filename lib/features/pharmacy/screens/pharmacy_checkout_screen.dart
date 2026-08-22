@@ -192,7 +192,7 @@ class _PharmacyCheckoutScreenState
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: _kStyle(color: const Color(0xFF64748B), fontSize: 13.5),
+          labelStyle: _kStyle(color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)), fontSize: 13.5),
           hintText: hint,
           hintStyle: _kStyle(color: const Color(0xFF94A3B8), fontSize: 13),
           prefixIcon: Icon(icon, color: const Color(0xFF3B82F6), size: 20),
@@ -283,7 +283,7 @@ class _PharmacyCheckoutScreenState
                               color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Iconsax.user, color: Color(0xFF3B82F6), size: 18),
+                            child: Icon(Iconsax.user, color: Color(0xFF3B82F6), size: 18),
                           ),
                           const SizedBox(width: 10),
                           Text(
@@ -355,7 +355,7 @@ class _PharmacyCheckoutScreenState
                             Expanded(
                               child: Text(
                                 _addressText,
-                                style: _kStyle(fontSize: 12.5, color: const Color(0xFF475569)),
+                                style: _kStyle(fontSize: 12.5, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569))),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),

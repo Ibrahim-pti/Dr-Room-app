@@ -34,7 +34,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                   Container(
                     height: 410,
                     width: double.infinity,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -69,9 +69,9 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                     end: 0,
                     height: 60,
                     child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(
+                      decoration: BoxDecoration(
+                        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
+                        borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(30),
                         ),
                       ),
@@ -97,11 +97,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                                     child: Container(
                                       width: 46,
                                       height: 46,
-                                      decoration: const BoxDecoration(
+                                      decoration: BoxDecoration(
                                         color: Colors.white,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.chevron_left_rounded,
                                         color: Color(0xFF0F172A),
                                         size: 26,
@@ -111,7 +111,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                                   Text(
                                     'Details',
                                     style: GoogleFonts.poppins(
-                                      color: const Color(0xFF0F172A),
+                                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -119,11 +119,11 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                                   Container(
                                     width: 46,
                                     height: 46,
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                       color: Colors.white,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.share_outlined,
                                       color: Color(0xFF0F172A),
                                       size: 22,
@@ -144,7 +144,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
@@ -159,7 +159,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.star_rounded,
                                       color: Color(0xFFFBBF24),
                                       size: 20,
@@ -168,7 +168,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                                     Text(
                                       '4.9',
                                       style: GoogleFonts.poppins(
-                                        color: const Color(0xFF0F172A),
+                                        color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -232,7 +232,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                                 horizontal: 16,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
@@ -283,7 +283,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                   Text(
                     'Details',
                     style: GoogleFonts.poppins(
-                      color: const Color(0xFF0F172A),
+                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
@@ -292,7 +292,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                   RichText(
                     text: TextSpan(
                       style: GoogleFonts.poppins(
-                        color: const Color(0xFF475569),
+                        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
                         fontSize: 14,
                         height: 1.6,
                       ),
@@ -304,7 +304,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                         TextSpan(
                           text: 'See more',
                           style: GoogleFonts.poppins(
-                            color: const Color(0xFF0F172A),
+                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -326,7 +326,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                   Text(
                     'Select Date',
                     style: GoogleFonts.poppins(
-                      color: const Color(0xFF0F172A),
+                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
@@ -337,14 +337,14 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Iconsax.calendar_1,
                           size: 16,
                           color: Color(0xFF475569),
@@ -353,7 +353,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
                         Text(
                           'Jan 12',
                           style: GoogleFonts.poppins(
-                            color: const Color(0xFF475569),
+                            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -435,7 +435,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 24, color: const Color(0xFF0F172A)),
+        Icon(icon, size: 24, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A))),
         const SizedBox(width: 8),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -452,7 +452,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
             Text(
               label,
               style: GoogleFonts.poppins(
-                color: const Color(0xFF64748B),
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
               ),

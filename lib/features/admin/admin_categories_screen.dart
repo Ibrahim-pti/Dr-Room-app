@@ -286,7 +286,7 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
             onPressed: () => _toggleActive(category),
             tooltip: isActive ? 'ناچالاککردن' : 'چالاککردن',
             icon: Icon(isActive ? Iconsax.eye : Iconsax.eye_slash,
-                size: 18, color: const Color(0xFF64748B)),
+                size: 18, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
           ),
           IconButton(
             onPressed: () => _openForm(existing: category),

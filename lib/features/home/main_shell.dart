@@ -270,7 +270,7 @@ class _MainShellState extends State<MainShell> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -303,7 +303,7 @@ class _MainShellState extends State<MainShell> {
                           color: Colors.white.withValues(alpha: 0.16),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.close,
                           color: Colors.white,
                           size: 20,
@@ -338,7 +338,7 @@ class _MainShellState extends State<MainShell> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(

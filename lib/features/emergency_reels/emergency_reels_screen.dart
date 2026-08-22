@@ -596,7 +596,7 @@ class _EmergencyReelsScreenState extends State<EmergencyReelsScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Iconsax.star_1,
                                 color: Colors.amber,
                                 size: 14,
@@ -663,7 +663,7 @@ class _EmergencyReelsScreenState extends State<EmergencyReelsScreen> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Row(

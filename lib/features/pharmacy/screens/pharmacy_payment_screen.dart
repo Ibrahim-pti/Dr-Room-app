@@ -146,7 +146,7 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? const Color(0xFF3B82F6) : Colors.grey.withValues(alpha: 0.2),

@@ -411,18 +411,33 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final String name = context.localizedField(_labData, 'name', fallback: 'cat_lab'.tr());
-    final String location = context.localizedField(_labData, 'location', fallback: context.localizedField(_labData, 'address', fallback: ''));
+    final String name = context.localizedField(
+      _labData,
+      'name',
+      fallback: 'cat_lab'.tr(),
+    );
+    final String location = context.localizedField(
+      _labData,
+      'location',
+      fallback: context.localizedField(_labData, 'address', fallback: ''),
+    );
     final String rating = '${_labData['rating'] ?? 4.8}';
     final discount = _labData['discount'];
-    final String openingHours =
-        context.localizedField(_labData, 'opening_hours', fallback: '08:00 AM - 10:00 PM');
-    final String aboutUs =
-        context.localizedField(_labData, 'about_us', fallback: context.localizedField(_labData, 'bio', fallback: ''));
-
+    final String openingHours = context.localizedField(
+      _labData,
+      'opening_hours',
+      fallback: '08:00 AM - 10:00 PM',
+    );
+    final String aboutUs = context.localizedField(
+      _labData,
+      'about_us',
+      fallback: context.localizedField(_labData, 'bio', fallback: ''),
+    );
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
       appBar: _buildAppBar(context),
       body: Stack(
         children: [
@@ -488,7 +503,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
@@ -502,9 +519,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E293B)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.03),
@@ -527,7 +550,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         style: _kStyle(
           fontSize: 17,
           fontWeight: FontWeight.bold,
-          color: const Color(0xFF0F172A),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : const Color(0xFF0F172A),
         ),
       ),
       actions: [
@@ -541,9 +566,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E293B)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.03),
@@ -556,7 +587,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 _isFavorite ? Icons.favorite_rounded : Iconsax.heart,
                 color: _isFavorite
                     ? const Color(0xFFEF4444)
-                    : const Color(0xFF0F172A),
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : const Color(0xFF0F172A)),
                 size: 19,
               ),
             ),
@@ -737,9 +770,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E293B)
+            : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF334155)
+              : const Color(0xFFE2E8F0),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -758,7 +797,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             style: _kStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF0F172A),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : const Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 6),
@@ -773,7 +814,12 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               Flexible(
                 child: Text(
                   location,
-                  style: _kStyle(color: const Color(0xFF475569), fontSize: 12),
+                  style: _kStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF475569),
+                    fontSize: 12,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -847,7 +893,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             onTap: _showReviewBottomSheet,
           ),
         ),
-
       ],
     );
   }
@@ -904,9 +949,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: (Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E293B)
+            : const Color(0xFFF1F5F9)),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF334155)
+              : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Row(
         children: tabs.map((t) {
@@ -919,7 +970,11 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
+                  color: isSelected
+                      ? (Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF334155)
+                            : Colors.white)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: isSelected
                       ? [
@@ -992,9 +1047,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 3),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: (Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1E293B)
+                  : Colors.white),
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
+              ),
             ),
             child: Row(
               children: [
@@ -1016,7 +1077,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                         style: _kStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1025,7 +1088,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                         h['desc'] as String,
                         style: _kStyle(
                           fontSize: 10,
-                          color: const Color(0xFF64748B),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -1044,9 +1109,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E293B)
+            : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF334155)
+              : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1064,7 +1135,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 style: _kStyle(
                   fontSize: 15.5,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : const Color(0xFF0F172A),
                 ),
               ),
             ],
@@ -1074,7 +1147,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             aboutUs,
             style: _kStyle(
               fontSize: 13.5,
-              color: const Color(0xFF475569),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFFCBD5E1)
+                  : const Color(0xFF475569),
               height: 1.6,
             ),
           ),
@@ -1202,9 +1277,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: (Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E293B)
+            : Colors.white),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF334155)
+              : const Color(0xFFE2E8F0),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -1240,9 +1321,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E293B)
+            : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF334155)
+              : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1263,7 +1350,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     style: _kStyle(
                       fontSize: 15.5,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : const Color(0xFF0F172A),
                     ),
                   ),
                 ],
@@ -1319,7 +1408,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     style: _kStyle(
                       fontSize: 38,
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF0F172A),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : const Color(0xFF0F172A),
                       height: 1.1,
                     ),
                   ),
@@ -1342,7 +1433,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     'لە کۆی $reviewsCount فیدباک',
                     style: _kStyle(
                       fontSize: 11.5,
-                      color: const Color(0xFF64748B),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -1403,7 +1496,11 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                                     style: _kStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF0F172A),
+                                      color:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
                                     ),
                                   ),
                                   if (date.isNotEmpty) ...[
@@ -1426,7 +1523,11 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color:
+                                  (Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? const Color(0xFF1E293B)
+                                  : Colors.white),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: const Color(0xFFFDE68A),
@@ -1459,7 +1560,10 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                           comment,
                           style: _kStyle(
                             fontSize: 12,
-                            color: const Color(0xFF475569),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFFCBD5E1)
+                                : const Color(0xFF475569),
                             height: 1.6,
                           ),
                         ),
@@ -1491,7 +1595,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     style: _kStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF64748B),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -1526,11 +1632,16 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             left: 20,
             right: 20,
             top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom + 24,
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom +
+                MediaQuery.of(context).padding.bottom +
+                24,
           ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: (Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1E293B)
+                : Colors.white),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1552,13 +1663,20 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 style: _kStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'تکایە ئەستێرە دیاری بکە و ڕا و بۆچوونی خۆت بنووسە دەربارەی خزمەتگوزارییەکان:',
-                style: _kStyle(fontSize: 12, color: const Color(0xFF64748B)),
+                style: _kStyle(
+                  fontSize: 12,
+                  color: (Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B)),
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -1594,7 +1712,12 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               TextField(
                 controller: commentController,
                 maxLines: 3,
-                style: _kStyle(fontSize: 13, color: const Color(0xFF0F172A)),
+                style: _kStyle(
+                  fontSize: 13,
+                  color: (Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : const Color(0xFF0F172A)),
+                ),
                 decoration: InputDecoration(
                   hintText:
                       'سەرنج و بۆچوونی خۆت لێرە بنووسە (ئارەزوومەندانە)...',
@@ -1603,7 +1726,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     color: const Color(0xFF94A3B8),
                   ),
                   filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -1674,7 +1799,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                                 backgroundColor: Colors.red,
                               ),
                             );
-
                           } finally {
                             if (mounted)
                               setModalState(() => isSubmitting = false);
@@ -1729,7 +1853,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   style: _kStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : const Color(0xFF0F172A),
                   ),
                 ),
               ],
@@ -1828,22 +1954,41 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            context.localizedField(test, 'name', fallback: 'lab_test'.tr()),
+                            context.localizedField(
+                              test,
+                              'name',
+                              fallback: 'lab_test'.tr(),
+                            ),
                             style: _kStyle(
                               fontSize: 13.5,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0F172A),
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            context.localizedField(test, 'desc', fallback: context.localizedField(test, 'description', fallback: test['type']?.toString() ?? '')),
+                            context.localizedField(
+                              test,
+                              'desc',
+                              fallback: context.localizedField(
+                                test,
+                                'description',
+                                fallback: test['type']?.toString() ?? '',
+                              ),
+                            ),
                             style: _kStyle(
                               fontSize: 11,
-                              color: const Color(0xFF64748B),
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
                             ),
                           ),
-
                         ],
                       ),
                     ),
@@ -1947,7 +2092,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   style: _kStyle(
                     fontSize: 15.5,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0F172A),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : const Color(0xFF0F172A),
                   ),
                 ),
               ],
@@ -1987,7 +2134,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             return Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: (Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E293B)
+                    : Colors.white),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isAllSelected
@@ -2037,7 +2186,11 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                                     style: _kStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF0F172A),
+                                      color:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
                                     ),
                                   ),
                                 ),
@@ -2066,7 +2219,11 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                               pkgDesc,
                               style: _kStyle(
                                 fontSize: 11.5,
-                                color: const Color(0xFF64748B),
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
                                 height: 1.4,
                               ),
                             ),
@@ -2089,7 +2246,11 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                             style: _kStyle(
                               fontSize: 14.5,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0F172A),
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                           if (origPrice > price) ...[
@@ -2167,9 +2328,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: (Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E293B)
+            : Colors.white),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF334155)
+              : const Color(0xFFE2E8F0),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -2188,7 +2355,12 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             children: [
               Text(
                 '${_tr('total', context)} (${_selectedTestIds.length})',
-                style: _kStyle(color: const Color(0xFF64748B), fontSize: 11.5),
+                style: _kStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
+                  fontSize: 11.5,
+                ),
               ),
               const SizedBox(height: 2),
               Row(
@@ -2200,7 +2372,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     style: _kStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : const Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -2243,15 +2417,22 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   cart.addItem(
                     CartItem(
                       id: test['id'].toString(),
-                      name: context.localizedField(test, 'name', fallback: 'lab_test'.tr()),
+                      name: context.localizedField(
+                        test,
+                        'name',
+                        fallback: 'lab_test'.tr(),
+                      ),
                       price: p,
                       extraData: {
                         'lab_id': _labData['id'],
-                        'lab_name': context.localizedField(_labData, 'name', fallback: 'cat_lab'.tr()),
+                        'lab_name': context.localizedField(
+                          _labData,
+                          'name',
+                          fallback: 'cat_lab'.tr(),
+                        ),
                         'type': test['type'],
                       },
                     ),
-
                   );
                 }
               }

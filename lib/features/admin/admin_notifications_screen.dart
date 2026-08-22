@@ -376,7 +376,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                     fontFamily: 'Rabar',
                     fontSize: 13,
                   ),
-                  prefixIcon: const Icon(Iconsax.edit_2, color: Color(0xFF3B82F6), size: 20),
+                  prefixIcon: Icon(Iconsax.edit_2, color: Color(0xFF3B82F6), size: 20),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
@@ -473,7 +473,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                               onTap: () => setState(() => _selectedImage = null),
                               child: Container(
                                 padding: const EdgeInsets.all(6),
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: Colors.black54,
                                   shape: BoxShape.circle,
                                 ),
@@ -518,7 +518,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
                     color: const Color(0xFF3B82F6).withValues(alpha: 0.4),

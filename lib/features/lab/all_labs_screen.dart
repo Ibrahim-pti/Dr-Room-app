@@ -306,8 +306,8 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
           builder: (context, setModalState) {
             return Container(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 30),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(32),
                   topRight: Radius.circular(32),
@@ -340,7 +340,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                           style: _kurdishStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF0F172A),
+                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                           ),
                         ),
                         GestureDetector(
@@ -581,7 +581,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                                   ),
                                 ],
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Iconsax.search_normal_1,
                                 size: 48,
                                 color: Color(0xFF94A3B8),
@@ -591,7 +591,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                             Text(
                               _tr('no_labs_found', context),
                               style: _kurdishStyle(
-                                color: const Color(0xFF475569),
+                                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -637,11 +637,11 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_ios_new,
                 color: Color(0xFF0F172A),
                 size: 16,
@@ -653,7 +653,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
       title: Text(
         _tr('all_labs', context),
         style: _kurdishStyle(
-          color: const Color(0xFF0F172A),
+          color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
           fontSize: 17,
           fontWeight: FontWeight.bold,
         ),
@@ -680,12 +680,12 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   ),
                   child: Row(
                     children: [
                       const SizedBox(width: 16),
-                      const Icon(
+                      Icon(
                         Iconsax.search_normal_1,
                         color: Color(0xFF94A3B8),
                         size: 20,
@@ -696,7 +696,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                           controller: _searchCtrl,
                           onChanged: (_) => _filterLabs(),
                           style: _kurdishStyle(
-                            color: const Color(0xFF0F172A),
+                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                             fontSize: 14,
                           ),
                           decoration: InputDecoration(
@@ -814,7 +814,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
             color: const Color(0xFFE2E8F0).withValues(alpha: 0.8),
@@ -851,7 +851,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                         color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(18),
                       ),
-                      child: const Icon(Iconsax.hospital, color: Color(0xFF3B82F6), size: 36),
+                      child: Icon(Iconsax.hospital, color: Color(0xFF3B82F6), size: 36),
                     ),
                   ),
                 ),
@@ -899,7 +899,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                     style: _kurdishStyle(
                       fontSize: 15.5,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF0F172A),
+                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -910,7 +910,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                   // 2. Middle Row: Location Pin + City + Rating Badge beside it
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Iconsax.location,
                         color: Color(0xFF3B82F6),
                         size: 14,
@@ -920,7 +920,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                         child: Text(
                           _getLocalizedCityName('${lab['city'] ?? 'Erbil'}', context),
                           style: _kurdishStyle(
-                            color: const Color(0xFF64748B),
+                            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             fontSize: 12,
                             fontWeight: FontWeight.normal,
                           ),

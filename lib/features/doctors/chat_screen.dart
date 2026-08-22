@@ -215,19 +215,19 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Iconsax.attach_circle, color: Color(0xFF64748B)),
+                    icon: Icon(Iconsax.attach_circle, color: Color(0xFF64748B)),
                     onPressed: () {},
                   ),
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: TextField(
                         controller: _messageController,
-                        style: GoogleFonts.poppins(color: const Color(0xFF0F172A)),
+                        style: GoogleFonts.poppins(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A))),
                         decoration: InputDecoration(
                           hintText: 'type_message'.tr(),
                           hintStyle: GoogleFonts.poppins(color: const Color(0xFF94A3B8)),

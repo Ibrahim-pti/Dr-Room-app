@@ -166,7 +166,7 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
                       color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Iconsax.calendar_tick,
                       color: Color(0xFF8B5CF6),
                       size: 24,
@@ -229,9 +229,9 @@ class _AdminAppointmentsScreenState extends State<AdminAppointmentsScreen> {
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                 ),
                 child: TextField(
                   controller: _searchController,

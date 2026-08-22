@@ -91,12 +91,12 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
             TextField(
               controller: textController,
               autofocus: true,
-              style: const TextStyle(fontFamily: 'Rabar', fontSize: 14),
+              style: TextStyle(fontFamily: 'Rabar', fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'وەک: چاو و بینین، دەمار، منداڵان...',
                 hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 13, color: Color(0xFF94A3B8)),
                 filled: true,
-                fillColor: const Color(0xFFF8FAFC),
+                fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -320,8 +320,8 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
           return StatefulBuilder(
             builder: (context, setModalState) {
               return Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                   borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                 ),
                 padding: EdgeInsets.only(
@@ -352,7 +352,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
                           child: IconButton(
                             onPressed: () => Navigator.of(ctx).pop(),
@@ -462,10 +462,10 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                     height: 12,
                                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                   )
-                                : const Icon(Iconsax.magicpen, size: 13, color: Colors.white),
+                                : Icon(Iconsax.magicpen, size: 13, color: Colors.white),
                             label: Text(
                               isTranslating ? 'وەرگێڕان...' : 'وەرگێڕانی هەموو',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
@@ -488,7 +488,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -918,7 +918,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                 ),
                                 child: selectedImage != null
                                     ? ClipRRect(
@@ -1245,7 +1245,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
             child: Column(
               children: [
@@ -1330,7 +1330,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: TextField(
         controller: controller,
@@ -1478,9 +1478,9 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                                 borderRadius: BorderRadius.circular(18),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.02),
@@ -1503,7 +1503,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                           ? Image.network(
                                               '${ApiClient.storageUrl}/${article['image_path']}',
                                               fit: BoxFit.cover,
-                                              errorBuilder: (c, e, s) => const Icon(
+                                              errorBuilder: (c, e, s) => Icon(
                                                 Iconsax.firstline,
                                                 color: Color(0xFF2563EB),
                                                 size: 26,
@@ -1529,7 +1529,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                             Expanded(
                                               child: Text(
                                                 article['title'] ?? '',
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontFamily: 'Rabar',
                                                   fontSize: 14.5,
                                                   fontWeight: FontWeight.bold,
@@ -1580,7 +1580,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                               child: Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFFF1F5F9),
+                                                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                                                   borderRadius: BorderRadius.circular(8),
                                                 ),
                                                 child: Row(

@@ -222,7 +222,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('items_subtotal'.tr(), style: _kStyle(color: const Color(0xFF64748B), fontSize: 13.5)),
+                            Text('items_subtotal'.tr(), style: _kStyle(color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)), fontSize: 13.5)),
                             Text('${NumberFormat('#,###').format(cartState.subtotal.toInt())} ${'currency_iqd'.tr()}', style: _kStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                           ],
                         ),
@@ -230,7 +230,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('delivery_fee'.tr(), style: _kStyle(color: const Color(0xFF64748B), fontSize: 13.5)),
+                            Text('delivery_fee'.tr(), style: _kStyle(color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)), fontSize: 13.5)),
                             Text('${NumberFormat('#,###').format(cartState.pharmacy?.deliveryFee.toInt() ?? 0)} ${'currency_iqd'.tr()}', style: _kStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                           ],
                         ),

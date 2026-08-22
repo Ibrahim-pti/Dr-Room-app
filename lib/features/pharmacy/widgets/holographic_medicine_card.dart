@@ -49,7 +49,7 @@ class HolographicMedicineCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.6),
+            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)).withValues(alpha: 0.6),
             border: Border(
               top: BorderSide(
                 color: const Color(0xFF3B82F6).withValues(alpha: 0.5),

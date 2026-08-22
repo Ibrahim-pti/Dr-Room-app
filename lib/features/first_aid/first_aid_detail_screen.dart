@@ -257,7 +257,7 @@ class FirstAidDetailScreen extends StatelessWidget {
                               step['desc'].toString(),
                               style: _kStyle(
                                 fontSize: 13,
-                                color: const Color(0xFF64748B),
+                                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                 height: 1.4,
                               ),
                             ),

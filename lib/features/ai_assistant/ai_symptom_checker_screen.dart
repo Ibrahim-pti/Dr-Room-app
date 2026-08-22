@@ -184,7 +184,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen> {
               const SizedBox(height: 4),
               Text(
                 'وێنەی ڕەچەتەی دەستنووس، پاکەتی دەرمان، یان ئەنجامی پشکنین بگرە:',
-                style: _kStyle(fontSize: 12.5, color: const Color(0xFF64748B)),
+                style: _kStyle(fontSize: 12.5, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
               ),
               const SizedBox(height: 20),
               Row(
@@ -308,11 +308,11 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Color(0xFF8B5CF6),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Iconsax.message_programming,
                     color: Colors.white,
                     size: 14,
@@ -422,7 +422,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(

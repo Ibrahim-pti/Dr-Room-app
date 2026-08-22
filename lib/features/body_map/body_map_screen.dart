@@ -955,7 +955,7 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
       curve: Curves.easeOutCubic,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(

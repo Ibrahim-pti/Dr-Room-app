@@ -248,7 +248,7 @@ class _ClinicLocatorScreenState extends State<ClinicLocatorScreen> {
                   CircleAvatar(
                     backgroundColor: Colors.white,
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black),
+                      icon: Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -258,7 +258,7 @@ class _ClinicLocatorScreenState extends State<ClinicLocatorScreen> {
                       height: 50,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                         borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
@@ -292,7 +292,7 @@ class _ClinicLocatorScreenState extends State<ClinicLocatorScreen> {
                   CircleAvatar(
                     backgroundColor: const Color(0xFFEF4444),
                     child: IconButton(
-                      icon: const Icon(Icons.call, size: 18, color: Colors.white),
+                      icon: Icon(Icons.call, size: 18, color: Colors.white),
                       tooltip: 'Call $_emergencyNumber',
                       onPressed: _callEmergency,
                     ),
@@ -310,7 +310,7 @@ class _ClinicLocatorScreenState extends State<ClinicLocatorScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8)],
                 ),

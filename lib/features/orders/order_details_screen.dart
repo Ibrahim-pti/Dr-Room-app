@@ -396,7 +396,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 Text(
                                   'تیمی تەندروستی پەرستاری',
                                   style: _kStyle(
-                                    color: const Color(0xFF64748B),
+                                    color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -455,7 +455,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                   ),
                                 );
                               },
-                              icon: const Icon(
+                              icon: Icon(
                                 Iconsax.call,
                                 size: 16,
                                 color: Color(0xFF3B82F6),
@@ -528,7 +528,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             Text(
                               'دەرمانخانەی جێبەجێکار',
                               style: _kStyle(
-                                color: const Color(0xFF64748B),
+                                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                 fontSize: 12,
                               ),
                             ),
@@ -672,7 +672,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Text(
           label,
           style: _kStyle(
-            color: const Color(0xFF64748B),
+            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
             fontSize: isTotal ? 14.5 : 13.5,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
           ),

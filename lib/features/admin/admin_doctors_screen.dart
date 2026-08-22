@@ -117,9 +117,9 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               child: TextField(
                 controller: _searchController,
@@ -143,7 +143,7 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
                             _searchController.clear();
                             setState(() => _searchQuery = '');
                           },
-                          child: const Icon(
+                          child: Icon(
                             Icons.close,
                             color: Color(0xFF94A3B8),
                             size: 18,
@@ -166,9 +166,9 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               child: TabBar(
                 controller: _tabController,
@@ -266,9 +266,9 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
             margin: const EdgeInsets.only(bottom: 14),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
             child: Column(
               children: [
@@ -433,8 +433,8 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
@@ -468,7 +468,7 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(ctx),
-                    icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                    icon: Icon(Icons.close, color: Color(0xFF64748B)),
                   ),
                 ],
               ),
@@ -488,7 +488,7 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
                       decoration: BoxDecoration(
                         color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       ),
                       child: Row(
                         children: [
@@ -497,7 +497,7 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
                             backgroundColor: const Color(0xFFEFF6FF),
                             backgroundImage: ApiClient.getImageProvider(imagePath),
                             child: imagePath == null
-                                ? const Icon(Iconsax.user, color: Color(0xFF2563EB), size: 30)
+                                ? Icon(Iconsax.user, color: Color(0xFF2563EB), size: 30)
                                 : null,
                           ),
                           const SizedBox(width: 14),
@@ -507,7 +507,7 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
                               children: [
                                 Text(
                                   name,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -577,14 +577,14 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('دەربارە / بیۆگرافی:', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
                             const SizedBox(height: 4),
-                            Text(bio, style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF0F172A), height: 1.4)),
+                            Text(bio, style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF0F172A), height: 1.4)),
                           ],
                         ),
                       ),
@@ -599,7 +599,7 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -691,11 +691,11 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF64748B), size: 18),
+          Icon(icon, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)), size: 18),
           const SizedBox(width: 10),
           Text('$title: ', style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFF64748B))),
           Expanded(
