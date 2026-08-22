@@ -4,6 +4,8 @@ class Medication {
   final String? nameAr;
   final String? nameEn;
   final String? category;
+  final String? categoryAr;
+  final String? categoryEn;
   final String? description;
   final String? descriptionAr;
   final String? descriptionEn;
@@ -22,6 +24,8 @@ class Medication {
     this.nameAr,
     this.nameEn,
     this.category,
+    this.categoryAr,
+    this.categoryEn,
     this.description,
     this.descriptionAr,
     this.descriptionEn,
@@ -67,6 +71,8 @@ class Medication {
       nameAr: json['name_ar'],
       nameEn: json['name_en'],
       category: json['category'],
+      categoryAr: json['category_ar'],
+      categoryEn: json['category_en'],
       description: json['description'],
       descriptionAr: json['description_ar'],
       descriptionEn: json['description_en'],

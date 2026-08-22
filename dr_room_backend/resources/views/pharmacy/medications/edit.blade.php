@@ -53,31 +53,43 @@
                 </div>
             </div>
 
-            <!-- Category, Dosage Form, Price & Stock -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pt-4 border-t border-slate-100">
-                <!-- Category -->
-                <div>
-                    <label for="category" class="block text-xs font-bold text-slate-600 mb-1.5">پۆلێن (کەتەگۆری)</label>
-                    <input type="text" id="category" name="category" list="category_list" value="{{ old('category', $medication->category) }}" placeholder="ناوی کەتەگۆری بنووسە یان هەڵیبژێرە..."
-                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
-                    <datalist id="category_list">
-                        @if(isset($existingCategories))
-                            @foreach($existingCategories as $catName)
-                                <option value="{{ $catName }}">
-                            @endforeach
-                        @endif
-                    </datalist>
+            <!-- Category (Kurdish, Arabic, English) & Dosage Form -->
+            <div class="space-y-4 mb-6 pt-4 border-t border-slate-100">
+                <h4 class="text-xs font-bold text-slate-700">پۆلێن (کەتەگۆری) بە سێ زمان</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="category" class="block text-xs font-bold text-slate-600 mb-1.5">کەتەگۆری (کوردی)</label>
+                        <input type="text" id="category" name="category" list="category_list" value="{{ old('category', $medication->category) }}" placeholder="بۆ نموونە: ئازارشکێن"
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
+                        <datalist id="category_list">
+                            @if(isset($existingCategories))
+                                @foreach($existingCategories as $catName)
+                                    <option value="{{ $catName }}">
+                                @endforeach
+                            @endif
+                        </datalist>
+                    </div>
+                    <div>
+                        <label for="category_ar" class="block text-xs font-bold text-slate-600 mb-1.5">کەتەگۆری (عەرەبی)</label>
+                        <input type="text" id="category_ar" name="category_ar" value="{{ old('category_ar', $medication->category_ar) }}" dir="rtl" placeholder="مسكنات الألم"
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label for="category_en" class="block text-xs font-bold text-slate-600 mb-1.5">کەتەگۆری (ئینگلیزی)</label>
+                        <input type="text" id="category_en" name="category_en" value="{{ old('category_en', $medication->category_en) }}" dir="ltr" placeholder="Pain Relief"
+                            class="w-full text-left px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
+                    </div>
                 </div>
+            </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 pt-4 border-t border-slate-100">
                 <!-- Dosage Form -->
                 <div>
                     <label for="dosage_form" class="block text-xs font-bold text-slate-600 mb-1.5">یەکە / شێواز</label>
                     <input type="text" id="dosage_form" name="dosage_form" value="{{ old('dosage_form', $medication->dosage_form ?? 'پاکەت') }}"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
                 </div>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pt-4 border-t border-slate-100">
                 <!-- Price -->
                 <div>
                     <label for="price" class="block text-xs font-bold text-slate-600 mb-1.5">نرخی فرۆشتن (دینار) <span class="text-red-500">*</span></label>
@@ -161,6 +173,7 @@ async function translateAll() {
 
         const fieldsToTranslate = [
             { source: 'name', ar: 'name_ar', en: 'name_en' },
+            { source: 'category', ar: 'category_ar', en: 'category_en' },
             { source: 'description', ar: 'description_ar', en: 'description_en' }
         ];
 

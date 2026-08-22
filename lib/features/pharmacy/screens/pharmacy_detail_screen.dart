@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart' hide StringTranslateExtension;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,6 +42,17 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
   List<String> _pharmacyGallery = [];
   bool _isLoading = true;
   String _selectedCategory = 'هەمووی';
+
+  String _getCategoryDisplayName(Map<String, String> cat, BuildContext context) {
+    final lang = context.locale.languageCode;
+    if (lang == 'ar' && cat['name_ar'] != null && cat['name_ar']!.isNotEmpty) {
+      return cat['name_ar']!;
+    }
+    if (lang == 'en' && cat['name_en'] != null && cat['name_en']!.isNotEmpty) {
+      return cat['name_en']!;
+    }
+    return cat['name'] ?? '';
+  }
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -107,29 +119,29 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
         _repository.getReviews(widget.pharmacy.id),
       ]);
       final meds = results[0] as List<Medication>;
-      final apiCats = results[1] as List<Map<String, String>>;
       final rawReviews = results[2] as List<dynamic>;
 
       final activeMeds = meds.isNotEmpty ? meds : _fallbackMedications;
 
-      // Extract distinct categories dynamically from the pharmacy's medications!
-      final Set<String> distinctCategories = {};
+      // Extract distinct categories dynamically with translations from medications!
+      final Map<String, Map<String, String>> distinctCategories = {};
       for (final m in activeMeds) {
         if (m.category != null && m.category!.trim().isNotEmpty && m.category != 'هەمووی') {
-          distinctCategories.add(m.category!.trim());
+          final catKey = m.category!.trim();
+          if (!distinctCategories.containsKey(catKey)) {
+            distinctCategories[catKey] = {
+              'name': catKey,
+              'name_ar': (m.categoryAr != null && m.categoryAr!.isNotEmpty) ? m.categoryAr! : catKey,
+              'name_en': (m.categoryEn != null && m.categoryEn!.isNotEmpty) ? m.categoryEn! : catKey,
+            };
+          }
         }
       }
 
       List<Map<String, String>> dynamicCats = [
-        {'name': 'هەمووی'},
+        {'name': 'هەمووی', 'name_ar': 'الكل', 'name_en': 'All'},
+        ...distinctCategories.values,
       ];
-      if (distinctCategories.isNotEmpty) {
-        for (final catName in distinctCategories) {
-          dynamicCats.add({'name': catName});
-        }
-      } else if (apiCats.isNotEmpty) {
-        dynamicCats = apiCats.map((c) => {'name': c['name'] ?? ''}).where((c) => c['name']!.isNotEmpty).toList();
-      }
 
       if (mounted) {
         setState(() {
@@ -146,15 +158,22 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     } catch (_) {
       if (mounted) {
         final activeMeds = _fallbackMedications;
-        final Set<String> distinctCategories = {};
+        final Map<String, Map<String, String>> distinctCategories = {};
         for (final m in activeMeds) {
           if (m.category != null && m.category!.trim().isNotEmpty && m.category != 'هەمووی') {
-            distinctCategories.add(m.category!.trim());
+            final catKey = m.category!.trim();
+            if (!distinctCategories.containsKey(catKey)) {
+              distinctCategories[catKey] = {
+                'name': catKey,
+                'name_ar': (m.categoryAr != null && m.categoryAr!.isNotEmpty) ? m.categoryAr! : catKey,
+                'name_en': (m.categoryEn != null && m.categoryEn!.isNotEmpty) ? m.categoryEn! : catKey,
+              };
+            }
           }
         }
         List<Map<String, String>> dynamicCats = [
-          {'name': 'هەمووی'},
-          ...distinctCategories.map((c) => {'name': c}),
+          {'name': 'هەمووی', 'name_ar': 'الكل', 'name_en': 'All'},
+          ...distinctCategories.values,
         ];
         setState(() {
           _categories = dynamicCats;
@@ -192,6 +211,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       id: 101,
       name: 'Panadol Extra (500mg)',
       category: 'ئازارشکێن',
+      categoryAr: 'مسكنات الألم',
+      categoryEn: 'Pain Relief',
       description: 'ئازارشکێن و دابەزێنەری پلەی گەرمی و ئازاری سەر',
       price: 2000,
       originalPrice: 2750,
@@ -204,6 +225,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       id: 102,
       name: 'Augmentin (1g)',
       category: 'دژەهەوکردن',
+      categoryAr: 'مضادات الالتهاب',
+      categoryEn: 'Anti-inflammatory',
       description: 'دژە هەوکردن بۆ بەکتریای بەهێز',
       price: 9500,
       originalPrice: 12000,
@@ -216,6 +239,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       id: 103,
       name: 'Vitamin C 1000mg',
       category: 'ڤیتامین',
+      categoryAr: 'فيتامينات',
+      categoryEn: 'Vitamins',
       description: 'تەقێنراو - بەهێزکەری بەرگری جەستە و ڤیتامین',
       price: 4500,
       originalPrice: 6000,
@@ -228,6 +253,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       id: 104,
       name: 'Omeprazole 20mg',
       category: 'گەدە و هەرس',
+      categoryAr: 'المعدة والجهاز الهضمي',
+      categoryEn: 'Stomach & Digestion',
       description: 'چارەسەری ترشەڵۆک و کەمکردنەوەی سوزش',
       price: 3500,
       stock: 0, // Out of stock
@@ -238,6 +265,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       id: 105,
       name: 'Baby Care Milk',
       category: 'دایک و منداڵ',
+      categoryAr: 'الأم والطفل',
+      categoryEn: 'Mother & Baby',
       description: 'شیری تەواوکەری خۆراکی منداڵان و کۆرپە',
       price: 14000,
       originalPrice: 16500,
@@ -250,6 +279,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       id: 106,
       name: 'Ibuprofen 400mg',
       category: 'ئازارشکێن',
+      categoryAr: 'مسكنات الألم',
+      categoryEn: 'Pain Relief',
       description: 'بۆ ئازاری جومگە، ماسولکە و سەرئێشە',
       price: 3000,
       stock: 0, // Out of stock
@@ -2209,7 +2240,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                               : null,
                                         ),
                                         child: Text(
-                                          cat['name']!,
+                                          _getCategoryDisplayName(cat, context),
                                           style: _kStyle(
                                             color: isSel
                                                 ? Colors.white

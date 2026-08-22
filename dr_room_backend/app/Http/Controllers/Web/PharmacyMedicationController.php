@@ -34,6 +34,8 @@ class PharmacyMedicationController extends Controller
             'name_ar' => 'nullable|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
+            'category_ar' => 'nullable|string|max:255',
+            'category_en' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
@@ -47,6 +49,8 @@ class PharmacyMedicationController extends Controller
         $data = $request->except(['image', 'is_active']);
         $data['user_id'] = Auth::id();
         $data['category'] = trim($request->category ?? '');
+        $data['category_ar'] = trim($request->category_ar ?? '');
+        $data['category_en'] = trim($request->category_en ?? '');
         $data['is_active'] = $request->has('is_active') ? true : true;
 
         if ($request->hasFile('image')) {
@@ -80,7 +84,8 @@ class PharmacyMedicationController extends Controller
             'name_ar' => 'nullable|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
-            'custom_category' => 'nullable|string|max:255',
+            'category_ar' => 'nullable|string|max:255',
+            'category_en' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
@@ -93,6 +98,8 @@ class PharmacyMedicationController extends Controller
 
         $data = $request->except(['image', 'is_active']);
         $data['category'] = trim($request->category ?? '');
+        $data['category_ar'] = trim($request->category_ar ?? '');
+        $data['category_en'] = trim($request->category_en ?? '');
         $data['is_active'] = $request->has('is_active');
 
         if ($request->hasFile('image')) {
