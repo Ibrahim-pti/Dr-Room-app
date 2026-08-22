@@ -9,18 +9,31 @@ use Illuminate\Support\Facades\Auth;
 
 class PharmacyOrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Get all pending pharmacy orders OR orders assigned to this pharmacy
-        $orders = Order::where('service_type', 'pharmacy')
+        $status = $request->query('status');
+        
+        $baseQuery = Order::with('items')->where('service_type', 'pharmacy')
             ->where(function($query) {
                 $query->where('status', 'pending')
                       ->orWhere('assigned_pharmacy_id', Auth::id());
-            })
-            ->latest()
-            ->paginate(10);
+            });
+
+        $counts = [
+            'all' => (clone $baseQuery)->count(),
+            'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+            'accepted' => (clone $baseQuery)->where('status', 'accepted')->count(),
+            'completed' => (clone $baseQuery)->where('status', 'completed')->count(),
+            'cancelled' => (clone $baseQuery)->where('status', 'cancelled')->count(),
+        ];
+
+        if ($status && $status !== 'all') {
+            $baseQuery->where('status', $status);
+        }
+
+        $orders = $baseQuery->latest()->paginate(15);
             
-        return view('pharmacy.orders.index', compact('orders'));
+        return view('pharmacy.orders.index', compact('orders', 'status', 'counts'));
     }
 
     public function show($id)
