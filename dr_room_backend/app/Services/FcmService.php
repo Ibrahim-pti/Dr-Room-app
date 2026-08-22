@@ -96,12 +96,16 @@ class FcmService
 
             $failed++;
 
-            // 404/UNREGISTERED means the app was uninstalled — drop the token.
-            if ($response->status() === 404 || str_contains($response->body(), 'UNREGISTERED')) {
+            // 404/UNREGISTERED/INVALID_ARGUMENT means the token is invalid or app uninstalled — drop the token.
+            if ($response->status() === 404 || 
+                str_contains($response->body(), 'UNREGISTERED') || 
+                str_contains($response->body(), 'INVALID_ARGUMENT') ||
+                str_contains($response->body(), 'SENDER_ID_MISMATCH')) {
                 $invalid[] = $token;
             } else {
                 Log::warning('FCM send failed', ['status' => $response->status(), 'body' => $response->body()]);
             }
+
         }
 
         if ($invalid !== []) {

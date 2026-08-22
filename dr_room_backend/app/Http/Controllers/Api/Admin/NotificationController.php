@@ -36,21 +36,30 @@ class NotificationController extends Controller
             $data['image_path'] = $request->file('image')->store('notifications', 'public');
         }
 
-        try {
-            $tr = new GoogleTranslate();
-            $data['title_en'] = $tr->setTarget('en')->translate($request->title);
-            $tr2 = new GoogleTranslate();
-            $data['title_ar'] = $tr2->setTarget('ar')->translate($request->title);
-            
-            $tr3 = new GoogleTranslate();
-            $data['message_en'] = $tr3->setTarget('en')->translate($request->message);
-            $tr4 = new GoogleTranslate();
-            $data['message_ar'] = $tr4->setTarget('ar')->translate($request->message);
-        } catch (\Exception $e) {
-            \Log::error('Translation error: ' . $e->getMessage());
+        $data['title_en'] = $request->title_en ?: null;
+        $data['title_ar'] = $request->title_ar ?: null;
+        $data['message_en'] = $request->message_en ?: null;
+        $data['message_ar'] = $request->message_ar ?: null;
+
+        if (empty($data['title_en']) || empty($data['title_ar']) || empty($data['message_en']) || empty($data['message_ar'])) {
+            try {
+                $tr = new GoogleTranslate();
+                if (empty($data['title_en'])) $data['title_en'] = $tr->setTarget('en')->translate($request->title);
+                if (empty($data['title_ar'])) $data['title_ar'] = $tr->setTarget('ar')->translate($request->title);
+                if (empty($data['message_en'])) $data['message_en'] = $tr->setTarget('en')->translate($request->message);
+                if (empty($data['message_ar'])) $data['message_ar'] = $tr->setTarget('ar')->translate($request->message);
+            } catch (\Throwable $e) {
+                \Log::warning('Translation error: ' . $e->getMessage());
+                // Fallback to original text if translation service fails
+                $data['title_en'] = $data['title_en'] ?: $request->title;
+                $data['title_ar'] = $data['title_ar'] ?: $request->title;
+                $data['message_en'] = $data['message_en'] ?: $request->message;
+                $data['message_ar'] = $data['message_ar'] ?: $request->message;
+            }
         }
 
         $notification = AppNotification::create($data);
+
 
         $imageUrl = null;
         if (!empty($notification->image_path)) {

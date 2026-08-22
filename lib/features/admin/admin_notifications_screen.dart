@@ -180,51 +180,103 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                         onPressed: isSubmitting
                             ? null
                             : () async {
-                                if (titleController.text.isEmpty || messageController.text.isEmpty) return;
+                                final title = titleController.text.trim();
+                                final message = messageController.text.trim();
+                                if (title.isEmpty || message.isEmpty) return;
                                 
                                 setModalState(() => isSubmitting = true);
                                 
-                                final prefs = await SharedPreferences.getInstance();
-                                final token = prefs.getString('auth_token');
-                                var request = http.MultipartRequest(
-                                  'POST',
-                                  Uri.parse('${ApiClient.baseUrl}/admin/notifications'),
-                                );
-                                request.headers['Authorization'] = 'Bearer $token';
-                                request.headers['Accept'] = 'application/json';
-                                request.fields['title'] = titleController.text.trim();
-                                request.fields['message'] = messageController.text.trim();
-                                request.fields['type'] = 'general';
-
-                                final trFields = await TranslationHelper.translateFields({
-                                  'title': titleController.text.trim(),
-                                  'message': messageController.text.trim(),
-                                });
-                                if (trFields.isNotEmpty) {
-                                  request.fields['title_en'] = trFields['title']?['en'] ?? '';
-                                  request.fields['title_ar'] = trFields['title']?['ar'] ?? '';
-                                  request.fields['message_en'] = trFields['message']?['en'] ?? '';
-                                  request.fields['message_ar'] = trFields['message']?['ar'] ?? '';
-                                }
-                                
-                                if (selectedImage != null) {
-                                  request.files.add(
-                                    await http.MultipartFile.fromPath('image', selectedImage!.path),
+                                try {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  final token = prefs.getString('auth_token');
+                                  var request = http.MultipartRequest(
+                                    'POST',
+                                    Uri.parse('${ApiClient.baseUrl}/admin/notifications'),
                                   );
+                                  request.headers['Authorization'] = 'Bearer $token';
+                                  request.headers['Accept'] = 'application/json';
+                                  request.fields['title'] = title;
+                                  request.fields['message'] = message;
+                                  request.fields['type'] = 'general';
+
+                                  try {
+                                    final trFields = await TranslationHelper.translateFields({
+                                      'title': title,
+                                      'message': message,
+                                    }).timeout(const Duration(seconds: 4));
+                                    if (trFields.isNotEmpty) {
+                                      request.fields['title_en'] = trFields['title']?['en'] ?? '';
+                                      request.fields['title_ar'] = trFields['title']?['ar'] ?? '';
+                                      request.fields['message_en'] = trFields['message']?['en'] ?? '';
+                                      request.fields['message_ar'] = trFields['message']?['ar'] ?? '';
+                                    }
+                                  } catch (e) {
+                                    debugPrint('Client translation skipped: $e');
+                                  }
+                                  
+                                  if (selectedImage != null) {
+                                    request.files.add(
+                                      await http.MultipartFile.fromPath('image', selectedImage!.path),
+                                    );
+                                  }
+                                  
+                                  var streamedRes = await request.send().timeout(const Duration(seconds: 15));
+                                  var res = await http.Response.fromStream(streamedRes);
+                                  
+                                  if (ctx.mounted) {
+                                    setModalState(() => isSubmitting = false);
+                                  }
+                                  
+                                  if (res.statusCode >= 200 && res.statusCode < 300) {
+                                    if (ctx.mounted) {
+                                      Navigator.pop(ctx);
+                                    }
+                                    _fetchNotifications();
+                                    if (ctx.mounted) {
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'ئاگادارکردنەوەکە بە سەرکەوتوویی نێردرا',
+                                            style: TextStyle(fontFamily: 'Rabar'),
+                                          ),
+                                          backgroundColor: Color(0xFF10B981),
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    }
+                                  } else {
+
+                                    if (ctx.mounted) {
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'ناردن سەرکەوتوو نەبوو (${res.statusCode}): ${res.body}',
+                                            style: const TextStyle(fontFamily: 'Rabar'),
+                                          ),
+                                          backgroundColor: const Color(0xFFEF4444),
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                } catch (e) {
+                                  if (ctx.mounted) {
+                                    setModalState(() => isSubmitting = false);
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'هەڵە ڕوویدا لە ناردن: $e',
+                                          style: const TextStyle(fontFamily: 'Rabar'),
+                                        ),
+                                        backgroundColor: const Color(0xFFEF4444),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
                                 }
-                                
-                                var res = await request.send();
-                                
-                                if (ctx.mounted) {
-                                  setModalState(() => isSubmitting = false);
-                                }
-                                
-                                if (res.statusCode == 201) {
-                                  if (!ctx.mounted) return;
-                                  Navigator.pop(ctx);
-                                  _fetchNotifications();
-                                }
+
                               },
+
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFF59E0B),
                           foregroundColor: Colors.white,
