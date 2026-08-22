@@ -23,11 +23,47 @@ class AppController extends Controller
             ->take(5)
             ->get();
 
+        $topNurses = \App\Models\Nurse::where('is_approved', true)
+            ->with(['user:id,name,name_en,name_ar,email,profile_image'])
+            ->orderBy('rating', 'desc')
+            ->take(6)
+            ->get()
+            ->map(function ($nurse) {
+                return [
+                    'id' => $nurse->id,
+                    'name' => $nurse->user->name ?? '',
+                    'name_en' => $nurse->user->name_en ?? '',
+                    'name_ar' => $nurse->user->name_ar ?? '',
+                    'specialty' => $nurse->specialty ?? '',
+                    'specialty_en' => $nurse->specialty_en ?? '',
+                    'specialty_ar' => $nurse->specialty_ar ?? '',
+                    'bio' => $nurse->bio ?? '',
+                    'phone' => $nurse->phone ?? '',
+                    'city' => $nurse->city ?? '',
+                    'address' => $nurse->address ?? '',
+                    'latitude' => $nurse->latitude,
+                    'longitude' => $nurse->longitude,
+                    'service_type' => $nurse->service_type ?? 'home_nursing',
+                    'image' => $nurse->image_path
+                        ? asset('storage/' . $nurse->image_path)
+                        : ($nurse->user && $nurse->user->profile_image
+                            ? asset('storage/' . $nurse->user->profile_image)
+                            : null),
+                    'is_available' => (bool)($nurse->is_available ?? true),
+                    'rating' => (float)($nurse->rating ?? 4.9),
+                    'total_reviews' => (int)($nurse->total_reviews ?? 0),
+                    'fee' => $nurse->fee,
+                    'experience_years' => $nurse->experience_years ?? 5,
+                    'completed_appointments' => $nurse->completed_appointments ?? 0,
+                ];
+            });
+
         return response()->json([
             'banners' => Banner::where('is_active', true)->orderBy('sort_order')->get(),
             'categories' => Category::all(),
             'latest_articles' => Article::where('is_published', true)->latest()->take(5)->get(),
             'top_doctors' => $topDoctors,
+            'top_nurses' => $topNurses,
             'top_pharmacies' => \App\Models\User::where('role', 'pharmacy')->where('status', 'approved')->take(4)->get(),
         ]);
     }

@@ -13,7 +13,7 @@ import 'promo_carousel.dart';
 import 'widgets/emergency_sos_banner.dart';
 import 'widgets/home_header.dart';
 import 'widgets/services_category_grid.dart';
-import 'widgets/top_doctors_section.dart';
+import 'widgets/top_nurses_section.dart';
 import 'widgets/top_labs_section.dart';
 import 'widgets/top_pharmacies_section.dart';
 
@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false;
   String _userName = '';
   List<dynamic> _banners = [];
-  List<dynamic> _topDoctors = [];
+  List<dynamic> _topNurses = [];
   List<dynamic> _topPharmacies = [];
 
   @override
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) {
           setState(() {
             _banners = data['banners'] ?? [];
-            _topDoctors = data['top_doctors'] ?? [];
+            _topNurses = data['top_nurses'] ?? [];
             _topPharmacies = data['top_pharmacies'] ?? [];
             _userName = userName;
           });
@@ -111,9 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 14),
                         const ServicesCategoryGrid(),
 
-                        // ── Top Doctors Section ──
+                        // ── Top Nurses Section ──
                         const SizedBox(height: 16),
-                        TopDoctorsSection(topDoctors: _topDoctors),
+                        TopNursesSection(topNurses: _topNurses),
 
                         // ── Top Laboratories Section ──
                         const SizedBox(height: 16),

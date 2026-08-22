@@ -123,4 +123,51 @@ class HomeMockData {
       'image': 'assets/images/lab4.jpg',
     },
   ];
+
+  static final List<Map<String, dynamic>> fallbackNurses = [
+    {
+      'id': 1,
+      'name': 'ئاڤان ئەحمەد محەمەد',
+      'specialty': 'پەرستاری فریاگوزاری و چاودێری چڕ',
+      'city': 'هەولێر',
+      'rating': 4.9,
+      'total_reviews': 54,
+      'is_available': true,
+      'service_type': 'home_nursing',
+      'image': null,
+    },
+    {
+      'id': 2,
+      'name': 'ڕێبوار کەریم عەزیز',
+      'specialty': 'پەرستاری برین و پێدانی دەرمان',
+      'city': 'سلێمانی',
+      'rating': 4.8,
+      'total_reviews': 42,
+      'is_available': true,
+      'service_type': 'home_nursing',
+      'image': null,
+    },
+    {
+      'id': 3,
+      'name': 'سروە عوسمان مستەفا',
+      'specialty': 'چاودێری بەساڵاچووان و دەرزی لێدان',
+      'city': 'دهۆک',
+      'rating': 4.9,
+      'total_reviews': 67,
+      'is_available': true,
+      'service_type': 'home_nursing',
+      'image': null,
+    },
+    {
+      'id': 4,
+      'name': 'ئالان هێمن جەلال',
+      'specialty': 'پەرستاری گشتی و بەستنی کانولا',
+      'city': 'هەولێر',
+      'rating': 4.7,
+      'total_reviews': 38,
+      'is_available': true,
+      'service_type': 'home_nursing',
+      'image': null,
+    },
+  ];
 }
