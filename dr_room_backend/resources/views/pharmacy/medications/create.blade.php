@@ -81,7 +81,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 pt-4 border-t border-slate-100">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6 pt-4 border-t border-slate-100">
                 <!-- Dosage Form -->
                 <div>
                     <label for="dosage_form" class="block text-xs font-bold text-slate-600 mb-1.5">یەکە / شێواز</label>
@@ -89,17 +89,24 @@
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
                 </div>
 
-                <!-- Price -->
+                <!-- Original Price (Old Price) -->
                 <div>
-                    <label for="price" class="block text-xs font-bold text-slate-600 mb-1.5">نرخی فرۆشتن (دینار) <span class="text-red-500">*</span></label>
-                    <input type="number" id="price" name="price" value="{{ old('price', 0) }}" required min="0" dir="ltr"
+                    <label for="original_price" class="block text-xs font-bold text-slate-600 mb-1.5">نرخی پێشوو / ئاسایی (د.ع)</label>
+                    <input type="number" id="original_price" name="original_price" value="{{ old('original_price') }}" min="0" dir="ltr" placeholder="وەک: 12000" oninput="calculateDiscount()"
                         class="w-full text-right px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
+                </div>
+
+                <!-- Offer / Selling Price -->
+                <div>
+                    <label for="price" class="block text-xs font-bold text-slate-600 mb-1.5">نرخی فرۆشتن / ئۆفەر (د.ع) <span class="text-red-500">*</span></label>
+                    <input type="number" id="price" name="price" value="{{ old('price', 0) }}" required min="0" dir="ltr" oninput="calculateDiscount()"
+                        class="w-full text-right px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-bold text-emerald-700">
                 </div>
 
                 <!-- Discount Percent -->
                 <div>
                     <label for="discount_percent" class="block text-xs font-bold text-slate-600 mb-1.5">ڕێژەی داشکاندن (٪)</label>
-                    <input type="number" id="discount_percent" name="discount_percent" value="{{ old('discount_percent') }}" min="0" max="100" placeholder="بۆ نموونە: 20" dir="ltr"
+                    <input type="number" id="discount_percent" name="discount_percent" value="{{ old('discount_percent') }}" min="0" max="100" placeholder="0" dir="ltr" oninput="calculateFromPercent()"
                         class="w-full text-right px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
                 </div>
 
@@ -202,6 +209,28 @@ async function translateAll() {
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
+    }
+}
+
+function calculateDiscount() {
+    const orig = parseFloat(document.getElementById('original_price').value) || 0;
+    const price = parseFloat(document.getElementById('price').value) || 0;
+    const discEl = document.getElementById('discount_percent');
+    
+    if (orig > 0 && price > 0 && orig > price) {
+        discEl.value = Math.round(((orig - price) / orig) * 100);
+    } else if (orig === 0 || price >= orig) {
+        discEl.value = '';
+    }
+}
+
+function calculateFromPercent() {
+    const orig = parseFloat(document.getElementById('original_price').value) || 0;
+    const disc = parseFloat(document.getElementById('discount_percent').value) || 0;
+    const priceEl = document.getElementById('price');
+    
+    if (orig > 0 && disc > 0 && disc <= 100) {
+        priceEl.value = Math.round(orig * (1 - (disc / 100)));
     }
 }
 </script>

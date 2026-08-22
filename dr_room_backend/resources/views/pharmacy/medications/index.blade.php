@@ -60,9 +60,14 @@
                         </span>
                     </td>
                     <td style="padding: 16px;">
-                        <div style="color: #0d9488; font-weight: 700;">IQD {{ number_format($medication->price) }}</div>
+                        <div style="color: #0d9488; font-weight: 800; font-size: 0.95rem;" dir="ltr">IQD {{ number_format($medication->price) }}</div>
                         @if($medication->original_price && $medication->original_price > $medication->price)
-                            <div style="text-decoration: line-through; color: #94a3b8; font-size: 0.8rem;">IQD {{ number_format($medication->original_price) }}</div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                                <span style="text-decoration: line-through; color: #94a3b8; font-size: 0.78rem;" dir="ltr">IQD {{ number_format($medication->original_price) }}</span>
+                                @if($medication->discount_percent)
+                                    <span style="background: #fef2f2; color: #dc2626; font-size: 0.7rem; font-weight: 800; padding: 1px 6px; border-radius: 6px;">-{{ $medication->discount_percent }}%</span>
+                                @endif
+                            </div>
                         @endif
                     </td>
                     <td style="padding: 16px;">

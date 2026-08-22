@@ -40,6 +40,7 @@ class PharmacyMedicationController extends Controller
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
             'discount_percent' => 'nullable|integer|min:0|max:100',
             'dosage_form' => 'nullable|string|max:100',
             'stock' => 'required|integer|min:0',
@@ -52,6 +53,24 @@ class PharmacyMedicationController extends Controller
         $data['category_ar'] = trim($request->category_ar ?? '');
         $data['category_en'] = trim($request->category_en ?? '');
         $data['is_active'] = $request->has('is_active') ? true : true;
+
+        $price = floatval($request->price ?? 0);
+        $originalPrice = !empty($request->original_price) ? floatval($request->original_price) : null;
+        $discountPercent = !empty($request->discount_percent) ? intval($request->discount_percent) : null;
+
+        if ($originalPrice && $originalPrice > $price) {
+            $data['original_price'] = $originalPrice;
+            $data['price'] = $price;
+            $data['discount_percent'] = round((($originalPrice - $price) / $originalPrice) * 100);
+        } elseif ($discountPercent && $discountPercent > 0) {
+            $data['original_price'] = $price;
+            $data['discount_percent'] = $discountPercent;
+            $data['price'] = round($price * (1 - ($discountPercent / 100)));
+        } else {
+            $data['original_price'] = null;
+            $data['discount_percent'] = null;
+            $data['price'] = $price;
+        }
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('medications', 'public');
@@ -90,6 +109,7 @@ class PharmacyMedicationController extends Controller
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
             'discount_percent' => 'nullable|integer|min:0|max:100',
             'dosage_form' => 'nullable|string|max:100',
             'stock' => 'required|integer|min:0',
@@ -101,6 +121,24 @@ class PharmacyMedicationController extends Controller
         $data['category_ar'] = trim($request->category_ar ?? '');
         $data['category_en'] = trim($request->category_en ?? '');
         $data['is_active'] = $request->has('is_active');
+
+        $price = floatval($request->price ?? 0);
+        $originalPrice = !empty($request->original_price) ? floatval($request->original_price) : null;
+        $discountPercent = !empty($request->discount_percent) ? intval($request->discount_percent) : null;
+
+        if ($originalPrice && $originalPrice > $price) {
+            $data['original_price'] = $originalPrice;
+            $data['price'] = $price;
+            $data['discount_percent'] = round((($originalPrice - $price) / $originalPrice) * 100);
+        } elseif ($discountPercent && $discountPercent > 0) {
+            $data['original_price'] = $price;
+            $data['discount_percent'] = $discountPercent;
+            $data['price'] = round($price * (1 - ($discountPercent / 100)));
+        } else {
+            $data['original_price'] = null;
+            $data['discount_percent'] = null;
+            $data['price'] = $price;
+        }
 
         if ($request->hasFile('image')) {
             if ($medication->image_path && !str_starts_with($medication->image_path, 'http')) {
