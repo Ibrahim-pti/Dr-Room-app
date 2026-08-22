@@ -27,6 +27,7 @@ import 'features/admin/admin_dashboard_shell.dart';
 import 'features/setup/language_selection_screen.dart';
 import 'features/setup/health_profile_screen.dart';
 import 'features/setup/medical_history_screen.dart';
+import 'core/services/push_notification_service.dart';
 
 /// Lets code without a BuildContext (notably [ApiClient]) drive navigation.
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
@@ -34,6 +35,7 @@ final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  await PushNotificationService.instance.init();
 
   // A rejected token used to fail silently on every subsequent call. Now it
   // tears the session down and returns the user to login.
