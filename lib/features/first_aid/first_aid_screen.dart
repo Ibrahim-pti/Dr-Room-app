@@ -80,6 +80,7 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
             whenToCallAmbulance: (item['when_to_call_ambulance']?.toString().trim().isNotEmpty ?? false)
                 ? item['when_to_call_ambulance'].toString()
                 : 'لە کاتی باری لەناکاودا دەستبەجێ پەیوەندی بە ١٢٢ بکە.',
+            imagePath: item['image_path']?.toString(),
           );
         }).toList();
 
@@ -95,6 +96,31 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
       debugPrint('Error fetching first aid topics: $e');
     }
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  Widget _buildTopicThumb(FirstAidTopic topic) {
+    final image = ApiClient.getImageProvider(topic.imagePath);
+    final fallback = Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: topic.color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Icon(topic.icon, color: topic.color, size: 26),
+    );
+
+    if (image == null) return fallback;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Image(
+        image: image,
+        width: 54,
+        height: 54,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stack) => fallback,
+      ),
+    );
   }
 
   /// Laravel casts these to arrays, but a record written before the cast
@@ -513,14 +539,7 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: topic.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(topic.icon, color: topic.color, size: 26),
-                      ),
+                      _buildTopicThumb(topic),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(

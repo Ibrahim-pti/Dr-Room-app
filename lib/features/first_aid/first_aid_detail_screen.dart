@@ -14,6 +14,9 @@ class FirstAidTopic {
   final List<String> donts;
   final String whenToCallAmbulance;
 
+  /// Only set for topics that come from the API; the built-in ones use [icon].
+  final String? imagePath;
+
   const FirstAidTopic({
     required this.id,
     required this.title,
@@ -26,6 +29,7 @@ class FirstAidTopic {
     required this.dos,
     required this.donts,
     required this.whenToCallAmbulance,
+    this.imagePath,
   });
 }
 
