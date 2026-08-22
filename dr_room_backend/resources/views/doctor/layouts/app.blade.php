@@ -12,13 +12,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - داشبۆردی پزیشک</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/kurdish-font.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { font-family: 'Rabar', 'Inter', sans-serif; background: #f0f2f5; margin: 0; }
+        * { font-family: 'Rabar', sans-serif; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+        
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 768px) {
+            .dr-content { padding: 12px !important; }
+            .grid { grid-template-columns: 1fr !important; }
+        }
 
         /* Sidebar */
         .dr-sidebar {

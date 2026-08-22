@@ -5,15 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - داشبۆردی تاقیگە</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/kurdish-font.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Rabar', 'Plus Jakarta Sans', 'Inter', sans-serif; background: #f8fafc; margin: 0; }
+        body { font-family: 'Rabar', 'Inter', sans-serif; background: #f8fafc; margin: 0; }
+        * { font-family: 'Rabar', sans-serif; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.5); }
+        
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 768px) {
+            .dr-content { padding: 12px !important; }
+            .grid { grid-template-columns: 1fr !important; }
+            #orderModal > div { padding: 16px !important; width: 95% !important; margin: 10px !important; max-height: 95vh !important; }
+        }
 
         .dr-sidebar {
             position: fixed; top: 0; right: 0; width: 270px; height: 100vh;

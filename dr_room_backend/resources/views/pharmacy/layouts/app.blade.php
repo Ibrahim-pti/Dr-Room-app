@@ -5,14 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - داشبۆردی دەرمانخانە</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/kurdish-font.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         body { font-family: 'Rabar', 'Inter', sans-serif; background: #f0f2f5; margin: 0; }
+        * { font-family: 'Rabar', sans-serif; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(13,148,136,0.3); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(13,148,136,0.5); }
+        
+        /* Mobile-friendly responsive table wrapping */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 768px) {
+            .dr-content { padding: 12px !important; }
+            .grid { grid-template-columns: 1fr !important; }
+            #orderModal > div { padding: 16px !important; width: 95% !important; margin: 10px !important; max-height: 95vh !important; }
+        }
 
         /* Sidebar */
         .dr-sidebar {
