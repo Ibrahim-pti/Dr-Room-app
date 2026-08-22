@@ -70,57 +70,69 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
-      body: RefreshIndicator(
-        onRefresh: _fetchHomeData,
-        color: const Color(0xFF3B82F6),
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Top Curved Header & Search ──
-                  HomeHeader(userName: _userName),
+      body: Column(
+        children: [
+          // ── Fixed Top Curved Header & Search (Never moves) ──
+          HomeHeader(userName: _userName),
 
-                  // ── Banners / Promo Carousel ──
-                  if (_isLoading)
-                    _buildBannerSkeleton(context)
-                  else
-                    PromoCarousel(banners: _banners)
-                        .animate()
-                        .fadeIn(duration: 400.ms)
-                        .slideY(begin: 0.1, end: 0, curve: Curves.easeOut),
+          // ── Scrollable & Refreshable Body ──
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _fetchHomeData,
+              color: const Color(0xFF3B82F6),
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1E293B)
+                  : Colors.white,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
 
-                  // ── Emergency SOS Banner ──
-                  const SizedBox(height: 12),
-                  const EmergencySosBanner(),
+                        // ── Banners / Promo Carousel ──
+                        if (_isLoading)
+                          _buildBannerSkeleton(context)
+                        else
+                          PromoCarousel(banners: _banners)
+                              .animate()
+                              .fadeIn(duration: 400.ms)
+                              .slideY(begin: 0.1, end: 0, curve: Curves.easeOut),
 
-                  // ── Services Categories Grid ──
-                  const SizedBox(height: 14),
-                  const ServicesCategoryGrid(),
+                        // ── Emergency SOS Banner ──
+                        const SizedBox(height: 12),
+                        const EmergencySosBanner(),
 
-                  // ── Top Doctors Section ──
-                  const SizedBox(height: 16),
-                  TopDoctorsSection(topDoctors: _topDoctors),
+                        // ── Services Categories Grid ──
+                        const SizedBox(height: 14),
+                        const ServicesCategoryGrid(),
 
-                  // ── Top Laboratories Section ──
-                  const SizedBox(height: 16),
-                  const TopLabsSection(),
+                        // ── Top Doctors Section ──
+                        const SizedBox(height: 16),
+                        TopDoctorsSection(topDoctors: _topDoctors),
 
-                  // ── Top Pharmacies Section ──
-                  const SizedBox(height: 16),
-                  TopPharmaciesSection(topPharmacies: _topPharmacies),
+                        // ── Top Laboratories Section ──
+                        const SizedBox(height: 16),
+                        const TopLabsSection(),
 
-                  // ── Bottom Padding for Floating MainShell Bar ──
-                  const SizedBox(height: 90),
+                        // ── Top Pharmacies Section ──
+                        const SizedBox(height: 16),
+                        TopPharmaciesSection(topPharmacies: _topPharmacies),
+
+                        // ── Bottom Padding for Floating MainShell Bar ──
+                        const SizedBox(height: 90),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
