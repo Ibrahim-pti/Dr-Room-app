@@ -48,6 +48,8 @@ Route::get('/anatomy/organs', [\App\Http\Controllers\Api\AnatomyController::clas
 Route::get('/emergency-reels', [\App\Http\Controllers\Api\EmergencyReelController::class, 'index']);
 
 // ─── Pharmacy Mobile App API ──────────────────────────────────────────────
+Route::get('/pharmacies/categories', [\App\Http\Controllers\Api\PharmacyApiController::class, 'categories']);
+Route::get('/medications/categories', [\App\Http\Controllers\Api\PharmacyApiController::class, 'categories']);
 Route::get('/pharmacies', [\App\Http\Controllers\Api\PharmacyApiController::class, 'index']);
 Route::get('/pharmacies/{id}', [\App\Http\Controllers\Api\PharmacyApiController::class, 'show']);
 Route::get('/pharmacies/{id}/medications', [\App\Http\Controllers\Api\PharmacyApiController::class, 'medications']);

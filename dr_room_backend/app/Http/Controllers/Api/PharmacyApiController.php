@@ -8,10 +8,37 @@ use App\Models\User;
 use App\Models\Medication;
 use App\Models\PharmacyOffer;
 use App\Models\PharmacyReview;
+use App\Models\MedicationCategory;
 use Illuminate\Support\Facades\Auth;
 
 class PharmacyApiController extends Controller
 {
+    /**
+     * Get medication categories with icons and names
+     */
+    public function categories()
+    {
+        $categories = MedicationCategory::where('is_active', true)
+            ->orderBy('sort_order', 'asc')
+            ->get();
+
+        if ($categories->isEmpty()) {
+            $categories = collect([
+                ['id' => 1, 'name' => 'هەمووی', 'name_ar' => 'الكل', 'name_en' => 'All', 'icon' => '💊'],
+                ['id' => 2, 'name' => 'ئازارشکێن', 'name_ar' => 'مسكنات الألم', 'name_en' => 'Painkillers', 'icon' => '⚡'],
+                ['id' => 3, 'name' => 'دژەهەوکردن', 'name_ar' => 'مضادات الالتهاب', 'name_en' => 'Anti-inflammatory', 'icon' => '🛡️'],
+                ['id' => 4, 'name' => 'ڤیتامین', 'name_ar' => 'فيتامينات', 'name_en' => 'Vitamins', 'icon' => '🍊'],
+                ['id' => 5, 'name' => 'گەدە و هەرس', 'name_ar' => 'المعدة والجهاز الهضمي', 'name_en' => 'Stomach & Digestion', 'icon' => '🫀'],
+                ['id' => 6, 'name' => 'منداڵان', 'name_ar' => 'أدوية الأطفال', 'name_en' => 'Children', 'icon' => '👶'],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $categories
+        ]);
+    }
+
     /**
      * Get a list of all active pharmacies with filters and search
      */

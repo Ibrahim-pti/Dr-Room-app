@@ -8,12 +8,29 @@ use App\Models\Pharmacy;
 use App\Models\Medication;
 use App\Models\PharmacyOffer;
 use App\Models\PharmacyReview;
+use App\Models\MedicationCategory;
 use Illuminate\Support\Facades\Hash;
 
 class PharmacySeeder extends Seeder
 {
     public function run(): void
     {
+        // ─── 0. Medication Categories (پۆلێنەکانی دەرمان) ───────────────────
+        $categories = [
+            ['name' => 'هەمووی', 'name_ar' => 'الكل', 'name_en' => 'All', 'icon' => '💊', 'sort_order' => 1],
+            ['name' => 'ئازارشکێن', 'name_ar' => 'مسكنات الألم', 'name_en' => 'Painkillers', 'icon' => '⚡', 'sort_order' => 2],
+            ['name' => 'دژەهەوکردن', 'name_ar' => 'مضادات الالتهاب', 'name_en' => 'Anti-inflammatory', 'icon' => '🛡️', 'sort_order' => 3],
+            ['name' => 'ڤیتامین', 'name_ar' => 'فيتامينات', 'name_en' => 'Vitamins', 'icon' => '🍊', 'sort_order' => 4],
+            ['name' => 'گەدە و هەرس', 'name_ar' => 'المعدة والجهاز الهضمي', 'name_en' => 'Stomach & Digestion', 'icon' => '🫀', 'sort_order' => 5],
+            ['name' => 'منداڵان', 'name_ar' => 'أدوية الأطفال', 'name_en' => 'Children', 'icon' => '👶', 'sort_order' => 6],
+            ['name' => 'تەندروستی گشتی', 'name_ar' => 'صحة عامة', 'name_en' => 'General Health', 'icon' => '🌿', 'sort_order' => 7],
+        ];
+
+        foreach ($categories as $cat) {
+            MedicationCategory::updateOrCreate([
+                'name' => $cat['name']
+            ], array_merge($cat, ['is_active' => true]));
+        }
         // ─── 1. Pharmacy Shifa (Main Demo Pharmacy from Screenshot) ─────────────────────
         $shifaUser = User::where('email', 'shifa_pharmacy@example.com')->orWhere('phone', '07503332211')->first();
         if (!$shifaUser) {

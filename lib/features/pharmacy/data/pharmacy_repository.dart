@@ -132,8 +132,27 @@ class PharmacyRepository {
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      print('Error posting review: $e');
       return false;
+    }
+  }
+
+  Future<List<Map<String, String>>> getCategories() async {
+    try {
+      final response = await ApiClient.get('/pharmacies/categories');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return (data['data'] as List).map<Map<String, String>>((item) {
+            return {
+              'name': item['name']?.toString() ?? '',
+              'icon': item['icon']?.toString() ?? '💊',
+            };
+          }).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      return [];
     }
   }
 }
