@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 
 class HelpSupportScreen extends StatefulWidget {
@@ -43,9 +44,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   Widget build(BuildContext context) {
     final filteredFaqs = _searchQuery.isEmpty
         ? _faqList
-        : _faqList.where((faq) =>
-            faq['question']!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            faq['answer']!.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+        : _faqList.where((faq) {
+            return faq['question']!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                faq['answer']!.toLowerCase().contains(_searchQuery.toLowerCase());
+          }).toList();
 
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
@@ -62,7 +64,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'یارمەتی و پەیوەندی',
+          'help_and_support'.tr(),
           style: TextStyle(
             fontFamily: 'Rabar',
             color: AppColors.getTextTitle(context),
@@ -92,22 +94,22 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   color: AppColors.getTextTitle(context),
                   fontSize: 15,
                 ),
-                decoration: const InputDecoration(
-                  hintText: 'گەڕان بۆ یارمەتی و پرسیارەکان...',
-                  hintStyle: TextStyle(
+                decoration: InputDecoration(
+                  hintText: 'help_search_hint'.tr(),
+                  hintStyle: const TextStyle(
                     fontFamily: 'Rabar',
                     color: Color(0xFF94A3B8),
                     fontSize: 13,
                   ),
                   border: InputBorder.none,
-                  icon: Icon(Iconsax.search_normal, color: Color(0xFF94A3B8), size: 20),
+                  icon: const Icon(Iconsax.search_normal, color: Color(0xFF94A3B8), size: 20),
                 ),
               ),
             ),
             const SizedBox(height: 28),
 
             Text(
-              'پەیوەندیمان پێوە بکە',
+              'contact_us'.tr(),
               style: TextStyle(
                 fontFamily: 'Rabar',
                 color: AppColors.getTextTitle(context),
@@ -123,7 +125,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 _buildContactCard(
                   context,
                   icon: Iconsax.call,
-                  title: 'پەیوەندی تەلەفۆنی',
+                  title: 'phone_call'.tr(),
                   color: const Color(0xFF3B82F6),
                   onTap: () async {
                     final Uri url = Uri.parse('tel:+9647501234567');
@@ -136,10 +138,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 _buildContactCard(
                   context,
                   icon: Iconsax.sms,
-                  title: 'ئیمەیڵ بنێرە',
+                  title: 'send_email'.tr(),
                   color: const Color(0xFFF59E0B),
                   onTap: () async {
-                    final Uri url = Uri.parse('mailto:support@drroom.app?subject=یارمەتی لە ئەپ');
+                    final Uri url = Uri.parse('mailto:support@drroom.app?subject=Support');
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url);
                     }
@@ -150,7 +152,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             const SizedBox(height: 32),
 
             Text(
-              'پرسیارە باوەکان (FAQ)',
+              'faq_title'.tr(),
               style: TextStyle(
                 fontFamily: 'Rabar',
                 color: AppColors.getTextTitle(context),
@@ -166,9 +168,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Text(
-                    'هیچ ئەنجامێک بۆ گەڕانەکەت نەدۆزرایەوە',
+                    'no_faqs_found'.tr(),
                     style: TextStyle(fontFamily: 'Rabar', color: AppColors.getTextSubtitle(context)),
                   ),
+
                 ),
               )
             else

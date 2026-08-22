@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/pharmacy_model.dart';
+
 
 class PharmacyChatScreen extends StatefulWidget {
   final Pharmacy pharmacy;
@@ -287,8 +289,9 @@ class _PharmacyChatScreenState extends State<PharmacyChatScreen> {
                       ),
                       decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: 'پرسیار یان پەیام بنووسە...',
+                        hintText: 'write_message_hint'.tr(),
                         hintStyle: _kStyle(color: const Color(0xFF94A3B8), fontSize: 13),
+
                       ),
                       onSubmitted: (_) => _sendMessage(),
                     ),

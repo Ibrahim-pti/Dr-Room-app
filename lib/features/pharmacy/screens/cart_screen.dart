@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/cart_provider.dart';
 import '../../../core/utils/api_client.dart';
 import 'pharmacy_checkout_screen.dart';
+
+
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -53,7 +55,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'سەبەتەی کڕین',
+          'cart_title'.tr(),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 18,
@@ -95,12 +97,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      'سەبەتەکەت بەتاڵە',
+                      'cart_empty_title'.tr(),
                       style: _kStyle(fontSize: 18, color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'دەتوانیت لە بەشی دەرمانخانەوە دەرمان یان کەرەستەی پزیشکی زیاد بکەیت.',
+                      'cart_empty_desc'.tr(),
                       textAlign: TextAlign.center,
                       style: _kStyle(fontSize: 13, color: const Color(0xFF94A3B8), height: 1.5),
                     ),
@@ -112,43 +114,35 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               children: [
                 Expanded(
                   child: ListView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                     itemCount: cartState.items.length,
                     itemBuilder: (context, index) {
                       final item = cartState.items[index];
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(14),
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: cardBg,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: borderColor),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: Row(
                           children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(14),
-                                image: item.medication.imageUrl != null
-                                    ? DecorationImage(
-                                        image: NetworkImage('${ApiClient.storageUrl}/${item.medication.imageUrl}'),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                width: 68,
+                                height: 68,
+                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                child: item.medication.imageUrl != null && item.medication.imageUrl!.isNotEmpty
+                                    ? Image.network(
+                                        item.medication.imageUrl!.startsWith('http')
+                                            ? item.medication.imageUrl!
+                                            : '${ApiClient.storageUrl}/${item.medication.imageUrl}',
                                         fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.medication_liquid_rounded, color: Color(0xFF3B82F6), size: 28),
                                       )
-                                    : const DecorationImage(
-                                        image: AssetImage('assets/images/medicine.png'),
-                                        fit: BoxFit.cover,
-                                      ),
+                                    : const Icon(Icons.medication_liquid_rounded, color: Color(0xFF3B82F6), size: 28),
                               ),
                             ),
                             const SizedBox(width: 14),
@@ -158,66 +152,48 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 children: [
                                   Text(
                                     item.medication.name,
-                                    style: _kStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                    ),
+                                    style: _kStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 3),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          item.unit,
-                                          style: _kStyle(
-                                            color: const Color(0xFF2563EB),
-                                            fontSize: 10.5,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '${NumberFormat('#,###').format(item.totalPrice.toInt())} د.ع',
-                                        style: _kStyle(
-                                          color: const Color(0xFF2563EB),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13.5,
-                                        ),
-                                      ),
-                                    ],
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${NumberFormat('#,###').format(item.totalPrice.toInt())} ${'currency_iqd'.tr()}',
+                                    style: _kStyle(fontSize: 13, color: const Color(0xFF2563EB), fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
                             ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline, color: Color(0xFF94A3B8), size: 22),
-                                  onPressed: () {
-                                    ref.read(cartProvider.notifier).updateQuantity(item.medication.id, item.quantity - 1, unit: item.unit);
-                                  },
-                                ),
-                                Text(
-                                  '${item.quantity}',
-                                  style: _kStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : const Color(0xFF0F172A)),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.add_circle_outline, color: Color(0xFF3B82F6), size: 22),
-                                  onPressed: () {
-                                    ref.read(cartProvider.notifier).updateQuantity(item.medication.id, item.quantity + 1, unit: item.unit);
-                                  },
-                                ),
-                              ],
+                            Container(
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: borderColor),
+                              ),
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.remove, size: 16),
+                                    onPressed: () {
+                                      ref.read(cartProvider.notifier).updateQuantity(item.medication.id, item.quantity - 1, unit: item.unit);
+                                    },
+                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  Text(
+                                    '${item.quantity}',
+                                    style: _kStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add, size: 16),
+                                    onPressed: () => ref.read(cartProvider.notifier).updateQuantity(item.medication.id, item.quantity + 1, unit: item.unit),
+                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                ],
+                              ),
                             ),
+
                           ],
                         ),
                       );
@@ -225,7 +201,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.all(22),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: cardBg,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -246,16 +222,16 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('کۆی نرخی کاڵاکان', style: _kStyle(color: const Color(0xFF64748B), fontSize: 13.5)),
-                            Text('${NumberFormat('#,###').format(cartState.subtotal.toInt())} د.ع', style: _kStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                            Text('items_subtotal'.tr(), style: _kStyle(color: const Color(0xFF64748B), fontSize: 13.5)),
+                            Text('${NumberFormat('#,###').format(cartState.subtotal.toInt())} ${'currency_iqd'.tr()}', style: _kStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                           ],
                         ),
                         const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('کرێی گەیاندن', style: _kStyle(color: const Color(0xFF64748B), fontSize: 13.5)),
-                            Text('${NumberFormat('#,###').format(cartState.pharmacy?.deliveryFee.toInt() ?? 0)} د.ع', style: _kStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                            Text('delivery_fee'.tr(), style: _kStyle(color: const Color(0xFF64748B), fontSize: 13.5)),
+                            Text('${NumberFormat('#,###').format(cartState.pharmacy?.deliveryFee.toInt() ?? 0)} ${'currency_iqd'.tr()}', style: _kStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                           ],
                         ),
                         Padding(
@@ -265,9 +241,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('کۆی گشتی', style: _kStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                            Text('total'.tr(), style: _kStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                             Text(
-                              '${NumberFormat('#,###').format(cartState.total.toInt())} د.ع',
+                              '${NumberFormat('#,###').format(cartState.total.toInt())} ${'currency_iqd'.tr()}',
                               style: _kStyle(fontSize: 17, fontWeight: FontWeight.bold, color: const Color(0xFF2563EB)),
                             ),
                           ],
@@ -286,7 +262,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                               elevation: 0,
                             ),
                             child: Text(
-                              'تەواوکردنی کڕین',
+                              'complete_purchase'.tr(),
                               style: _kStyle(
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.bold,

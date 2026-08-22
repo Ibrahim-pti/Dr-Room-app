@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 
 class MedicalHistoryScreen extends StatefulWidget {
   final VoidCallback onFinished;
@@ -265,7 +267,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                           onChanged: (val) =>
                               setState(() => _hasAllergies = val),
                           controller: _allergiesController,
-                          hintText: 'ناوی هەستیاری بنووسە (بۆ نموونە: دەرمان یان خۆراک)',
+                          hintText: 'allergy_hint'.tr(),
                           delay: 150,
                           cardBg: cardBg,
                           isDark: isDark,
@@ -281,7 +283,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                           onChanged: (val) =>
                               setState(() => _hasChronicDiseases = val),
                           controller: _chronicController,
-                          hintText: 'ناوی نەخۆشییەکە بنووسە (بۆ نموونە: شەکرە یان زەخت)',
+                          hintText: 'chronic_disease_hint'.tr(),
                           delay: 250,
                           cardBg: cardBg,
                           isDark: isDark,
@@ -297,7 +299,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                           onChanged: (val) =>
                               setState(() => _takesMedications = val),
                           controller: _medicationsController,
-                          hintText: 'ناوی دەرمانەکان بنووسە',
+                          hintText: 'medication_hint'.tr(),
                           delay: 350,
                           cardBg: cardBg,
                           isDark: isDark,
@@ -461,14 +463,14 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
             child: Row(
               children: [
                 _buildToggle(
-                  label: 'بەڵێ',
+                  label: 'yes_text'.tr(),
                   isSelected: value == true,
                   onTap: () => onChanged(true),
                   selectedColor: primaryColor,
                   isDark: isDark,
                 ),
                 _buildToggle(
-                  label: 'نەخێر',
+                  label: 'no_text'.tr(),
                   isSelected: value == false,
                   onTap: () => onChanged(false),
                   selectedColor: const Color(0xFF64748B),

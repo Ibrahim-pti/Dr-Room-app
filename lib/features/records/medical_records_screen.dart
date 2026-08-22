@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
+
 
 class MedicalRecordsScreen extends StatefulWidget {
   const MedicalRecordsScreen({super.key});
@@ -66,10 +68,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return Scaffold(
+
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -751,7 +752,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             Text('بەروار: $date', style: _kStyle(fontSize: 12, color: const Color(0xFF94A3B8))),
             const SizedBox(height: 16),
             if (notes.isNotEmpty) ...[
-              Text('تێبینی و ڕێنمایی:', style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              Text('notes_instructions'.tr(), style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               Text(notes, style: _kStyle(fontSize: 13, color: isDark ? Colors.white70 : const Color(0xFF334155))),
             ],
@@ -779,7 +780,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         const Icon(Icons.close_rounded, size: 20, color: Colors.white),
                         const SizedBox(width: 8),
                         Text(
-                          'داخستن',
+                          'close'.tr(),
                           style: _kStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height: 1.1),
                         ),
                       ],
@@ -803,7 +804,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           appBar: AppBar(
             backgroundColor: Colors.black,
             iconTheme: const IconThemeData(color: Colors.white),
-            title: Text('وێنەی پشکنین', style: _kStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            title: Text('test_image'.tr(), style: _kStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
           ),
           body: Center(
             child: InteractiveViewer(
@@ -817,8 +818,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   if (progress == null) return child;
                   return const Center(child: CircularProgressIndicator(color: Colors.white));
                 },
-                errorBuilder: (context, error, stackTrace) => const Center(
-                  child: Text('هەڵە لە بارکردنی وێنە', style: TextStyle(color: Colors.white)),
+                errorBuilder: (context, error, stackTrace) => Center(
+                  child: Text('image_load_error'.tr(), style: const TextStyle(color: Colors.white)),
                 ),
               ),
             ),
@@ -827,4 +828,5 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       ),
     );
   }
+
 }

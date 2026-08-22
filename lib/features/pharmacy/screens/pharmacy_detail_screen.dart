@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart' hide StringTranslateExtension;
+import 'package:easy_localization/easy_localization.dart';
+
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1274,12 +1275,13 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                   maxLines: 3,
                   style: _kStyle(fontSize: 13, color: txtColor),
                   decoration: InputDecoration(
-                    hintText: 'سەرنج و بۆچوونی خۆت لێرە بنووسە (ئارەزوومەندانە)...',
+                    hintText: 'review_input_hint'.tr(),
                     hintStyle: _kStyle(
                       fontSize: 12,
                       color: const Color(0xFF94A3B8),
                     ),
                     filled: true,
+
                     fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),

@@ -839,12 +839,13 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         Expanded(
           child: _buildActionButton(
             icon: Icons.star_rate_rounded,
-            label: 'هەڵسەنگاندن',
+            label: 'rating'.tr(),
             color: const Color(0xFFD97706),
             bgColor: const Color(0xFFFEF3C7),
             onTap: _showReviewBottomSheet,
           ),
         ),
+
       ],
     );
   }
@@ -1666,11 +1667,12 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                             }
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('هەڵەیەک ڕوویدا'),
+                              SnackBar(
+                                content: Text('error_occurred'.tr()),
                                 backgroundColor: Colors.red,
                               ),
                             );
+
                           } finally {
                             if (mounted)
                               setModalState(() => isSubmitting = false);

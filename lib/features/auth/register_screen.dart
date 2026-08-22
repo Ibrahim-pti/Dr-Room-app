@@ -3,9 +3,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
 import 'widgets/terms_privacy_modal.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   final void Function(String phone) onOtpSent;
@@ -393,12 +396,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ? Colors.white
                                 : const Color(0xFF0F172A),
                           ),
-                          decoration: const InputDecoration(
-                            hintText: 'ناو',
-                            hintStyle: TextStyle(
+                          decoration: InputDecoration(
+                            hintText: 'full_name'.tr(),
+                            hintStyle: const TextStyle(
                               color: Color(0xFF94A3B8),
                               fontSize: 13.5,
                             ),
+
                             prefixIcon: Icon(
                               Iconsax.user,
                               color: Color(0xFF94A3B8),
