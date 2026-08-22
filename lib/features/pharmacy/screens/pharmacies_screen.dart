@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../data/pharmacy_repository.dart';
 import '../models/pharmacy_model.dart';
 import 'pharmacy_detail_screen.dart';
@@ -15,10 +14,21 @@ class PharmaciesScreen extends StatefulWidget {
 
 class _PharmaciesScreenState extends State<PharmaciesScreen> {
   final PharmacyRepository _repository = PharmacyRepository();
-  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchCtrl = TextEditingController();
   List<Pharmacy> _pharmacies = [];
   bool _isLoading = true;
   String _selectedFilter = 'هەمووی';
+
+  final List<String> _filters = [
+    'هەمووی',
+    'کراوەیە ئێستا',
+    'بەرزترین هەڵسەنگاندن',
+    'کەمترین کرێ',
+  ];
+
+  final List<String> _cities = ['هەموو شارەکان', 'هەولێر', 'سلێمانی', 'دهۆک', 'کەرکووک', 'هەڵەبجە'];
+  String _selectedCity = 'هەموو شارەکان';
+  double _selectedMinRating = 0.0;
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -41,7 +51,14 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
     _fetchPharmacies();
   }
 
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchPharmacies() async {
+    setState(() => _isLoading = true);
     try {
       final pharmacies = await _repository.getPharmacies();
       if (mounted) {
@@ -56,14 +73,6 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
           _isLoading = false;
         });
       }
-    }
-  }
-
-  Future<void> _makeCall(String? phone) async {
-    if (phone == null || phone.isEmpty) return;
-    final Uri uri = Uri(scheme: 'tel', path: phone);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
     }
   }
 
@@ -110,259 +119,674 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
         ),
       ];
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-
+  List<Pharmacy> _getFilteredPharmacies() {
     final displayList = _pharmacies.isNotEmpty ? _pharmacies : _fallbackPharmacies;
+    final query = _searchCtrl.text.trim().toLowerCase();
 
-    final filteredList = displayList.where((pharmacy) {
-      final query = _searchController.text.trim().toLowerCase();
-      final matchesSearch = pharmacy.name.toLowerCase().contains(query) ||
+    return displayList.where((pharmacy) {
+      final matchesSearch = query.isEmpty ||
+          pharmacy.name.toLowerCase().contains(query) ||
           (pharmacy.address?.toLowerCase().contains(query) ?? false);
 
       if (!matchesSearch) return false;
 
-      if (_selectedFilter == 'کراوەکان') {
+      // City filter
+      if (_selectedCity != 'هەموو شارەکان') {
+        final address = pharmacy.address?.toLowerCase() ?? '';
+        final city = _selectedCity.toLowerCase();
+        if (!address.contains(city)) return false;
+      }
+
+      // Rating filter
+      if (_selectedMinRating > 0.0) {
+        if (pharmacy.rating < _selectedMinRating) return false;
+      }
+
+      // Quick filter chips
+      if (_selectedFilter == 'کراوەیە ئێستا') {
         return pharmacy.isOpen;
       } else if (_selectedFilter == 'بەرزترین هەڵسەنگاندن') {
         return pharmacy.rating >= 4.8;
       } else if (_selectedFilter == 'کەمترین کرێ') {
         return pharmacy.deliveryFee <= 2500;
       }
+
       return true;
     }).toList();
+  }
 
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'دەرمانخانەکان',
-          style: _kStyle(
-            color: isDark ? Colors.white : const Color(0xFF0F172A),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor),
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new,
-                size: 16,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+  void _showAdvancedFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final sheetBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+
+            return Container(
+              decoration: BoxDecoration(
+                color: sheetBg,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               ),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B82F6)))
-          : SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              padding: const EdgeInsets.all(24),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Modern Promo Banner
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF2563EB).withValues(alpha: 0.35),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  'گەیاندنی خێرا 🛵',
-                                  style: _kStyle(
-                                    color: Colors.white,
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'دەرمانخانەکانی هەموو کوردستان',
-                                style: _kStyle(
-                                  color: Colors.white,
-                                  fontSize: 16.5,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'دەرمان و پێداویستییە پزیشکییەکان ڕاستەوخۆ بگەیەنە بەردەم ماڵەکەت',
-                                style: _kStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                  height: 1.35,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.local_pharmacy_rounded,
-                            color: Colors.white,
-                            size: 36,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ).animate().fadeIn().slideY(begin: 0.05, end: 0),
-
+                  ),
                   const SizedBox(height: 20),
-
-                  // Search Bar
-                  Container(
-                    height: 52,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: borderColor),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Iconsax.search_normal_1, color: Color(0xFF3B82F6), size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (val) => setState(() {}),
-                            style: _kStyle(
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                              fontSize: 13.5,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'گەڕان بەدوای ناوی دەرمانخانە، گەڕەک یان دەرمان...',
-                              hintStyle: _kStyle(color: const Color(0xFF94A3B8), fontSize: 13),
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                        if (_searchController.text.isNotEmpty)
-                          GestureDetector(
-                            onTap: () => setState(() => _searchController.clear()),
-                            child: const Icon(Icons.close, color: Color(0xFF94A3B8), size: 18),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Filter Chips
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    child: Row(
-                      children: ['هەمووی', 'کراوەکان', 'بەرزترین هەڵسەنگاندن', 'کەمترین کرێ'].map((filter) {
-                        final isSel = _selectedFilter == filter;
-                        return Padding(
-                          padding: const EdgeInsetsDirectional.only(end: 8),
-                          child: ChoiceChip(
-                            label: Text(
-                              filter,
-                              style: _kStyle(
-                                color: isSel ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            selected: isSel,
-                            selectedColor: const Color(0xFF3B82F6),
-                            backgroundColor: cardBg,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              side: BorderSide(color: isSel ? const Color(0xFF3B82F6) : borderColor),
-                            ),
-                            onSelected: (val) => setState(() => _selectedFilter = filter),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-
-                  const SizedBox(height: 22),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'دەرمانخانە چالاکەکان (${filteredList.length})',
+                        'فلتەرکردنی دەرمانخانەکان',
                         style: _kStyle(
-                          fontSize: 16,
+                          fontSize: 17,
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
                       ),
+                      TextButton(
+                        onPressed: () {
+                          setModalState(() {
+                            _selectedCity = 'هەموو شارەکان';
+                            _selectedMinRating = 0.0;
+                          });
+                          setState(() {});
+                        },
+                        child: Text(
+                          'سڕینەوە',
+                          style: _kStyle(
+                            color: const Color(0xFFEF4444),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // By City
+                  Text(
+                    'بەپێی شار',
+                    style: _kStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _cities.map((city) {
+                      final isSelected = _selectedCity == city;
+                      return ChoiceChip(
+                        label: Text(
+                          city,
+                          style: _kStyle(
+                            color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        selected: isSelected,
+                        selectedColor: const Color(0xFF3B82F6),
+                        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: isSelected
+                                ? const Color(0xFF3B82F6)
+                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          ),
+                        ),
+                        onSelected: (val) {
+                          setModalState(() => _selectedCity = city);
+                          setState(() {});
+                        },
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // By Rating
+                  Text(
+                    'بەپێی هەڵسەنگاندن',
+                    style: _kStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      {'label': 'هەموو نمرەکان', 'min': 0.0},
+                      {'label': '⭐ ٤.٥ و بەرزتر', 'min': 4.5},
+                      {'label': '⭐ ٤.٧ و بەرزتر', 'min': 4.7},
+                      {'label': '⭐ ٤.٩ و بەرزتر', 'min': 4.9},
+                    ].map((item) {
+                      final double minVal = item['min'] as double;
+                      final bool isSelected = _selectedMinRating == minVal;
+                      return ChoiceChip(
+                        label: Text(
+                          item['label'] as String,
+                          style: _kStyle(
+                            color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        selected: isSelected,
+                        selectedColor: const Color(0xFF3B82F6),
+                        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: isSelected
+                                ? const Color(0xFF3B82F6)
+                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          ),
+                        ),
+                        onSelected: (val) {
+                          setModalState(() => _selectedMinRating = minVal);
+                          setState(() {});
+                        },
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B82F6),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Text(
+                        'جێبەجێکردنی فلتەر',
+                        style: _kStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filteredPharmacies = _getFilteredPharmacies();
+
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      body: RefreshIndicator(
+        color: const Color(0xFF3B82F6),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        displacement: 40,
+        onRefresh: _fetchPharmacies,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          slivers: [
+            _buildSliverAppBar(isDark),
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSearchAndFilters(isDark),
+
+                  if (_isLoading)
+                    const SizedBox(
+                      height: 300,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    )
+                  else if (filteredPharmacies.isEmpty)
+                    SizedBox(
+                      height: 320,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Iconsax.search_normal_1,
+                                size: 44,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'هیچ دەرمانخانەیەک نەدۆزرایەوە',
+                              style: _kStyle(
+                                color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredPharmacies.length,
+                      itemBuilder: (context, index) {
+                        return _buildPremiumPharmacyCard(
+                          filteredPharmacies[index],
+                          index,
+                          isDark,
+                        );
+                      },
+                    ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSliverAppBar(bool isDark) {
+    return SliverAppBar(
+      pinned: true,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: true,
+      leadingWidth: 64,
+      leading: Padding(
+        padding: const EdgeInsetsDirectional.only(start: 16),
+        child: Center(
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Icon(
+                Icons.arrow_back_ios_new,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                size: 16,
+              ),
+            ),
+          ),
+        ),
+      ),
+      title: Text(
+        'دەرمانخانەکان',
+        style: _kStyle(
+          color: isDark ? Colors.white : const Color(0xFF0F172A),
+          fontSize: 17.5,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      actions: const [
+        SizedBox(width: 64),
+      ],
+    );
+  }
+
+  Widget _buildSearchAndFilters(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+      color: isDark ? const Color(0xFF0F172A) : Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Search Bar + Settings Filter Button
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 16),
+                      const Icon(
+                        Iconsax.search_normal_1,
+                        color: Color(0xFF94A3B8),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchCtrl,
+                          onChanged: (_) => setState(() {}),
+                          style: _kStyle(
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            fontSize: 13.5,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'گەڕان بۆ ناوی دەرمانخانە، گەڕەک...',
+                            hintStyle: _kStyle(
+                              color: const Color(0xFF94A3B8),
+                              fontSize: 13,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      if (_searchCtrl.text.isNotEmpty)
+                        GestureDetector(
+                          onTap: () => setState(() => _searchCtrl.clear()),
+                          child: const Padding(
+                            padding: EdgeInsetsDirectional.only(end: 12),
+                            child: Icon(Icons.close, color: Color(0xFF94A3B8), size: 18),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: _showAdvancedFilterModal,
+                child: Container(
+                  height: 52,
+                  width: 52,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3B82F6),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.28),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Iconsax.setting_4, color: Colors.white, size: 22),
+                ),
+              ),
+            ],
+          ).animate().fadeIn(delay: 80.ms).slideY(begin: 0.08),
+
+          const SizedBox(height: 16),
+
+          // Filters Row
+          SizedBox(
+            height: 40,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: _filters.length,
+              itemBuilder: (context, index) {
+                final filter = _filters[index];
+                final isSelected = _selectedFilter == filter;
+
+                return Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedFilter = filter);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFF3B82F6)
+                            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFF3B82F6)
+                              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          width: 1.2,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Text(
+                        filter,
+                        style: _kStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 12.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.05),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumPharmacyCard(Pharmacy pharmacy, int index, bool isDark) {
+    final bool isOpen = pharmacy.isOpen;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0).withValues(alpha: 0.8);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PharmacyDetailScreen(pharmacy: pharmacy),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: borderColor, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // ── Left: Pharmacy Image with online indicator ──
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    width: 92,
+                    height: 92,
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF),
+                    child: pharmacy.profileImage != null && pharmacy.profileImage!.isNotEmpty
+                        ? Image.network(
+                            pharmacy.profileImage!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Icon(
+                                Icons.local_pharmacy_rounded,
+                                color: Color(0xFF3B82F6),
+                                size: 36,
+                              ),
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.local_pharmacy_rounded,
+                              color: Color(0xFF3B82F6),
+                              size: 36,
+                            ),
+                          ),
+                  ),
+                ),
+                // Delivery Fee Badge on top of image
+                PositionedDirectional(
+                  top: 5,
+                  start: 5,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5.5, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${pharmacy.deliveryFee.toInt()} د.ع',
+                      style: _kStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 13),
+
+            // ── Right: Pharmacy Details ──
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Pharmacy Name
+                  Text(
+                    pharmacy.name,
+                    style: _kStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+
+                  // 2. Middle Row: Location Pin + Address + Rating Badge
+                  Row(
+                    children: [
+                      const Icon(
+                        Iconsax.location,
+                        color: Color(0xFF3B82F6),
+                        size: 13.5,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          pharmacy.address ?? 'هەولێر، کوردستان',
+                          style: _kStyle(
+                            color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                            fontSize: 11.5,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Rating Pill
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6.5,
+                          vertical: 2.5,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(7),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.location_on, color: Color(0xFF3B82F6), size: 14),
-                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.star_rounded,
+                              color: Color(0xFFD97706),
+                              size: 12.5,
+                            ),
+                            const SizedBox(width: 2.5),
                             Text(
-                              'نزیکترینت',
+                              pharmacy.rating > 0
+                                  ? pharmacy.rating.toStringAsFixed(1)
+                                  : '4.9',
                               style: _kStyle(
-                                fontSize: 11.5,
-                                color: const Color(0xFF3B82F6),
+                                color: const Color(0xFFB45309),
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -371,247 +795,90 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
 
-                  if (filteredList.isEmpty)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Column(
+                  // 3. Bottom Row: [ Open Status Pill ] & [ "بینینی دەرمان" Action Pill ]
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Open / Closed Status
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isOpen
+                              ? const Color(0xFFECFDF5)
+                              : const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.local_pharmacy_outlined, size: 50, color: Colors.grey.withValues(alpha: 0.5)),
-                            const SizedBox(height: 12),
-                            Text('هیچ دەرمانخانەیەک نەدۆزرایەوە', style: _kStyle(color: const Color(0xFF94A3B8))),
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isOpen
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFFEF4444),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isOpen ? 'کراوەیە ئێستا' : 'داخراوە',
+                              style: _kStyle(
+                                color: isOpen
+                                    ? const Color(0xFF047857)
+                                    : const Color(0xFFDC2626),
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    )
-                  else
-                    ...List.generate(filteredList.length, (index) {
-                      final pharmacy = filteredList[index];
 
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PharmacyDetailScreen(pharmacy: pharmacy),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: borderColor),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Pharmacy Image / Icon with online ring
-                                    Stack(
-                                      children: [
-                                        Container(
-                                          width: 70,
-                                          height: 70,
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(18),
-                                            image: pharmacy.profileImage != null
-                                                ? DecorationImage(
-                                                    image: NetworkImage(pharmacy.profileImage!),
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : null,
-                                          ),
-                                          child: pharmacy.profileImage == null
-                                              ? const Icon(Icons.local_pharmacy, color: Color(0xFF3B82F6), size: 34)
-                                              : null,
-                                        ),
-                                        PositionedDirectional(
-                                          top: 4,
-                                          end: 4,
-                                          child: Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: BoxDecoration(
-                                              color: pharmacy.isOpen ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                                              shape: BoxShape.circle,
-                                              border: Border.all(color: Colors.white, width: 2),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(width: 14),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  pharmacy.name,
-                                                  style: _kStyle(
-                                                    fontSize: 15.5,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFFFEF3C7),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 14),
-                                                    const SizedBox(width: 2),
-                                                    Text(
-                                                      pharmacy.rating > 0
-                                                          ? pharmacy.rating.toStringAsFixed(1)
-                                                          : '4.9',
-                                                      style: _kStyle(
-                                                        color: const Color(0xFFD97706),
-                                                        fontSize: 11,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            pharmacy.address ?? 'کوردستان',
-                                            style: _kStyle(
-                                              fontSize: 12,
-                                              color: const Color(0xFF94A3B8),
-                                              height: 1.3,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            children: [
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                                decoration: BoxDecoration(
-                                                  color: pharmacy.isOpen
-                                                      ? const Color(0xFF10B981).withValues(alpha: 0.1)
-                                                      : const Color(0xFFEF4444).withValues(alpha: 0.1),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  pharmacy.isOpen ? 'کراوەیە 🟢' : 'داخراوە 🔴',
-                                                  style: _kStyle(
-                                                    color: pharmacy.isOpen ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                'گەیاندن: ${pharmacy.deliveryFee.toInt()} د.ع',
-                                                style: _kStyle(
-                                                  fontSize: 11.5,
-                                                  color: const Color(0xFF64748B),
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // Bottom Action Row inside Card
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF0F172A).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
-                                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
-                                  border: Border(top: BorderSide(color: borderColor)),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => _makeCall(pharmacy.phone),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF10B981), size: 14),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'پەیوەندی',
-                                              style: _kStyle(
-                                                color: const Color(0xFF10B981),
-                                                fontSize: 11.5,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'بینینی دەرمان و کڕین',
-                                          style: _kStyle(
-                                            color: const Color(0xFF3B82F6),
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        const Icon(Iconsax.arrow_left_2, color: Color(0xFF3B82F6), size: 14),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                      // "بینینی دەرمان" Action Button
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 5.5,
                         ),
-                      ).animate().fadeIn(delay: (index * 60).ms).slideY(begin: 0.04, end: 0);
-                    }),
-                  const SizedBox(height: 30),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'بینینی دەرمان',
+                              style: _kStyle(
+                                color: const Color(0xFF2563EB),
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Iconsax.arrow_left_2,
+                              color: Color(0xFF2563EB),
+                              size: 12,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-    );
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: (index * 45).ms).slideY(begin: 0.04, end: 0);
   }
 }
