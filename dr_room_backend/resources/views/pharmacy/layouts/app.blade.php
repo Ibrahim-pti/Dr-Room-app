@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - داشبۆردی دەرمانخانە</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         body { font-family: 'Rabar', 'Inter', sans-serif; background: #f0f2f5; margin: 0; }
         ::-webkit-scrollbar { width: 5px; }
@@ -314,12 +316,12 @@
                         <span class="dot"></span>
                     </button>
                     <div class="info">
-                        <div class="name">دکتۆر {{ explode(' ', Auth::user()->name)[0] }}</div>
-                        <div class="role">{{ Auth::user()->doctor->specialty ?? 'پزیشکی گشتی' }}</div>
+                        <div class="name">{{ Auth::user()->pharmacy->name ?? Auth::user()->name }}</div>
+                        <div class="role">سەرپەرشتیاری دەرمانخانە</div>
                     </div>
                     <div class="avatar">
-                        @if(Auth::user()->doctor && Auth::user()->doctor->profile_image)
-                            <img src="{{ asset('storage/' . Auth::user()->doctor->profile_image) }}" alt="Profile">
+                        @if(Auth::user()->pharmacy && Auth::user()->pharmacy->profile_image)
+                            <img src="{{ asset('storage/' . Auth::user()->pharmacy->profile_image) }}" alt="Profile">
                         @else
                             {{ mb_substr(Auth::user()->name, 0, 1) }}
                         @endif
