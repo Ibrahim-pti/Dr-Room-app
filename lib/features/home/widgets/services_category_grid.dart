@@ -8,11 +8,8 @@ import '../../categories/all_categories_screen.dart';
 import '../../doctors/all_doctors_screen.dart';
 import '../../emergency/sos_screen.dart';
 import '../../lab/all_labs_screen.dart';
-import '../../nursing/nursing_services_screen.dart';
 import '../../nursing/nurse_list_screen.dart';
 import '../../pharmacy/screens/pharmacies_screen.dart';
-import '../../ai_assistant/ai_symptom_checker_screen.dart';
-import '../../prescriptions/pill_reminder_screen.dart';
 
 class ServicesCategoryGrid extends StatelessWidget {
   const ServicesCategoryGrid({super.key});
@@ -101,7 +98,7 @@ class ServicesCategoryGrid extends StatelessWidget {
                   imagePath: 'assets/images/doctor.png',
                   titleKey: 'cat_doctor',
                   id: 'doctor',
-                  isActive: true,
+                  isActive: false,
                   accentColor: const Color(0xFF2563EB),
                 ),
               ),
@@ -125,32 +122,8 @@ class ServicesCategoryGrid extends StatelessWidget {
                   icon: Iconsax.hospital,
                   titleKey: 'cat_ambulance',
                   id: 'ambulance',
-                  isActive: true,
+                  isActive: false,
                   accentColor: const Color(0xFFEF4444),
-                ),
-              ),
-              const SizedBox(width: 12),
-              SizedBox(
-                width: 78,
-                child: _buildGridCard(
-                  context,
-                  icon: Iconsax.health,
-                  titleKey: 'ai_assistant',
-                  id: 'ai_assistant',
-                  isActive: true,
-                  accentColor: const Color(0xFF06B6D4),
-                ),
-              ),
-              const SizedBox(width: 12),
-              SizedBox(
-                width: 78,
-                child: _buildGridCard(
-                  context,
-                  icon: Iconsax.clock,
-                  titleKey: 'pill_reminder',
-                  id: 'pill_reminder',
-                  isActive: true,
-                  accentColor: const Color(0xFFF59E0B),
                 ),
               ),
               const SizedBox(width: 12),
@@ -316,10 +289,6 @@ class ServicesCategoryGrid extends StatelessWidget {
       Navigator.push(context, MaterialPageRoute(builder: (context) => PharmaciesScreen()));
     } else if (id == 'ambulance') {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const SosScreen()));
-    } else if (id == 'ai_assistant') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const AiSymptomCheckerScreen()));
-    } else if (id == 'pill_reminder') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const PillReminderScreen()));
     } else if (id == 'more') {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const AllCategoriesScreen()));
     }

@@ -6,7 +6,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../doctors/all_doctors_screen.dart';
 import '../pharmacy/screens/pharmacies_screen.dart';
 import '../lab/all_labs_screen.dart';
-import '../nursing/nursing_services_screen.dart';
 import '../nursing/nurse_list_screen.dart';
 
 class AllCategoriesScreen extends StatelessWidget {
@@ -65,7 +64,7 @@ class AllCategoriesScreen extends StatelessWidget {
             imagePath: 'assets/images/doctor.png',
             titleKey: 'cat_doctor',
             id: 'doctor',
-            isActive: true,
+            isActive: false,
             delay: 200,
           ),
           _buildGridCard(
@@ -81,7 +80,7 @@ class AllCategoriesScreen extends StatelessWidget {
             imagePath: 'assets/images/add.png',
             titleKey: 'cat_ambulance',
             id: 'ambulance',
-            isActive: true,
+            isActive: false,
             delay: 300,
           ),
           _buildGridCard(
