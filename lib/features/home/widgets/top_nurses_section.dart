@@ -22,14 +22,6 @@ class TopNursesSection extends StatelessWidget {
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final nursesList = topNurses.isNotEmpty ? topNurses : HomeMockData.fallbackNurses;
 
-    final fallbackImages = [
-      'https://images.unsplash.com/photo-1594824813511-236b283d0cfa?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=500&auto=format&fit=crop&q=80',
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -75,7 +67,7 @@ class TopNursesSection extends StatelessWidget {
 
         // ── Compact & Polished Nurse Cards ──
         SizedBox(
-          height: 200,
+          height: 192,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -90,15 +82,15 @@ class TopNursesSection extends StatelessWidget {
               final totalReviews = nurse['total_reviews'] ?? 45;
               final reviews = '($totalReviews)';
 
-              final fallbackImage = fallbackImages[index % fallbackImages.length];
               final rawPath = nurse['image']?.toString() ?? nurse['image_path']?.toString();
               final isCustomUpload = rawPath != null &&
                   rawPath.isNotEmpty &&
-                  !rawPath.contains('assets/images') &&
                   !rawPath.contains('default');
               final image = isCustomUpload
-                  ? (rawPath.startsWith('http') ? rawPath : ApiClient.getImageUrl(rawPath))
-                  : fallbackImage;
+                  ? (rawPath.startsWith('http') || rawPath.startsWith('assets/')
+                      ? rawPath
+                      : ApiClient.getImageUrl(rawPath))
+                  : 'https://images.unsplash.com/photo-1594824813511-236b283d0cfa?w=400&h=300&fit=crop&crop=face,top&q=80';
               final isNetworkImg = image.startsWith('http');
 
               final nurseMap = Map<String, dynamic>.from(nurse);
@@ -113,10 +105,10 @@ class TopNursesSection extends StatelessWidget {
                   );
                 },
                 child: Container(
-                  width: 148,
+                  width: 140,
                   margin: const EdgeInsetsDirectional.only(
                     end: 12,
-                    bottom: 6,
+                    bottom: 5,
                     top: 2,
                   ),
                   decoration: BoxDecoration(
@@ -139,7 +131,7 @@ class TopNursesSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top Image Container
+                      // ── Top Image Container ──
                       Stack(
                         children: [
                           ClipRRect(
@@ -147,32 +139,26 @@ class TopNursesSection extends StatelessWidget {
                               top: Radius.circular(17),
                             ),
                             child: Container(
-                              height: 96,
+                              height: 90,
                               width: double.infinity,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: isDark
-                                      ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
-                                      : [const Color(0xFFEFF6FF), const Color(0xFFDBEAFE)],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
-                              ),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF),
                               child: isNetworkImg
                                   ? CachedNetworkImage(
                                       imageUrl: image,
                                       fit: BoxFit.cover,
-                                      alignment: const Alignment(0, -0.3),
-                                      errorWidget: (context, url, error) => const Icon(
-                                        Icons.person,
-                                        size: 38,
-                                        color: Color(0xFF3B82F6),
+                                      alignment: const Alignment(0, -0.4),
+                                      errorWidget: (context, url, error) => const Center(
+                                        child: Icon(
+                                          Icons.person,
+                                          size: 38,
+                                          color: Color(0xFF3B82F6),
+                                        ),
                                       ),
                                     )
                                   : Image.asset(
                                       image,
                                       fit: BoxFit.cover,
-                                      alignment: const Alignment(0, -0.3),
+                                      alignment: const Alignment(0, -0.4),
                                     ),
                             ),
                           ),
@@ -181,25 +167,25 @@ class TopNursesSection extends StatelessWidget {
                             top: 6,
                             end: 6,
                             child: Container(
-                              width: 24,
-                              height: 24,
+                              width: 22,
+                              height: 22,
                               decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.3),
+                                color: Colors.black.withValues(alpha: 0.28),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.favorite_border_rounded,
                                 color: Colors.white,
-                                size: 13,
+                                size: 12,
                               ),
                             ),
                           ),
                         ],
                       ),
 
-                      // Content
+                      // ── Content ──
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
+                        padding: const EdgeInsets.fromLTRB(7, 5, 7, 5),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -208,7 +194,7 @@ class TopNursesSection extends StatelessWidget {
                               style: TextStyle(
                                 fontFamily: 'Rabar',
                                 color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                fontSize: 11.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),
                               maxLines: 1,
@@ -220,7 +206,7 @@ class TopNursesSection extends StatelessWidget {
                               style: TextStyle(
                                 fontFamily: 'Rabar',
                                 color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                fontSize: 9.5,
+                                fontSize: 9,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -231,7 +217,7 @@ class TopNursesSection extends StatelessWidget {
                                 const Icon(
                                   Icons.star_rounded,
                                   color: Color(0xFFF59E0B),
-                                  size: 12,
+                                  size: 11,
                                 ),
                                 const SizedBox(width: 2),
                                 Text(
@@ -239,7 +225,7 @@ class TopNursesSection extends StatelessWidget {
                                   style: const TextStyle(
                                     fontFamily: 'Rabar',
                                     color: Color(0xFFD97706),
-                                    fontSize: 9.5,
+                                    fontSize: 9,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -249,21 +235,21 @@ class TopNursesSection extends StatelessWidget {
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                                    fontSize: 8.5,
+                                    fontSize: 8,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 4),
                             // Action Button
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(
-                                vertical: 4,
+                                vertical: 3.5,
                               ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF3B82F6),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(7),
                                 boxShadow: [
                                   BoxShadow(
                                     color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
@@ -278,7 +264,7 @@ class TopNursesSection extends StatelessWidget {
                                   Icon(
                                     Iconsax.calendar_1,
                                     color: Colors.white,
-                                    size: 11,
+                                    size: 10,
                                   ),
                                   SizedBox(width: 3),
                                   Text(
@@ -287,7 +273,7 @@ class TopNursesSection extends StatelessWidget {
                                     style: TextStyle(
                                       fontFamily: 'Rabar',
                                       color: Colors.white,
-                                      fontSize: 9.5,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -300,7 +286,7 @@ class TopNursesSection extends StatelessWidget {
                     ],
                   ),
                 ),
-              ).animate().fadeIn(delay: (500 + (index * 80)).ms).slideX(begin: 0.1, end: 0);
+              ).animate().fadeIn(delay: (500 + (index * 60)).ms).slideX(begin: 0.1, end: 0);
             },
           ),
         ),
