@@ -7,6 +7,11 @@ import '../../core/utils/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../main.dart';
 import 'admin_users_screen.dart';
+import 'admin_banners_screen.dart';
+import 'admin_notifications_screen.dart';
+import 'admin_orders_screen.dart';
+import 'admin_appointments_screen.dart';
+import 'admin_xrays_screen.dart';
 import 'admin_app_bar.dart';
 
 class AdminMenuScreen extends StatefulWidget {
@@ -324,32 +329,77 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   Widget build(BuildContext context) {
     final sections = [
       {
-        'sectionTitle': 'هەژمار و ڕێکخستنەکان',
+        'sectionTitle': 'بەڕێوەبردنی ناوەڕۆک و خزمەتگوزارییەکان',
         'items': [
           {
-            'title': 'بەکارهێنەران',
-            'subtitle': 'بەڕێوەبردنی بەکارهێنەران',
+            'title': 'بانەر و ڕیکلامەکان',
+            'subtitle': 'بەڕێوەبردنی بانەرەکانی سەرەکی',
+            'icon': Iconsax.slider_horizontal,
+            'color': const Color(0xFF6366F1),
+            'screen': const AdminBannersScreen(),
+          },
+          {
+            'title': 'ئاگاداری گشتی (Push Notification)',
+            'subtitle': 'ناردنی پەیام بۆ هەموو بەکارهێنەران',
+            'icon': Iconsax.notification_bing,
+            'color': const Color(0xFFD97706),
+            'screen': const AdminNotificationsScreen(),
+          },
+          {
+            'title': 'داواکارییەکانی نەخۆش',
+            'subtitle': 'بەڕێوەبردن و دابەشکردنی ئۆردەرەکان',
+            'icon': Iconsax.box,
+            'color': const Color(0xFF10B981),
+            'screen': const AdminOrdersScreen(),
+          },
+          {
+            'title': 'نۆرە و چاوپێکەوتنەکان',
+            'subtitle': 'تەواوی نۆرە تۆمارکراوەکانی پزیشک',
+            'icon': Iconsax.calendar_1,
+            'color': const Color(0xFFEC4899),
+            'screen': const AdminAppointmentsScreen(),
+          },
+          {
+            'title': 'سەنتەرەکانی تیشک و سۆنەر',
+            'subtitle': 'پەسەندکردن و بەڕێوەبردن',
+            'icon': Iconsax.scan,
+            'color': const Color(0xFF8B5CF6),
+            'screen': const AdminXRaysScreen(),
+          },
+        ],
+      },
+      {
+        'sectionTitle': 'بەکارهێنەران و دەسەڵاتەکان',
+        'items': [
+          {
+            'title': 'بەکارهێنەرانی ئەپ',
+            'subtitle': 'بینین و بلۆککردنی بەکارهێنەر',
             'icon': Iconsax.people,
             'color': const Color(0xFF3B82F6),
             'screen': const AdminUsersScreen(),
           },
           {
-            'title': 'زیادکردنی ئەدمین',
-            'subtitle': 'دروستکردنی ئەدمینی نوێ',
+            'title': 'زیادکردنی ئەدمینی نوێ',
+            'subtitle': 'دروستکردنی هەژماری نوێ بۆ ستافی ئەدمین',
             'icon': Iconsax.user_add,
             'color': Colors.indigo,
             'action': _showAddAdminModal,
           },
+        ],
+      },
+      {
+        'sectionTitle': 'هەژمار و چوونەدەرەوە',
+        'items': [
           {
             'title': 'چوونەدەرەوە',
-            'subtitle': 'چوونەدەرەوە لە هەژمارەکە',
+            'subtitle': 'چوونەدەرەوە لە هەژماری ئەدمین',
             'icon': Iconsax.logout,
             'color': AppColors.error,
             'action': _logout,
           },
           {
             'title': 'سڕینەوەی هەژمار',
-            'subtitle': 'سڕینەوەی هەژماری ئەدمین',
+            'subtitle': 'سڕینەوەی هەژماری ئێستا',
             'icon': Iconsax.trash,
             'color': AppColors.error,
             'action': _deleteAccount,
