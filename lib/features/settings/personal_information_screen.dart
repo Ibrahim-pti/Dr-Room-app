@@ -133,31 +133,38 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
       await prefs.setString('user_dob', dob);
       await prefs.setString('guest_gender', _selectedGender);
 
-      dynamic response;
       if (_selectedImage != null) {
-        response = await ApiClient.uploadMultipart(
-          '/user',
-          fields: {
+        await prefs.setString('user_profile_image', _selectedImage!.path);
+        try {
+          final response = await ApiClient.uploadMultipart(
+            '/user',
+            fields: {
+              'name': name,
+              'dob': dob,
+              'gender': _selectedGender,
+            },
+            fileField: 'profile_image',
+            filePath: _selectedImage!.path,
+          );
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            final data = jsonDecode(response.body);
+            final user = data['user'];
+            if (user != null && user['profile_image'] != null) {
+              await prefs.setString('user_profile_image', user['profile_image'].toString());
+            }
+          }
+        } catch (e) {
+          debugPrint('Upload profile error: $e');
+        }
+      } else {
+        try {
+          await ApiClient.put('/user', body: {
             'name': name,
             'dob': dob,
             'gender': _selectedGender,
-          },
-          fileField: 'profile_image',
-          filePath: _selectedImage!.path,
-        );
-      } else {
-        response = await ApiClient.put('/user', body: {
-          'name': name,
-          'dob': dob,
-          'gender': _selectedGender,
-        });
-      }
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        final user = data['user'];
-        if (user != null && user['profile_image'] != null) {
-          await prefs.setString('user_profile_image', user['profile_image'].toString());
+          });
+        } catch (e) {
+          debugPrint('Update profile error: $e');
         }
       }
 
@@ -252,9 +259,8 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                         image: DecorationImage(
                           image: _selectedImage != null
                               ? FileImage(_selectedImage!) as ImageProvider
-                              : (_profileImageUrl != null && _profileImageUrl!.isNotEmpty
-                                  ? NetworkImage(ApiClient.getImageUrl(_profileImageUrl!))
-                                  : const AssetImage('assets/images/doctor2.png') as ImageProvider),
+                              : (ApiClient.getImageProvider(_profileImageUrl) ??
+                                  const AssetImage('assets/images/doctor2.png')),
                           fit: BoxFit.cover,
                         ),
                       ),

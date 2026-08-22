@@ -244,11 +244,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       _profileImageUrl != null &&
                                           _profileImageUrl!.isNotEmpty
                                       ? DecorationImage(
-                                          image: NetworkImage(
-                                            ApiClient.getImageUrl(
-                                              _profileImageUrl!,
-                                            ),
-                                          ),
+                                          image: ApiClient.getImageProvider(_profileImageUrl) ??
+                                              const AssetImage('assets/images/doctor2.png'),
                                           fit: BoxFit.cover,
                                         )
                                       : null,

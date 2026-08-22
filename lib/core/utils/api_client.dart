@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,6 +43,14 @@ class ApiClient {
     final trimmed = path.trim();
     if (trimmed.startsWith('assets/')) {
       return AssetImage(trimmed);
+    }
+    if (trimmed.startsWith('/') && !trimmed.startsWith('/storage') && !trimmed.startsWith('/profiles')) {
+      try {
+        final file = File(trimmed);
+        if (file.existsSync()) {
+          return FileImage(file);
+        }
+      } catch (_) {}
     }
     final url = getImageUrl(trimmed);
     if (url.isEmpty) return null;
