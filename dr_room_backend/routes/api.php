@@ -78,6 +78,12 @@ Route::get('/nurses/{id}', [\App\Http\Controllers\Api\NurseApiController::class,
 Route::get('/nurses/{id}/reviews', [\App\Http\Controllers\Api\NurseReviewController::class, 'index']);
 Route::get('/nursing/services', [\App\Http\Controllers\Api\NurseApiController::class, 'getServices']);
 
+// ─── Push notification device registration ────────────────────────────
+// Unauthenticated too: a guest device registers on first launch and the row
+// is claimed once they sign in.
+Route::post('/device-tokens', [\App\Http\Controllers\Api\DeviceTokenController::class, 'store']);
+Route::delete('/device-tokens', [\App\Http\Controllers\Api\DeviceTokenController::class, 'destroy']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);

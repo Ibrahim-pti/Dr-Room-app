@@ -1,12 +1,17 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/admin_permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../main.dart';
 import 'admin_users_screen.dart';
+import 'admin_staff_screen.dart';
+import 'admin_activity_log_screen.dart';
+import 'admin_reviews_screen.dart';
+import 'admin_categories_screen.dart';
+import 'admin_transactions_screen.dart';
 import 'admin_banners_screen.dart';
 import 'admin_notifications_screen.dart';
 import 'admin_orders_screen.dart';
@@ -116,223 +121,22 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
     }
   }
 
-  Future<void> _showAddAdminModal() async {
-    final nameController = TextEditingController();
-    final phoneController = TextEditingController();
-    final passwordController = TextEditingController();
-    bool isAdding = false;
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
-              ),
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-                left: 24,
-                right: 24,
-                top: 24,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.getBorder(context),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'زیادکردنی ئەدمینی نوێ',
-                      style: TextStyle(
-                        color: AppColors.getTextTitle(context),
-                        fontFamily: 'Rabar',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildInput(
-                      controller: nameController,
-                      hint: 'ناوی تەواو',
-                      context: context,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildInput(
-                      controller: phoneController,
-                      hint: 'ژمارە مۆبایل (0750...)',
-                      context: context,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildInput(
-                      controller: passwordController,
-                      hint: 'وشەی تێپەڕ (٦ پیت یان زیاتر)',
-                      context: context,
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: isAdding
-                            ? null
-                            : () async {
-                                if (nameController.text.isEmpty ||
-                                    phoneController.text.isEmpty ||
-                                    passwordController.text.isEmpty) {
-                                  return;
-                                }
-
-                                setModalState(() => isAdding = true);
-                                try {
-                                  final response = await ApiClient.post(
-                                    '/admin/add-admin',
-                                    body: {
-                                      'name': nameController.text,
-                                      'phone': phoneController.text,
-                                      'password': passwordController.text,
-                                    },
-                                  );
-
-                                  if (response.statusCode == 201) {
-                                    if (!context.mounted) return;
-                                    Navigator.pop(ctx);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'ئەدمین بە سەرکەوتوویی زیادکرا',
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    final body = jsonDecode(response.body);
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          body['message'] ?? 'هەڵەیەک ڕوویدا',
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                } catch (e) {
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'هەڵەیەک ڕوویدا لە پەیوەندی کردن',
-                                      ),
-                                    ),
-                                  );
-                                }
-                                setModalState(() => isAdding = false);
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: isAdding
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'زیادکردن',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontFamily: 'Rabar',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.2,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildInput({
-    required TextEditingController controller,
-    required String hint,
-    required BuildContext context,
-    TextInputType keyboardType = TextInputType.text,
-    bool obscureText = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.getBackground(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.getBorder(context)),
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        obscureText: obscureText,
-        style: TextStyle(
-          color: AppColors.getTextTitle(context),
-          fontFamily: 'Rabar',
-          fontSize: 14,
-        ),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(
-            color: AppColors.getTextSubtitle(context),
-            fontFamily: 'Rabar',
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final sections = [
+    final sections = _visibleSections();
+
+    return _buildScaffold(context, sections);
+  }
+
+  /// Filters the menu down to what the signed-in staff account may open.
+  List<Map<String, dynamic>> _visibleSections() {
+    final all = [
       {
         'sectionTitle': 'بەڕێوەبردنی ناوەڕۆک و خزمەتگوزارییەکان',
         'items': [
           {
             'title': 'بانەر و ڕیکلامەکان',
+            'permission': AdminPermissions.manageContent,
             'subtitle': 'بەڕێوەبردنی بانەرەکانی سەرەکی',
             'icon': Iconsax.slider_horizontal,
             'color': const Color(0xFF6366F1),
@@ -340,6 +144,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
           },
           {
             'title': 'ئاگاداری گشتی (Push Notification)',
+            'permission': AdminPermissions.manageContent,
             'subtitle': 'ناردنی پەیام بۆ هەموو بەکارهێنەران',
             'icon': Iconsax.notification_bing,
             'color': const Color(0xFFD97706),
@@ -347,6 +152,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
           },
           {
             'title': 'داواکارییەکانی نەخۆش',
+            'permission': AdminPermissions.manageOrders,
             'subtitle': 'بەڕێوەبردن و دابەشکردنی ئۆردەرەکان',
             'icon': Iconsax.box,
             'color': const Color(0xFF10B981),
@@ -354,13 +160,39 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
           },
           {
             'title': 'نۆرە و چاوپێکەوتنەکان',
+            'permission': AdminPermissions.manageOrders,
             'subtitle': 'تەواوی نۆرە تۆمارکراوەکانی پزیشک',
             'icon': Iconsax.calendar_1,
             'color': const Color(0xFFEC4899),
             'screen': const AdminAppointmentsScreen(),
           },
           {
+            'title': 'کەتەگۆرییەکان',
+            'permission': AdminPermissions.manageCategories,
+            'subtitle': 'لیستەکانی پەرستاری، تاقیگە، دەرمانخانە و پزیشک',
+            'icon': Iconsax.category,
+            'color': const Color(0xFF0D9488),
+            'screen': const AdminCategoriesScreen(),
+          },
+          {
+            'title': 'هەڵسەنگاندن و کۆمێنتەکان',
+            'permission': AdminPermissions.manageReviews,
+            'subtitle': 'شاردنەوە و سڕینەوەی کۆمێنتی نەگونجاو',
+            'icon': Iconsax.star,
+            'color': const Color(0xFFD97706),
+            'screen': const AdminReviewsScreen(),
+          },
+          {
+            'title': 'مامەڵە و داهات',
+            'permission': AdminPermissions.viewPayments,
+            'subtitle': 'تۆماری پارەدان و ڕاپۆرتی داهات',
+            'icon': Iconsax.wallet_3,
+            'color': const Color(0xFF059669),
+            'screen': const AdminTransactionsScreen(),
+          },
+          {
             'title': 'سەنتەرەکانی تیشک و سۆنەر',
+            'permission': AdminPermissions.manageProviders,
             'subtitle': 'پەسەندکردن و بەڕێوەبردن',
             'icon': Iconsax.scan,
             'color': const Color(0xFF8B5CF6),
@@ -373,17 +205,27 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         'items': [
           {
             'title': 'بەکارهێنەرانی ئەپ',
+            'permission': AdminPermissions.manageUsers,
             'subtitle': 'بینین و بلۆککردنی بەکارهێنەر',
             'icon': Iconsax.people,
             'color': const Color(0xFF3B82F6),
             'screen': const AdminUsersScreen(),
           },
           {
-            'title': 'زیادکردنی ئەدمینی نوێ',
-            'subtitle': 'دروستکردنی هەژماری نوێ بۆ ستافی ئەدمین',
-            'icon': Iconsax.user_add,
-            'color': Colors.indigo,
-            'action': _showAddAdminModal,
+            'title': 'ستاف و دەسەڵاتەکان',
+            'permission': AdminPermissions.manageStaff,
+            'subtitle': 'زیادکردنی ستاف و دیاریکردنی ڕۆڵ و دەسەڵات',
+            'icon': Iconsax.security_user,
+            'color': const Color(0xFF4F46E5),
+            'screen': const AdminStaffScreen(),
+          },
+          {
+            'title': 'تۆماری چالاکی',
+            'permission': AdminPermissions.viewLogs,
+            'subtitle': 'کێ چی گۆڕی و کەی',
+            'icon': Iconsax.document_text,
+            'color': const Color(0xFF64748B),
+            'screen': const AdminActivityLogScreen(),
           },
         ],
       },
@@ -407,6 +249,23 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         ],
       },
     ];
+
+    // Keep only the items this account may open, then drop sections left empty.
+    return all
+        .map((section) {
+          final items = (section['items'] as List)
+              .where((item) {
+                final permission = (item as Map)['permission'];
+                return permission == null || AdminPermissions.can(permission as String);
+              })
+              .toList();
+          return {'sectionTitle': section['sectionTitle'], 'items': items};
+        })
+        .where((section) => (section['items'] as List).isNotEmpty)
+        .toList();
+  }
+
+  Widget _buildScaffold(BuildContext context, List<Map<String, dynamic>> sections) {
 
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),

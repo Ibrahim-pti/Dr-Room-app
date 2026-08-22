@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AppNotification;
+use App\Services\FcmService;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 
 class NotificationController extends Controller
@@ -51,9 +52,21 @@ class NotificationController extends Controller
 
         $notification = AppNotification::create($data);
 
-        // Here we would trigger Firebase Cloud Messaging (FCM) or APNS to send the push notification to mobile devices.
+        // Null user_id means a broadcast; otherwise it targets one account.
+        $delivery = app(FcmService::class)->sendToUsers(
+            $request->user_id ? [$request->user_id] : null,
+            $notification->title,
+            $notification->message,
+            [
+                'notification_id' => $notification->id,
+                'type' => $notification->type,
+            ]
+        );
 
-        return response()->json($notification, 201);
+        return response()->json([
+            'notification' => $notification,
+            'push' => $delivery,
+        ], 201);
     }
 
     public function show(string $id)
