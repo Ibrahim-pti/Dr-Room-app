@@ -6,7 +6,6 @@ import '../../core/utils/api_client.dart';
 import '../../core/utils/admin_permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../main.dart';
-import 'admin_staff_screen.dart';
 import 'admin_activity_log_screen.dart';
 import 'admin_reviews_screen.dart';
 import 'admin_categories_screen.dart';
@@ -42,79 +41,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
       MaterialPageRoute(builder: (context) => const AppFlow()),
       (route) => false,
     );
-  }
-
-  Future<void> _deleteAccount() async {
-    final bool? confirm = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.getSurface(context),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'سڕینەوەی هەژمار',
-          style: TextStyle(
-            color: AppColors.error,
-            fontFamily: 'Rabar',
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.right,
-        ),
-        content: Text(
-          'ئایا دڵنیایت لە سڕینەوەی هەژمارەکەت؟ ئەم کردارە پاشگەزبوونەوەی تێدا نییە.',
-          style: TextStyle(
-            color: AppColors.getTextTitle(context),
-            fontFamily: 'Rabar',
-          ),
-          textAlign: TextAlign.right,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              'نەخێر',
-              style: TextStyle(
-                fontFamily: 'Rabar',
-                color: AppColors.getTextSubtitle(context),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              'بەڵێ، بسڕەوە',
-              style: TextStyle(fontFamily: 'Rabar', color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      setState(() => _isLoading = true);
-      try {
-        await ApiClient.delete('/user');
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.clear();
-        if (!mounted) return;
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const AppFlow()),
-          (route) => false,
-        );
-      } catch (e) {
-        setState(() => _isLoading = false);
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('کێشەیەک ڕوویدا لە کاتی سڕینەوە')),
-        );
-      }
-    }
   }
 
   @override
@@ -173,16 +99,8 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         ],
       },
       {
-        'sectionTitle': 'ستاف و بەڕێوەبردنی سیستەم',
+        'sectionTitle': 'سیستەم و چالاکییەکان',
         'items': [
-          {
-            'title': 'ستاف و دەسەڵاتەکان',
-            'permission': AdminPermissions.manageStaff,
-            'subtitle': 'زیادکردنی ستاف و دیاریکردنی ڕۆڵ و دەسەڵات',
-            'icon': Iconsax.security_user,
-            'color': const Color(0xFF4F46E5),
-            'screen': const AdminStaffScreen(),
-          },
           {
             'title': 'تۆماری چالاکی',
             'permission': AdminPermissions.viewLogs,
@@ -202,13 +120,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'icon': Iconsax.logout,
             'color': AppColors.error,
             'action': _logout,
-          },
-          {
-            'title': 'سڕینەوەی هەژمار',
-            'subtitle': 'سڕینەوەی هەژماری ئێستا',
-            'icon': Iconsax.trash,
-            'color': AppColors.error,
-            'action': _deleteAccount,
           },
         ],
       },
