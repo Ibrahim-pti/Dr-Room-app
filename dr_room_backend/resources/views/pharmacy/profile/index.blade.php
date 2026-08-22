@@ -29,6 +29,14 @@
         $profileImg = $pharmacy && $pharmacy->image_path 
             ? (str_starts_with($pharmacy->image_path, 'http') ? $pharmacy->image_path : asset('storage/' . $pharmacy->image_path)) 
             : ($user->profile_image ? (str_starts_with($user->profile_image, 'http') ? $user->profile_image : asset('storage/' . $user->profile_image)) : null);
+        
+        $galleryImages = [];
+        if ($pharmacy && !empty($pharmacy->gallery_images)) {
+            $raw = is_array($pharmacy->gallery_images) ? $pharmacy->gallery_images : json_decode($pharmacy->gallery_images, true);
+            if (is_array($raw)) {
+                $galleryImages = $raw;
+            }
+        }
     @endphp
 
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 md:p-8">
@@ -53,9 +61,8 @@
                     </div>
                 @endif
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1 text-sm">گۆڕینی لۆگۆ / وێنەی سەرەکی</label>
+                    <label class="block font-bold text-slate-700 mb-1.5 text-sm">گۆڕینی لۆگۆ / وێنەی سەرەکی</label>
                     <input type="file" name="profile_image" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
-                    <p class="text-xs text-slate-400 mt-1">فۆرماتەکانی JPG, PNG یان WEBP (قەبارەی زۆرینە 2MB)</p>
                 </div>
             </div>
 
@@ -172,6 +179,45 @@
                 </div>
             </div>
 
+            <!-- Carousel Gallery Images Section -->
+            <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 mb-6 pt-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">وێنەکانی کارسۆلی سەرەوەی ئەپ (App Carousel Gallery)</h4>
+                        <p class="text-xs text-slate-500 mt-0.5">ئەو وێنانەی لە سەرەوەی لاپەڕەی دەرمانخانەکەت لە ئەپەکەدا دەسوڕێنەوە.</p>
+                    </div>
+                </div>
+
+                <!-- Current Gallery Grid -->
+                @if(count($galleryImages) > 0)
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                        @foreach($galleryImages as $index => $img)
+                            @php
+                                $imgUrl = str_starts_with($img, 'http') ? $img : asset('storage/' . $img);
+                            @endphp
+                            <div class="relative group rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm aspect-video">
+                                <img src="{{ $imgUrl }}" alt="Carousel Image {{ $index + 1 }}" class="w-full h-full object-cover">
+                                <button type="button" onclick="deleteGalleryImage('{{ $img }}')" class="absolute top-2 right-2 p-1.5 bg-red-600/90 hover:bg-red-700 text-white rounded-lg opacity-90 group-hover:opacity-100 transition-all shadow-md" title="سڕینەوەی وێنە">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                                <span class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[10px] font-bold rounded-md">#{{ $index + 1 }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl bg-white mb-4">
+                        <svg class="w-10 h-10 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <p class="text-xs text-slate-400 font-medium">هیچ وێنەیەکی تایبەت بە کارسۆل زیادنەکراوە.</p>
+                    </div>
+                @endif
+
+                <!-- Upload New Images -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">زیادکردنی وێنەی نوێ بۆ کارسۆل (دەتوانیت چەند وێنەیەک بەیەکەوە هەڵبژێریت)</label>
+                    <input type="file" name="gallery_images[]" multiple accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                </div>
+            </div>
+
             <!-- Map Picker Section (Leaflet Interactive Map) -->
             <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 mb-6 pt-4">
                 <div class="flex items-center justify-between mb-3">
@@ -213,6 +259,12 @@
                     <span>پاشەکەوتکردنی گۆڕانکارییەکان</span>
                 </button>
             </div>
+        </form>
+
+        <!-- Hidden Form for Deleting a Single Gallery Image -->
+        <form id="delete-gallery-form" action="{{ route('pharmacy.profile.gallery.delete') }}" method="POST" style="display:none;">
+            @csrf
+            <input type="hidden" name="image" id="delete-image-input">
         </form>
     </div>
 </div>
@@ -304,6 +356,13 @@ function useMyLocation() {
         },
         { enableHighAccuracy: true }
     );
+}
+
+function deleteGalleryImage(imagePath) {
+    if (confirm('ئایا دڵنیایت لە سڕینەوەی ئەم وێنەیە لە کارسۆل؟')) {
+        document.getElementById('delete-image-input').value = imagePath;
+        document.getElementById('delete-gallery-form').submit();
+    }
 }
 
 if (document.readyState === 'loading') {

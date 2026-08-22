@@ -35,7 +35,9 @@ class PharmacyProfileController extends Controller
             'bio_en' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'profile_image' => 'nullable|image|max:2048',
+            'profile_image' => 'nullable|image|max:4096',
+            'gallery_images' => 'nullable|array',
+            'gallery_images.*' => 'nullable|image|max:4096',
         ]);
 
         $user = Auth::user();
@@ -53,6 +55,19 @@ class PharmacyProfileController extends Controller
         $user->save();
 
         $pharmacy = Pharmacy::firstOrCreate(['user_id' => $user->id]);
+        
+        $gallery = $pharmacy->gallery_images ?? [];
+        if (!is_array($gallery)) {
+            $gallery = json_decode($gallery, true) ?? [];
+        }
+
+        if ($request->hasFile('gallery_images')) {
+            foreach ($request->file('gallery_images') as $imageFile) {
+                $path = $imageFile->store('pharmacies/gallery', 'public');
+                $gallery[] = $path;
+            }
+        }
+
         $pharmacy->update([
             'location' => $request->location ?? $pharmacy->location,
             'location_ar' => $request->location_ar ?? $pharmacy->location_ar,
@@ -66,9 +81,39 @@ class PharmacyProfileController extends Controller
             'bio_en' => $request->bio_en,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
+            'gallery_images' => $gallery,
             'is_open' => $request->has('is_open'),
         ]);
 
         return back()->with('success', 'پرۆفایل بە سەرکەوتوویی تازەکرایەوە.');
+    }
+
+    public function deleteGalleryImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|string',
+        ]);
+
+        $pharmacy = Auth::user()->pharmacy;
+        if (!$pharmacy) {
+            return back()->with('error', 'دەرمانخانە نەدۆزرایەوە.');
+        }
+
+        $gallery = $pharmacy->gallery_images ?? [];
+        if (!is_array($gallery)) {
+            $gallery = json_decode($gallery, true) ?? [];
+        }
+
+        $imageToDelete = $request->image;
+        $newGallery = array_values(array_filter($gallery, fn($img) => $img !== $imageToDelete));
+
+        if (!str_starts_with($imageToDelete, 'http')) {
+            Storage::disk('public')->delete($imageToDelete);
+        }
+
+        $pharmacy->gallery_images = $newGallery;
+        $pharmacy->save();
+
+        return back()->with('success', 'وێنەی کارسۆل بە سەرکەوتوویی سڕایەوە.');
     }
 }

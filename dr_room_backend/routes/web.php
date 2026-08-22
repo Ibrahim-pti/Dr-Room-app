@@ -224,6 +224,7 @@ Route::prefix('pharmacy')->middleware(['auth', \App\Http\Middleware\IsPharmacy::
     // Profile
     Route::get('/profile', [\App\Http\Controllers\Web\PharmacyProfileController::class, 'index'])->name('pharmacy.profile.index');
     Route::post('/profile', [\App\Http\Controllers\Web\PharmacyProfileController::class, 'update'])->name('pharmacy.profile.update');
+    Route::post('/profile/gallery/delete', [\App\Http\Controllers\Web\PharmacyProfileController::class, 'deleteGalleryImage'])->name('pharmacy.profile.gallery.delete');
     
     // Settings
     Route::get('/settings', [\App\Http\Controllers\Web\PharmacySettingsController::class, 'index'])->name('pharmacy.settings.index');
