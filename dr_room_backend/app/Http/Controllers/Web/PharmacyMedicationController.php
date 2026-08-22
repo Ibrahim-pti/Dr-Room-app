@@ -27,21 +27,21 @@ class PharmacyMedicationController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
+            'name_en' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'original_price' => 'nullable|numeric|min:0',
             'discount_percent' => 'nullable|integer|min:0|max:100',
-            'badge' => 'nullable|string|max:100',
             'dosage_form' => 'nullable|string|max:100',
             'stock' => 'required|integer|min:0',
-            'requires_prescription' => 'nullable|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
 
-        $data = $request->except(['image', 'requires_prescription', 'is_active']);
+        $data = $request->except(['image', 'is_active']);
         $data['user_id'] = Auth::id();
-        $data['requires_prescription'] = $request->has('requires_prescription');
         $data['is_active'] = $request->has('is_active') ? true : true;
 
         if ($request->hasFile('image')) {
@@ -68,23 +68,23 @@ class PharmacyMedicationController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
+            'name_en' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'original_price' => 'nullable|numeric|min:0',
             'discount_percent' => 'nullable|integer|min:0|max:100',
-            'badge' => 'nullable|string|max:100',
             'dosage_form' => 'nullable|string|max:100',
             'stock' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
 
-        $data = $request->except(['image', 'requires_prescription', 'is_active']);
-        $data['requires_prescription'] = $request->has('requires_prescription');
+        $data = $request->except(['image', 'is_active']);
         $data['is_active'] = $request->has('is_active');
 
         if ($request->hasFile('image')) {
-            // Delete old image if exists
             if ($medication->image_path && !str_starts_with($medication->image_path, 'http')) {
                 Storage::disk('public')->delete($medication->image_path);
             }

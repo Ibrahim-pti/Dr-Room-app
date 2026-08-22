@@ -1,8 +1,12 @@
 class Medication {
   final int id;
   final String name;
+  final String? nameAr;
+  final String? nameEn;
   final String? category;
   final String? description;
+  final String? descriptionAr;
+  final String? descriptionEn;
   final double price;
   final double? originalPrice;
   final int? discountPercent;
@@ -15,8 +19,12 @@ class Medication {
   Medication({
     required this.id,
     required this.name,
+    this.nameAr,
+    this.nameEn,
     this.category,
     this.description,
+    this.descriptionAr,
+    this.descriptionEn,
     required this.price,
     this.originalPrice,
     this.discountPercent,
@@ -56,8 +64,12 @@ class Medication {
     return Medication(
       id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
       name: json['name'] ?? '',
+      nameAr: json['name_ar'],
+      nameEn: json['name_en'],
       category: json['category'],
       description: json['description'],
+      descriptionAr: json['description_ar'],
+      descriptionEn: json['description_en'],
       price: double.parse(json['price'].toString()),
       originalPrice: json['original_price'] != null
           ? double.tryParse(json['original_price'].toString())
