@@ -634,10 +634,31 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
     );
   }
 
+  String _getDisplayCity(Pharmacy pharmacy) {
+    if (pharmacy.city != null && pharmacy.city!.trim().isNotEmpty) {
+      final c = pharmacy.city!.trim().toLowerCase();
+      if (c.contains('erbil') || c.contains('هەولێر') || c.contains('اربيل')) return 'هەولێر';
+      if (c.contains('sulayman') || c.contains('سلێمانی') || c.contains('سليمانية')) return 'سلێمانی';
+      if (c.contains('duhok') || c.contains('دهۆک') || c.contains('دهوك')) return 'دهۆک';
+      if (c.contains('kirkuk') || c.contains('کەرکووک') || c.contains('كركوك')) return 'کەرکووک';
+      if (c.contains('halabja') || c.contains('هەڵەبجە') || c.contains('حلبجة')) return 'هەڵەبجە';
+      return pharmacy.city!;
+    }
+    if (pharmacy.address != null && pharmacy.address!.isNotEmpty) {
+      final parts = pharmacy.address!.split(RegExp(r'[,،-]'));
+      if (parts.isNotEmpty && parts.first.trim().isNotEmpty) {
+        return parts.first.trim();
+      }
+    }
+    return 'هەولێر';
+  }
+
   Widget _buildPremiumPharmacyCard(Pharmacy pharmacy, int index, bool isDark) {
-    final bool isOpen = pharmacy.isOpen;
+    final isOpen = pharmacy.isOpen;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0).withValues(alpha: 0.8);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0).withValues(alpha: 0.8);
 
     return GestureDetector(
       onTap: () {
@@ -697,7 +718,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                           ),
                   ),
                 ),
-                // Delivery Fee Badge on top of image
+                // Delivery Fee Badge
                 PositionedDirectional(
                   top: 5,
                   start: 5,
@@ -726,27 +747,45 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Top Row: Pharmacy Name + Rating Pill
+                  // 1. Pharmacy Name
+                  Text(
+                    pharmacy.name,
+                    style: _kStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 7),
+
+                  // 2. Middle Row: Location Pin + City + Rating Badge
                   Row(
                     children: [
-                      Expanded(
+                      const Icon(
+                        Iconsax.location,
+                        color: Color(0xFF3B82F6),
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
                         child: Text(
-                          pharmacy.name,
+                          _getDisplayCity(pharmacy),
                           style: _kStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      // Rating Pill
+                      const SizedBox(width: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6.5,
-                          vertical: 2,
+                          horizontal: 7,
+                          vertical: 2.5,
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF3C7),
@@ -758,9 +797,9 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                             const Icon(
                               Icons.star_rounded,
                               color: Color(0xFFD97706),
-                              size: 12.5,
+                              size: 13,
                             ),
-                            const SizedBox(width: 2.5),
+                            const SizedBox(width: 3),
                             Text(
                               pharmacy.rating > 0
                                   ? pharmacy.rating.toStringAsFixed(1)
@@ -776,37 +815,12 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 5),
-
-                  // 2. Middle Row: Location Pin + Full Address (Full Width)
-                  Row(
-                    children: [
-                      const Icon(
-                        Iconsax.location,
-                        color: Color(0xFF3B82F6),
-                        size: 13.5,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          pharmacy.address ?? pharmacy.location ?? 'هەولێر، کوردستان',
-                          style: _kStyle(
-                            color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                            fontSize: 11.5,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 9),
+                  const SizedBox(height: 11),
 
                   // 3. Bottom Row: [ Open Status Pill ] & [ "بینینی دەرمان" Action Pill ]
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Open / Closed Status
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -845,8 +859,6 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                           ],
                         ),
                       ),
-
-                      // "بینینی دەرمان" Action Button
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 11,
@@ -863,13 +875,13 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                               'بینینی دەرمان',
                               style: _kStyle(
                                 color: const Color(0xFF2563EB),
-                                fontSize: 11.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(width: 4),
                             const Icon(
-                              Iconsax.arrow_left_2,
+                              Icons.arrow_forward_ios_rounded,
                               color: Color(0xFF2563EB),
                               size: 12,
                             ),
