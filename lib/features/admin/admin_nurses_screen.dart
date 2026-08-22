@@ -106,7 +106,7 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
         icon: Iconsax.profile_2user,
         iconColor: const Color(0xFFEC4899),
         iconBackgroundColor: const Color(0xFFFDF2F8),
-        showBackButton: true,
+        showBackButton: false,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

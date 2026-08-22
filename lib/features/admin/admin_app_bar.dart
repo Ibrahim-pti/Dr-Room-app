@@ -31,7 +31,7 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool canPop = showBackButton || Navigator.canPop(context);
+    final bool canPop = showBackButton;
 
     return Container(
       padding: EdgeInsets.only(
