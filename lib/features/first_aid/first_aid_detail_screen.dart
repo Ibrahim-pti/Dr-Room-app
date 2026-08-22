@@ -61,12 +61,17 @@ class FirstAidDetailScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        toolbarHeight: 64,
         title: Text(
           topic.title,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
-            fontSize: 17,
+            fontSize: 15,
             fontWeight: FontWeight.bold,
+            height: 1.25,
           ),
         ),
         leading: Padding(
