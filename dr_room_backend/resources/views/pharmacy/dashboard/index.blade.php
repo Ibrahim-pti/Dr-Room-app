@@ -3,13 +3,13 @@
 @section('content')
 <div class="fade-up">
     <!-- Welcome Section -->
-    <div style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); border-radius: 20px; padding: 32px; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.4);">
+    <div style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); border-radius: 20px; padding: 28px 24px; color: white; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.4);">
         <div>
-            <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 8px;">بەخێربێیت، سەیدەلە {{ explode(' ', $user->name)[0] }}!</h1>
-            <p style="color: #ccfbf1; font-size: 1rem;">ئەمڕۆ {{ $todayOrders }} داواکاری نوێمان هەیە.</p>
+            <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 6px;">بەخێربێیت، سەیدەلە {{ explode(' ', $user->name)[0] }}!</h1>
+            <p style="color: #ccfbf1; font-size: 0.95rem; margin: 0;">ئەمڕۆ {{ $todayOrders }} داواکاری نوێمان هەیە.</p>
         </div>
-        <div style="background: rgba(255,255,255,0.2); padding: 16px; border-radius: 16px; backdrop-filter: blur(10px);">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48" style="opacity: 0.9"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+        <div style="background: rgba(255,255,255,0.2); padding: 12px; border-radius: 14px; backdrop-filter: blur(10px);">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="36" height="36" style="opacity: 0.9"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
         </div>
     </div>
 

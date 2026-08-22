@@ -49,3 +49,69 @@
 html, body, button, input, select, textarea, span, p, h1, h2, h3, h4, h5, h6, a, div, td, th {
     font-family: 'Rabar', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
+
+/* =========================================================================
+   GLOBAL MOBILE RESPONSIVENESS (Staff Portals: Doctor, Lab, Pharmacy, Nurse)
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    /* Auto-collapse fixed inline grids to single column on mobile */
+    div[style*="grid-template-columns: 1fr 1fr"],
+    div[style*="grid-template-columns: 1fr 1fr 1fr"],
+    div[style*="grid-template-columns: 2fr 1fr"],
+    div[style*="grid-template-columns: 1.5fr 1fr"],
+    div[style*="grid-template-columns:repeat(3"],
+    div[style*="grid-template-columns:repeat(4"],
+    div[style*="grid-template-columns: repeat(3"],
+    div[style*="grid-template-columns: repeat(4"] {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    /* Content & Card Paddings */
+    .dr-content {
+        padding: 14px 12px !important;
+    }
+    .dr-header {
+        padding: 0 14px !important;
+        height: 60px !important;
+    }
+    div[style*="padding: 32px"] {
+        padding: 18px 16px !important;
+    }
+    div[style*="padding: 24px"] {
+        padding: 16px 14px !important;
+    }
+    div[style*="padding: 20px 24px"] {
+        padding: 16px 14px !important;
+    }
+
+    /* Form Inputs and Flex Actions */
+    input, select, textarea {
+        max-width: 100% !important;
+        font-size: 0.9rem !important;
+    }
+    div[style*="justify-content: flex-end"],
+    div[style*="justify-content: space-between"] {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+
+    /* Tables Auto-Scroll */
+    table {
+        min-width: 580px;
+    }
+    div[style*="overflow: hidden"]:has(table) {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Modals on Mobile */
+    #orderModal > div {
+        width: 95% !important;
+        padding: 16px !important;
+        max-height: 94vh !important;
+        margin: 8px !important;
+    }
+}
+
