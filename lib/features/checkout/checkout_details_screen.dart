@@ -424,17 +424,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                             },
                           ),
 
-                          // If nursing service, show nurse gender preference
-                          if (!isLab) ...[
-                            const SizedBox(height: 18),
-                            _buildGenderSelector(
-                              title: 'nurse_gender_preference'.tr(),
-                              selectedValue: _selectedNurseGender,
-                              onChanged: (val) {
-                                setState(() => _selectedNurseGender = val);
-                              },
-                            ),
-                          ],
+
 
                           // If Lab service, show sample collection preference
                           if (isLab) ...[

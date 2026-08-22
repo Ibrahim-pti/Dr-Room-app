@@ -5,9 +5,11 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:provider/provider.dart';
+import '../../core/providers/cart_provider.dart';
+import '../checkout/checkout_details_screen.dart';
 import '../../core/utils/api_client.dart';
 import 'nurse_reviews_screen.dart';
-import 'nursing_services_screen.dart';
 
 class NurseDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> nurse;
@@ -1404,13 +1406,26 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           ],
           GestureDetector(
             onTap: () {
+              final cart = context.read<CartProvider>();
+              cart.clearCart();
+              cart.setServiceType('Nursing Services', extraFee: 0.0);
+
+              final nurseName = nurse['user'] != null ? nurse['user']['name'] : (nurse['name'] ?? 'پەرستاری ماڵەوە');
+              final nurseSpecialty = nurse['specialty'] ?? 'پەرستاری فریاکەوتن و برینپێچی';
+              final nurseFee = nurse['fee'] != null ? (double.tryParse(nurse['fee'].toString()) ?? 25000.0) : 25000.0;
+              final nurseId = nurse['id'];
+
+              cart.addItem(CartItem(
+                id: 'nurse_${nurseId ?? 1}',
+                name: '$nurseName ($nurseSpecialty)',
+                price: nurseFee,
+                extraData: nurseId != null ? {'nurse_id': nurseId} : null,
+              ));
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => NursingServicesScreen(
-                    nurse: nurse,
-                    nurseId: nurse['id'],
-                  ),
+                  builder: (_) => const CheckoutDetailsScreen(),
                 ),
               );
             },
