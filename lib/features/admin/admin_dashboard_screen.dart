@@ -375,7 +375,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'icon': Iconsax.scan,
         'color': const Color(0xFF6366F1),
         'bg': const Color(0xFFEEF2FF),
-        'badge': null,
+        'badge': 'بەمزوانە',
+        'badgeColor': const Color(0xFF6366F1),
+        'isComingSoon': true,
         'screen': const AdminXRaysScreen(),
       },
       {
@@ -440,7 +442,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
-            onTap: () => _openScreen(item['screen'] as Widget),
+            onTap: () {
+              if (item['isComingSoon'] == true) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'خزمەتگوزاری سەنتەری تیشک بەمزوانە بەردەست دەبێت',
+                      style: TextStyle(fontFamily: 'Rabar'),
+                    ),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                return;
+              }
+              _openScreen(item['screen'] as Widget);
+            },
             borderRadius: BorderRadius.circular(14),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -483,16 +499,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444),
-                        borderRadius: BorderRadius.circular(10),
+                        color: item['isComingSoon'] == true
+                            ? (item['badgeColor'] as Color? ?? const Color(0xFF6366F1)).withValues(alpha: 0.12)
+                            : const Color(0xFFEF4444),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         badge,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Rabar',
-                          fontSize: 10,
+                          fontSize: item['isComingSoon'] == true ? 9.5 : 10,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: item['isComingSoon'] == true
+                              ? (item['badgeColor'] as Color? ?? const Color(0xFF6366F1))
+                              : Colors.white,
                         ),
                       ),
                     ),
