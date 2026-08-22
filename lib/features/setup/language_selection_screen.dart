@@ -96,7 +96,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'هەنگاوی ١ لە ٣',
+                                  'step_1_of_3'.tr(),
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12,
@@ -149,7 +149,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           ),
                         ),
                         child: Text(
-                          'تێپەڕاندن',
+                          'skip'.tr(),
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             color: subtitleColor,
@@ -205,7 +205,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
                         // ── Title & Subtitle ──
                         Text(
-                          'زمان هەڵبژێرە',
+                          'select_language'.tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: 'Rabar',
@@ -218,7 +218,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                         const SizedBox(height: 8),
 
                         Text(
-                          'تکایە زمانی پەسەندکراوی خۆت هەڵبژێرە بۆ ئەپڵیکەیشنەکە',
+                          'select_language_desc'.tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: 'Rabar',
@@ -332,19 +332,20 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Text(
-                              'بەردەوامبوون',
-                              style: TextStyle(
+                              'continue_btn'.tr(),
+                              style: const TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward_rounded, size: 20),
                           ],
                         ),
+
                       ),
                     ),
                   ),

@@ -57,8 +57,8 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
       SnackBar(
         content: Text(
           success
-              ? 'چاوپێکەوتنەکە هەڵوەشێنرایەوە'
-              : 'هەڵوەشاندنەوە سەرکەوتوو نەبوو',
+              ? 'appointment_cancelled_success'.tr()
+              : 'cancel_failed'.tr(),
           style: _kStyle(color: Colors.white),
         ),
         backgroundColor: success ? const Color(0xFF10B981) : const Color(0xFFEF4444),
@@ -88,7 +88,7 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'چاوپێکەوتنەکانم',
+          'my_appointments'.tr(),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 18,
@@ -285,7 +285,7 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 10),
                         ),
                         child: Text(
-                          'هەڵوەشاندنەوە',
+                          'cancel_appointment'.tr(),
                           style: _kStyle(
                             color: const Color(0xFFEF4444),
                             fontWeight: FontWeight.bold,
@@ -383,7 +383,7 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
               ),
               const SizedBox(height: 18),
               Text(
-                'هیچ چاوپێکەوتنێکت نییە',
+                'no_appointments'.tr(),
                 textAlign: TextAlign.center,
                 style: _kStyle(
                   color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -395,7 +395,7 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
-                  'دەتوانیت لە ڕێگەی بەشی پزیشکەکانەوە کاتی چاوپێکەوتن دیاری بکەیت.',
+                  'no_appointments_desc'.tr(),
                   textAlign: TextAlign.center,
                   style: _kStyle(
                     color: const Color(0xFF94A3B8),

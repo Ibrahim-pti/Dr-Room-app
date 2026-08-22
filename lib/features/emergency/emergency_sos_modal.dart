@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -92,7 +93,7 @@ class _EmergencySosSheet extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'پەیوەندیی دەستبەجێ بە خزمەتگوزارییە فریاگوزارییەکان',
+                      'emergency_modal_sub'.tr(),
                       style: _kStyle(fontSize: 12, color: const Color(0xFF94A3B8)),
                     ),
                   ],
@@ -136,7 +137,7 @@ class _EmergencySosSheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'تەلەفۆن بۆ فریاکەوتن (١٢٢)',
+                          'call_emergency_122'.tr(),
                           style: _kStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -144,7 +145,7 @@ class _EmergencySosSheet extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'ئەمبوڵانس و تیمی فریاگوزاریی بەپەلە',
+                          'ambulance_emergency_team'.tr(),
                           style: _kStyle(fontSize: 12, color: Colors.white70),
                         ),
                       ],
@@ -217,7 +218,7 @@ class _EmergencySosSheet extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'ڕێنمایی هەنگاو بە هەنگاو بۆ خنکان، سووتان، بێهۆشبوون',
+                          'emergency_guide_sub'.tr(),
                           style: _kStyle(fontSize: 11.5, color: const Color(0xFF64748B)),
                         ),
                       ],

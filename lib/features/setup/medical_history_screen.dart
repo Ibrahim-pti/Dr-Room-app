@@ -88,11 +88,12 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
   void _showError() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text(
-          'تکایە هەموو پرسیارەکان دیاری بکە',
-          style: TextStyle(fontFamily: 'Rabar', color: Colors.white),
+        content: Text(
+          'fill_all_fields'.tr(),
+          style: const TextStyle(fontFamily: 'Rabar', color: Colors.white),
         ),
         backgroundColor: const Color(0xFFEF4444),
+
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
@@ -151,7 +152,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'هەنگاوی ٣ لە ٣',
+                                  'step_3_of_3'.tr(),
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12,
@@ -203,7 +204,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                           ),
                         ),
                         child: Text(
-                          'تێپەڕاندن',
+                          'skip'.tr(),
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             color: subtitleColor,
@@ -228,7 +229,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                         // Title
                         Center(
                           child: Text(
-                            'مێژووی پزیشکی',
+                            'medical_history'.tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Rabar',
@@ -244,7 +245,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
 
                         Center(
                           child: Text(
-                            'ئەم زانیارییانە یارمەتی پزیشکەکان دەدەن باشترین چاودێریت بکەن',
+                            'medical_history_desc'.tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Rabar',
@@ -259,7 +260,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
 
                         // Question cards
                         _buildQuestionRow(
-                          question: 'ئایا هەستیاریت (حەساسییەت) بە هیچ شتێک هەیە؟',
+                          question: 'q_allergies'.tr(),
                           icon: Icons.warning_amber_rounded,
                           iconColor: const Color(0xFFF59E0B),
                           iconBg: const Color(0xFFFFFBEB),
@@ -275,7 +276,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                         ),
 
                         _buildQuestionRow(
-                          question: 'ئایا نەخۆشی درێژخایەنت هەیە؟',
+                          question: 'q_chronic'.tr(),
                           icon: Icons.favorite_rounded,
                           iconColor: const Color(0xFFEF4444),
                           iconBg: const Color(0xFFFEF2F2),
@@ -291,7 +292,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                         ),
 
                         _buildQuestionRow(
-                          question: 'ئایا ڕۆژانە هیچ جۆرە دەرمانێک بەکاردەهێنیت؟',
+                          question: 'q_medications'.tr(),
                           icon: Icons.medication_rounded,
                           iconColor: const Color(0xFF8B5CF6),
                           iconBg: const Color(0xFFF5F3FF),
@@ -307,7 +308,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                         ),
 
                         _buildQuestionRow(
-                          question: 'ئایا جگەرە یان نێرگەلە دەکێشیت؟',
+                          question: 'q_smoking'.tr(),
                           icon: Icons.smoke_free_rounded,
                           iconColor: const Color(0xFF10B981),
                           iconBg: const Color(0xFFECFDF5),
@@ -359,19 +360,20 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Text(
-                              'تەواوکردنی سێتەپ',
-                              style: TextStyle(
+                              'complete_setup'.tr(),
+                              style: const TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(Icons.check_circle_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.check_circle_rounded, size: 20),
                           ],
                         ),
+
                       ),
                     ),
                   ),

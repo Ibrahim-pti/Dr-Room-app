@@ -551,7 +551,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               // Notes box
               if (notes.isNotEmpty) ...[
                 Text(
-                  'تێبینی و ڕێنمایی تاقیگە',
+                  'lab_notes_instructions'.tr(),
                   style: _kStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -582,7 +582,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               // Image / PDF report
               if (fullFileUrl.isNotEmpty) ...[
                 Text(
-                  'فایلی فەرمی و وێنەی پشکنین',
+                  'official_lab_file'.tr(),
                   style: _kStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -647,7 +647,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                 const Icon(Iconsax.maximize_4, color: Colors.white, size: 14),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'گەورەکردن',
+                                  'zoom_in'.tr(),
                                   style: _kStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                                 ),
                               ],

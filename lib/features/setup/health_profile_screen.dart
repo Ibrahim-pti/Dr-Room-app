@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -44,11 +45,12 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
         _ageController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'تکایە هەموو خانەکان پڕبکەرەوە',
-            style: TextStyle(fontFamily: 'Rabar', color: Colors.white),
+          content: Text(
+            'fill_all_fields'.tr(),
+            style: const TextStyle(fontFamily: 'Rabar', color: Colors.white),
           ),
           backgroundColor: const Color(0xFFEF4444),
+
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -134,7 +136,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'هەنگاوی ٢ لە ٣',
+                                  'step_2_of_3'.tr(),
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12,
@@ -186,7 +188,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                           ),
                         ),
                         child: Text(
-                          'تێپەڕاندن',
+                          'skip'.tr(),
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             color: subtitleColor,
@@ -211,7 +213,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                         // Title
                         Center(
                           child: Text(
-                            'پرۆفایلی تەندروستی',
+                            'health_profile'.tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Rabar',
@@ -227,7 +229,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
 
                         Center(
                           child: Text(
-                            'زانیارییە سەرەتاییەکانت یارمەتیمان دەدات خزمەتگوزارییەکانت بۆ گونجاو بکەین',
+                            'health_profile_desc'.tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Rabar',
@@ -242,7 +244,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
 
                         // Gender Selection Section
                         Text(
-                          'ڕەگەز',
+                          'gender'.tr(),
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 15.5,
@@ -255,7 +257,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                           children: [
                             Expanded(
                               child: _buildGenderCard(
-                                'نێر',
+                                'male'.tr(),
                                 Icons.male_rounded,
                                 'Male',
                                 delay: 200,
@@ -266,7 +268,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                             const SizedBox(width: 14),
                             Expanded(
                               child: _buildGenderCard(
-                                'مێ',
+                                'female'.tr(),
                                 Icons.female_rounded,
                                 'Female',
                                 delay: 250,
@@ -331,19 +333,20 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Text(
-                              'بەردەوامبوون',
-                              style: TextStyle(
+                              'continue_btn'.tr(),
+                              style: const TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward_rounded, size: 20),
                           ],
                         ),
+
                       ),
                     ),
                   ),
@@ -429,7 +432,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'تەمەن',
+          'age'.tr(),
           style: TextStyle(
             fontFamily: 'Rabar',
             fontSize: 15.5,
@@ -520,7 +523,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'گروپی خوێن',
+          'blood_group'.tr(),
           style: TextStyle(
             fontFamily: 'Rabar',
             fontSize: 15.5,

@@ -412,7 +412,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'وردەکاری و هەڵبژاردنی بڕ',
+                          'details_and_quantity'.tr(),
                           style: _kStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -421,6 +421,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 : const Color(0xFF0F172A),
                           ),
                         ),
+
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
                           child: Container(
@@ -638,7 +639,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
 
                     // Unit Selection Label
                     Text(
-                      'جۆری کڕین هەڵبژێرە:',
+                      'select_purchase_type'.tr(),
                       style: _kStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.bold,
@@ -700,7 +701,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        'بە پاکەت (قوتی)',
+                                        'by_box'.tr(),
                                         style: _kStyle(
                                           fontSize: 12.5,
                                           fontWeight: FontWeight.bold,
@@ -723,7 +724,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                     children: [
                                       if (med.hasDiscount) ...[
                                         Text(
-                                          '${boxOriginalPrice.toInt()} د.ع',
+                                          '${boxOriginalPrice.toInt()} ${'currency_iqd'.tr()}',
                                           style:
                                               _kStyle(
                                                 fontSize: 10.5,
@@ -736,7 +737,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                         const SizedBox(width: 5),
                                       ],
                                       Text(
-                                        '${boxPrice.toInt()} د.ع',
+                                        '${boxPrice.toInt()} ${'currency_iqd'.tr()}',
                                         style: _kStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
@@ -806,7 +807,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        'بە دانە / شریت',
+                                        'by_piece_strip'.tr(),
                                         style: _kStyle(
                                           fontSize: 12.5,
                                           fontWeight: FontWeight.bold,
@@ -829,7 +830,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                     children: [
                                       if (med.hasDiscount) ...[
                                         Text(
-                                          '${pieceOriginalPrice.toInt()} د.ع',
+                                          '${pieceOriginalPrice.toInt()} ${'currency_iqd'.tr()}',
                                           style:
                                               _kStyle(
                                                 fontSize: 10.5,
@@ -842,7 +843,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                         const SizedBox(width: 5),
                                       ],
                                       Text(
-                                        '${piecePrice.toInt()} د.ع',
+                                        '${piecePrice.toInt()} ${'currency_iqd'.tr()}',
                                         style: _kStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
@@ -862,6 +863,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                         ),
                       ],
                     ),
+
 
                     if (!isOut) ...[
                       const SizedBox(height: 20),
