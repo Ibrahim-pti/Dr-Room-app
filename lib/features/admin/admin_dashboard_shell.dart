@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'admin_dashboard_screen.dart';
-import 'admin_doctors_screen.dart';
+import 'admin_orders_screen.dart';
 import 'admin_nurses_screen.dart';
 import 'admin_articles_screen.dart';
 import 'admin_menu_screen.dart';
@@ -29,7 +29,7 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
 
   final List<Widget> _screens = const [
     AdminDashboardScreen(),
-    AdminDoctorsScreen(),
+    AdminOrdersScreen(),
     AdminNursesScreen(),
     AdminArticlesScreen(),
     AdminMenuScreen(),
@@ -37,7 +37,7 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
 
   final List<_NavItem> _navItems = const [
     _NavItem(icon: Iconsax.category_2, label: 'سەرەکی'),
-    _NavItem(icon: Iconsax.health, label: 'پزیشکەکان'),
+    _NavItem(icon: Iconsax.box, label: 'داواکارییەکان'),
     _NavItem(icon: Iconsax.profile_2user, label: 'پەرستارەکان'),
     _NavItem(icon: Iconsax.firstline, label: 'فریاگوزاری'),
     _NavItem(icon: Iconsax.setting_2, label: 'ڕێکخستن'),

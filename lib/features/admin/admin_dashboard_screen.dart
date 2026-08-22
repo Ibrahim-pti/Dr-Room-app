@@ -6,7 +6,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
 import '../home/main_shell.dart';
 import 'admin_app_bar.dart';
-import 'admin_appointments_screen.dart';
 import 'admin_articles_screen.dart';
 import 'admin_banners_screen.dart';
 import 'admin_doctors_screen.dart';
@@ -67,12 +66,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   int get _totalPending {
     if (_stats == null) return 0;
-    final int docs = (_stats?['pending_doctors'] ?? 0) as int;
     final int nurses = (_stats?['pending_nurses'] ?? 0) as int;
     final int labs = (_stats?['pending_labs'] ?? 0) as int;
     final int pharms = (_stats?['pending_pharmacies'] ?? 0) as int;
     final int orders = (_stats?['pending_orders'] ?? 0) as int;
-    return docs + nurses + labs + pharms + orders;
+    return nurses + labs + pharms + orders;
   }
 
   @override
@@ -167,7 +165,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: 12),
                 ],
 
-                // 2. Compact 4-Metric Stats Row
+                // 2. Compact 4-Metric Stats Row (Active services: Users, Nurses, Labs, Orders)
                 _buildCompactStatsRow(),
                 const SizedBox(height: 16),
 
@@ -189,12 +187,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildSlimPendingAlert() {
     return GestureDetector(
       onTap: () {
-        if ((_stats?['pending_doctors'] ?? 0) > 0) {
-          _openScreen(const AdminDoctorsScreen());
-        } else if ((_stats?['pending_orders'] ?? 0) > 0) {
+        if ((_stats?['pending_orders'] ?? 0) > 0) {
           _openScreen(const AdminOrdersScreen());
-        } else {
+        } else if ((_stats?['pending_nurses'] ?? 0) > 0) {
           _openScreen(const AdminNursesScreen());
+        } else if ((_stats?['pending_labs'] ?? 0) > 0) {
+          _openScreen(const AdminLabsScreen());
+        } else {
+          _openScreen(const AdminPharmaciesScreen());
         }
       },
       child: Container(
@@ -236,12 +236,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     ).animate().fadeIn().slideY(begin: 0.05, end: 0);
   }
 
-  // ── 2. Compact 4-Metric Stats Row ──
+  // ── 2. Compact 4-Metric Stats Row (Active Staff & Network) ──
   Widget _buildCompactStatsRow() {
     final totalUsers = '${_stats?['total_users'] ?? 0}';
-    final totalDocs = '${_stats?['total_doctors'] ?? 0}';
+    final totalNurses = '${_stats?['total_nurses'] ?? 0}';
+    final totalLabs = '${_stats?['total_labs'] ?? 0}';
     final totalOrders = '${_stats?['total_orders'] ?? 0}';
-    final totalAppts = '${_stats?['total_appointments'] ?? 0}';
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -268,11 +268,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
           _buildStatDivider(),
           _buildMiniStatItem(
-            title: 'پزیشک',
-            value: totalDocs,
-            icon: Iconsax.health,
-            color: const Color(0xFF2563EB),
-            onTap: () => _openScreen(const AdminDoctorsScreen()),
+            title: 'پەرستار',
+            value: totalNurses,
+            icon: Iconsax.profile_2user,
+            color: const Color(0xFFEC4899),
+            onTap: () => _openScreen(const AdminNursesScreen()),
+          ),
+          _buildStatDivider(),
+          _buildMiniStatItem(
+            title: 'تاقیگە',
+            value: totalLabs,
+            icon: Iconsax.microscope,
+            color: const Color(0xFF8B5CF6),
+            onTap: () => _openScreen(const AdminLabsScreen()),
           ),
           _buildStatDivider(),
           _buildMiniStatItem(
@@ -281,14 +289,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             icon: Iconsax.box,
             color: const Color(0xFFF59E0B),
             onTap: () => _openScreen(const AdminOrdersScreen()),
-          ),
-          _buildStatDivider(),
-          _buildMiniStatItem(
-            title: 'نۆرەکان',
-            value: totalAppts,
-            icon: Iconsax.calendar_1,
-            color: const Color(0xFF7C3AED),
-            onTap: () => _openScreen(const AdminAppointmentsScreen()),
           ),
         ],
       ),
@@ -347,7 +347,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   // ── 3. Compact Main Services Grid (8 Services) ──
   Widget _buildCompactServicesGrid() {
-    final int pendingDocs = (_stats?['pending_doctors'] ?? 0) as int;
     final int pendingNurses = (_stats?['pending_nurses'] ?? 0) as int;
     final int pendingLabs = (_stats?['pending_labs'] ?? 0) as int;
     final int pendingPharmacies = (_stats?['pending_pharmacies'] ?? 0) as int;
@@ -359,7 +358,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'icon': Iconsax.health,
         'color': const Color(0xFF2563EB),
         'bg': const Color(0xFFEFF6FF),
-        'badge': pendingDocs > 0 ? '$pendingDocs' : null,
+        'badge': 'بەمزوانە',
+        'badgeColor': const Color(0xFF2563EB),
+        'isComingSoon': true,
         'screen': const AdminDoctorsScreen(),
       },
       {
@@ -445,12 +446,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             onTap: () {
               if (item['isComingSoon'] == true) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text(
-                      'خزمەتگوزاری سەنتەری تیشک بەمزوانە بەردەست دەبێت',
-                      style: TextStyle(fontFamily: 'Rabar'),
+                      'خزمەتگوزاری ${item['title']} بەمزوانە بەردەست دەبێت',
+                      style: const TextStyle(fontFamily: 'Rabar'),
                     ),
-                    duration: Duration(seconds: 2),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
                 return;
