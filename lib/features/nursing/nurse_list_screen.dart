@@ -29,10 +29,6 @@ class _NurseListScreenState extends State<NurseListScreen> {
     'injection_cannula',
     'elderly_care',
     'pediatric_care',
-    'icu_care',
-    'available_now',
-    'top_experience',
-    'nearest',
   ];
 
   // Advanced filters (from Bottom Sheet)
@@ -247,7 +243,6 @@ class _NurseListScreenState extends State<NurseListScreen> {
         final specialtyEn = (n['specialty_en'] ?? '').toString().toLowerCase();
         final city = (n['city'] ?? '').toString().toLowerCase();
         final serviceType = (n['service_type'] ?? '').toString().toLowerCase();
-        final isAvailable = n['is_available'] == true;
 
         // Search text
         final matchesQuery = query.isEmpty ||
@@ -273,11 +268,6 @@ class _NurseListScreenState extends State<NurseListScreen> {
         } else if (_selectedFilter == 'pediatric_care') {
           matchesTopTab = specialty.contains('منداڵ') ||
               specialtyEn.contains('pediatric');
-        } else if (_selectedFilter == 'icu_care') {
-          matchesTopTab = specialty.contains('چڕ') ||
-              specialtyEn.contains('icu');
-        } else if (_selectedFilter == 'available_now') {
-          matchesTopTab = isAvailable;
         }
 
         // City filter from advanced modal
@@ -294,25 +284,6 @@ class _NurseListScreenState extends State<NurseListScreen> {
 
         return matchesQuery && matchesTopTab && matchesCity && matchesServiceType;
       }).toList();
-
-      if (_selectedFilter == 'top_experience') {
-        list.sort((a, b) {
-          final expA = int.tryParse(a['experience_years']?.toString() ?? '0') ?? 0;
-          final expB = int.tryParse(b['experience_years']?.toString() ?? '0') ?? 0;
-          if (expB != expA) return expB.compareTo(expA);
-          final rA = double.tryParse(a['rating']?.toString() ?? '0') ?? 0.0;
-          final rB = double.tryParse(b['rating']?.toString() ?? '0') ?? 0.0;
-          return rB.compareTo(rA);
-        });
-      } else if (_selectedFilter == 'nearest') {
-        list.sort((a, b) {
-          final cityA = (a['city'] ?? '').toString().toLowerCase();
-          final isErbilA = cityA.contains('هەولێر') || cityA.contains('erbil') ? 1 : 0;
-          final cityB = (b['city'] ?? '').toString().toLowerCase();
-          final isErbilB = cityB.contains('هەولێر') || cityB.contains('erbil') ? 1 : 0;
-          return isErbilB.compareTo(isErbilA);
-        });
-      }
 
       _filteredNurses = list;
     });

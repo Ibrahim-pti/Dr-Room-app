@@ -26,13 +26,8 @@ class PharmacyDashboardController extends Controller
 
         $todayOrders = $visibleOrders()->whereDate('created_at', today())->count();
 
-        $pendingPrescriptions = $visibleOrders()->where('status', 'pending')->count();
-
-        // Distinct patients this pharmacy has actually served.
-        $totalCustomers = Order::where('service_type', 'pharmacy')
-            ->where('assigned_pharmacy_id', $user->id)
-            ->distinct('patient_id')
-            ->count('patient_id');
+        $pendingOrders = $visibleOrders()->where('status', 'pending')->count();
+        $totalMedications = Medication::where('user_id', $user->id)->count();
 
         $lowStockItems = Medication::where('user_id', $user->id)
             ->where('is_active', true)
@@ -42,8 +37,8 @@ class PharmacyDashboardController extends Controller
         return view('pharmacy.dashboard.index', compact(
             'user',
             'todayOrders',
-            'pendingPrescriptions',
-            'totalCustomers',
+            'pendingOrders',
+            'totalMedications',
             'lowStockItems'
         ));
     }
