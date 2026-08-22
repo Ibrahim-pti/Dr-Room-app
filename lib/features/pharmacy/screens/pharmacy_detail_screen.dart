@@ -107,19 +107,34 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
         _repository.getReviews(widget.pharmacy.id),
       ]);
       final meds = results[0] as List<Medication>;
-      final cats = results[1] as List<Map<String, String>>;
+      final apiCats = results[1] as List<Map<String, String>>;
       final rawReviews = results[2] as List<dynamic>;
+
+      final activeMeds = meds.isNotEmpty ? meds : _fallbackMedications;
+
+      // Extract distinct categories dynamically from the pharmacy's medications!
+      final Set<String> distinctCategories = {};
+      for (final m in activeMeds) {
+        if (m.category != null && m.category!.trim().isNotEmpty && m.category != 'هەمووی') {
+          distinctCategories.add(m.category!.trim());
+        }
+      }
+
+      List<Map<String, String>> dynamicCats = [
+        {'name': 'هەمووی'},
+      ];
+      if (distinctCategories.isNotEmpty) {
+        for (final catName in distinctCategories) {
+          dynamicCats.add({'name': catName});
+        }
+      } else if (apiCats.isNotEmpty) {
+        dynamicCats = apiCats.map((c) => {'name': c['name'] ?? ''}).where((c) => c['name']!.isNotEmpty).toList();
+      }
 
       if (mounted) {
         setState(() {
-          if (cats.isNotEmpty) {
-            _categories = cats;
-          }
-          if (meds.isNotEmpty) {
-            _medications = meds;
-          } else {
-            _medications = _fallbackMedications;
-          }
+          _categories = dynamicCats;
+          _medications = activeMeds;
           if (rawReviews.isNotEmpty) {
             _reviews = rawReviews.map((r) => Map<String, dynamic>.from(r as Map)).toList();
           } else {
@@ -130,8 +145,20 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       }
     } catch (_) {
       if (mounted) {
+        final activeMeds = _fallbackMedications;
+        final Set<String> distinctCategories = {};
+        for (final m in activeMeds) {
+          if (m.category != null && m.category!.trim().isNotEmpty && m.category != 'هەمووی') {
+            distinctCategories.add(m.category!.trim());
+          }
+        }
+        List<Map<String, String>> dynamicCats = [
+          {'name': 'هەمووی'},
+          ...distinctCategories.map((c) => {'name': c}),
+        ];
         setState(() {
-          _medications = _fallbackMedications;
+          _categories = dynamicCats;
+          _medications = activeMeds;
           _reviews = _fallbackReviews;
           _isLoading = false;
         });
@@ -164,6 +191,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     Medication(
       id: 101,
       name: 'Panadol Extra (500mg)',
+      category: 'ئازارشکێن',
       description: 'ئازارشکێن و دابەزێنەری پلەی گەرمی و ئازاری سەر',
       price: 2000,
       originalPrice: 2750,
@@ -175,6 +203,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     Medication(
       id: 102,
       name: 'Augmentin (1g)',
+      category: 'دژەهەوکردن',
       description: 'دژە هەوکردن بۆ بەکتریای بەهێز',
       price: 9500,
       originalPrice: 12000,
@@ -186,6 +215,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     Medication(
       id: 103,
       name: 'Vitamin C 1000mg',
+      category: 'ڤیتامین',
       description: 'تەقێنراو - بەهێزکەری بەرگری جەستە و ڤیتامین',
       price: 4500,
       originalPrice: 6000,
@@ -197,6 +227,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     Medication(
       id: 104,
       name: 'Omeprazole 20mg',
+      category: 'گەدە و هەرس',
       description: 'چارەسەری ترشەڵۆک و کەمکردنەوەی سوزش',
       price: 3500,
       stock: 0, // Out of stock
@@ -206,6 +237,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     Medication(
       id: 105,
       name: 'Baby Care Milk',
+      category: 'دایک و منداڵ',
       description: 'شیری تەواوکەری خۆراکی منداڵان و کۆرپە',
       price: 14000,
       originalPrice: 16500,
@@ -217,6 +249,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     Medication(
       id: 106,
       name: 'Ibuprofen 400mg',
+      category: 'ئازارشکێن',
       description: 'بۆ ئازاری جومگە، ماسولکە و سەرئێشە',
       price: 3000,
       stock: 0, // Out of stock
@@ -1618,37 +1651,20 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
         : _fallbackMedications;
     final filteredMeds = medList.where((med) {
       final query = _searchMedController.text.trim().toLowerCase();
-      final matchesQuery =
+      final matchesQuery = query.isEmpty ||
           med.name.toLowerCase().contains(query) ||
-          (med.description?.toLowerCase().contains(query) ?? false);
+          (med.nameAr?.toLowerCase().contains(query) ?? false) ||
+          (med.nameEn?.toLowerCase().contains(query) ?? false) ||
+          (med.description?.toLowerCase().contains(query) ?? false) ||
+          (med.category?.toLowerCase().contains(query) ?? false);
       if (!matchesQuery) return false;
 
-      if (_selectedCategory == 'ئازارشکێن') {
-        return (med.category == 'ئازارشکێن') ||
-            med.name.contains('Panadol') ||
-            med.name.contains('Ibuprofen') ||
-            (med.description?.contains('ئازار') ?? false);
-      } else if (_selectedCategory == 'دژەهەوکردن') {
-        return (med.category == 'دژەهەوکردن') ||
-            med.name.contains('Amoxicillin') ||
-            med.name.contains('Augmentin') ||
-            (med.description?.contains('هەوکردن') ?? false);
-      } else if (_selectedCategory == 'ڤیتامین') {
-        return (med.category == 'ڤیتامین') ||
-            med.name.contains('Vitamin') ||
-            (med.description?.contains('ڤیتامین') ?? false);
-      } else if (_selectedCategory == 'گەدە و هەرس') {
-        return (med.category == 'گەدە و هەرس') ||
-            med.name.contains('Omeprazole') ||
-            med.name.contains('Gaviscon') ||
-            (med.description?.contains('گەدە') ?? false);
-      } else if (_selectedCategory == 'منداڵان') {
-        return (med.category == 'منداڵان') ||
-            med.name.contains('Baby') ||
-            med.name.contains('Kids') ||
-            (med.description?.contains('منداڵ') ?? false);
-      } else if (_selectedCategory != 'هەمووی') {
-        return med.category == _selectedCategory;
+      if (_selectedCategory != 'هەمووی' && _selectedCategory.isNotEmpty) {
+        final medCat = med.category?.trim().toLowerCase() ?? '';
+        final selCat = _selectedCategory.trim().toLowerCase();
+        if (medCat != selCat && !medCat.contains(selCat) && !selCat.contains(medCat)) {
+          return false;
+        }
       }
       return true;
     }).toList();
