@@ -40,6 +40,20 @@ class ServiceCategoryController extends Controller
         $data = $this->validated($request);
         $data['image_path'] = $this->storeImage($request);
 
+        if (empty($data['name_en']) || empty($data['name_ar'])) {
+            try {
+                $tr = new \Stichoza\GoogleTranslate\GoogleTranslate();
+                if (empty($data['name_en']) && !empty($data['name'])) {
+                    $data['name_en'] = $tr->setTarget('en')->translate($data['name']);
+                }
+                if (empty($data['name_ar']) && !empty($data['name'])) {
+                    $data['name_ar'] = $tr->setTarget('ar')->translate($data['name']);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Category translation error: ' . $e->getMessage());
+            }
+        }
+
         $category = ServiceCategory::create($data);
 
         return response()->json($category, 201);
@@ -49,6 +63,20 @@ class ServiceCategoryController extends Controller
     {
         $category = ServiceCategory::findOrFail($id);
         $data = $this->validated($request, $category->id);
+
+        if (empty($data['name_en']) || empty($data['name_ar'])) {
+            try {
+                $tr = new \Stichoza\GoogleTranslate\GoogleTranslate();
+                if (empty($data['name_en']) && !empty($data['name'])) {
+                    $data['name_en'] = $tr->setTarget('en')->translate($data['name']);
+                }
+                if (empty($data['name_ar']) && !empty($data['name'])) {
+                    $data['name_ar'] = $tr->setTarget('ar')->translate($data['name']);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Category translation error: ' . $e->getMessage());
+            }
+        }
 
         if ($path = $this->storeImage($request)) {
             if ($category->image_path) {

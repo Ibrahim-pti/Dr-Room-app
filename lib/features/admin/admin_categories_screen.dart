@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../../core/utils/api_client.dart';
+import '../../core/utils/translation_helper.dart';
 import 'admin_app_bar.dart';
 import 'admin_ui.dart';
 
@@ -124,38 +125,27 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
         subtitle: 'بەڕێوەبردنی هەموو لیستەکانی ئەپ',
         icon: Iconsax.category,
         iconColor: const Color(0xFF0D9488),
-        iconBackgroundColor: const Color(0xFFF0FDFA),
+        iconBackgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
         actions: [
-          AdminUi.primaryAction(
-            label: 'کەتەگۆری نوێ',
-            icon: Iconsax.add,
-            onTap: () => _openForm(),
+          ElevatedButton.icon(
+            onPressed: () => _openForm(),
+            icon: const Icon(Iconsax.add_circle, size: 18),
+            label: const Text('کەتەگۆری نوێ',
+                style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
           ),
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_scopes.isNotEmpty)
-            SizedBox(
-              height: 56,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: _scopes.length,
-                separatorBuilder: (context, i) => const SizedBox(width: 8),
-                itemBuilder: (context, i) {
-                  final scope = _scopes[i];
-                  final selected = _selectedScope == scope['value'];
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedScope = scope['value']);
-                      _loadCategories();
-                    },
-                    child: AdminUi.selectChip('${scope['label']} (${scope['count']})', selected),
-                  );
-                },
-              ),
-            ),
+          _buildScopeTabs(),
           Expanded(
             child: AdminUi.body(
               isLoading: _isLoading,
@@ -169,12 +159,83 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _categories.length,
-                  itemBuilder: (context, i) => _buildCard(_categories[i], i),
+                  itemBuilder: (ctx, i) => _buildCard(_categories[i], i),
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildScopeTabs() {
+    if (_scopes.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      height: 48,
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: _scopes.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (ctx, i) {
+          final s = _scopes[i];
+          final isSelected = s['value'] == _selectedScope;
+          final count = s['count'] ?? 0;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() => _selectedScope = s['value']);
+              _loadCategories();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFF0D9488) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? const Color(0xFF0D9488) : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    s['label'] ?? '',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected ? Colors.white : const Color(0xFF475569),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: 0.25)
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$count',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? Colors.white : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -206,9 +267,15 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
               children: [
                 Text(category['name'] ?? '',
                     maxLines: 1, overflow: TextOverflow.ellipsis, style: AdminUi.title),
-                if ((category['name_en'] ?? '').toString().isNotEmpty) ...[
+                if ((category['name_en'] ?? '').toString().isNotEmpty || (category['name_ar'] ?? '').toString().isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Text(category['name_en'], style: AdminUi.subtitle),
+                  Text(
+                    [
+                      if ((category['name_ar'] ?? '').toString().isNotEmpty) category['name_ar'],
+                      if ((category['name_en'] ?? '').toString().isNotEmpty) category['name_en'],
+                    ].join(' • '),
+                    style: AdminUi.subtitle,
+                  ),
                 ],
               ],
             ),
@@ -249,6 +316,7 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
 
     String scope = existing?['scope'] ?? _selectedScope ?? 'nursing';
     bool isActive = existing == null ? true : existing['is_active'] == true;
+    bool isTranslating = false;
 
     await AdminUi.formSheet(
       context: context,
@@ -268,7 +336,79 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
             );
           }).toList(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+
+        // ── AI Auto-Translate Bar ──
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0FDF4),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFBBF7D0)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16A34A).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Iconsax.translate, color: Color(0xFF16A34A), size: 16),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'وەرگێڕانی ناوی کەتەگۆری بۆ عەرەبی و ئینگلیزی',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF166534),
+                  ),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: isTranslating
+                    ? null
+                    : () async {
+                        if (nameCtrl.text.trim().isEmpty) {
+                          setError('تکایە سەرەتا ناوی کوردی بنووسە.');
+                          return;
+                        }
+                        setSheetState(() => isTranslating = true);
+                        final tr = await TranslationHelper.translate(nameCtrl.text.trim());
+                        nameEnCtrl.text = tr['en'] ?? '';
+                        nameArCtrl.text = tr['ar'] ?? '';
+                        setSheetState(() => isTranslating = false);
+                      },
+                icon: isTranslating
+                    ? const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Iconsax.magicpen, size: 13, color: Colors.white),
+                label: Text(
+                  isTranslating ? 'وەرگێڕان...' : 'وەرگێڕانی هەموو',
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF16A34A),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  elevation: 0,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
 
         AdminUi.label('ناو بە کوردی *'),
         const SizedBox(height: 6),
@@ -300,6 +440,13 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
         if (nameCtrl.text.trim().isEmpty) {
           setError('تکایە ناوی کوردی پڕبکەرەوە.');
           return false;
+        }
+
+        // Auto-translate if English or Arabic was left empty
+        if (nameEnCtrl.text.trim().isEmpty || nameArCtrl.text.trim().isEmpty) {
+          final tr = await TranslationHelper.translate(nameCtrl.text.trim());
+          if (nameEnCtrl.text.trim().isEmpty) nameEnCtrl.text = tr['en'] ?? '';
+          if (nameArCtrl.text.trim().isEmpty) nameArCtrl.text = tr['ar'] ?? '';
         }
 
         final body = {
