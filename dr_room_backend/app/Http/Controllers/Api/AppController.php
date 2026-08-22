@@ -45,7 +45,7 @@ class AppController extends Controller
                     'longitude' => $nurse->longitude,
                     'service_type' => $nurse->service_type ?? 'home_nursing',
                     'image' => $nurse->image_path
-                        ? asset('storage/' . $nurse->image_path)
+                        ? (str_starts_with($nurse->image_path, 'http') ? $nurse->image_path : asset('storage/' . $nurse->image_path))
                         : ($nurse->user && $nurse->user->profile_image
                             ? asset('storage/' . $nurse->user->profile_image)
                             : null),

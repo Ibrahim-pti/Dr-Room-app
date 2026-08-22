@@ -402,35 +402,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // 6. Home Care Nurses
-        $nurseData = [
-            'name' => 'شاژوان عوسمان ڕەشید',
-            'name_en' => 'Shajwan Osman Rashid',
-            'name_ar' => 'شاجوان عثمان رشيد',
-            'specialty' => 'پەرستاری فریاکەوتن و برینپێچی',
-            'specialty_en' => 'Emergency & Wound Care Nurse',
-            'specialty_ar' => 'تمريض الطوارئ وتضميد الجروح',
-            'phone' => '07506667788',
-            'is_approved' => true,
-        ];
-
-        $nurseUser = User::firstOrCreate(
-            ['phone' => $nurseData['phone']],
-            [
-                'name' => $nurseData['name'],
-                'email' => 'shajwan.nurse@drroom.com',
-                'role' => 'nurse',
-                'status' => 'approved',
-                'password' => Hash::make('nurse123456'),
-            ]
-        );
-
-        $nFields = $nurseData;
-        unset($nFields['name'], $nFields['name_en'], $nFields['name_ar']);
-
-        Nurse::firstOrCreate(
-            ['user_id' => $nurseUser->id],
-            array_merge($nFields, ['user_id' => $nurseUser->id])
-        );
+        $this->call(NurseSeeder::class);
 
         // 7. Banners
         Banner::firstOrCreate(
