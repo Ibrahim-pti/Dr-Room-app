@@ -2192,31 +2192,19 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                                 ]
                                               : null,
                                         ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              cat['icon']!,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              cat['name']!,
-                                              style: _kStyle(
-                                                color: isSel
-                                                    ? Colors.white
-                                                    : (isDark
-                                                          ? Colors.white70
-                                                          : const Color(
-                                                              0xFF475569,
-                                                            )),
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
+                                        child: Text(
+                                          cat['name']!,
+                                          style: _kStyle(
+                                            color: isSel
+                                                ? Colors.white
+                                                : (isDark
+                                                      ? Colors.white70
+                                                      : const Color(
+                                                          0xFF475569,
+                                                        )),
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
                                     ),
