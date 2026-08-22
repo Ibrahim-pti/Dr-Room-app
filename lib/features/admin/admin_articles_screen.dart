@@ -802,32 +802,36 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
-        title: 'فریاگوزاری سەرەتایی',
-        subtitle: 'بڵاوکردنەوە و بەڕێوەبردنی ڕێنماییەکان',
+        title: 'فریاگوزاری',
+        subtitle: '${_articles.length} بابەتی بڵاوکراوە',
         icon: Iconsax.firstline,
         iconColor: const Color(0xFF2563EB),
         iconBackgroundColor: const Color(0xFFEFF6FF),
         showBackButton: !widget.isRoot,
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ElevatedButton.icon(
-              onPressed: () => _showAddArticleModal(),
-              icon: const Icon(Iconsax.add, size: 16, color: Colors.white),
-              label: const Text(
-                'پۆستی نوێ',
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+          GestureDetector(
+            onTap: () => _showAddArticleModal(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB),
+                borderRadius: BorderRadius.circular(12),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                elevation: 0,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.add, color: Colors.white, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    'نوێ',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -35,10 +35,10 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return Container(
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 16,
-        bottom: 16,
-        left: 24,
-        right: 24,
+        top: MediaQuery.of(context).padding.top + 12,
+        bottom: 12,
+        left: 16,
+        right: 16,
       ),
       decoration: BoxDecoration(
         color: AppColors.getBackground(context),
@@ -56,13 +56,13 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Container(
-                width: 44,
-                height: 44,
-                margin: const EdgeInsetsDirectional.only(end: 12),
+                width: 40,
+                height: 40,
+                margin: const EdgeInsetsDirectional.only(end: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  color: AppColors.getSurface(context),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.getBorder(context)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.02),
@@ -71,10 +71,10 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_ios_new_rounded,
-                  color: Color(0xFF1E293B),
-                  size: 18,
+                  color: AppColors.getTextTitle(context),
+                  size: 16,
                 ),
               ),
             ),
@@ -84,19 +84,19 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
               borderRadius: BorderRadius.circular(8),
               child: Image.asset(
                 imagePath!,
-                width: 48,
-                height: 48,
+                width: 42,
+                height: 42,
                 fit: BoxFit.cover,
               ),
             ),
             const SizedBox(width: 4),
           ] else if (icon != null) ...[
             Container(
-              width: 52,
-              height: 52,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: iconBackgroundColor,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: iconColor.withValues(alpha: 0.2),
                   width: 1.5,
@@ -105,10 +105,10 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: Icon(
                 icon,
                 color: iconColor,
-                size: 26,
+                size: 22,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
           ],
           Expanded(
             child: Column(
@@ -122,8 +122,9 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
                   style: titleStyle ?? TextStyle(
                     fontFamily: titleFontFamily ?? 'Rabar',
                     color: AppColors.getTextTitle(context),
-                    fontSize: 24,
+                    fontSize: 19,
                     fontWeight: FontWeight.bold,
+                    height: 1.2,
                   ),
                 ),
                 if (subtitle != null)
@@ -134,13 +135,16 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
                     style: TextStyle(
                       fontFamily: 'Rabar',
                       color: AppColors.getTextSubtitle(context),
-                      fontSize: 13,
+                      fontSize: 12,
                     ),
                   ),
               ],
             ),
           ),
-          ...?actions,
+          if (actions != null) ...[
+            const SizedBox(width: 8),
+            ...actions!,
+          ],
         ],
       ),
     );
