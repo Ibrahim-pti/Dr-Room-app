@@ -29,7 +29,7 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
     _NavItem(icon: Iconsax.category_2, label: 'سەرەکی'),
     _NavItem(icon: Iconsax.health, label: 'پزیشکەکان'),
     _NavItem(icon: Iconsax.profile_2user, label: 'پەرستارەکان'),
-    _NavItem(icon: Iconsax.book_1, label: 'وتارەکان'),
+    _NavItem(icon: Iconsax.firstline, label: 'فریاگوزاری'),
     _NavItem(icon: Iconsax.setting_2, label: 'ڕێکخستن'),
   ];
 
