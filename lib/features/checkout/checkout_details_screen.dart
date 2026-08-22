@@ -339,7 +339,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           ),
         ),
         title: Text(
-          isLab ? 'زانیارییەکانی داواکاری' : 'patient_details'.tr(),
+          isLab ? 'lab_patient_info'.tr() : 'patient_details'.tr(),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 17,
@@ -385,7 +385,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                             children: [
                               Text(
                                 isLab
-                                    ? 'زانیاری کەسی پشکنینکراو'
+                                    ? 'lab_patient_info'.tr()
                                     : 'who_is_this_for'.tr(),
                                 style: _kStyle(
                                   color: isDark
@@ -398,7 +398,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                               const SizedBox(height: 3),
                               Text(
                                 isLab
-                                    ? 'تکایە زانیارییەکانی کەسی پشکنینکراو پڕبکەرەوە'
+                                    ? 'fill_lab_patient_details'.tr()
                                     : 'provide_person_details'.tr(),
                                 style: _kStyle(
                                   color: const Color(0xFF64748B),
@@ -433,16 +433,16 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                         children: [
                           // Name Field
                           _buildTextField(
-                            label: isLab ? 'ناوی سیانی' : 'patient_name'.tr(),
+                            label: isLab ? 'full_name'.tr() : 'patient_name'.tr(),
                             controller: _nameController,
                             icon: Iconsax.user,
-                            hint: isLab ? 'ناوی سیانی بنووسە' : 'e.g. John Doe',
+                            hint: isLab ? 'full_name_hint'.tr() : 'patient_name_hint'.tr(),
                           ),
                           const SizedBox(height: 18),
 
                           // Gender Selector
                           _buildGenderSelector(
-                            title: 'ڕەگەز',
+                            title: 'gender'.tr(),
                             selectedValue: _selectedGender,
                             onChanged: (val) {
                               setState(() => _selectedGender = val);
@@ -467,7 +467,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                   label: 'age'.tr(),
                                   controller: _ageController,
                                   icon: Iconsax.calendar_1,
-                                  hint: '٣٠',
+                                  hint: 'age_hint'.tr(),
                                   keyboardType: TextInputType.number,
                                   inputFormatters: [
                                     FilteringTextInputFormatter.digitsOnly,
@@ -482,7 +482,8 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                   label: 'phone_number'.tr(),
                                   controller: _phoneController,
                                   icon: Iconsax.call,
-                                  hint: '0750 000 0000',
+                                  hint: 'phone_number_hint'.tr(),
+                                  textDirection: TextDirection.ltr,
                                   keyboardType: TextInputType.phone,
                                   inputFormatters: [
                                     FilteringTextInputFormatter.digitsOnly,
@@ -519,7 +520,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                               const SizedBox(width: 10),
                               Text(
                                 isLab
-                                    ? 'ناونیشانی وەرگرتنی نموونە'
+                                    ? 'sample_location'.tr()
                                     : 'service_location'.tr(),
                                 style: _kStyle(
                                   color: isDark
@@ -720,10 +721,10 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      'بەردەوامبوون بۆ شێوازی پارەدان',
+                    child: Text(
+                      'continue_to_payment'.tr(),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -746,7 +747,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'شێوازی وەرگرتنی نموونە',
+          'sample_collection_method'.tr(),
           style: _kStyle(
             fontSize: 13.5,
             fontWeight: FontWeight.bold,
@@ -758,7 +759,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           children: [
             Expanded(
               child: _buildCollectionOption(
-                label: 'لە ماڵەوە',
+                label: 'home_sample_collection'.tr(),
                 icon: Icons.home_rounded,
                 isSelected: _sampleCollectionMethod == 'home',
                 onTap: () => setState(() => _sampleCollectionMethod = 'home'),
@@ -767,7 +768,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildCollectionOption(
-                label: 'سەردانی تاقیگە',
+                label: 'visit_lab'.tr(),
                 icon: Icons.local_hospital_rounded,
                 isSelected: _sampleCollectionMethod == 'lab',
                 onTap: () => setState(() => _sampleCollectionMethod = 'lab'),
@@ -862,7 +863,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
               ? AutovalidateMode.onUserInteraction
               : AutovalidateMode.disabled,
           validator: (value) =>
-              value == null || value.trim().isEmpty ? 'پڕبکەرەوە' : null,
+              value == null || value.trim().isEmpty ? 'required_field'.tr() : null,
           decoration: InputDecoration(
             hintText: hint,
             hintTextDirection: textDirection,
@@ -933,7 +934,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           children: [
             Expanded(
               child: _buildGenderOption(
-                label: 'نێر',
+                label: 'male'.tr(),
                 icon: Iconsax.man,
                 isSelected: selectedValue == 'male',
                 onTap: () => onChanged('male'),
@@ -942,7 +943,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildGenderOption(
-                label: 'مێ',
+                label: 'female'.tr(),
                 icon: Iconsax.woman,
                 isSelected: selectedValue == 'female',
                 onTap: () => onChanged('female'),
@@ -954,7 +955,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 4),
             child: Text(
-              'تکایە ڕەگەز دیاری بکە',
+              'select_gender_error'.tr(),
               style: _kStyle(color: const Color(0xFFEF4444), fontSize: 11.5),
             ),
           ),
