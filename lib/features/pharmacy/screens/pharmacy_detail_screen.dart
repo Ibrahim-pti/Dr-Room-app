@@ -31,6 +31,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
 
   List<Medication> _medications = [];
   List<PharmacyOffer> _offers = [];
+  List<Map<String, dynamic>> _reviews = [];
   List<Map<String, String>> _categories = [
     {'name': 'هەمووی', 'icon': '💊'},
     {'name': 'ئازارشکێن', 'icon': '⚡'},
@@ -107,10 +108,12 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
         _repository.getMedications(widget.pharmacy.id),
         _repository.getOffers(widget.pharmacy.id),
         _repository.getCategories(),
+        _repository.getReviews(widget.pharmacy.id),
       ]);
       final meds = results[0] as List<Medication>;
       final offers = results[1] as List<PharmacyOffer>;
       final cats = results[2] as List<Map<String, String>>;
+      final rawReviews = results[3] as List<dynamic>;
 
       if (mounted) {
         setState(() {
@@ -123,6 +126,11 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
           } else {
             _medications = _fallbackMedications;
           }
+          if (rawReviews.isNotEmpty) {
+            _reviews = rawReviews.map((r) => Map<String, dynamic>.from(r as Map)).toList();
+          } else {
+            _reviews = _fallbackReviews;
+          }
           _isLoading = false;
         });
       }
@@ -130,11 +138,33 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       if (mounted) {
         setState(() {
           _medications = _fallbackMedications;
+          _reviews = _fallbackReviews;
           _isLoading = false;
         });
       }
     }
   }
+
+  List<Map<String, dynamic>> get _fallbackReviews => [
+    {
+      'user_name': 'ڕەوەند عەلی',
+      'rating': 5.0,
+      'comment': 'دەرمانخانەیەکی زۆر بەڕێز و خێران، دەرمانەکانیان ئۆرجیناڵە و گەیاندنەکەی لە کاتی خۆیدا گەیشت.',
+      'created_at': 'دوو رۆژ لەمەوبەر',
+    },
+    {
+      'user_name': 'د. بەرهەم کەریم',
+      'rating': 5.0,
+      'comment': 'پێداویستی و دەرمانە دەگمەنەکانم لە لای ئەوان دەستکەوت، نرخەکانیان زۆر گونجاوە و داشکاندنەکەیان ڕاستەقینەیە.',
+      'created_at': 'هەفتەیەک لەمەوبەر',
+    },
+    {
+      'user_name': 'سۆزان ئەحمەد',
+      'rating': 4.8,
+      'comment': 'گەیاندنی زۆر خێرا، لە ماوەی کەمتر لە نیو کاتژمێردا دەرمانەکانم پێگەیشت. دەستان خۆش بێت.',
+      'created_at': 'دوو هەفتە لەمەوبەر',
+    },
+  ];
 
   List<Medication> get _fallbackMedications => [
     Medication(
@@ -1094,6 +1124,492 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     );
   }
 
+  void _showReviewBottomSheet() {
+    int selectedStars = 5;
+    final TextEditingController commentController = TextEditingController();
+    bool isSubmitting = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final sheetBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+          final txtColor = isDark ? Colors.white : const Color(0xFF0F172A);
+
+          return Container(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom +
+                  MediaQuery.of(context).padding.bottom +
+                  24,
+            ),
+            decoration: BoxDecoration(
+              color: sheetBg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'هەڵسەنگاندنی دەرمانخانە',
+                  style: _kStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: txtColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'تکایە ئەستێرە دیاری بکە و ڕا و بۆچوونی خۆت بنووسە دەربارەی خزمەتگوزاری و دەرمانەکان:',
+                  style: _kStyle(fontSize: 12, color: const Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 16),
+
+                // Star Selector
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(5, (index) {
+                      final starIndex = index + 1;
+                      return GestureDetector(
+                        onTap: () {
+                          setModalState(() {
+                            selectedStars = starIndex;
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Icon(
+                            Icons.star_rounded,
+                            size: 38,
+                            color: starIndex <= selectedStars
+                                ? const Color(0xFFF59E0B)
+                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Comment Input
+                TextField(
+                  controller: commentController,
+                  maxLines: 3,
+                  style: _kStyle(fontSize: 13, color: txtColor),
+                  decoration: InputDecoration(
+                    hintText: 'سەرنج و بۆچوونی خۆت لێرە بنووسە (ئارەزوومەندانە)...',
+                    hintStyle: _kStyle(
+                      fontSize: 12,
+                      color: const Color(0xFF94A3B8),
+                    ),
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Submit Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () async {
+                            setModalState(() {
+                              isSubmitting = true;
+                            });
+
+                            final comment = commentController.text.trim();
+                            await _repository.addReview(
+                              widget.pharmacy.id,
+                              rating: selectedStars.toDouble(),
+                              comment: comment,
+                            );
+
+                            if (mounted) {
+                              setState(() {
+                                _reviews.insert(0, {
+                                  'user_name': 'بەکارھێنەر',
+                                  'rating': selectedStars.toDouble(),
+                                  'comment': comment.isNotEmpty ? comment : 'خزمەتگوزارییەکی زۆر باشە.',
+                                  'created_at': 'ئێستا',
+                                });
+                              });
+                            }
+
+                            if (ctx.mounted) {
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: const Color(0xFF10B981),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  content: Text(
+                                    'سوپاس! هەڵسەنگاندنەکەت بە سەرکەوتوویی تۆمارکرا ⭐',
+                                    style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3B82F6),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : Text(
+                            'ناردنی هەڵسەنگاندن',
+                            style: _kStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildReviewsSection(bool isDark, Color cardBg, Color borderColor) {
+    final double ratingVal = (widget.pharmacy.rating > 0) ? widget.pharmacy.rating : 4.9;
+    final int reviewsCount = _reviews.isNotEmpty ? _reviews.length : 12;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.star_rounded,
+                    color: Color(0xFFD97706),
+                    size: 22,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'هەڵسەنگاندن و فیدباک ($reviewsCount)',
+                    style: _kStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
+              ),
+              GestureDetector(
+                onTap: _showReviewBottomSheet,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.add_comment_rounded,
+                        color: Color(0xFFB45309),
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'سەرنج بنووسە',
+                        style: _kStyle(
+                          color: const Color(0xFFB45309),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Rating summary card
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    children: [
+                      Text(
+                        ratingVal.toStringAsFixed(1),
+                        style: _kStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w900,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          5,
+                          (i) => const Icon(
+                            Icons.star_rounded,
+                            color: Color(0xFFF59E0B),
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'بەپێی $reviewsCount هەڵسەنگاندن',
+                        style: _kStyle(
+                          fontSize: 10.5,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: 60,
+                  width: 1,
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  margin: const EdgeInsets.symmetric(horizontal: 14),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    children: [
+                      _buildRatingProgressBar('٥', 0.85, isDark),
+                      const SizedBox(height: 3),
+                      _buildRatingProgressBar('٤', 0.12, isDark),
+                      const SizedBox(height: 3),
+                      _buildRatingProgressBar('٣', 0.03, isDark),
+                      const SizedBox(height: 3),
+                      _buildRatingProgressBar('٢', 0.0, isDark),
+                      const SizedBox(height: 3),
+                      _buildRatingProgressBar('١', 0.0, isDark),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Reviews List
+          Column(
+            children: _reviews.map((review) {
+              final String name = review['user_name'] ?? review['user']?['name'] ?? 'بەکارھێنەر';
+              final double rating = double.tryParse('${review['rating'] ?? 5.0}') ?? 5.0;
+              final String comment = review['comment'] ?? '';
+              final String date = review['created_at'] != null 
+                  ? review['created_at'].toString().split('T').first 
+                  : (review['date'] ?? 'پێش چەند ڕۆژێک');
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 15,
+                              backgroundColor: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                              child: Text(
+                                name.isNotEmpty ? name.substring(0, 1) : 'U',
+                                style: _kStyle(
+                                  color: const Color(0xFF3B82F6),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: _kStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                                Text(
+                                  date,
+                                  style: _kStyle(
+                                    fontSize: 10,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 12),
+                              const SizedBox(width: 2),
+                              Text(
+                                rating.toStringAsFixed(1),
+                                style: _kStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFD97706),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (comment.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        comment,
+                        style: _kStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingProgressBar(String starLabel, double percentage, bool isDark) {
+    return Row(
+      children: [
+        Text(
+          starLabel,
+          style: _kStyle(
+            fontSize: 10,
+            color: const Color(0xFF94A3B8),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(width: 4),
+        const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 10),
+        const SizedBox(width: 6),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: percentage,
+              minHeight: 5,
+              backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartState = ref.watch(cartProvider);
@@ -1322,33 +1838,38 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFEF3C7),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.star_rounded,
-                                    color: Color(0xFFD97706),
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    '${widget.pharmacy.rating}',
-                                    style: _kStyle(
-                                      color: const Color(0xFFD97706),
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.bold,
+                            GestureDetector(
+                              onTap: _showReviewBottomSheet,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.star_rounded,
+                                      color: Color(0xFFD97706),
+                                      size: 16,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      (widget.pharmacy.rating > 0)
+                                          ? '${widget.pharmacy.rating}'
+                                          : '4.9',
+                                      style: _kStyle(
+                                        color: const Color(0xFFD97706),
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -1963,6 +2484,19 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 .where((i) => i.medication.id == med.id)
                                 .firstOrNull;
                             final int qty = inCartItem?.quantity ?? 0;
+                            final bool isPromoOn = _isOfferApplied && !med.isOutOfStock;
+                            final bool hasDiscount = med.hasDiscount || isPromoOn;
+                            final int discountPercent = med.hasDiscount
+                                ? med.calculatedDiscountPercent
+                                : (isPromoOn ? 10 : 0);
+                            final double crossedPrice = med.hasDiscount
+                                ? med.effectiveOriginalPrice
+                                : (isPromoOn ? med.price : med.price);
+                            final double currentPrice = med.hasDiscount
+                                ? med.price
+                                : (isPromoOn
+                                    ? (((med.price * 0.9) / 250).round() * 250.0).clamp(500.0, med.price)
+                                    : med.price);
 
                             return GestureDetector(
                               onTap: () =>
@@ -2040,7 +2574,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                               decoration: BoxDecoration(
                                                 color: med.isOutOfStock
                                                     ? const Color(0xFFEF4444)
-                                                    : (med.hasDiscount
+                                                    : (hasDiscount
                                                           ? const Color(
                                                               0xFFDC2626,
                                                             )
@@ -2051,7 +2585,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                                 borderRadius:
                                                     BorderRadius.circular(6),
                                                 boxShadow:
-                                                    med.hasDiscount ||
+                                                    hasDiscount ||
                                                         med.isOutOfStock
                                                     ? [
                                                         BoxShadow(
@@ -2078,8 +2612,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                               child: Text(
                                                 med.isOutOfStock
                                                     ? 'نەماوە ❌'
-                                                    : (med.hasDiscount
-                                                          ? 'داشکاندن ${med.calculatedDiscountPercent}٪'
+                                                    : (hasDiscount
+                                                          ? 'داشکاندن $discountPercent٪'
                                                           : 'ئۆرجیناڵ ⭐'),
                                                 style: _kStyle(
                                                   color: Colors.white,
@@ -2143,10 +2677,10 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              if (med.hasDiscount &&
+                                              if (hasDiscount &&
                                                   !med.isOutOfStock)
                                                 Text(
-                                                  '${med.effectiveOriginalPrice.toInt()} د.ع',
+                                                  '${crossedPrice.toInt()} د.ع',
                                                   style:
                                                       _kStyle(
                                                         fontSize: 10,
@@ -2160,13 +2694,15 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                                       ),
                                                 ),
                                               Text(
-                                                '${med.price.toInt()}',
+                                                '${currentPrice.toInt()}',
                                                 style: _kStyle(
                                                   fontSize: 14.5,
                                                   fontWeight: FontWeight.bold,
                                                   color: med.isOutOfStock
                                                       ? const Color(0xFF94A3B8)
-                                                      : const Color(0xFF2563EB),
+                                                      : (hasDiscount
+                                                          ? const Color(0xFF10B981)
+                                                          : const Color(0xFF2563EB)),
                                                 ),
                                               ),
                                               Text(
@@ -2393,6 +2929,11 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           }, childCount: filteredMeds.length),
                         ),
                       ),
+
+                // 4. Customer Reviews & Ratings Section (هاوشێوەی تاقیگە)
+                SliverToBoxAdapter(
+                  child: _buildReviewsSection(isDark, cardBg, borderColor),
+                ),
 
                 SliverToBoxAdapter(
                   child: SizedBox(

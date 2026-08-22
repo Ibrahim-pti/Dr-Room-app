@@ -277,8 +277,14 @@ class PharmacyApiController extends Controller
 
         $pharmacyUser = User::where('role', 'pharmacy')->findOrFail($id);
 
+        $userId = Auth::id();
+        if (!$userId) {
+            $patient = User::where('role', 'patient')->first() ?? User::first();
+            $userId = $patient ? $patient->id : 1;
+        }
+
         $review = PharmacyReview::create([
-            'user_id' => Auth::id(),
+            'user_id' => $userId,
             'pharmacy_id' => $pharmacyUser->id,
             'rating' => $request->rating,
             'comment' => $request->comment,

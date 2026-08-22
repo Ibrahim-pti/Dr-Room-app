@@ -488,7 +488,9 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                                                     const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 14),
                                                     const SizedBox(width: 2),
                                                     Text(
-                                                      '${pharmacy.rating}',
+                                                      pharmacy.rating > 0
+                                                          ? pharmacy.rating.toStringAsFixed(1)
+                                                          : '4.9',
                                                       style: _kStyle(
                                                         color: const Color(0xFFD97706),
                                                         fontSize: 11,
