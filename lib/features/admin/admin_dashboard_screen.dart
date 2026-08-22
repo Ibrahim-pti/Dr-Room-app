@@ -802,7 +802,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildAppointmentRow(dynamic appt) {
-    final userName = appt['user']?['name'] ?? 'بەکارهێنەر';
+    final userName = appt['patient']?['name'] ?? appt['user']?['name'] ?? 'بەکارهێنەر';
     final doctorName =
         (appt['doctor'] != null && appt['doctor']['user'] != null)
         ? appt['doctor']['user']['name']
