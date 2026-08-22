@@ -14,6 +14,8 @@ import 'admin_labs_screen.dart';
 import 'admin_pharmacies_screen.dart';
 import 'admin_banners_screen.dart';
 import 'admin_orders_screen.dart';
+import 'admin_xrays_screen.dart';
+import 'admin_articles_screen.dart';
 import '../home/main_shell.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -314,7 +316,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final totalUsers = '${_stats?['total_users'] ?? 0}';
     final pendingDoctors = _stats?['pending_doctors'] ?? 0;
     final totalOrders = '${_stats?['total_orders'] ?? _stats?['pending_orders'] ?? 0}';
-    final totalStaff = '${(_stats?['total_nurses'] ?? 0) + (_stats?['total_labs'] ?? 0) + (_stats?['total_pharmacies'] ?? 0)}';
+    final totalAppointments = '${_stats?['total_appointments'] ?? 0}';
 
     return GridView.count(
       shrinkWrap: true,
@@ -355,11 +357,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           onTap: () => _openScreen(const AdminOrdersScreen()),
         ),
 
-        // Total Staff & Centers
+        // Appointments
         _buildStatTile(
-          title: 'ستاف و سەنتەرەکان',
-          value: totalStaff,
-          icon: Iconsax.hospital,
+          title: 'چاوپێکەوتنەکان',
+          value: totalAppointments,
+          icon: Iconsax.calendar_1,
           color: const Color(0xFF7C3AED),
           bg: const Color(0xFFF5F3FF),
           onTap: () => _openScreen(const AdminAppointmentsScreen()),
@@ -483,6 +485,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminLabsScreen(),
       },
       {
+        'title': 'سەنتەری تیشک',
+        'desc': 'تیشک، سۆنەر و MRI',
+        'icon': Iconsax.scan,
+        'color': const Color(0xFF6366F1),
+        'screen': const AdminXRaysScreen(),
+      },
+      {
         'title': 'پەرستارەکان',
         'desc': 'خزمەتگوزاری ماڵەوە',
         'icon': Iconsax.profile_2user,
@@ -495,6 +504,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'icon': Iconsax.box,
         'color': const Color(0xFFF59E0B),
         'screen': const AdminOrdersScreen(),
+      },
+      {
+        'title': 'فریاگوزاری',
+        'desc': 'ڕێنمایی و وتارە پزیشکییەکان',
+        'icon': Iconsax.firstline,
+        'color': const Color(0xFFDC2626),
+        'screen': const AdminArticlesScreen(),
       },
       {
         'title': 'بەکارهێنەران',

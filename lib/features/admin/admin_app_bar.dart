@@ -140,7 +140,7 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
               ],
             ),
           ),
-          if (actions != null) ...actions!,
+          ...?actions,
         ],
       ),
     );

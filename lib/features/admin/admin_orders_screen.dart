@@ -83,7 +83,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                   height: 54,
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0).withOpacity(0.5),
+                    color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: TabBar(
@@ -93,7 +93,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -247,7 +247,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
         border: Border.all(color: const Color(0xFFF1F5F9), width: 2),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF94A3B8).withOpacity(0.1),
+            color: const Color(0xFF94A3B8).withValues(alpha: 0.1),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -560,13 +560,14 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                             style: const TextStyle(fontFamily: 'Rabar'),
                           ),
                           onTap: () async {
+                            final scaffoldMessenger = ScaffoldMessenger.of(context);
                             Navigator.pop(context);
                             final success = await provider.assignNurse(
                               order['id'],
                               nurse['id'],
                             );
                             if (success && mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              scaffoldMessenger.showSnackBar(
                                 const SnackBar(
                                   content: Text(
                                     'پەرستار بەسەرکەوتوویی دیاریکرا',
