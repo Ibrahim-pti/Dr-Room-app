@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/utils/api_client.dart';
 import 'nurse_details_screen.dart';
 
@@ -22,7 +23,17 @@ class _NurseListScreenState extends State<NurseListScreen> {
   
   // Quick filters (Horizontal tabs)
   String _selectedFilter = 'All';
-  final List<String> _filters = ['All', 'top_experience', 'nearest', 'available_now'];
+  final List<String> _filters = [
+    'All',
+    'wound_emergency',
+    'injection_cannula',
+    'elderly_care',
+    'pediatric_care',
+    'icu_care',
+    'available_now',
+    'top_experience',
+    'nearest',
+  ];
 
   // Advanced filters (from Bottom Sheet)
   String _selectedCity = 'All';
@@ -62,6 +73,26 @@ class _NurseListScreenState extends State<NurseListScreen> {
         if (isKurdish) return 'هەمووی';
         if (isArabic) return 'الكل';
         return 'All';
+      case 'wound_emergency':
+        if (isKurdish) return 'فریاکەوتن و برینپێچی';
+        if (isArabic) return 'طوارئ وتضميد جروح';
+        return 'Emergency & Wound';
+      case 'injection_cannula':
+        if (isKurdish) return 'دەرزی و کانیۆلا';
+        if (isArabic) return 'حقن وكانيولا';
+        return 'Injections & IV';
+      case 'elderly_care':
+        if (isKurdish) return 'چاودێری بەساڵاچووان';
+        if (isArabic) return 'رعاية كبار السن';
+        return 'Elderly Care';
+      case 'pediatric_care':
+        if (isKurdish) return 'چاودێری منداڵان';
+        if (isArabic) return 'تمريض الأطفال';
+        return 'Pediatric Care';
+      case 'icu_care':
+        if (isKurdish) return 'چاودێری چڕ';
+        if (isArabic) return 'العناية المركزة';
+        return 'ICU Care';
       case 'search':
         if (isKurdish) return 'گەڕان بۆ ناوی پەرستار...';
         if (isArabic) return 'البحث عن ممرض...';
@@ -217,7 +248,6 @@ class _NurseListScreenState extends State<NurseListScreen> {
         final city = (n['city'] ?? '').toString().toLowerCase();
         final serviceType = (n['service_type'] ?? '').toString().toLowerCase();
         final isAvailable = n['is_available'] == true;
-        final completed = n['completed_appointments'] ?? 0;
 
         // Search text
         final matchesQuery = query.isEmpty ||
@@ -227,10 +257,25 @@ class _NurseListScreenState extends State<NurseListScreen> {
 
         // Quick horizontal tab
         bool matchesTopTab = true;
-        if (_selectedFilter == 'top_experience') {
-          matchesTopTab = completed > 0;
-        } else if (_selectedFilter == 'nearest') {
-          matchesTopTab = city.contains('erbil') || city.contains('هەولێر');
+        if (_selectedFilter == 'wound_emergency') {
+          matchesTopTab = specialty.contains('فریاکەوتن') ||
+              specialty.contains('برین') ||
+              specialtyEn.contains('wound') ||
+              specialtyEn.contains('emergency');
+        } else if (_selectedFilter == 'injection_cannula') {
+          matchesTopTab = specialty.contains('دەرزی') ||
+              specialty.contains('کانیۆلا') ||
+              specialtyEn.contains('injection') ||
+              specialtyEn.contains('cannula');
+        } else if (_selectedFilter == 'elderly_care') {
+          matchesTopTab = specialty.contains('بەساڵاچوو') ||
+              specialtyEn.contains('elderly');
+        } else if (_selectedFilter == 'pediatric_care') {
+          matchesTopTab = specialty.contains('منداڵ') ||
+              specialtyEn.contains('pediatric');
+        } else if (_selectedFilter == 'icu_care') {
+          matchesTopTab = specialty.contains('چڕ') ||
+              specialtyEn.contains('icu');
         } else if (_selectedFilter == 'available_now') {
           matchesTopTab = isAvailable;
         }
@@ -252,9 +297,20 @@ class _NurseListScreenState extends State<NurseListScreen> {
 
       if (_selectedFilter == 'top_experience') {
         list.sort((a, b) {
-          final cA = a['completed_appointments'] ?? 0;
-          final cB = b['completed_appointments'] ?? 0;
-          return cB.compareTo(cA);
+          final expA = int.tryParse(a['experience_years']?.toString() ?? '0') ?? 0;
+          final expB = int.tryParse(b['experience_years']?.toString() ?? '0') ?? 0;
+          if (expB != expA) return expB.compareTo(expA);
+          final rA = double.tryParse(a['rating']?.toString() ?? '0') ?? 0.0;
+          final rB = double.tryParse(b['rating']?.toString() ?? '0') ?? 0.0;
+          return rB.compareTo(rA);
+        });
+      } else if (_selectedFilter == 'nearest') {
+        list.sort((a, b) {
+          final cityA = (a['city'] ?? '').toString().toLowerCase();
+          final isErbilA = cityA.contains('هەولێر') || cityA.contains('erbil') ? 1 : 0;
+          final cityB = (b['city'] ?? '').toString().toLowerCase();
+          final isErbilB = cityB.contains('هەولێر') || cityB.contains('erbil') ? 1 : 0;
+          return isErbilB.compareTo(isErbilA);
         });
       }
 
@@ -736,7 +792,27 @@ class _NurseListScreenState extends State<NurseListScreen> {
             ? nurse['name_en']
             : (nurse['name'] ?? '');
 
-    final image = nurse['image'];
+    final fallbackImages = [
+      'https://images.unsplash.com/photo-1594824813511-236b283d0cfa?w=400&h=300&fit=crop&crop=face,top&q=80',
+      'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=300&fit=crop&crop=face,top&q=80',
+      'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=300&fit=crop&crop=face,top&q=80',
+      'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&crop=face,top&q=80',
+      'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop&crop=face,top&q=80',
+      'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&h=300&fit=crop&crop=face,top&q=80',
+      'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=400&h=300&fit=crop&crop=face,top&q=80',
+    ];
+
+    final rawImage = nurse['image']?.toString() ?? nurse['image_path']?.toString();
+    final isCustomUpload = rawImage != null &&
+        rawImage.isNotEmpty &&
+        !rawImage.contains('default') &&
+        !rawImage.contains('assets/images/default');
+    final image = isCustomUpload
+        ? (rawImage.startsWith('http') || rawImage.startsWith('assets/')
+            ? rawImage
+            : ApiClient.getImageUrl(rawImage))
+        : fallbackImages[index % fallbackImages.length];
+    final isNetworkImg = image.startsWith('http');
     final isAvailable = nurse['is_available'] == true;
     final rating = double.tryParse(nurse['rating']?.toString() ?? '') ?? 0.0;
     final city = nurse['city'] ?? '';
@@ -776,27 +852,29 @@ class _NurseListScreenState extends State<NurseListScreen> {
             // ── Image ──
             ClipRRect(
               borderRadius: BorderRadius.circular(18),
-              child: image != null && image.toString().isNotEmpty
-                  ? (image.toString().startsWith('http')
-                      ? Image.network(
-                          image.toString(),
-                          width: 96,
-                          height: 96,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.topCenter,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildNursePlaceholder(name),
-                        )
-                      : Image.asset(
-                          image.toString(),
-                          width: 96,
-                          height: 96,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.topCenter,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildNursePlaceholder(name),
-                        ))
-                  : _buildNursePlaceholder(name),
+              child: SizedBox(
+                width: 96,
+                height: 96,
+                child: isNetworkImg
+                    ? CachedNetworkImage(
+                        imageUrl: image,
+                        width: 96,
+                        height: 96,
+                        fit: BoxFit.cover,
+                        alignment: const Alignment(0, -0.35),
+                        errorWidget: (context, url, error) =>
+                            _buildNursePlaceholder(name),
+                      )
+                    : Image.asset(
+                        image,
+                        width: 96,
+                        height: 96,
+                        fit: BoxFit.cover,
+                        alignment: const Alignment(0, -0.35),
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildNursePlaceholder(name),
+                      ),
+              ),
             ),
             const SizedBox(width: 14),
 
