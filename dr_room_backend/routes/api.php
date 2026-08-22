@@ -25,6 +25,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+Route::post('/translate', [\App\Http\Controllers\Api\TranslateController::class, 'translate']);
 
 // Public User App Routes
 Route::get('/home', [AppController::class, 'home']);

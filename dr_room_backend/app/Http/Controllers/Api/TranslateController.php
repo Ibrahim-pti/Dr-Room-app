@@ -14,31 +14,54 @@ class TranslateController extends Controller
             'text' => 'required|string',
         ]);
 
-        $text = $request->text;
+        $text = trim($request->text);
+        if (empty($text)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Text cannot be empty'
+            ], 400);
+        }
 
         try {
-            $tr = new GoogleTranslate();
-            // Explicitly set source language to Kurdish (Sorani) to prevent auto-detect hallucinations
-            $tr->setSource('ckb');
-            
-            $en = $tr->setTarget('en')->translate($text);
-            
-            // Re-instantiate or just change target for Arabic
-            $ar = $tr->setTarget('ar')->translate($text);
+            $trEn = new GoogleTranslate('en');
+            $trEn->setSource('ckb');
+            $en = $trEn->translate($text);
+
+            $trAr = new GoogleTranslate('ar');
+            $trAr->setSource('ckb');
+            $ar = $trAr->translate($text);
 
             return response()->json([
                 'success' => true,
                 'translations' => [
                     'en' => $en,
                     'ar' => $ar,
-                    'ckb' => $text, // The input is already in Kurdish
+                    'ckb' => $text,
                 ]
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Translation failed: ' . $e->getMessage()
-            ], 500);
+            try {
+                // Fallback auto detect
+                $trEn = new GoogleTranslate('en');
+                $en = $trEn->translate($text);
+
+                $trAr = new GoogleTranslate('ar');
+                $ar = $trAr->translate($text);
+
+                return response()->json([
+                    'success' => true,
+                    'translations' => [
+                        'en' => $en,
+                        'ar' => $ar,
+                        'ckb' => $text,
+                    ]
+                ]);
+            } catch (\Exception $e2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Translation failed: ' . $e2->getMessage()
+                ], 500);
+            }
         }
     }
 }

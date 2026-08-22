@@ -44,9 +44,6 @@ Route::prefix('staff')->group(function () {
     Route::get('/status', [StaffAuthController::class, 'status'])->name('staff.status')->middleware('auth');
 });
 
-// Global API for Staff/Web
-Route::post('/api/translate', [\App\Http\Controllers\Api\TranslateController::class, 'translate'])->name('api.translate')->middleware('auth');
-
 // Doctor Dashboard Routes
 Route::prefix('doctor')->middleware(['auth', IsDoctor::class])->group(function () {
     Route::middleware('doctor.profile.complete')->group(function () {

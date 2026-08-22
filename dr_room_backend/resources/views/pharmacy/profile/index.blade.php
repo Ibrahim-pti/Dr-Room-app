@@ -384,8 +384,7 @@ async function translateAll() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ text: sourceEl.value })
                 });
@@ -393,18 +392,22 @@ async function translateAll() {
                 const data = await res.json();
                 
                 if (data.success && data.translations) {
-                    if (arEl && !arEl.value.trim()) {
+                    if (arEl && data.translations.ar) {
                         arEl.value = data.translations.ar;
+                        arEl.classList.add('bg-emerald-50');
+                        setTimeout(() => arEl.classList.remove('bg-emerald-50'), 1500);
                     }
-                    if (enEl && !enEl.value.trim()) {
+                    if (enEl && data.translations.en) {
                         enEl.value = data.translations.en;
+                        enEl.classList.add('bg-emerald-50');
+                        setTimeout(() => enEl.classList.remove('bg-emerald-50'), 1500);
                     }
                 }
             }
         }
     } catch (e) {
         console.error(e);
-        alert('هەڵەیەک ڕوویدا لە وەرگێڕانەکە');
+        alert('هەڵەیەک ڕوویدا لە وەرگێڕانەکە: ' + (e.message || e));
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
