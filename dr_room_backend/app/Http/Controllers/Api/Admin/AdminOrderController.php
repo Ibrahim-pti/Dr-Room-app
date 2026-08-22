@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\OrderNotificationService;
 
 class AdminOrderController extends Controller
 {
@@ -46,6 +47,8 @@ class AdminOrderController extends Controller
         $order->status = 'processing';
         $order->save();
 
+        OrderNotificationService::notifyStatusChanged($order, 'processing');
+
         return response()->json([
             'message' => 'Nurse assigned successfully',
             'order' => $order->load(['items', 'patient', 'assignedNurse'])
@@ -71,6 +74,8 @@ class AdminOrderController extends Controller
         $order->status = 'processing';
         $order->save();
 
+        OrderNotificationService::notifyStatusChanged($order, 'processing');
+
         return response()->json([
             'message' => 'Pharmacy assigned successfully',
             'order' => $order->load(['items', 'patient', 'assignedNurse'])
@@ -89,6 +94,8 @@ class AdminOrderController extends Controller
         $order = Order::findOrFail($id);
         $order->status = $request->status;
         $order->save();
+
+        OrderNotificationService::notifyStatusChanged($order, $request->status);
 
         return response()->json([
             'message' => 'Order status updated successfully',
