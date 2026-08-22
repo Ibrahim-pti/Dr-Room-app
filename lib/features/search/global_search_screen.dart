@@ -4,8 +4,10 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/utils/api_client.dart';
+import '../../core/utils/localization_extensions.dart';
 import '../doctors/doctor_details_screen.dart';
 import '../pharmacy/screens/pharmacy_detail_screen.dart';
 import '../pharmacy/models/pharmacy_model.dart';
@@ -30,12 +32,13 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
 
   String _selectedCategory = 'All';
   final List<Map<String, dynamic>> _categories = [
-    {'id': 'All', 'label': 'سەرجەمیان', 'icon': Iconsax.category},
-    {'id': 'Doctors', 'label': 'پزیشکەکان', 'icon': Iconsax.profile_2user},
-    {'id': 'Pharmacies', 'label': 'دەرمانخانەکان', 'icon': Iconsax.hospital},
-    {'id': 'Labs', 'label': 'تاقیگەکان', 'icon': Iconsax.health},
-    {'id': 'Medications', 'label': 'دەرمانەکان', 'icon': Iconsax.box_1},
+    {'id': 'All', 'key': 'all', 'icon': Iconsax.category},
+    {'id': 'Doctors', 'key': 'top_doctors', 'icon': Iconsax.profile_2user},
+    {'id': 'Pharmacies', 'key': 'top_pharmacies', 'icon': Iconsax.hospital},
+    {'id': 'Labs', 'key': 'top_labs', 'icon': Iconsax.health},
+    {'id': 'Medications', 'key': 'medications', 'icon': Iconsax.box_1},
   ];
+
 
   final List<String> _doctorFallbackImages = [
     'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=80',
@@ -153,7 +156,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
             decoration: InputDecoration(
-              hintText: 'گەڕان بۆ پزیشک، دەرمانخانە، تاقیگە...',
+              hintText: 'search_all_hint'.tr(),
               hintStyle: const TextStyle(
                 fontFamily: 'Rabar',
                 color: Color(0xFF94A3B8),
@@ -198,7 +201,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               itemBuilder: (context, index) {
                 final cat = _categories[index];
                 final id = cat['id'] as String;
-                final label = cat['label'] as String;
+                final key = cat['key'] as String;
                 final icon = cat['icon'] as IconData;
                 final isSelected = _selectedCategory == id;
 
@@ -246,12 +249,12 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            label,
+                            key.tr(),
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               color: isSelected ? Colors.white : (isDark ? Colors.white : const Color(0xFF334155)),
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               fontSize: 12.5,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                             ),
                           ),
                         ],
@@ -264,6 +267,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           ),
 
           // ── Search Results ──
+
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -415,14 +419,15 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
-    final String doctorName = d['name'] ?? d['"name"'] ?? 'د. ئارام عوسمان';
+    final userObj = d['user'] is Map ? d['user'] : d;
+    final String doctorName = context.localizedField(userObj, 'name', fallback: 'cat_doctor'.tr());
     final String rawImage = d['image'] ?? d['"image"'] ?? '';
     final String? uploadedUrl = _getImageUrl(rawImage);
     final String fallbackImg = _doctorFallbackImages[index % _doctorFallbackImages.length];
     final String imageToUse = (uploadedUrl != null && !uploadedUrl.contains('default') && !uploadedUrl.contains('doctor1.png'))
         ? uploadedUrl
         : fallbackImg;
-    final String specialty = d['specialization'] ?? d['"specialization"'] ?? 'پسپۆڕی پزیشکی';
+    final String specialty = context.localizedField(d, 'specialty', fallback: context.localizedField(d, 'specialization', fallback: 'medical_specialist'.tr()));
     final String fee = d['fee']?.toString() ?? d['"fee"']?.toString() ?? '25,000';
     final String rating = d['rating']?.toString() ?? '4.9';
 
@@ -509,12 +514,12 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 10),
-                            SizedBox(width: 2),
+                          children: [
+                            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 10),
+                            const SizedBox(width: 2),
                             Text(
-                              'باوەڕپێکراو',
-                              style: TextStyle(
+                              'verified'.tr(),
+                              style: const TextStyle(
                                 fontFamily: 'Rabar',
                                 color: Color(0xFF10B981),
                                 fontSize: 8.5,
@@ -559,7 +564,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                       const SizedBox(width: 10),
                       // Fee
                       Text(
-                        '$fee د.ع',
+                        '$fee IQD',
                         style: const TextStyle(
                           fontFamily: 'Rabar',
                           color: Color(0xFF10B981),
@@ -582,9 +587,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                             ),
                           ],
                         ),
-                        child: const Text(
-                          'نۆرەگرتن',
-                          style: TextStyle(
+                        child: Text(
+                          'book_appointment'.tr(),
+                          style: const TextStyle(
                             fontFamily: 'Rabar',
                             color: Colors.white,
                             fontSize: 10.5,
@@ -608,13 +613,14 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
-    final String pharmacyName = p['name'] ?? p['"name"'] ?? 'دەرمانخانە';
+    final userObj = p['user'] is Map ? p['user'] : p;
+    final String pharmacyName = context.localizedField(userObj, 'name', fallback: 'cat_pharmacy'.tr());
     final String rawImage = p['image'] ?? p['"image"'] ?? '';
     final String? uploadedUrl = _getImageUrl(rawImage);
     final String fallbackImg = _pharmacyFallbackImages[index % _pharmacyFallbackImages.length];
     final String imageToUse = (uploadedUrl != null && !uploadedUrl.contains('default')) ? uploadedUrl : fallbackImg;
     final bool isNetwork = imageToUse.startsWith('http');
-    final String address = p['address'] ?? p['"address"'] ?? 'هەولێر - شەقامی پزیشکان';
+    final String address = context.localizedField(p, 'address', fallback: context.localizedField(p, 'city', fallback: ''));
     final String rating = p['rating']?.toString() ?? '4.8';
 
     return GestureDetector(
@@ -695,9 +701,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                           color: const Color(0xFF10B981).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          'کراوەیە',
-                          style: TextStyle(
+                        child: Text(
+                          'open_status'.tr(),
+                          style: const TextStyle(
                             fontFamily: 'Rabar',
                             color: Color(0xFF10B981),
                             fontSize: 8.5,
@@ -743,9 +749,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                       const Spacer(),
                       const Icon(Iconsax.truck_fast, size: 12, color: Color(0xFF3B82F6)),
                       const SizedBox(width: 4),
-                      const Text(
-                        'گەیاندنی خێرا',
-                        style: TextStyle(
+                      Text(
+                        'fast_delivery'.tr(),
+                        style: const TextStyle(
                           fontFamily: 'Rabar',
                           color: Color(0xFF3B82F6),
                           fontSize: 10.5,
@@ -768,9 +774,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
-    final String labName = l['name'] ?? l['"name"'] ?? 'تاقیگەی پزیشکی';
+    final String labName = context.localizedField(l, 'name', fallback: 'cat_lab'.tr());
     final String fallbackImg = _labFallbackImages[index % _labFallbackImages.length];
-    final String address = l['address'] ?? l['"address"'] ?? 'هەولێر';
+    final String address = context.localizedField(l, 'address', fallback: context.localizedField(l, 'city', fallback: ''));
     final String rating = l['rating']?.toString() ?? '4.8';
 
     return GestureDetector(
@@ -797,30 +803,64 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         ),
         child: Row(
           children: [
+            // Image
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 width: 72,
                 height: 72,
                 color: const Color(0xFFF8FAFC),
-                child: Image.asset(fallbackImg, fit: BoxFit.cover),
+                child: Image.asset(
+                  fallbackImg,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.biotech,
+                    color: Color(0xFF3B82F6),
+                    size: 30,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
+
+            // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    labName,
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          labName,
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'open_status'.tr(),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            color: Color(0xFF10B981),
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Row(
@@ -856,20 +896,15 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                         ),
                       ),
                       const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          'پشکنینەکان',
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            color: Color(0xFF3B82F6),
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      const Icon(Iconsax.shield_tick, size: 12, color: Color(0xFF10B981)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'verified'.tr(),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          color: Color(0xFF10B981),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
@@ -888,8 +923,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
-    final String medName = m['name'] ?? m['"name"'] ?? 'دەرمان';
-    final String pharmacyName = m['pharmacy']?['name'] ?? m['pharmacy']?['"name"'] ?? 'لە دەرمانخانە بەردەستە';
+    final String medName = context.localizedField(m, 'name', fallback: 'medications'.tr());
+    final String pharmacyName = context.localizedField(m['pharmacy'] ?? {}, 'name', fallback: 'cat_pharmacy'.tr());
     final String price = m['price']?.toString() ?? '3,500';
 
     return GestureDetector(
@@ -910,6 +945,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           );
         }
       },
+
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(10),

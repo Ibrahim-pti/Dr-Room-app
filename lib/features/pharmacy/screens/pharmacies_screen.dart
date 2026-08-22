@@ -705,13 +705,14 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                     ? Image.network(
                         pharmacy.profileImage!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Center(
+                        errorBuilder: (context, error, stackTrace) => const Center(
                           child: Icon(
                             Icons.local_pharmacy_rounded,
                             color: Color(0xFF3B82F6),
                             size: 36,
                           ),
                         ),
+
                       )
                     : const Center(
                         child: Icon(
