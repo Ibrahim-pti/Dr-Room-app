@@ -3,7 +3,6 @@ import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../main.dart';
-import 'package:provider/provider.dart';
 import '../../core/services/session_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_provider.dart';
@@ -334,10 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: 'dark_mode'.tr(),
                       value: isDark,
                       onChanged: (val) {
-                        Provider.of<ThemeProvider>(
-                          context,
-                          listen: false,
-                        ).toggleTheme();
+                        ThemeProvider().toggleTheme();
                       },
                     ),
                   ),
