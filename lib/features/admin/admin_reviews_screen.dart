@@ -238,9 +238,16 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
     );
   }
 
+  /// Laravel serialises a `decimal:1` cast as a string and an `integer` cast
+  /// as a number, so ratings arrive in both shapes.
+  double _toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse('$value') ?? 0;
+  }
+
   Widget _buildCard(dynamic review, int index) {
     final isHidden = review['is_hidden'] == true;
-    final rating = (review['rating'] as num?)?.toDouble() ?? 0;
+    final rating = _toDouble(review['rating']);
     final ratingColor = rating <= 2
         ? const Color(0xFFEF4444)
         : rating <= 3.5

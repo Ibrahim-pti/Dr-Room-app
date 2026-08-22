@@ -6,6 +6,7 @@ import 'admin_doctors_screen.dart';
 import 'admin_nurses_screen.dart';
 import 'admin_articles_screen.dart';
 import 'admin_menu_screen.dart';
+import '../../core/utils/admin_permissions.dart';
 
 class AdminDashboardShell extends StatefulWidget {
   const AdminDashboardShell({super.key});
@@ -16,6 +17,15 @@ class AdminDashboardShell extends StatefulWidget {
 
 class _AdminDashboardShellState extends State<AdminDashboardShell> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // The menu hides what this account may not open; refresh once on entry.
+    AdminPermissions.load().then((_) {
+      if (mounted) setState(() {});
+    });
+  }
 
   final List<Widget> _screens = const [
     AdminDashboardScreen(),

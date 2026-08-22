@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HidesModeratedReviews;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PharmacyReview extends Model
 {
-    use HasFactory;
+    use HasFactory, HidesModeratedReviews;
 
     protected $fillable = [
         'user_id',

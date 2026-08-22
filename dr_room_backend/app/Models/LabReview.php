@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HidesModeratedReviews;
+
 use Illuminate\Database\Eloquent\Model;
 
 class LabReview extends Model
 {
+    use HidesModeratedReviews;
+
     protected $fillable = [
         'lab_id',
         'patient_id',

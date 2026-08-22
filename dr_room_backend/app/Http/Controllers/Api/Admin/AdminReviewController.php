@@ -35,7 +35,7 @@ class AdminReviewController extends Controller
         foreach ($wanted as $type) {
             [$model, , $foreignKey, $author] = self::TYPES[$type];
 
-            $query = $model::query()->with("$author:id,name,phone")->latest();
+            $query = $model::withoutGlobalScope('visible')->with("$author:id,name,phone")->latest();
 
             if ($request->input('status') === 'hidden') {
                 $query->where('is_hidden', true);
@@ -122,7 +122,7 @@ class AdminReviewController extends Controller
 
         [$model] = self::TYPES[$type];
 
-        return $model::findOrFail($id);
+        return $model::withoutGlobalScope('visible')->findOrFail($id);
     }
 
     /**
@@ -130,24 +130,40 @@ class AdminReviewController extends Controller
      */
     private function recalculateRating(string $type, $review): void
     {
-        [$model, $relation, $foreignKey] = self::TYPES[$type];
+        [$model, , $foreignKey] = self::TYPES[$type];
 
         $providerId = $review->{$foreignKey};
         if (!$providerId) {
             return;
         }
 
-        $visible = $model::where($foreignKey, $providerId)->where('is_hidden', false);
-
-        $provider = $review->{$relation} ?? null;
+        $provider = $this->resolveProvider($type, $providerId);
         if (!$provider) {
             return;
         }
 
+        $visible = $model::where($foreignKey, $providerId);
+
         $provider->forceFill([
-            'rating'        => round((float)$visible->avg('rating'), 1),
+            'rating'        => round((float)(clone $visible)->avg('rating'), 1),
             'total_reviews' => (clone $visible)->count(),
         ])->save();
+    }
+
+    /**
+     * The record that carries `rating` / `total_reviews`. Doctor, lab and nurse
+     * reviews key off the provider table directly; pharmacy reviews key off the
+     * pharmacy's *user* id, so that has to be hopped through.
+     */
+    private function resolveProvider(string $type, $providerId)
+    {
+        return match ($type) {
+            'doctor'   => \App\Models\Doctor::find($providerId),
+            'lab'      => \App\Models\Lab::find($providerId),
+            'nurse'    => \App\Models\Nurse::find($providerId),
+            'pharmacy' => \App\Models\User::find($providerId)?->pharmacy,
+            default    => null,
+        };
     }
 
     private function label($review): string
@@ -161,14 +177,11 @@ class AdminReviewController extends Controller
             return 'نەناسراو';
         }
 
-        $model = match ($type) {
-            'doctor'   => \App\Models\Doctor::class,
-            'lab'      => \App\Models\Lab::class,
-            'nurse'    => \App\Models\Nurse::class,
-            'pharmacy' => \App\Models\Pharmacy::class,
-        };
+        if ($type === 'pharmacy') {
+            return \App\Models\User::find($providerId)?->name ?? 'نەناسراو';
+        }
 
-        return $model::with('user:id,name')->find($providerId)?->user?->name ?? 'نەناسراو';
+        return $this->resolveProvider($type, $providerId)?->user?->name ?? 'نەناسراو';
     }
 
     private function typeLabel(string $type): string

@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HidesModeratedReviews;
+
 use Illuminate\Database\Eloquent\Model;
 
 class NurseReview extends Model
 {
+    use HidesModeratedReviews;
+
     protected $guarded = [];
 
     protected $casts = [
