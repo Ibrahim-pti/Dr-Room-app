@@ -175,6 +175,8 @@ class NurseApiController extends Controller
             [
                 'id' => 'injection',
                 'name' => 'دەرزی',
+                'name_en' => 'Injections',
+                'name_ar' => 'حقن',
                 'description' => 'دەرزی ماسولکە، دەمار، یان ژێر پێست لە ماڵەوە',
                 'icon' => 'Icons.medical_services',
                 'price' => 15000,
@@ -182,6 +184,8 @@ class NurseApiController extends Controller
             [
                 'id' => 'cannula',
                 'name' => 'دانانی کانیۆلا',
+                'name_en' => 'Cannula Insertion',
+                'name_ar' => 'تركيب كانيولا',
                 'description' => 'دانان و چاودێریکردنی کانیۆلای دەمار بە شێوەیەکی پڕۆفیشناڵ',
                 'icon' => 'Icons.vaccines',
                 'price' => 20000,
@@ -189,6 +193,8 @@ class NurseApiController extends Controller
             [
                 'id' => 'dressing',
                 'name' => 'پێچانەوەی برین (پانسیمان)',
+                'name_en' => 'Wound Dressing',
+                'name_ar' => 'تضميد الجروح',
                 'description' => 'پاککردنەوە و پێچانەوەی برین و دوای نەشتەرگەری',
                 'icon' => 'Icons.healing',
                 'price' => 25000,
@@ -196,11 +202,37 @@ class NurseApiController extends Controller
             [
                 'id' => 'checkup',
                 'name' => 'چاودێری خێرا',
+                'name_en' => 'Quick Checkup',
+                'name_ar' => 'فحص سريع',
                 'description' => 'پشکنینی سەرەتایی، پەستانی خوێن، و چاودێری نیشانە ژیانییەکان',
                 'icon' => 'Icons.monitor_heart',
                 'price' => 10000,
             ],
         ];
+
+        try {
+            $dynamicCats = \App\Models\ServiceCategory::ofScope('nursing')->active()->orderBy('sort_order')->get();
+            foreach ($dynamicCats as $cat) {
+                $exists = false;
+                foreach ($services as $s) {
+                    if ($s['name'] === $cat->name) {
+                        $exists = true;
+                        break;
+                    }
+                }
+                if (!$exists) {
+                    $services[] = [
+                        'id' => 'cat_' . $cat->id,
+                        'name' => $cat->name,
+                        'name_en' => $cat->name_en,
+                        'name_ar' => $cat->name_ar,
+                        'description' => 'خزمەتگوزاری پەرستاری',
+                        'icon' => 'Icons.medical_services',
+                        'price' => 20000,
+                    ];
+                }
+            }
+        } catch (\Exception $e) {}
 
         return response()->json([
             'success' => true,
