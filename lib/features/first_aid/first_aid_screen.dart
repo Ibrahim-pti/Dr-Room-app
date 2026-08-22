@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/utils/api_client.dart';
 import 'first_aid_detail_screen.dart';
 
 class FirstAidScreen extends StatefulWidget {
@@ -13,6 +15,94 @@ class FirstAidScreen extends StatefulWidget {
 class _FirstAidScreenState extends State<FirstAidScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'هەمووی';
+  bool _isLoading = false;
+  List<FirstAidTopic> _apiTopics = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTopicsFromApi();
+  }
+
+  Future<void> _fetchTopicsFromApi() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiClient.get('/articles');
+      if (res.statusCode == 200 && mounted) {
+        final List list = jsonDecode(res.body);
+        final parsed = list.map((item) {
+          final cat = item['category'] ?? 'گشتی';
+          Color col = const Color(0xFF2563EB);
+          IconData ico = Icons.medical_services_rounded;
+          if (cat.contains('هەناسە') || cat.contains('خوێن')) {
+            col = const Color(0xFFEF4444);
+            ico = Icons.air;
+          } else if (cat.contains('پێست') || cat.contains('برین') || cat.contains('سووتان')) {
+            col = const Color(0xFFF97316);
+            ico = Icons.local_fire_department;
+          } else if (cat.contains('دڵ')) {
+            col = const Color(0xFFDC2626);
+            ico = Icons.favorite_rounded;
+          } else if (cat.contains('ئێسک') || cat.contains('شکان')) {
+            col = const Color(0xFF8B5CF6);
+            ico = Icons.accessibility_new_rounded;
+          }
+
+          List<String> symptoms = [];
+          if (item['symptoms'] is List) {
+            symptoms = (item['symptoms'] as List).map((s) => s.toString()).toList();
+          } else if (item['symptoms'] is String && item['symptoms'].toString().isNotEmpty) {
+            symptoms = [item['symptoms'].toString()];
+          }
+
+          List<Map<String, dynamic>> steps = [];
+          if (item['steps'] is List) {
+            steps = (item['steps'] as List).map((st) {
+              if (st is Map) return Map<String, dynamic>.from(st);
+              return {'title': 'هەنگاو', 'desc': st.toString()};
+            }).toList();
+          } else if (item['content'] != null && item['content'].toString().isNotEmpty) {
+            steps = [{'title': 'ڕێنمایی چارەسەر', 'desc': item['content'].toString()}];
+          }
+
+          List<String> dos = [];
+          if (item['dos'] is List) {
+            dos = (item['dos'] as List).map((d) => d.toString()).toList();
+          }
+
+          List<String> donts = [];
+          if (item['donts'] is List) {
+            donts = (item['donts'] as List).map((d) => d.toString()).toList();
+          }
+
+          return FirstAidTopic(
+            id: item['id'].toString(),
+            title: item['title'] ?? '',
+            category: cat,
+            shortDesc: item['short_desc'] ?? item['content'] ?? '',
+            icon: ico,
+            color: col,
+            symptoms: symptoms,
+            steps: steps,
+            dos: dos,
+            donts: donts,
+            whenToCallAmbulance: item['when_to_call_ambulance'] ?? 'لە کاتی باری لەناکاودا دەستبەجێ پەیوەندی بە ١٢٢ بکە.',
+          );
+        }).toList();
+
+        if (parsed.isNotEmpty) {
+          setState(() {
+            _apiTopics = parsed;
+            _isLoading = false;
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching first aid topics: $e');
+    }
+    if (mounted) setState(() => _isLoading = false);
+  }
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -257,7 +347,8 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
-    final filteredTopics = _allTopics.where((topic) {
+    final activeTopics = _apiTopics.isNotEmpty ? _apiTopics : _allTopics;
+    final filteredTopics = activeTopics.where((topic) {
       final matchesSearch = topic.title.contains(_searchController.text.trim()) ||
           topic.shortDesc.contains(_searchController.text.trim());
       final matchesCategory = _selectedCategory == 'هەمووی' || topic.category == _selectedCategory;
@@ -280,13 +371,24 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Search Bar
+      body: RefreshIndicator(
+        onRefresh: _fetchTopicsFromApi,
+        color: const Color(0xFF2563EB),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_isLoading)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 12),
+                  child: LinearProgressIndicator(
+                    color: Color(0xFF2563EB),
+                    backgroundColor: Color(0xFFEFF6FF),
+                  ),
+                ),
+              // Search Bar
             Container(
               height: 50,
               padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -458,6 +560,7 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

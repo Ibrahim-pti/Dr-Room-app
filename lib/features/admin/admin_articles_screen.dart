@@ -330,17 +330,21 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                   final resp = await http.Response.fromStream(streamedResponse);
 
                                   if (resp.statusCode == 200 || resp.statusCode == 201) {
-                                    Navigator.pop(ctx);
+                                    if (ctx.mounted) Navigator.of(ctx).pop();
                                     _fetchArticles();
                                   } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('هەڵە ڕوویدا: ${resp.body}')),
-                                    );
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('هەڵە ڕوویدا: ${resp.body}')),
+                                      );
+                                    }
                                   }
                                 } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('کێشەیەک لە پەیوەندی هەیە: $e')),
-                                  );
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('کێشەیەک لە پەیوەندی هەیە: $e')),
+                                    );
+                                  }
                                 } finally {
                                   setModalState(() => isSubmitting = false);
                                 }
@@ -547,7 +551,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                           ? Image.network(
                                               '${ApiClient.storageUrl}/${article['image_path']}',
                                               fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => const Icon(
+                                              errorBuilder: (c, e, s) => const Icon(
                                                 Iconsax.firstline,
                                                 color: Color(0xFF2563EB),
                                                 size: 26,
