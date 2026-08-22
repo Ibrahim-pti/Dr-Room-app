@@ -21,12 +21,13 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false;
   String _userName = '';
+  String? _profileImageUrl;
   List<dynamic> _banners = [];
   List<dynamic> _topNurses = [];
   List<dynamic> _topPharmacies = [];
@@ -34,10 +35,30 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadCachedUser();
     _fetchHomeData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<AppointmentProvider>().fetchAppointments();
     });
+  }
+
+  Future<void> _loadCachedUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final un = prefs.getString('user_name') ?? '';
+      final profileImg = prefs.getString('user_profile_image') ?? prefs.getString('profile_image');
+      if (mounted) {
+        setState(() {
+          _userName = un.isNotEmpty ? un : 'guest_user'.tr();
+          _profileImageUrl = profileImg;
+        });
+      }
+    } catch (_) {}
+  }
+
+  void refresh() {
+    _loadCachedUser();
+    _fetchHomeData();
   }
 
   Future<void> _fetchHomeData() async {
@@ -46,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final prefs = await SharedPreferences.getInstance();
       final un = prefs.getString('user_name') ?? '';
       final userName = un.isNotEmpty ? un : 'guest_user'.tr();
+      final profileImg = prefs.getString('user_profile_image') ?? prefs.getString('profile_image');
 
       final response = await ApiClient.get('/home');
       if (response.statusCode == 200) {
@@ -56,6 +78,14 @@ class _HomeScreenState extends State<HomeScreen> {
             _topNurses = data['top_nurses'] ?? [];
             _topPharmacies = data['top_pharmacies'] ?? [];
             _userName = userName;
+            _profileImageUrl = profileImg;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _userName = userName;
+            _profileImageUrl = profileImg;
           });
         }
       }
@@ -73,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           // ── Fixed Top Curved Header & Search (Never moves) ──
-          HomeHeader(userName: _userName),
+          HomeHeader(userName: _userName, profileImageUrl: _profileImageUrl),
 
           // ── Scrollable & Refreshable Body ──
           Expanded(

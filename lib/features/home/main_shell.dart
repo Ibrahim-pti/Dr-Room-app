@@ -32,6 +32,7 @@ class _MainShellState extends State<MainShell> {
   String _userPhone = '';
   int _currentIndex = 0;
 
+  final GlobalKey<HomeScreenState> _homeKey = GlobalKey<HomeScreenState>();
   final GlobalKey<MyRequestsScreenState> _requestsKey =
       GlobalKey<MyRequestsScreenState>();
 
@@ -68,7 +69,7 @@ class _MainShellState extends State<MainShell> {
   }
 
   late final List<Widget> _screens = [
-    const HomeScreen(),
+    HomeScreen(key: _homeKey),
     const FirstAidScreen(),
     const AiSymptomCheckerScreen(),
     const MedicalRecordsScreen(),
@@ -89,7 +90,9 @@ class _MainShellState extends State<MainShell> {
   void _onTabSelected(int index) {
     setState(() => _currentIndex = index);
 
-    if (index == _requestsTabIndex) {
+    if (index == 0) {
+      _homeKey.currentState?.refresh();
+    } else if (index == _requestsTabIndex) {
       _requestsKey.currentState?.refresh();
     }
   }

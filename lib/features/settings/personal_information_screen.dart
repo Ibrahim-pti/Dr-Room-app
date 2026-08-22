@@ -18,7 +18,6 @@ class PersonalInformationScreen extends StatefulWidget {
 
 class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
 
@@ -38,7 +37,6 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
     setState(() {
       _nameController.text = prefs.getString('user_name') ?? '';
       _phoneController.text = prefs.getString('user_phone') ?? '';
-      _emailController.text = prefs.getString('user_email') ?? '';
       _selectedGender = prefs.getString('guest_gender') ?? 'Female';
       _dobController.text = prefs.getString('user_dob') ?? '';
       _profileImageUrl = prefs.getString('user_profile_image');
@@ -56,9 +54,6 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
             }
             if ((u['phone'] ?? '').toString().isNotEmpty) {
               _phoneController.text = u['phone'];
-            }
-            if ((u['email'] ?? '').toString().isNotEmpty) {
-              _emailController.text = u['email'];
             }
             if ((u['gender'] ?? '').toString().isNotEmpty) {
               _selectedGender = u['gender'];
@@ -130,13 +125,11 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
   Future<void> _saveChanges() async {
     setState(() => _isLoading = true);
     final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
     final dob = _dobController.text.trim();
 
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_name', name);
-      await prefs.setString('user_email', email);
       await prefs.setString('user_dob', dob);
       await prefs.setString('guest_gender', _selectedGender);
 
@@ -146,7 +139,6 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
           '/user',
           fields: {
             'name': name,
-            'email': email,
             'dob': dob,
             'gender': _selectedGender,
           },
@@ -156,7 +148,6 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
       } else {
         response = await ApiClient.put('/user', body: {
           'name': name,
-          'email': email,
           'dob': dob,
           'gender': _selectedGender,
         });
@@ -207,7 +198,6 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     _dobController.dispose();
     super.dispose();
@@ -303,13 +293,6 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
             ),
             const SizedBox(height: 16),
 
-            _buildInputField(
-              label: 'email'.tr(),
-              controller: _emailController,
-              icon: Iconsax.sms,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
 
             _buildInputField(
               label: 'phone_number'.tr(),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/api_client.dart';
 import '../../pharmacy/providers/cart_provider.dart';
 import '../../pharmacy/screens/cart_screen.dart';
 import '../../notifications/notifications_screen.dart';
@@ -12,8 +13,9 @@ import '../../search/global_search_screen.dart';
 
 class HomeHeader extends StatelessWidget {
   final String userName;
+  final String? profileImageUrl;
 
-  const HomeHeader({super.key, required this.userName});
+  const HomeHeader({super.key, required this.userName, this.profileImageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -103,15 +105,44 @@ class HomeHeader extends StatelessWidget {
                             height: 44,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.2),
                               border: Border.all(
-                                color: AppColors.getSurface(context),
+                                color: Colors.white,
                                 width: 2,
                               ),
-                              image: const DecorationImage(
-                                image: AssetImage('assets/images/doctor2.png'),
-                                fit: BoxFit.cover,
-                                alignment: Alignment.topCenter,
-                              ),
+                            ),
+                            child: ClipOval(
+                              child: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                                  ? (profileImageUrl!.startsWith('http')
+                                      ? CachedNetworkImage(
+                                          imageUrl: profileImageUrl!,
+                                          fit: BoxFit.cover,
+                                          alignment: Alignment.topCenter,
+                                          errorWidget: (context, url, error) => Image.asset(
+                                            'assets/images/doctor2.png',
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : (profileImageUrl!.startsWith('assets/')
+                                          ? Image.asset(
+                                              profileImageUrl!,
+                                              fit: BoxFit.cover,
+                                              alignment: Alignment.topCenter,
+                                            )
+                                          : CachedNetworkImage(
+                                              imageUrl: ApiClient.getImageUrl(profileImageUrl!),
+                                              fit: BoxFit.cover,
+                                              alignment: Alignment.topCenter,
+                                              errorWidget: (context, url, error) => Image.asset(
+                                                'assets/images/doctor2.png',
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )))
+                                  : Image.asset(
+                                      'assets/images/doctor2.png',
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.topCenter,
+                                    ),
                             ),
                           ),
                           const SizedBox(width: 10),
