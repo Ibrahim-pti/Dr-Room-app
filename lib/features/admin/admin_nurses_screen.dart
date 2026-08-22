@@ -6,7 +6,8 @@ import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
 
 class AdminNursesScreen extends StatefulWidget {
-  const AdminNursesScreen({super.key});
+  final bool isRoot;
+  const AdminNursesScreen({super.key, this.isRoot = false});
 
   @override
   State<AdminNursesScreen> createState() => _AdminNursesScreenState();
@@ -106,7 +107,7 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
         icon: Iconsax.profile_2user,
         iconColor: const Color(0xFFEC4899),
         iconBackgroundColor: const Color(0xFFFDF2F8),
-        showBackButton: false,
+        showBackButton: !widget.isRoot,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

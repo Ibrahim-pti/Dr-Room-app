@@ -10,7 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'admin_app_bar.dart';
 
 class AdminArticlesScreen extends StatefulWidget {
-  const AdminArticlesScreen({super.key});
+  final bool isRoot;
+  const AdminArticlesScreen({super.key, this.isRoot = false});
 
   @override
   State<AdminArticlesScreen> createState() => _AdminArticlesScreenState();
@@ -806,7 +807,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
         icon: Iconsax.firstline,
         iconColor: const Color(0xFF2563EB),
         iconBackgroundColor: const Color(0xFFEFF6FF),
-        showBackButton: false,
+        showBackButton: !widget.isRoot,
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

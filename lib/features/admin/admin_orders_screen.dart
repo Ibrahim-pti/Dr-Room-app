@@ -12,7 +12,8 @@ import '../../core/utils/currency.dart';
 import '../../core/theme/app_colors.dart';
 
 class AdminOrdersScreen extends StatefulWidget {
-  const AdminOrdersScreen({super.key});
+  final bool isRoot;
+  const AdminOrdersScreen({super.key, this.isRoot = false});
 
   @override
   State<AdminOrdersScreen> createState() => _AdminOrdersScreenState();
@@ -219,7 +220,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
         icon: Iconsax.document,
         iconColor: const Color(0xFF3B82F6),
         iconBackgroundColor: const Color(0xFFEFF6FF),
-        showBackButton: false,
+        showBackButton: !widget.isRoot,
       ),
       body: Consumer<AdminOrderProvider>(
         builder: (context, provider, child) {

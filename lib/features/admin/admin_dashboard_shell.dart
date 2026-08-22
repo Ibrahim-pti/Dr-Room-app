@@ -29,9 +29,9 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
 
   final List<Widget> _screens = const [
     AdminDashboardScreen(),
-    AdminOrdersScreen(),
-    AdminNursesScreen(),
-    AdminArticlesScreen(),
+    AdminOrdersScreen(isRoot: true),
+    AdminNursesScreen(isRoot: true),
+    AdminArticlesScreen(isRoot: true),
     AdminMenuScreen(),
   ];
 
