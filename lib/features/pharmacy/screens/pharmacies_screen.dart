@@ -687,58 +687,33 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Left: Pharmacy Image with online indicator ──
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: Container(
-                    width: 92,
-                    height: 92,
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF),
-                    child: pharmacy.profileImage != null && pharmacy.profileImage!.isNotEmpty
-                        ? Image.network(
-                            pharmacy.profileImage!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Icon(
-                                Icons.local_pharmacy_rounded,
-                                color: Color(0xFF3B82F6),
-                                size: 36,
-                              ),
-                            ),
-                          )
-                        : const Center(
-                            child: Icon(
-                              Icons.local_pharmacy_rounded,
-                              color: Color(0xFF3B82F6),
-                              size: 36,
-                            ),
+            // ── Left: Pharmacy Image ──
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: Container(
+                width: 92,
+                height: 92,
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF),
+                child: pharmacy.profileImage != null && pharmacy.profileImage!.isNotEmpty
+                    ? Image.network(
+                        pharmacy.profileImage!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Center(
+                          child: Icon(
+                            Icons.local_pharmacy_rounded,
+                            color: Color(0xFF3B82F6),
+                            size: 36,
                           ),
-                  ),
-                ),
-                // Delivery Fee Badge
-                PositionedDirectional(
-                  top: 5,
-                  start: 5,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5.5, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '${pharmacy.deliveryFee.toInt()} د.ع',
-                      style: _kStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : const Center(
+                        child: Icon(
+                          Icons.local_pharmacy_rounded,
+                          color: Color(0xFF3B82F6),
+                          size: 36,
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
             const SizedBox(width: 13),
 
