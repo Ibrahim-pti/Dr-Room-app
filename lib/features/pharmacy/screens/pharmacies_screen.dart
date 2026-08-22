@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../data/pharmacy_repository.dart';
 import '../models/pharmacy_model.dart';
 import 'pharmacy_detail_screen.dart';
@@ -17,19 +18,20 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   List<Pharmacy> _pharmacies = [];
   bool _isLoading = true;
-  String _selectedFilter = 'هەمووی';
+  String _selectedFilter = 'all';
 
   final List<String> _filters = [
-    'هەمووی',
-    'ئێشکگر (٢٤/٧)',
-    'ناودارترین',
-    'نزیکترین',
-    'گەیاندنی خێرا',
+    'all',
+    'duty_pharmacy_247',
+    'most_popular',
+    'nearest',
+    'fast_delivery',
   ];
 
-  final List<String> _cities = ['هەموو شارەکان', 'هەولێر', 'سلێمانی', 'دهۆک', 'کەرکووک', 'هەڵەبجە'];
-  String _selectedCity = 'هەموو شارەکان';
+  final List<String> _cities = ['all_cities', 'city_erbil', 'city_sulaymaniyah', 'city_duhok', 'city_kirkuk', 'city_halabja'];
+  String _selectedCity = 'all_cities';
   double _selectedMinRating = 0.0;
+
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -132,10 +134,11 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
       if (!matchesSearch) return false;
 
       // City filter
-      if (_selectedCity != 'هەموو شارەکان') {
+      if (_selectedCity != 'all_cities') {
         final address = pharmacy.address?.toLowerCase() ?? '';
-        final city = _selectedCity.toLowerCase();
-        if (!address.contains(city)) return false;
+        final cityName = _selectedCity.tr().toLowerCase();
+        final rawKey = _selectedCity.replaceAll('city_', '').toLowerCase();
+        if (!address.contains(cityName) && !address.contains(rawKey)) return false;
       }
 
       // Rating filter
@@ -144,13 +147,13 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
       }
 
       // Quick filter chips
-      if (_selectedFilter == 'ئێشکگر (٢٤/٧)' || _selectedFilter == 'کراوەیە ئێستا') {
+      if (_selectedFilter == 'duty_pharmacy_247') {
         return pharmacy.isOpen;
-      } else if (_selectedFilter == 'ناودارترین' || _selectedFilter == 'بەرزترین هەڵسەنگاندن') {
+      } else if (_selectedFilter == 'most_popular') {
         return pharmacy.rating >= 4.8;
-      } else if (_selectedFilter == 'گەیاندنی خێرا' || _selectedFilter == 'کەمترین کرێ') {
+      } else if (_selectedFilter == 'fast_delivery') {
         return pharmacy.deliveryFee <= 3000;
-      } else if (_selectedFilter == 'نزیکترین') {
+      } else if (_selectedFilter == 'nearest') {
         return true;
       }
 
@@ -194,7 +197,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'فلتەرکردنی دەرمانخانەکان',
+                        'filter_pharmacies'.tr(),
                         style: _kStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
@@ -204,13 +207,13 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                       TextButton(
                         onPressed: () {
                           setModalState(() {
-                            _selectedCity = 'هەموو شارەکان';
+                            _selectedCity = 'all_cities';
                             _selectedMinRating = 0.0;
                           });
                           setState(() {});
                         },
                         child: Text(
-                          'سڕینەوە',
+                          'clear_filter'.tr(),
                           style: _kStyle(
                             color: const Color(0xFFEF4444),
                             fontWeight: FontWeight.bold,
@@ -224,7 +227,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
 
                   // By City
                   Text(
-                    'بەپێی شار',
+                    'filter_by_city'.tr(),
                     style: _kStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -239,7 +242,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                       final isSelected = _selectedCity == city;
                       return ChoiceChip(
                         label: Text(
-                          city,
+                          city.tr(),
                           style: _kStyle(
                             color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
                             fontSize: 12,
@@ -269,7 +272,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
 
                   // By Rating
                   Text(
-                    'بەپێی هەڵسەنگاندن',
+                    'filter_by_rating'.tr(),
                     style: _kStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -281,10 +284,10 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      {'label': 'هەموو نمرەکان', 'min': 0.0},
-                      {'label': '⭐ ٤.٥ و بەرزتر', 'min': 4.5},
-                      {'label': '⭐ ٤.٧ و بەرزتر', 'min': 4.7},
-                      {'label': '⭐ ٤.٩ و بەرزتر', 'min': 4.9},
+                      {'label': 'all'.tr(), 'min': 0.0},
+                      {'label': '⭐ 4.5+', 'min': 4.5},
+                      {'label': '⭐ 4.7+', 'min': 4.7},
+                      {'label': '⭐ 4.9+', 'min': 4.9},
                     ].map((item) {
                       final double minVal = item['min'] as double;
                       final bool isSelected = _selectedMinRating == minVal;
@@ -331,7 +334,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                         ),
                       ),
                       child: Text(
-                        'جێبەجێکردنی فلتەر',
+                        'apply_filter'.tr(),
                         style: _kStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -348,6 +351,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
       },
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -410,7 +414,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                             ),
                             const SizedBox(height: 20),
                             Text(
-                              'هیچ دەرمانخانەیەک نەدۆزرایەوە',
+                              'no_pharmacies_found'.tr(),
                               style: _kStyle(
                                 color: isDark ? Colors.white70 : const Color(0xFF475569),
                                 fontSize: 15.5,
@@ -478,7 +482,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
         ),
       ),
       title: Text(
-        'دەرمانخانەکان',
+        'top_pharmacies'.tr(),
         style: _kStyle(
           color: isDark ? Colors.white : const Color(0xFF0F172A),
           fontSize: 17.5,
@@ -529,7 +533,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                             fontSize: 13.5,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'گەڕان بۆ ناوی دەرمانخانە، گەڕەک...',
+                            hintText: 'search_pharmacies_hint'.tr(),
                             hintStyle: _kStyle(
                               color: const Color(0xFF94A3B8),
                               fontSize: 13,
@@ -617,7 +621,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                             : null,
                       ),
                       child: Text(
-                        filter,
+                        filter.tr(),
                         style: _kStyle(
                           color: isSelected
                               ? Colors.white
@@ -640,11 +644,11 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
   String _getDisplayCity(Pharmacy pharmacy) {
     if (pharmacy.city != null && pharmacy.city!.trim().isNotEmpty) {
       final c = pharmacy.city!.trim().toLowerCase();
-      if (c.contains('erbil') || c.contains('هەولێر') || c.contains('اربيل')) return 'هەولێر';
-      if (c.contains('sulayman') || c.contains('سلێمانی') || c.contains('سليمانية')) return 'سلێمانی';
-      if (c.contains('duhok') || c.contains('دهۆک') || c.contains('دهوك')) return 'دهۆک';
-      if (c.contains('kirkuk') || c.contains('کەرکووک') || c.contains('كركوك')) return 'کەرکووک';
-      if (c.contains('halabja') || c.contains('هەڵەبجە') || c.contains('حلبجة')) return 'هەڵەبجە';
+      if (c.contains('erbil') || c.contains('هەولێر') || c.contains('اربيل') || c.contains('أربيل')) return 'city_erbil'.tr();
+      if (c.contains('sulayman') || c.contains('سلێمانی') || c.contains('سليمانية') || c.contains('السليمانية')) return 'city_sulaymaniyah'.tr();
+      if (c.contains('duhok') || c.contains('دهۆک') || c.contains('دهوك')) return 'city_duhok'.tr();
+      if (c.contains('kirkuk') || c.contains('کەرکووک') || c.contains('كركوك')) return 'city_kirkuk'.tr();
+      if (c.contains('halabja') || c.contains('هەڵەبجە') || c.contains('حلبجة')) return 'city_halabja'.tr();
       return pharmacy.city!;
     }
     if (pharmacy.address != null && pharmacy.address!.isNotEmpty) {
@@ -653,7 +657,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
         return parts.first.trim();
       }
     }
-    return 'هەولێر';
+    return 'city_erbil'.tr();
   }
 
   Widget _buildPremiumPharmacyCard(Pharmacy pharmacy, int index, bool isDark) {
@@ -825,7 +829,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              isOpen ? 'کراوەیە ئێستا' : 'داخراوە',
+                              isOpen ? 'open_now'.tr() : 'closed_status'.tr(),
                               style: _kStyle(
                                 color: isOpen
                                     ? const Color(0xFF047857)
@@ -850,7 +854,7 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'بینینی دەرمان',
+                              'view_medications'.tr(),
                               style: _kStyle(
                                 color: const Color(0xFF2563EB),
                                 fontSize: 11,
@@ -859,9 +863,9 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
                             ),
                             const SizedBox(width: 4),
                             const Icon(
-                              Icons.arrow_forward_ios_rounded,
+                              Icons.arrow_forward_rounded,
+                              size: 13,
                               color: Color(0xFF2563EB),
-                              size: 12,
                             ),
                           ],
                         ),
@@ -875,5 +879,6 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
         ),
       ),
     ).animate().fadeIn(delay: (index * 45).ms).slideY(begin: 0.04, end: 0);
+
   }
 }

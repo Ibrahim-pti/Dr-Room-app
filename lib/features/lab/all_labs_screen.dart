@@ -4,7 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'lab_details_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/localization_extensions.dart';
 import 'package:easy_localization/easy_localization.dart';
+
 
 class AllLabsScreen extends StatefulWidget {
   const AllLabsScreen({super.key});
@@ -892,7 +894,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                 children: [
                   // 1. Lab Name
                   Text(
-                    '${lab['name'] ?? 'تاقیگە'}',
+                    context.localizedField(lab, 'name', fallback: 'cat_lab'.tr()),
                     style: _kurdishStyle(
                       fontSize: 15.5,
                       fontWeight: FontWeight.bold,
@@ -901,6 +903,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+
                   const SizedBox(height: 7),
 
                   // 2. Middle Row: Location Pin + City + Rating Badge beside it

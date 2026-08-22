@@ -123,8 +123,8 @@ class HomeHeader extends StatelessWidget {
                               children: [
                                 Text(
                                   userName.isNotEmpty && userName.toLowerCase() != 'slaw'
-                                      ? 'سڵاو، $userName'
-                                      : 'سڵاو، بەخێربێن',
+                                      ? '${'greeting_hello'.tr()}، $userName'
+                                      : '${'greeting_hello'.tr()}، ${'greeting_welcome'.tr()}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
@@ -134,16 +134,17 @@ class HomeHeader extends StatelessWidget {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const Text(
-                                  'هیوای تەندروستییەکی باش',
+                                Text(
+                                  'wishing_good_health'.tr(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontFamily: 'Rabar',
                                     color: Colors.white70,
                                     fontSize: 11.5,
                                   ),
                                 ),
+
                               ],
                             ),
                           ),

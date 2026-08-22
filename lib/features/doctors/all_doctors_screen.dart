@@ -5,8 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/localization_extensions.dart';
 
 class AllDoctorsScreen extends StatefulWidget {
+
   const AllDoctorsScreen({super.key});
 
   @override
@@ -82,16 +84,17 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _doctors.isEmpty
-              ? Center(child: Text('No doctors found.'))
+              ? Center(child: Text('no_results_found'.tr(), style: const TextStyle(fontFamily: 'Rabar')))
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                   itemCount: _doctors.length,
                   itemBuilder: (context, index) {
                     final doc = _doctors[index];
-                    // Handle dynamic backend mapping
-                    final name = doc['user'] != null ? doc['user']['name'] : 'Doctor';
-                    final specialty = doc['specialty'] ?? 'Specialist';
+                    final userObj = doc['user'] is Map ? doc['user'] : doc;
+                    final name = context.localizedField(userObj, 'name', fallback: 'cat_doctor'.tr());
+                    final specialty = context.localizedField(doc, 'specialty', fallback: context.localizedField(doc, 'bio', fallback: 'medical_specialist'.tr()));
                     final rating = doc['rating']?.toString() ?? '5.0';
+
                     final fallbackImages = [
                       'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=80',
                       'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=80',
@@ -225,7 +228,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            '${doc['total_reviews'] ?? 45} هەڵسەنگاندن',
+                                            '(${doc['total_reviews'] ?? 45})',
                                             style: GoogleFonts.poppins(
                                               color: const Color(0xFF94A3B8),
                                               fontSize: 11,
