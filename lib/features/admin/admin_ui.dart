@@ -4,37 +4,48 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
+import '../../core/theme/theme_provider.dart';
+
 /// Shared building blocks for the admin screens: one form sheet, one error
 /// banner, one empty state — so every module looks and fails the same way.
 class AdminUi {
   static const _font = 'Rabar';
 
-  static const title = TextStyle(
-    fontFamily: _font,
-    fontSize: 14.5,
-    fontWeight: FontWeight.bold,
-    color: Color(0xFF0F172A),
-  );
+  static TextStyle get title {
+    final isDark = ThemeProvider().isDarkMode;
+    return TextStyle(
+      fontFamily: _font,
+      fontSize: 14.5,
+      fontWeight: FontWeight.bold,
+      color: isDark ? Colors.white : const Color(0xFF0F172A),
+    );
+  }
 
-  static const subtitle = TextStyle(
-    fontFamily: _font,
-    fontSize: 12,
-    height: 1.4,
-    color: Color(0xFF64748B),
-  );
+  static TextStyle get subtitle {
+    final isDark = ThemeProvider().isDarkMode;
+    return TextStyle(
+      fontFamily: _font,
+      fontSize: 12,
+      height: 1.4,
+      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+    );
+  }
 
-  static BoxDecoration get cardDecoration => BoxDecoration(
-        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      );
+  static BoxDecoration get cardDecoration {
+    final isDark = ThemeProvider().isDarkMode;
+    return BoxDecoration(
+      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    );
+  }
 
   /// Turns a Laravel error payload into one Kurdish sentence.
   static String readError(http.Response res) {
@@ -272,18 +283,19 @@ class AdminUi {
     bool obscure = false,
     TextInputType? keyboard,
   }) {
+    final isDark = ThemeProvider().isDarkMode;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: TextField(
         controller: controller,
         maxLines: obscure ? 1 : maxLines,
         obscureText: obscure,
         keyboardType: keyboard,
-        style: const TextStyle(fontFamily: _font, fontSize: 13.5, height: 1.6, color: Color(0xFF0F172A)),
+        style: TextStyle(fontFamily: _font, fontSize: 13.5, height: 1.6, color: isDark ? Colors.white : const Color(0xFF0F172A)),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(
