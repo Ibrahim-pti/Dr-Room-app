@@ -491,9 +491,7 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
                           CircleAvatar(
                             radius: 32,
                             backgroundColor: const Color(0xFFE0E7FF),
-                            backgroundImage: imagePath != null
-                                ? NetworkImage('${ApiClient.storageUrl}/$imagePath')
-                                : null,
+                            backgroundImage: ApiClient.getImageProvider(imagePath),
                             child: imagePath == null
                                 ? const Icon(Iconsax.radar, color: Color(0xFF4F46E5), size: 30)
                                 : null,

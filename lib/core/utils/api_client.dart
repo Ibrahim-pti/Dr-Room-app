@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,17 +22,30 @@ class ApiClient {
   static String get baseUrl => AppConfig.baseUrl;
   static String get storageUrl => AppConfig.storageUrl;
 
-  static String getImageUrl(String path) {
-    if (path.isEmpty) return '';
-    if (path.startsWith('http')) return path;
+  static String getImageUrl(String? path) {
+    if (path == null || path.trim().isEmpty) return '';
+    final trimmed = path.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    if (trimmed.startsWith('assets/')) return trimmed;
     
     final origin = AppConfig.baseUrl.replaceAll(RegExp(r'/api/?$'), '');
-    final cleanPath = path.startsWith('/') ? path : '/$path';
+    final cleanPath = trimmed.startsWith('/') ? trimmed : '/$trimmed';
     // Handle the case where path already contains /storage
     if (cleanPath.startsWith('/storage')) {
         return '$origin$cleanPath';
     }
     return '$origin/storage$cleanPath';
+  }
+
+  static ImageProvider? getImageProvider(String? path) {
+    if (path == null || path.trim().isEmpty) return null;
+    final trimmed = path.trim();
+    if (trimmed.startsWith('assets/')) {
+      return AssetImage(trimmed);
+    }
+    final url = getImageUrl(trimmed);
+    if (url.isEmpty) return null;
+    return NetworkImage(url);
   }
 
   /// Invoked when any request comes back 401 so the app can clear its session

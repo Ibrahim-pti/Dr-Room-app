@@ -475,9 +475,7 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
                           CircleAvatar(
                             radius: 32,
                             backgroundColor: const Color(0xFFFCE7F3),
-                            backgroundImage: imagePath != null
-                                ? NetworkImage('${ApiClient.storageUrl}/$imagePath')
-                                : null,
+                            backgroundImage: ApiClient.getImageProvider(imagePath),
                             child: imagePath == null
                                 ? const Icon(Iconsax.user, color: Color(0xFFEC4899), size: 30)
                                 : null,

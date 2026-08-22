@@ -484,9 +484,7 @@ class _AdminPharmaciesScreenState extends State<AdminPharmaciesScreen>
                           CircleAvatar(
                             radius: 32,
                             backgroundColor: const Color(0xFFD1FAE5),
-                            backgroundImage: imagePath != null
-                                ? NetworkImage('${ApiClient.storageUrl}/$imagePath')
-                                : null,
+                            backgroundImage: ApiClient.getImageProvider(imagePath),
                             child: imagePath == null
                                 ? const Icon(Iconsax.hospital, color: Color(0xFF10B981), size: 30)
                                 : null,
