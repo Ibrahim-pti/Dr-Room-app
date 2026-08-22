@@ -242,22 +242,6 @@ class HomeHeader extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        // Menu Icon (Open Drawer)
-                        GestureDetector(
-                          onTap: () {
-                            Scaffold.of(context).openEndDrawer();
-                          },
-                          child: Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Iconsax.menu_1, color: Colors.white, size: 20),
-                          ),
-                        ),
                       ],
                     ),
                   ],
