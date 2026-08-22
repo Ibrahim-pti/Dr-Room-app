@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:dr_room/features/emergency/emergency_sos_modal.dart';
 
 class EmergencySosBanner extends StatelessWidget {
@@ -42,20 +43,20 @@ class EmergencySosBanner extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'حاڵەتی لەناکاو و فریاکەوتن (SOS)',
-                      style: TextStyle(
+                      'sos_title'.tr(),
+                      style: const TextStyle(
                         fontFamily: 'Rabar',
                         color: Colors.white,
                         fontSize: 14.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'پەیوەندیی دەستبەجێ بە فریاکەوتنی ١٢٢ و نەخۆشخانەکان',
-                      style: TextStyle(
+                      'sos_subtitle'.tr(),
+                      style: const TextStyle(
                         fontFamily: 'Rabar',
                         color: Colors.white70,
                         fontSize: 11.5,
@@ -72,12 +73,12 @@ class EmergencySosBanner extends StatelessWidget {
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.call, color: Color(0xFFDC2626), size: 14),
-                    SizedBox(width: 4),
+                  children: [
+                    const Icon(Icons.call, color: Color(0xFFDC2626), size: 14),
+                    const SizedBox(width: 4),
                     Text(
-                      'پەیوەندی',
-                      style: TextStyle(
+                      'call_btn'.tr(),
+                      style: const TextStyle(
                         fontFamily: 'Rabar',
                         color: Color(0xFFDC2626),
                         fontSize: 11.5,

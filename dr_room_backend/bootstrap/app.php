@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);
+        $middleware->api(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+
         $middleware->alias([
             'doctor.profile.complete' => \App\Http\Middleware\EnsureDoctorProfileComplete::class,
             'lab.profile.complete' => \App\Http\Middleware\EnsureLabProfileComplete::class,

@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/api_client.dart';
+import '../../../core/utils/localization_extensions.dart';
 import '../../pharmacy/models/pharmacy_model.dart';
 import '../../pharmacy/screens/pharmacies_screen.dart';
 import '../../pharmacy/screens/pharmacy_detail_screen.dart';
@@ -46,7 +47,7 @@ class TopPharmaciesSection extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PharmaciesScreen(),
+                      builder: (context) => const PharmaciesScreen(),
                     ),
                   );
                 },
@@ -75,9 +76,10 @@ class TopPharmaciesSection extends StatelessWidget {
             itemCount: pharmaciesList.length,
             itemBuilder: (context, index) {
               final pharm = pharmaciesList[index];
-              final name = pharm['name'] ?? 'دەرمانخانەی سۆران';
-              final city = pharm['city'] ?? 'هەولێر';
-              final time = pharm['time'] ?? '٢٤ کاتژمێر';
+              final userObj = pharm['user'] is Map ? pharm['user'] : pharm;
+              final name = context.localizedField(userObj, 'name', fallback: 'cat_pharmacy'.tr());
+              final city = context.localizedField(pharm, 'city', fallback: context.localizedField(pharm, 'address', fallback: ''));
+              final time = context.localizedField(pharm, 'working_hours', fallback: 'open_24h'.tr());
               final profileImage = pharm['profile_image'];
 
               final fallbackPharmacyImages = [

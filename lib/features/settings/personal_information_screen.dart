@@ -91,7 +91,7 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'هەڵبژاردنی وێنەی پڕۆفایل',
+                'profile_photo_select'.tr(),
                 style: TextStyle(
                   fontFamily: 'Rabar',
                   fontSize: 16,
@@ -102,14 +102,15 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
               const SizedBox(height: 16),
               ListTile(
                 leading: const Icon(Iconsax.gallery, color: Color(0xFF3B82F6)),
-                title: Text('گالەری (مۆبایل)', style: TextStyle(fontFamily: 'Rabar', color: AppColors.getTextTitle(context))),
+                title: Text('gallery_option'.tr(), style: TextStyle(fontFamily: 'Rabar', color: AppColors.getTextTitle(context))),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
               ListTile(
                 leading: const Icon(Iconsax.camera, color: Color(0xFF10B981)),
-                title: Text('کامێرا', style: TextStyle(fontFamily: 'Rabar', color: AppColors.getTextTitle(context))),
+                title: Text('camera_option'.tr(), style: TextStyle(fontFamily: 'Rabar', color: AppColors.getTextTitle(context))),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
+
             ],
           ),
         ),
@@ -172,15 +173,16 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
-              'پڕۆفایلەکەت بە سەرکەوتوویی نوێکرایەوە',
-              style: TextStyle(fontFamily: 'Rabar', color: Colors.white),
+            content: Text(
+              'profile_updated_success'.tr(),
+              style: const TextStyle(fontFamily: 'Rabar', color: Colors.white),
             ),
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
+
         Navigator.pop(context, true);
       }
     } catch (e) {

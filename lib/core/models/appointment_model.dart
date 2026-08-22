@@ -15,8 +15,14 @@ class Doctor {
   final int id;
   final int userId;
   final String name;
+  final String? nameEn;
+  final String? nameAr;
   final String specialty;
+  final String? specialtyEn;
+  final String? specialtyAr;
   final String bio;
+  final String? bioEn;
+  final String? bioAr;
   final double rating;
   final int totalReviews;
   final double consultationFee;
@@ -31,8 +37,14 @@ class Doctor {
     required this.id,
     required this.userId,
     required this.name,
+    this.nameEn,
+    this.nameAr,
     required this.specialty,
+    this.specialtyEn,
+    this.specialtyAr,
     required this.bio,
+    this.bioEn,
+    this.bioAr,
     required this.rating,
     required this.totalReviews,
     required this.consultationFee,
@@ -43,14 +55,19 @@ class Doctor {
   });
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
+    final user = json['user'] is Map ? json['user'] : null;
     return Doctor(
       id: _asInt(json['id']),
       userId: _asInt(json['user_id']),
-      // Eager-loaded relation; falls back to a flat `name` if a future
-      // endpoint flattens it.
-      name: (json['user']?['name'] ?? json['name'] ?? '') as String,
+      name: (user?['name'] ?? json['name'] ?? '') as String,
+      nameEn: (user?['name_en'] ?? json['name_en']) as String?,
+      nameAr: (user?['name_ar'] ?? json['name_ar']) as String?,
       specialty: (json['specialty'] ?? '') as String,
+      specialtyEn: json['specialty_en'] as String?,
+      specialtyAr: json['specialty_ar'] as String?,
       bio: (json['bio'] ?? '') as String,
+      bioEn: json['bio_en'] as String?,
+      bioAr: json['bio_ar'] as String?,
       rating: _asDouble(json['rating']),
       totalReviews: _asInt(json['total_reviews']),
       consultationFee: _asDouble(json['consultation_fee']),
@@ -65,8 +82,14 @@ class Doctor {
     'id': id,
     'user_id': userId,
     'name': name,
+    'name_en': nameEn,
+    'name_ar': nameAr,
     'specialty': specialty,
+    'specialty_en': specialtyEn,
+    'specialty_ar': specialtyAr,
     'bio': bio,
+    'bio_en': bioEn,
+    'bio_ar': bioAr,
     'rating': rating,
     'total_reviews': totalReviews,
     'consultation_fee': consultationFee,
@@ -76,12 +99,37 @@ class Doctor {
     'image_path': imagePath,
   };
 
+  /// Localized name based on active locale
+  String localizedName(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (lang == 'en' && nameEn != null && nameEn!.trim().isNotEmpty) return nameEn!.trim();
+    if (lang == 'ar' && nameAr != null && nameAr!.trim().isNotEmpty) return nameAr!.trim();
+    return name;
+  }
+
+  /// Localized specialty based on active locale
+  String localizedSpecialty(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (lang == 'en' && specialtyEn != null && specialtyEn!.trim().isNotEmpty) return specialtyEn!.trim();
+    if (lang == 'ar' && specialtyAr != null && specialtyAr!.trim().isNotEmpty) return specialtyAr!.trim();
+    return specialty;
+  }
+
+  /// Localized bio based on active locale
+  String localizedBio(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode.toLowerCase();
+    if (lang == 'en' && bioEn != null && bioEn!.trim().isNotEmpty) return bioEn!.trim();
+    if (lang == 'ar' && bioAr != null && bioAr!.trim().isNotEmpty) return bioAr!.trim();
+    return bio;
+  }
+
   /// Absolute URL for the profile photo, or null when none is set.
   String? get imageUrl => (imagePath == null || imagePath!.isEmpty)
       ? null
       : ApiClient.getImageUrl(imagePath!);
 
   String get formattedFee => Currency.format(consultationFee);
+
 }
 
 /// Mirrors the `appointments` table.

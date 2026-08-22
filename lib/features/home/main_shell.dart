@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -60,7 +61,7 @@ class _MainShellState extends State<MainShell> {
     if (mounted) {
       setState(() {
         final un = prefs.getString('user_name') ?? '';
-        _userName = un.isNotEmpty ? un : 'سڵاو لە ئێوە';
+        _userName = un.isNotEmpty ? un : 'guest_greeting'.tr();
         _userPhone = prefs.getString('user_phone') ?? '';
       });
     }
@@ -76,13 +77,14 @@ class _MainShellState extends State<MainShell> {
   ];
 
   static const List<Map<String, dynamic>> _navItems = [
-    {'title': 'ماڵەوە', 'icon': Iconsax.home_2},
-    {'title': 'فریاگوزاری', 'icon': Icons.medical_services_outlined},
-    {'title': 'AI ڕاوێژکار', 'icon': Iconsax.message_programming, 'isAi': true},
-    {'title': 'تۆمارەکان', 'icon': Iconsax.folder_2},
-    {'title': 'داواکاری', 'icon': Iconsax.box},
-    {'title': 'ڕێکخستن', 'icon': Iconsax.setting_2},
+    {'title': 'nav_home', 'icon': Iconsax.home_2},
+    {'title': 'nav_emergency', 'icon': Icons.medical_services_outlined},
+    {'title': 'nav_ai_consultant', 'icon': Iconsax.message_programming, 'isAi': true},
+    {'title': 'nav_records', 'icon': Iconsax.folder_2},
+    {'title': 'nav_orders', 'icon': Iconsax.box},
+    {'title': 'nav_settings', 'icon': Iconsax.setting_2},
   ];
+
 
   void _onTabSelected(int index) {
     setState(() => _currentIndex = index);
@@ -196,7 +198,7 @@ class _MainShellState extends State<MainShell> {
                       : Icon(icon, color: color, size: 20)),
             const SizedBox(height: 3),
             Text(
-              title,
+              title.tr(),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -240,13 +242,13 @@ class _MainShellState extends State<MainShell> {
                     border: Border.all(color: Colors.white, width: 1.2),
                   ),
                   child: Text(
-                    count > 9 ? '9+' : '$count',
+                    '$count',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
+                      fontFamily: 'Rabar',
                       color: Colors.white,
-                      fontSize: 8.5,
+                      fontSize: 9,
                       fontWeight: FontWeight.bold,
-                      height: 1.2,
                     ),
                   ),
                 ),
@@ -259,33 +261,20 @@ class _MainShellState extends State<MainShell> {
 
   Widget _buildDrawer(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final drawerBg = isDark ? const Color(0xFF0F172A) : Colors.white;
 
     return Drawer(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadiusDirectional.horizontal(
-          start: Radius.circular(32),
-        ),
-      ),
+      backgroundColor: drawerBg,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsetsDirectional.only(
-              top: 60,
-              bottom: 28,
-              start: 24,
-              end: 24,
-            ),
+            padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-              ),
-              borderRadius: BorderRadiusDirectional.only(
-                bottomStart: Radius.circular(28),
               ),
             ),
             child: Column(
@@ -325,7 +314,7 @@ class _MainShellState extends State<MainShell> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  _userName.isNotEmpty ? _userName : 'بەخێربێن بۆ Dr-Room',
+                  _userName.isNotEmpty ? _userName : 'app_name'.tr(),
                   style: _kStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -333,7 +322,7 @@ class _MainShellState extends State<MainShell> {
                   ),
                 ),
                 if (_userPhone.isNotEmpty) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     _userPhone,
                     style: _kStyle(
@@ -362,7 +351,7 @@ class _MainShellState extends State<MainShell> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'ئەندامی تایبەتی Dr-Room',
+                        'dr_room_vip'.tr(),
                         style: _kStyle(
                           color: const Color(0xFF2563EB),
                           fontSize: 11.5,
@@ -384,7 +373,7 @@ class _MainShellState extends State<MainShell> {
                   _buildDrawerItem(
                     context,
                     icon: Iconsax.message_programming,
-                    title: 'یاریدەدەری زیرەکی دەستکرد (AI)',
+                    title: 'ai_assistant_drawer'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       setState(() => _currentIndex = _aiTabIndex);
@@ -393,7 +382,7 @@ class _MainShellState extends State<MainShell> {
                   _buildDrawerItem(
                     context,
                     icon: Iconsax.folder_2,
-                    title: 'تۆماری پزیشکی',
+                    title: 'med_records_drawer'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       setState(() => _currentIndex = _recordsTabIndex);
@@ -402,7 +391,7 @@ class _MainShellState extends State<MainShell> {
                   _buildDrawerItem(
                     context,
                     icon: Iconsax.clock,
-                    title: 'بیرخەرەوەی دەرمان',
+                    title: 'pill_reminder_drawer'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -416,7 +405,7 @@ class _MainShellState extends State<MainShell> {
                   _buildDrawerItem(
                     context,
                     icon: Iconsax.hospital,
-                    title: 'هێڵی کاتی نەشتەرگەری',
+                    title: 'surgery_timeline_drawer'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -430,7 +419,7 @@ class _MainShellState extends State<MainShell> {
                   _buildDrawerItem(
                     context,
                     icon: Icons.accessibility_new_rounded,
-                    title: 'نەخشەی جەستە (دەستنیشان)',
+                    title: 'body_map_drawer'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -446,7 +435,7 @@ class _MainShellState extends State<MainShell> {
                   _buildDrawerItem(
                     context,
                     icon: Iconsax.card_pos,
-                    title: 'مێژووی پارەدان',
+                    title: 'payment_history_drawer'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(

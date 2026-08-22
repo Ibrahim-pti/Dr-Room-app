@@ -6,7 +6,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/localization_extensions.dart';
 import 'article_details_screen.dart';
+
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
@@ -102,6 +104,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   final List<Map<String, dynamic>> _healthPackages = [
     {
       'title': 'Full Body Checkup',
+      'title_ckb': 'پشکنینی گشتیی تەواوی جەستە',
+      'title_ar': 'فحص شامل للجسم',
+      'title_en': 'Full Body Checkup',
       'clinic': 'Dr-Room Lab',
       'original_price': '\$150',
       'discount_price': '\$99',
@@ -112,6 +117,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     },
     {
       'title': 'Heart Health Package',
+      'title_ckb': 'پاکێجی تەندروستیی دڵ',
+      'title_ar': 'باقة صحة القلب',
+      'title_en': 'Heart Health Package',
       'clinic': 'Cardio Care',
       'original_price': '\$200',
       'discount_price': '\$140',
@@ -122,6 +130,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     },
     {
       'title': 'Vitamin Deficiency',
+      'title_ckb': 'پشکنینی کەمی ڤیتامینەکان',
+      'title_ar': 'فحص نقص الفيتامينات',
+      'title_en': 'Vitamin Deficiency',
       'clinic': 'BioLab',
       'original_price': '\$80',
       'discount_price': '\$50',
@@ -131,6 +142,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       'features': ['Vitamin D', 'Vitamin B12', 'Iron Profile'],
     },
   ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -441,9 +453,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    package['title'],
-                                    style: GoogleFonts.poppins(
-                                      color: AppColors.getTextTitle(context),
+                                    context.localizedField(package, 'title'),
+                                    style: const TextStyle(
+                                      fontFamily: 'Rabar',
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       height: 1.2,
@@ -451,6 +463,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
+
                                   const SizedBox(height: 8),
                                   // Features List
                                   ...((package['features'] as List<String>).take(3).map((feature) => 

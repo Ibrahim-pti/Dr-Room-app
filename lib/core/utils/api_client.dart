@@ -63,13 +63,17 @@ class ApiClient {
   static Future<Map<String, String>> _getHeaders() async {
     final prefs = await _getPrefs();
     final token = prefs.getString('auth_token');
+    final localeStr = prefs.getString('locale') ?? 'ckb';
+    final lang = localeStr.contains('_') ? localeStr.split('_')[0] : localeStr;
 
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'Accept-Language': lang,
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
   }
+
 
   /// Runs [request], enforcing the shared timeout and handling token expiry.
   ///

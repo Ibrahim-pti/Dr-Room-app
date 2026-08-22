@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
@@ -63,7 +64,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Find a doctor', style: AppTypography.headingSm),
+        title: Text('find_doctor'.tr(), style: AppTypography.headingSm),
         elevation: 0,
       ),
       body: Column(
@@ -86,17 +87,17 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
     if (provider.error != null && provider.doctors.isEmpty) {
       return _Message(
         icon: Iconsax.warning_2,
-        title: 'Could not load doctors',
+        title: 'could_not_load'.tr(),
         body: provider.error!,
-        action: FilledButton(onPressed: _load, child: const Text('Try again')),
+        action: FilledButton(onPressed: _load, child: Text('try_again'.tr())),
       );
     }
 
     if (provider.doctors.isEmpty) {
-      return const _Message(
+      return _Message(
         icon: Iconsax.user_search,
-        title: 'No doctors match',
-        body: 'Try a different specialty or clear the filters.',
+        title: 'no_results_found'.tr(),
+        body: 'no_match_filter'.tr(),
       );
     }
 
@@ -119,7 +120,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
         onChanged: _onSearchChanged,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: 'Search by name or specialty',
+          hintText: 'search_doctor_hint'.tr(),
           hintStyle: AppTypography.bodySm.copyWith(color: AppColors.textMedium),
           prefixIcon: Icon(
             Iconsax.search_normal,
@@ -166,22 +167,24 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
   /// list, so the chips can never offer a specialty with no doctors behind it.
   Widget _buildSpecialtyChips(List<Doctor> doctors) {
     final specialties = {
-      ...doctors.map((d) => d.specialty).where((s) => s.isNotEmpty),
-      if (_specialty != null) _specialty!,
+      ...doctors.map((d) => d.localizedSpecialty(context)).where((s) => s.isNotEmpty),
+      ?_specialty,
     }.toList()..sort();
+
 
     if (specialties.isEmpty) return const SizedBox.shrink();
 
     return _ChipRow(
       children: [
         _FilterChip(
-          label: 'All',
+          label: 'all'.tr(),
           selected: _specialty == null,
           onTap: () {
             setState(() => _specialty = null);
             _load();
           },
         ),
+
         for (final s in specialties)
           _FilterChip(
             label: s,
@@ -242,7 +245,7 @@ class _DoctorCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    doctor.name,
+                    doctor.localizedName(context),
                     style: AppTypography.labelMd.copyWith(
                       color: AppColors.textDark,
                     ),
@@ -251,7 +254,7 @@ class _DoctorCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    doctor.specialty,
+                    doctor.localizedSpecialty(context),
                     style: AppTypography.bodySm.copyWith(
                       color: AppColors.primary,
                     ),
@@ -259,6 +262,7 @@ class _DoctorCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
+
                   Row(
                     children: [
                       if (doctor.totalReviews > 0) ...[

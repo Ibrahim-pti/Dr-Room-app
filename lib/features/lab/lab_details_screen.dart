@@ -7,7 +7,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/localization_extensions.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/providers/cart_provider.dart';
 import '../checkout/checkout_details_screen.dart';
 import 'lab_map_screen.dart';
@@ -407,15 +409,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String name = _labData['name'] ?? 'تاقیگەی پزیشکی';
-    final String location = _labData['location'] ?? 'هەولێر - شەقامی پزیشکان';
+    final String name = context.localizedField(_labData, 'name', fallback: 'cat_lab'.tr());
+    final String location = context.localizedField(_labData, 'location', fallback: context.localizedField(_labData, 'address', fallback: ''));
     final String rating = '${_labData['rating'] ?? 4.8}';
     final discount = _labData['discount'];
     final String openingHours =
-        _labData['opening_hours'] ?? '08:00 AM - 10:00 PM';
+        context.localizedField(_labData, 'opening_hours', fallback: '08:00 AM - 10:00 PM');
     final String aboutUs =
-        _labData['about_us'] ??
-        'تاقیگەیەکی پزیشکیی پێشکەوتووە لە پێناو دابینکردنی وردترین و خێراترین ئەنجامی پشکنینەکان بە نوێترین ئامێری پزیشکی و ستافێکی پسپۆڕ.';
+        context.localizedField(_labData, 'about_us', fallback: context.localizedField(_labData, 'bio', fallback: ''));
+
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -1822,7 +1824,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            test['name']?.toString() ?? 'پشکنین',
+                            context.localizedField(test, 'name', fallback: 'lab_test'.tr()),
                             style: _kStyle(
                               fontSize: 13.5,
                               fontWeight: FontWeight.bold,
@@ -1831,14 +1833,13 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            test['desc']?.toString() ??
-                                test['type']?.toString() ??
-                                'پشکنینی پزیشکی',
+                            context.localizedField(test, 'desc', fallback: context.localizedField(test, 'description', fallback: test['type']?.toString() ?? '')),
                             style: _kStyle(
                               fontSize: 11,
                               color: const Color(0xFF64748B),
                             ),
                           ),
+
                         ],
                       ),
                     ),
@@ -2238,14 +2239,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   cart.addItem(
                     CartItem(
                       id: test['id'].toString(),
-                      name: test['name']?.toString() ?? 'پشکنین',
+                      name: context.localizedField(test, 'name', fallback: 'lab_test'.tr()),
                       price: p,
                       extraData: {
                         'lab_id': _labData['id'],
-                        'lab_name': _labData['name'],
+                        'lab_name': context.localizedField(_labData, 'name', fallback: 'cat_lab'.tr()),
                         'type': test['type'],
                       },
                     ),
+
                   );
                 }
               }

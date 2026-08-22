@@ -44,7 +44,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         final token = prefs.getString('auth_token');
         _isGuest = token == null || token.isEmpty;
-        _isAdmin = prefs.getBool('is_admin') == true ||
+        _isAdmin =
+            prefs.getBool('is_admin') == true ||
             prefs.getString('user_role') == 'admin';
 
         if (!_isGuest) {
@@ -79,8 +80,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'تکایە خۆت تۆمار بکە',
-                  style: GoogleFonts.poppins(
+                  'login_prompt_title'.tr(),
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
                     color: AppColors.getTextTitle(context),
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -88,9 +90,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'بۆ بینینی زانیارییەکانی پڕۆفایلەکەت و سوودمەندبوون لە خزمەتگوزارییەکان، پێویستە چوونەژوورەوە بکەیت.',
+                  'login_prompt_desc'.tr(),
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
                     color: AppColors.getTextSubtitle(context),
                     fontSize: 14,
                     height: 1.5,
@@ -120,8 +123,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       elevation: 0,
                     ),
                     child: Text(
-                      'چوونەژوورەوە',
-                      style: GoogleFonts.poppins(
+                      'login'.tr(),
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -237,7 +241,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ).scaffoldBackgroundColor,
                                     width: 4,
                                   ),
-                                  image: _profileImageUrl != null &&
+                                  image:
+                                      _profileImageUrl != null &&
                                           _profileImageUrl!.isNotEmpty
                                       ? DecorationImage(
                                           image: NetworkImage(
@@ -249,7 +254,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         )
                                       : null,
                                 ),
-                                child: _profileImageUrl != null &&
+                                child:
+                                    _profileImageUrl != null &&
                                         _profileImageUrl!.isNotEmpty
                                     ? null
                                     : Icon(
@@ -348,7 +354,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+                            color: const Color(
+                              0xFF2563EB,
+                            ).withValues(alpha: 0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -431,8 +439,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             _loadUserInfo();
                           },
                         ),
-
-
 
                         // The three below belong with the patient's own
                         // account rather than in the menu drawer, which is
@@ -611,7 +617,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-
 
   Widget _buildListItem(
     BuildContext context, {
