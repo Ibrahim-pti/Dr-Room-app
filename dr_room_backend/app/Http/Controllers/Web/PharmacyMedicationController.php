@@ -40,9 +40,22 @@ class PharmacyMedicationController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
 
-        $data = $request->except(['image', 'is_active']);
+        $data = $request->except(['image', 'is_active', 'custom_category']);
         $data['user_id'] = Auth::id();
         $data['is_active'] = $request->has('is_active') ? true : true;
+
+        $category = $request->category;
+        if ($category === '__custom__' || $request->filled('custom_category')) {
+            $customName = trim($request->custom_category);
+            if (!empty($customName)) {
+                $category = $customName;
+                MedicationCategory::firstOrCreate(
+                    ['name' => $customName],
+                    ['icon' => '💊', 'is_active' => true, 'sort_order' => 99]
+                );
+            }
+        }
+        $data['category'] = $category;
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('medications', 'public');
@@ -71,6 +84,7 @@ class PharmacyMedicationController extends Controller
             'name_ar' => 'nullable|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
+            'custom_category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
@@ -81,8 +95,21 @@ class PharmacyMedicationController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
 
-        $data = $request->except(['image', 'is_active']);
+        $data = $request->except(['image', 'is_active', 'custom_category']);
         $data['is_active'] = $request->has('is_active');
+
+        $category = $request->category;
+        if ($category === '__custom__' || $request->filled('custom_category')) {
+            $customName = trim($request->custom_category);
+            if (!empty($customName)) {
+                $category = $customName;
+                MedicationCategory::firstOrCreate(
+                    ['name' => $customName],
+                    ['icon' => '💊', 'is_active' => true, 'sort_order' => 99]
+                );
+            }
+        }
+        $data['category'] = $category;
 
         if ($request->hasFile('image')) {
             if ($medication->image_path && !str_starts_with($medication->image_path, 'http')) {
