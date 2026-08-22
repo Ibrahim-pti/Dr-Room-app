@@ -14,7 +14,7 @@ class AdminOrderController extends Controller
      */
     public function index()
     {
-        $orders = Order::with(['items', 'patient', 'assignedNurse'])
+        $orders = Order::with(['items', 'patient', 'assignedNurse', 'assignedPharmacy', 'assignedLab'])
             ->orderBy('created_at', 'desc')
             ->get();
             
