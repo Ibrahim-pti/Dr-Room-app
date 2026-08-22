@@ -16,27 +16,7 @@ class PharmacySeeder extends Seeder
     public function run(): void
     {
         // ─── 0. Medication Categories (پۆلێنەکانی دەرمان) ───────────────────
-        $categories = [
-            ['name' => 'هەمووی', 'name_ar' => 'الكل', 'name_en' => 'All', 'icon' => '💊', 'sort_order' => 1],
-            ['name' => 'ئازارشکێن و تا دابەزێنەر', 'name_ar' => 'مسكنات وخافضات الحرارة', 'name_en' => 'Pain & Fever Relief', 'icon' => '⚡', 'sort_order' => 2],
-            ['name' => 'دژەهەوکردن و ئەنتی بایۆتیک', 'name_ar' => 'مضادات الالتهاب والحيوية', 'name_en' => 'Antibiotics & Anti-inflammatory', 'icon' => '🛡️', 'sort_order' => 3],
-            ['name' => 'ڤیتامین و تەواوکەری خۆراکی', 'name_ar' => 'فيتامينات ومكملات غذائية', 'name_en' => 'Vitamins & Supplements', 'icon' => '🍊', 'sort_order' => 4],
-            ['name' => 'گەدە و کۆئەندامی هەرس', 'name_ar' => 'المعدة والجهاز الهضمي', 'name_en' => 'Digestive & Stomach', 'icon' => '🫀', 'sort_order' => 5],
-            ['name' => 'دڵ و پەستانی خوێن', 'name_ar' => 'القلب والضغط والدم', 'name_en' => 'Cardiovascular & Blood Pressure', 'icon' => '❤️', 'sort_order' => 6],
-            ['name' => 'شەکرە و هۆرمۆن', 'name_ar' => 'السكري والغدد', 'name_en' => 'Diabetes & Endocrine', 'icon' => '🩸', 'sort_order' => 7],
-            ['name' => 'هەناسەدان و هەستیاری', 'name_ar' => 'الجهاز التنفسي والحساسية', 'name_en' => 'Respiratory & Allergy', 'icon' => '🫁', 'sort_order' => 8],
-            ['name' => 'دایک و منداڵ', 'name_ar' => 'الأم والطفل', 'name_en' => 'Mother & Baby', 'icon' => '👶', 'sort_order' => 9],
-            ['name' => 'پێست و جوانکاری', 'name_ar' => 'العناية بالبشرة والجلدية', 'name_en' => 'Skin & Dermatology', 'icon' => '✨', 'sort_order' => 10],
-            ['name' => 'چاو و گوێ و قورگ', 'name_ar' => 'العيون والأنف والأذن', 'name_en' => 'Eyes, Ear & ENT', 'icon' => '👁️', 'sort_order' => 11],
-            ['name' => 'ئێسک و جومگەکان', 'name_ar' => 'العظام والمفاصل', 'name_en' => 'Bone & Joints', 'icon' => '🦴', 'sort_order' => 12],
-            ['name' => 'تەندروستی گشتی و فریاگوزاری', 'name_ar' => 'صحة عامة وإسعافات', 'name_en' => 'General Health & First Aid', 'icon' => '🌿', 'sort_order' => 13],
-        ];
-
-        foreach ($categories as $cat) {
-            MedicationCategory::updateOrCreate([
-                'name' => $cat['name']
-            ], array_merge($cat, ['is_active' => true]));
-        }
+        // Categories are created dynamically by pharmacies in the dashboard
         // ─── 1. Pharmacy Shifa (Main Demo Pharmacy from Screenshot) ─────────────────────
         $shifaUser = User::where('email', 'shifa_pharmacy@example.com')->orWhere('phone', '07503332211')->first();
         if (!$shifaUser) {
