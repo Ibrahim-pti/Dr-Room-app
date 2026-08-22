@@ -126,7 +126,11 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.88,
+      ),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -139,338 +143,372 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                 bottom: MediaQuery.of(context).viewInsets.bottom + 24,
                 left: 20,
                 right: 20,
-                top: 20,
+                top: 12,
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const SizedBox(height: 18),
-                    Text(
-                      isEditing ? 'دەستکاریکردنی فریاگوزاری' : 'بڵاوکردنەوەی فریاگوزاری نوێ',
-                      style: const TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'زانیاری و ڕێنمایی ڕزگارکەر بۆ نەخۆش و بەکارهێنەرانی ئەپ',
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Title
-                    const Text('ناونیشانی فریاگوزاری *', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                    const SizedBox(height: 6),
-                    _buildInput(
-                      controller: titleController,
-                      hint: 'وەک: خنکان و گیرانی قوڕگ، سووتان، شکان...',
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Category Selector
-                    const Text('کەتەگۆری فریاگوزاری *', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _categories.where((c) => c != 'هەمووی').map((cat) {
-                        final isSelected = selectedCategory == cat;
-                        return GestureDetector(
-                          onTap: () => setModalState(() => selectedCategory = cat),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 150),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                            decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
-                              ),
-                            ),
-                            child: Text(
-                              cat,
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                color: isSelected ? Colors.white : const Color(0xFF475569),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Short Desc
-                    const Text('پوختەی ڕێنمایی (کورتە)', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                    const SizedBox(height: 6),
-                    _buildInput(
-                      controller: shortDescController,
-                      hint: 'کورتەیەک دەربارەی مەترسی و شێوازی چارەسەر...',
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Content / Steps
-                    const Text('هەنگاوەکانی فریاگوزاری و چارەسەر *', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                    const SizedBox(height: 6),
-                    _buildInput(
-                      controller: contentController,
-                      hint: '١. هەنگاوی یەکەم...\n٢. هەنگاوی دووەم...\n٣. ئاگادارییەکان...',
-                      maxLines: 5,
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Symptoms
-                    _buildListSection(
-                      title: 'نیشانە سەرەکییەکان',
-                      subtitle: 'ئەو نیشانانەی لە ئەپەکەدا بە ✓ دەردەکەون',
-                      addLabel: 'زیادکردنی نیشانە',
-                      accent: const Color(0xFF3B82F6),
-                      controllers: symptomControllers,
-                      hint: 'وەک: دەستبردن بۆ قوڕگ و نەتوانینی قسەکردن',
-                      onAdd: () => setModalState(() => symptomControllers.add(TextEditingController())),
-                      onRemove: (i) => setModalState(() {
-                        symptomControllers.removeAt(i).dispose();
-                      }),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Steps
-                    _buildStepsSection(
-                      steps: stepControllers,
-                      onAdd: () => setModalState(() => stepControllers.add((
-                            title: TextEditingController(),
-                            desc: TextEditingController(),
-                          ))),
-                      onRemove: (i) => setModalState(() {
-                        final removed = stepControllers.removeAt(i);
-                        removed.title.dispose();
-                        removed.desc.dispose();
-                      }),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // DOs
-                    _buildListSection(
-                      title: 'پێویستە بکەیت ✅',
-                      subtitle: 'ئەو کارانەی دەبێت ئەنجام بدرێن',
-                      addLabel: 'زیادکردنی کار',
-                      accent: const Color(0xFF10B981),
-                      controllers: dosControllers,
-                      hint: 'وەک: ئارام بە و دڵنیای بکەرەوە',
-                      onAdd: () => setModalState(() => dosControllers.add(TextEditingController())),
-                      onRemove: (i) => setModalState(() {
-                        dosControllers.removeAt(i).dispose();
-                      }),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // DON'Ts
-                    _buildListSection(
-                      title: 'قەدەغەیە بکەیت ❌',
-                      subtitle: 'ئەو کارانەی مەترسیدارن و نابێت بکرێن',
-                      addLabel: 'زیادکردنی قەدەغە',
-                      accent: const Color(0xFFEF4444),
-                      controllers: dontsControllers,
-                      hint: 'وەک: پەنجەت مەکەرە ناو دەمی ئەگەر تەنەکە نەبینیت',
-                      onAdd: () => setModalState(() => dontsControllers.add(TextEditingController())),
-                      onRemove: (i) => setModalState(() {
-                        dontsControllers.removeAt(i).dispose();
-                      }),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // When to call an ambulance
-                    const Text('کەی دەستبەجێ پەیوەندی بە ١٢٢ بکەیت؟', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
-                    const SizedBox(height: 6),
-                    _buildInput(
-                      controller: ambulanceController,
-                      hint: 'وەک: ئەگەر دوای چەند چرکەیەک تەنەکە دەرنەهات یان بێهۆش بوو...',
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Image Picker
-                    GestureDetector(
-                      onTap: () async {
-                        final picker = ImagePicker();
-                        final img = await picker.pickImage(source: ImageSource.gallery);
-                        if (img != null) {
-                          setModalState(() => selectedImage = File(img.path));
-                        }
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        height: 110,
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0), style: BorderStyle.solid),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
-                        child: selectedImage != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Image.file(selectedImage!, fit: BoxFit.cover),
-                              )
-                            : (isEditing && existingArticle['image_path'] != null)
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Image.network(
-                                      '${ApiClient.storageUrl}/${existingArticle['image_path']}',
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      Icon(Iconsax.image, color: Color(0xFF2563EB), size: 30),
-                                      SizedBox(height: 6),
-                                      Text(
-                                        'دەستنیشانکردنی وێنە (ئارەزوومەندانە)',
-                                        style: TextStyle(
-                                          fontFamily: 'Rabar',
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF64748B),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                        child: IconButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Color(0xFF0F172A)),
+                          tooltip: 'گەڕانەوە',
+                          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                          padding: EdgeInsets.zero,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 22),
-
-                    // Submit Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
-                        ),
-                        onPressed: isSubmitting
-                            ? null
-                            : () async {
-                                if (titleController.text.trim().isEmpty || contentController.text.trim().isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'تکایە ناونیشان و ناوەڕۆک پڕبکەرەوە',
-                                        style: TextStyle(fontFamily: 'Rabar'),
-                                      ),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                setModalState(() => isSubmitting = true);
-
-                                try {
-                                  final prefs = await SharedPreferences.getInstance();
-                                  final token = prefs.getString('auth_token');
-
-                                  final uri = isEditing
-                                      ? Uri.parse('${ApiClient.baseUrl}/admin/articles/${existingArticle['id']}')
-                                      : Uri.parse('${ApiClient.baseUrl}/admin/articles');
-
-                                  final request = http.MultipartRequest('POST', uri);
-                                  if (isEditing) {
-                                    request.fields['_method'] = 'PUT';
-                                  }
-
-                                  request.headers['Authorization'] = 'Bearer $token';
-                                  request.headers['Accept'] = 'application/json';
-
-                                  request.fields['title'] = titleController.text.trim();
-                                  request.fields['category'] = selectedCategory;
-                                  request.fields['short_desc'] = shortDescController.text.trim();
-                                  request.fields['content'] = contentController.text.trim();
-                                  request.fields['is_published'] = '1';
-                                  request.fields['symptoms'] = jsonEncode(_valuesOf(symptomControllers));
-                                  request.fields['dos'] = jsonEncode(_valuesOf(dosControllers));
-                                  request.fields['donts'] = jsonEncode(_valuesOf(dontsControllers));
-                                  request.fields['steps'] = jsonEncode(
-                                    stepControllers
-                                        .map((c) => {
-                                              'title': c.title.text.trim(),
-                                              'desc': c.desc.text.trim(),
-                                            })
-                                        .where((m) => m['title']!.isNotEmpty || m['desc']!.isNotEmpty)
-                                        .toList(),
-                                  );
-                                  request.fields['when_to_call_ambulance'] = ambulanceController.text.trim();
-
-                                  if (selectedImage != null) {
-                                    request.files.add(
-                                      await http.MultipartFile.fromPath('image', selectedImage!.path),
-                                    );
-                                  }
-
-                                  final streamedResponse = await request.send();
-                                  final resp = await http.Response.fromStream(streamedResponse);
-
-                                  if (resp.statusCode == 200 || resp.statusCode == 201) {
-                                    if (ctx.mounted) Navigator.of(ctx).pop();
-                                    _fetchArticles();
-                                  } else {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('هەڵە ڕوویدا: ${resp.body}')),
-                                      );
-                                    }
-                                  }
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('کێشەیەک لە پەیوەندی هەیە: $e')),
-                                    );
-                                  }
-                                } finally {
-                                  setModalState(() => isSubmitting = false);
-                                }
-                              },
-                        child: isSubmitting
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                              )
-                            : Text(
-                                isEditing ? 'نوێکردنەوەی فریاگوزاری' : 'بڵاوکردنەوەی فریاگوزاری',
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  color: Colors.white,
-                                  fontSize: 14.5,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isEditing ? 'دەستکاریکردنی فریاگوزاری' : 'بڵاوکردنەوەی فریاگوزاری نوێ',
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
                               ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'زانیاری و ڕێنمایی ڕزگارکەر بۆ نەخۆش و بەکارهێنەرانی ئەپ',
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 11.5,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Title
+                          const Text('ناونیشانی فریاگوزاری *', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                          const SizedBox(height: 6),
+                          _buildInput(
+                            controller: titleController,
+                            hint: 'وەک: خنکان و گیرانی قوڕگ، سووتان، شکان...',
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Category Selector
+                          const Text('کەتەگۆری فریاگوزاری *', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _categories.where((c) => c != 'هەمووی').map((cat) {
+                              final isSelected = selectedCategory == cat;
+                              return GestureDetector(
+                                onTap: () => setModalState(() => selectedCategory = cat),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 150),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    cat,
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 12,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                      color: isSelected ? Colors.white : const Color(0xFF475569),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Short Desc
+                          const Text('پوختەی ڕێنمایی (کورتە)', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                          const SizedBox(height: 6),
+                          _buildInput(
+                            controller: shortDescController,
+                            hint: 'کورتەیەک دەربارەی مەترسی و شێوازی چارەسەر...',
+                            maxLines: 2,
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Content / Steps
+                          const Text('هەنگاوەکانی فریاگوزاری و چارەسەر *', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                          const SizedBox(height: 6),
+                          _buildInput(
+                            controller: contentController,
+                            hint: '١. هەنگاوی یەکەم...\n٢. هەنگاوی دووەم...\n٣. ئاگادارییەکان...',
+                            maxLines: 5,
+                          ),
+                          const SizedBox(height: 18),
+
+                          // Symptoms
+                          _buildListSection(
+                            title: 'نیشانە سەرەکییەکان',
+                            subtitle: 'ئەو نیشانانەی لە ئەپەکەدا بە ✓ دەردەکەون',
+                            addLabel: 'زیادکردنی نیشانە',
+                            accent: const Color(0xFF3B82F6),
+                            controllers: symptomControllers,
+                            hint: 'وەک: دەستبردن بۆ قوڕگ و نەتوانینی قسەکردن',
+                            onAdd: () => setModalState(() => symptomControllers.add(TextEditingController())),
+                            onRemove: (i) => setModalState(() {
+                              symptomControllers.removeAt(i).dispose();
+                            }),
+                          ),
+                          const SizedBox(height: 18),
+
+                          // Steps
+                          _buildStepsSection(
+                            steps: stepControllers,
+                            onAdd: () => setModalState(() => stepControllers.add((
+                                  title: TextEditingController(),
+                                  desc: TextEditingController(),
+                                ))),
+                            onRemove: (i) => setModalState(() {
+                              final removed = stepControllers.removeAt(i);
+                              removed.title.dispose();
+                              removed.desc.dispose();
+                            }),
+                          ),
+                          const SizedBox(height: 18),
+
+                          // DOs
+                          _buildListSection(
+                            title: 'پێویستە بکەیت ✅',
+                            subtitle: 'ئەو کارانەی دەبێت ئەنجام بدرێن',
+                            addLabel: 'زیادکردنی کار',
+                            accent: const Color(0xFF10B981),
+                            controllers: dosControllers,
+                            hint: 'وەک: ئارام بە و دڵنیای بکەرەوە',
+                            onAdd: () => setModalState(() => dosControllers.add(TextEditingController())),
+                            onRemove: (i) => setModalState(() {
+                              dosControllers.removeAt(i).dispose();
+                            }),
+                          ),
+                          const SizedBox(height: 18),
+
+                          // DON'Ts
+                          _buildListSection(
+                            title: 'قەدەغەیە بکەیت ❌',
+                            subtitle: 'ئەو کارانەی مەترسیدارن و نابێت بکرێن',
+                            addLabel: 'زیادکردنی قەدەغە',
+                            accent: const Color(0xFFEF4444),
+                            controllers: dontsControllers,
+                            hint: 'وەک: پەنجەت مەکەرە ناو دەمی ئەگەر تەنەکە نەبینیت',
+                            onAdd: () => setModalState(() => dontsControllers.add(TextEditingController())),
+                            onRemove: (i) => setModalState(() {
+                              dontsControllers.removeAt(i).dispose();
+                            }),
+                          ),
+                          const SizedBox(height: 18),
+
+                          // When to call an ambulance
+                          const Text('کەی دەستبەجێ پەیوەندی بە ١٢٢ بکەیت؟', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                          const SizedBox(height: 6),
+                          _buildInput(
+                            controller: ambulanceController,
+                            hint: 'وەک: ئەگەر دوای چەند چرکەیەک تەنەکە دەرنەهات یان بێهۆش بوو...',
+                            maxLines: 2,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Image Picker
+                          GestureDetector(
+                            onTap: () async {
+                              final picker = ImagePicker();
+                              final img = await picker.pickImage(source: ImageSource.gallery);
+                              if (img != null) {
+                                setModalState(() => selectedImage = File(img.path));
+                              }
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              height: 110,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE2E8F0), style: BorderStyle.solid),
+                              ),
+                              child: selectedImage != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Image.file(selectedImage!, fit: BoxFit.cover),
+                                    )
+                                  : (isEditing && existingArticle['image_path'] != null)
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(16),
+                                          child: Image.network(
+                                            '${ApiClient.storageUrl}/${existingArticle['image_path']}',
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: const [
+                                            Icon(Iconsax.image, color: Color(0xFF2563EB), size: 30),
+                                            SizedBox(height: 6),
+                                            Text(
+                                              'دەستنیشانکردنی وێنە (ئارەزوومەندانە)',
+                                              style: TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: Color(0xFF64748B),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+
+                          // Submit Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                elevation: 0,
+                              ),
+                              onPressed: isSubmitting
+                                  ? null
+                                  : () async {
+                                      if (titleController.text.trim().isEmpty || contentController.text.trim().isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'تکایە ناونیشان و ناوەڕۆک پڕبکەرەوە',
+                                              style: TextStyle(fontFamily: 'Rabar'),
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      setModalState(() => isSubmitting = true);
+
+                                      try {
+                                        final prefs = await SharedPreferences.getInstance();
+                                        final token = prefs.getString('auth_token');
+
+                                        final uri = isEditing
+                                            ? Uri.parse('${ApiClient.baseUrl}/admin/articles/${existingArticle['id']}')
+                                            : Uri.parse('${ApiClient.baseUrl}/admin/articles');
+
+                                        final request = http.MultipartRequest('POST', uri);
+                                        if (isEditing) {
+                                          request.fields['_method'] = 'PUT';
+                                        }
+
+                                        request.headers['Authorization'] = 'Bearer $token';
+                                        request.headers['Accept'] = 'application/json';
+
+                                        request.fields['title'] = titleController.text.trim();
+                                        request.fields['category'] = selectedCategory;
+                                        request.fields['short_desc'] = shortDescController.text.trim();
+                                        request.fields['content'] = contentController.text.trim();
+                                        request.fields['is_published'] = '1';
+                                        request.fields['symptoms'] = jsonEncode(_valuesOf(symptomControllers));
+                                        request.fields['dos'] = jsonEncode(_valuesOf(dosControllers));
+                                        request.fields['donts'] = jsonEncode(_valuesOf(dontsControllers));
+                                        request.fields['steps'] = jsonEncode(
+                                          stepControllers
+                                              .map((c) => {
+                                                    'title': c.title.text.trim(),
+                                                    'desc': c.desc.text.trim(),
+                                                  })
+                                              .where((m) => m['title']!.isNotEmpty || m['desc']!.isNotEmpty)
+                                              .toList(),
+                                        );
+                                        request.fields['when_to_call_ambulance'] = ambulanceController.text.trim();
+
+                                        if (selectedImage != null) {
+                                          request.files.add(
+                                            await http.MultipartFile.fromPath('image', selectedImage!.path),
+                                          );
+                                        }
+
+                                        final streamedResponse = await request.send();
+                                        final resp = await http.Response.fromStream(streamedResponse);
+
+                                        if (resp.statusCode == 200 || resp.statusCode == 201) {
+                                          if (ctx.mounted) Navigator.of(ctx).pop();
+                                          _fetchArticles();
+                                        } else {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('هەڵە ڕوویدا: ${resp.body}')),
+                                            );
+                                          }
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('کێشەیەک لە پەیوەندی هەیە: $e')),
+                                          );
+                                        }
+                                      } finally {
+                                        setModalState(() => isSubmitting = false);
+                                      }
+                                    },
+                              child: isSubmitting
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                    )
+                                  : Text(
+                                      isEditing ? 'نوێکردنەوەی فریاگوزاری' : 'بڵاوکردنەوەی فریاگوزاری',
+                                      style: const TextStyle(
+                                        fontFamily: 'Rabar',
+                                        color: Colors.white,
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           },
