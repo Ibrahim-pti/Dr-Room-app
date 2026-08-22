@@ -6,7 +6,6 @@ import '../../core/utils/api_client.dart';
 import '../../core/utils/admin_permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../main.dart';
-import 'admin_activity_log_screen.dart';
 import 'admin_reviews_screen.dart';
 import 'admin_categories_screen.dart';
 import 'admin_transactions_screen.dart';
@@ -95,19 +94,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'icon': Iconsax.wallet_3,
             'color': const Color(0xFF059669),
             'screen': const AdminTransactionsScreen(),
-          },
-        ],
-      },
-      {
-        'sectionTitle': 'سیستەم و چالاکییەکان',
-        'items': [
-          {
-            'title': 'تۆماری چالاکی',
-            'permission': AdminPermissions.viewLogs,
-            'subtitle': 'کێ چی گۆڕی و کەی',
-            'icon': Iconsax.document_text,
-            'color': const Color(0xFF64748B),
-            'screen': const AdminActivityLogScreen(),
           },
         ],
       },
