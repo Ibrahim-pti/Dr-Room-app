@@ -93,6 +93,8 @@ class ArticleController extends Controller
         $title_ar = $request->title_ar;
         $category_en = $request->category_en;
         $category_ar = $request->category_ar;
+        $short_desc_en = $request->short_desc_en;
+        $short_desc_ar = $request->short_desc_ar;
         $content_en = $request->content_en;
         $content_ar = $request->content_ar;
 
@@ -102,6 +104,8 @@ class ArticleController extends Controller
             if (!$title_ar && $request->title) $title_ar = $tr->setTarget('ar')->translate($request->title);
             if (!$category_en && $request->category) $category_en = $tr->setTarget('en')->translate($request->category);
             if (!$category_ar && $request->category) $category_ar = $tr->setTarget('ar')->translate($request->category);
+            if (!$short_desc_en && $request->short_desc) $short_desc_en = $tr->setTarget('en')->translate($request->short_desc);
+            if (!$short_desc_ar && $request->short_desc) $short_desc_ar = $tr->setTarget('ar')->translate($request->short_desc);
             if (!$content_en && $request->content) $content_en = $tr->setTarget('en')->translate($request->content);
             if (!$content_ar && $request->content) $content_ar = $tr->setTarget('ar')->translate($request->content);
         } catch (\Exception $e) {
@@ -116,6 +120,8 @@ class ArticleController extends Controller
             'category_en' => $category_en ?? 'General',
             'category_ar' => $category_ar ?? 'عام',
             'short_desc' => $request->short_desc,
+            'short_desc_en' => $short_desc_en,
+            'short_desc_ar' => $short_desc_ar,
             'content' => $request->content,
             'content_en' => $content_en,
             'content_ar' => $content_ar,

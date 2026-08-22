@@ -6,6 +6,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../../core/utils/api_client.dart';
+import '../../core/utils/translation_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -194,7 +195,14 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
                               );
                               request.headers['Authorization'] = 'Bearer $token';
                               request.headers['Accept'] = 'application/json';
-                              request.fields['title'] = titleController.text;
+                              request.fields['title'] = titleController.text.trim();
+
+                              if (titleController.text.trim().isNotEmpty) {
+                                final tr = await TranslationHelper.translate(titleController.text.trim());
+                                request.fields['title_en'] = tr['en'] ?? '';
+                                request.fields['title_ar'] = tr['ar'] ?? '';
+                              }
+
                               request.files.add(
                                 await http.MultipartFile.fromPath('image', selectedImage!.path),
                               );

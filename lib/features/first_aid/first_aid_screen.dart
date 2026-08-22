@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/utils/api_client.dart';
 import 'first_aid_detail_screen.dart';
 
@@ -17,11 +18,98 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
   String _selectedCategory = 'هەمووی';
   bool _isLoading = false;
   List<FirstAidTopic> _apiTopics = [];
+  List<dynamic> _rawApiArticles = [];
 
   @override
   void initState() {
     super.initState();
     _fetchTopicsFromApi();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_rawApiArticles.isNotEmpty) {
+      final langCode = context.locale.languageCode;
+      final parsed = _parseArticles(_rawApiArticles, langCode);
+      if (parsed.isNotEmpty) {
+        _apiTopics = parsed;
+      }
+    }
+  }
+
+  String _getTranslated(Map<String, dynamic> item, String field, String langCode) {
+    if (langCode == 'en' && item['${field}_en'] != null && item['${field}_en'].toString().trim().isNotEmpty) {
+      return item['${field}_en'].toString();
+    }
+    if (langCode == 'ar' && item['${field}_ar'] != null && item['${field}_ar'].toString().trim().isNotEmpty) {
+      return item['${field}_ar'].toString();
+    }
+    return item[field]?.toString() ?? '';
+  }
+
+  List<FirstAidTopic> _parseArticles(List<dynamic> list, String langCode) {
+    return list.map((raw) {
+      final item = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+      final title = _getTranslated(item, 'title', langCode).isNotEmpty ? _getTranslated(item, 'title', langCode) : (item['title'] ?? '');
+      final cat = _getTranslated(item, 'category', langCode).isNotEmpty ? _getTranslated(item, 'category', langCode) : (item['category'] ?? 'گشتی');
+
+      Color col = const Color(0xFF2563EB);
+      IconData ico = Icons.medical_services_rounded;
+      if (cat.contains('هەناسە') || cat.contains('خوێن') || cat.toLowerCase().contains('breath') || cat.contains('تنفس')) {
+        col = const Color(0xFFEF4444);
+        ico = Icons.air;
+      } else if (cat.contains('پێست') || cat.contains('برین') || cat.contains('سووتان') || cat.toLowerCase().contains('burn') || cat.contains('حروق')) {
+        col = const Color(0xFFF97316);
+        ico = Icons.local_fire_department;
+      } else if (cat.contains('دڵ') || cat.toLowerCase().contains('heart') || cat.contains('قلب')) {
+        col = const Color(0xFFDC2626);
+        ico = Icons.favorite_rounded;
+      } else if (cat.contains('ئێسک') || cat.contains('شکان') || cat.toLowerCase().contains('bone') || cat.contains('عظام')) {
+        col = const Color(0xFF8B5CF6);
+        ico = Icons.accessibility_new_rounded;
+      }
+
+      final symptoms = _stringList(item['symptoms']);
+      final dos = _stringList(item['dos']);
+      final donts = _stringList(item['donts']);
+
+      var steps = _rawList(item['steps']).map((st) {
+        if (st is Map) {
+          final sTitle = (st['title'] ?? '').toString().trim();
+          final sDesc = (st['desc'] ?? '').toString().trim();
+          return {'title': sTitle.isNotEmpty ? sTitle : (langCode == 'en' ? 'Step' : langCode == 'ar' ? 'خطوة' : 'هەنگاو'), 'desc': sDesc};
+        }
+        return {'title': (langCode == 'en' ? 'Step' : langCode == 'ar' ? 'خطوة' : 'هەنگاو'), 'desc': st.toString()};
+      }).where((st) => (st['desc'] as String).isNotEmpty || st['title'] != 'هەنگاو').toList();
+
+      final content = _getTranslated(item, 'content', langCode).isNotEmpty ? _getTranslated(item, 'content', langCode) : (item['content']?.toString() ?? '');
+      if (steps.isEmpty && content.trim().isNotEmpty) {
+        steps = [{'title': (langCode == 'en' ? 'Instructions' : langCode == 'ar' ? 'تعليمات العلاج' : 'ڕێنمایی چارەسەر'), 'desc': content}];
+      }
+
+      final shortDesc = _getTranslated(item, 'short_desc', langCode).isNotEmpty ? _getTranslated(item, 'short_desc', langCode) : _shortDesc(item);
+      final whenToCall = _getTranslated(item, 'when_to_call_ambulance', langCode).isNotEmpty
+          ? _getTranslated(item, 'when_to_call_ambulance', langCode)
+          : (item['when_to_call_ambulance']?.toString().trim().isNotEmpty ?? false)
+              ? item['when_to_call_ambulance'].toString()
+              : (langCode == 'en' ? 'In case of emergency, immediately call 122 ambulance.' : langCode == 'ar' ? 'في حالة الطوارئ اتصل بالإسعاف 122 فوراً.' : 'لە کاتی باری لەناکاودا دەستبەجێ پەیوەندی بە ١٢٢ بکە.');
+
+      return FirstAidTopic(
+        id: item['id'].toString(),
+        title: title,
+        category: cat,
+        shortDesc: shortDesc,
+        icon: ico,
+        color: col,
+        symptoms: symptoms,
+        steps: steps,
+        dos: dos,
+        donts: donts,
+        whenToCallAmbulance: whenToCall,
+        imagePath: item['image_path']?.toString(),
+      );
+    }).toList();
   }
 
   Future<void> _fetchTopicsFromApi() async {
@@ -30,59 +118,9 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
       final res = await ApiClient.get('/articles');
       if (res.statusCode == 200 && mounted) {
         final List list = jsonDecode(res.body);
-        final parsed = list.map((item) {
-          final cat = item['category'] ?? 'گشتی';
-          Color col = const Color(0xFF2563EB);
-          IconData ico = Icons.medical_services_rounded;
-          if (cat.contains('هەناسە') || cat.contains('خوێن')) {
-            col = const Color(0xFFEF4444);
-            ico = Icons.air;
-          } else if (cat.contains('پێست') || cat.contains('برین') || cat.contains('سووتان')) {
-            col = const Color(0xFFF97316);
-            ico = Icons.local_fire_department;
-          } else if (cat.contains('دڵ')) {
-            col = const Color(0xFFDC2626);
-            ico = Icons.favorite_rounded;
-          } else if (cat.contains('ئێسک') || cat.contains('شکان')) {
-            col = const Color(0xFF8B5CF6);
-            ico = Icons.accessibility_new_rounded;
-          }
-
-          final symptoms = _stringList(item['symptoms']);
-          final dos = _stringList(item['dos']);
-          final donts = _stringList(item['donts']);
-
-          var steps = _rawList(item['steps']).map((st) {
-            if (st is Map) {
-              final title = (st['title'] ?? '').toString().trim();
-              final desc = (st['desc'] ?? '').toString().trim();
-              return {'title': title.isNotEmpty ? title : 'هەنگاو', 'desc': desc};
-            }
-            return {'title': 'هەنگاو', 'desc': st.toString()};
-          }).where((st) => (st['desc'] as String).isNotEmpty || st['title'] != 'هەنگاو').toList();
-
-          // Fall back to the free-text content when no structured steps were entered.
-          if (steps.isEmpty && item['content'] != null && item['content'].toString().trim().isNotEmpty) {
-            steps = [{'title': 'ڕێنمایی چارەسەر', 'desc': item['content'].toString()}];
-          }
-
-          return FirstAidTopic(
-            id: item['id'].toString(),
-            title: item['title'] ?? '',
-            category: cat,
-            shortDesc: _shortDesc(item),
-            icon: ico,
-            color: col,
-            symptoms: symptoms,
-            steps: steps,
-            dos: dos,
-            donts: donts,
-            whenToCallAmbulance: (item['when_to_call_ambulance']?.toString().trim().isNotEmpty ?? false)
-                ? item['when_to_call_ambulance'].toString()
-                : 'لە کاتی باری لەناکاودا دەستبەجێ پەیوەندی بە ١٢٢ بکە.',
-            imagePath: item['image_path']?.toString(),
-          );
-        }).toList();
+        _rawApiArticles = list;
+        final langCode = context.locale.languageCode;
+        final parsed = _parseArticles(list, langCode);
 
         if (parsed.isNotEmpty) {
           setState(() {

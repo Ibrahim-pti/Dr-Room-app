@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/translation_helper.dart';
 import '../../core/theme/app_colors.dart';
 
 class AdminNotificationsScreen extends StatefulWidget {
@@ -170,9 +171,20 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                                 );
                                 request.headers['Authorization'] = 'Bearer $token';
                                 request.headers['Accept'] = 'application/json';
-                                request.fields['title'] = titleController.text;
-                                request.fields['message'] = messageController.text;
+                                request.fields['title'] = titleController.text.trim();
+                                request.fields['message'] = messageController.text.trim();
                                 request.fields['type'] = 'general';
+
+                                final trFields = await TranslationHelper.translateFields({
+                                  'title': titleController.text.trim(),
+                                  'message': messageController.text.trim(),
+                                });
+                                if (trFields.isNotEmpty) {
+                                  request.fields['title_en'] = trFields['title']?['en'] ?? '';
+                                  request.fields['title_ar'] = trFields['title']?['ar'] ?? '';
+                                  request.fields['message_en'] = trFields['message']?['en'] ?? '';
+                                  request.fields['message_ar'] = trFields['message']?['ar'] ?? '';
+                                }
                                 
                                 if (selectedImage != null) {
                                   request.files.add(
