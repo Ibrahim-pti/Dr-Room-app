@@ -327,13 +327,8 @@
         </div>
 
         <!-- Modal Footer -->
-        <div style="border-top: 1px solid #f1f5f9; margin-top: 22px; padding-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-            <a id="modalFullPageBtn" href="#" style="padding: 9px 20px; background: #0d9488; color: #ffffff; font-weight: 800; border-radius: 12px; text-decoration: none; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(13,148,136,0.25);">
-                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                بینینی لاپەڕەی تایبەت
-            </a>
-
-            <button type="button" onclick="closeOrderModal()" style="padding: 9px 24px; background: #f1f5f9; color: #334155; font-weight: 800; border-radius: 12px; border: none; cursor: pointer; font-size: 0.82rem;">
+        <div style="border-top: 1px solid #f1f5f9; margin-top: 22px; padding-top: 16px; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+            <button type="button" onclick="closeOrderModal()" style="padding: 10px 28px; background: #f1f5f9; color: #334155; font-weight: 800; border-radius: 12px; border: none; cursor: pointer; font-size: 0.88rem; transition: all 0.2s;">
                 داخستن
             </button>
         </div>
@@ -349,11 +344,9 @@ function openOrderModal(data) {
     const content = document.getElementById('modalContent');
     const badge = document.getElementById('modalOrderIdBadge');
     const subtitle = document.getElementById('modalSubtitle');
-    const fullPageBtn = document.getElementById('modalFullPageBtn');
 
     badge.textContent = `#ORD-${data.id}`;
     subtitle.textContent = `بەروار و کاتی تۆمارکردن: ${data.date}`;
-    fullPageBtn.href = data.show_url;
 
     const genderText = data.gender === 'female' ? 'مێ (Female)' : (data.gender === 'male' ? 'نێر (Male)' : 'دیارینەکراو');
     const ageText = data.age ? `${data.age} ساڵ` : 'دیارینەکراو';
