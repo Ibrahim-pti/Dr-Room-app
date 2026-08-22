@@ -361,6 +361,15 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
                 const SizedBox(height: 14),
                 Row(
                   children: [
+                    Expanded(
+                      child: _buildActionBtn(
+                        label: 'وردەکاری پرۆفایل',
+                        icon: Iconsax.eye,
+                        color: const Color(0xFF2563EB),
+                        onTap: () => _showDoctorDetails(user, isPending),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     if (isPending)
                       Expanded(
                         child: _buildActionBtn(
@@ -379,14 +388,11 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
                           onTap: () => _rejectDoctor(user['id']),
                         ),
                       ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildActionBtn(
-                        label: 'سڕینەوە',
-                        icon: Iconsax.trash,
-                        color: const Color(0xFFEF4444),
-                        onTap: () => _deleteDoctor(user['id']),
-                      ),
+                    const SizedBox(width: 8),
+                    _buildIconActionBtn(
+                      icon: Iconsax.trash,
+                      color: const Color(0xFFEF4444),
+                      onTap: () => _deleteDoctor(user['id']),
                     ),
                   ],
                 ),
@@ -397,6 +403,328 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
               .fadeIn()
               .slideY(begin: 0.1, end: 0);
         },
+      ),
+    );
+  }
+
+  void _showDoctorDetails(dynamic user, bool isPending) {
+    final doc = user['doctor'] ?? {};
+    final name = user['name'] ?? 'نەزانراو';
+    final nameEn = user['name_en'] ?? '';
+    final nameAr = user['name_ar'] ?? '';
+    final phone = user['phone'] ?? '';
+    final email = user['email'] ?? '';
+    final specialty = doc['specialty'] ?? 'گشتی';
+    final specialtyEn = doc['specialty_en'] ?? '';
+    final bio = doc['bio'] ?? '';
+    final address = doc['address'] ?? '';
+    final city = doc['city'] ?? '';
+    final experience = doc['experience_years']?.toString() ?? '';
+    final consultationFee = doc['consultation_fee']?.toString() ?? '';
+    final videoFee = doc['video_consultation_fee']?.toString() ?? '';
+    final license = doc['license_number'] ?? '';
+    final services = (doc['services'] is List) ? doc['services'] as List : [];
+    final imagePath = user['profile_image'] ?? doc['image_path'];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          children: [
+            // Drag handle
+            const SizedBox(height: 12),
+            Container(
+              width: 44,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Sheet Title & Close
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'وردەکاریی پرۆفایلی پزیشک',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: Color(0xFFF1F5F9)),
+
+            // Scrollable Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Profile Header Card
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 32,
+                            backgroundColor: const Color(0xFFEFF6FF),
+                            backgroundImage: imagePath != null
+                                ? NetworkImage('${ApiClient.storageUrl}/$imagePath')
+                                : null,
+                            child: imagePath == null
+                                ? const Icon(Iconsax.user, color: Color(0xFF2563EB), size: 30)
+                                : null,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                                if (nameEn.isNotEmpty || nameAr.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    [nameEn, nameAr].where((s) => s.isNotEmpty).join(' | '),
+                                    style: const TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 12,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    specialty + (specialtyEn.isNotEmpty ? ' ($specialtyEn)' : ''),
+                                    style: const TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2563EB),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Information Grid
+                    const Text('زانیارییەکانی پەیوەندی و لۆکەیشن', style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                    const SizedBox(height: 8),
+                    _buildInfoTile(icon: Iconsax.call, title: 'ژمارەی مۆبایل', value: phone.isNotEmpty ? phone : 'تۆمار نەکراوە'),
+                    _buildInfoTile(icon: Iconsax.sms, title: 'ئیمەیڵ', value: email.isNotEmpty ? email : 'تۆمار نەکراوە'),
+                    _buildInfoTile(icon: Iconsax.location, title: 'شار و ناونیشان', value: [city, address].where((s) => s.isNotEmpty).join(' - ').isNotEmpty ? [city, address].where((s) => s.isNotEmpty).join(' - ') : 'دیاری نەکراوە'),
+                    const SizedBox(height: 16),
+
+                    // Professional Info
+                    const Text('زانیاریی پیشەیی و پسپۆڕی', style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                    const SizedBox(height: 8),
+                    if (experience.isNotEmpty)
+                      _buildInfoTile(icon: Iconsax.medal_star, title: 'ساڵانی ئەزموون', value: '$experience ساڵ'),
+                    if (license.isNotEmpty)
+                      _buildInfoTile(icon: Iconsax.verify, title: 'ژمارەی بڕوانامە / مۆڵەت', value: license),
+                    if (consultationFee.isNotEmpty)
+                      _buildInfoTile(icon: Iconsax.money, title: 'نرخی پشکنینی کلینیک', value: '$consultationFee دینار'),
+                    if (videoFee.isNotEmpty)
+                      _buildInfoTile(icon: Iconsax.video, title: 'نرخی پشکنینی ڤیدیۆیی', value: '$videoFee دینار'),
+                    if (bio.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('دەربارە / بیۆگرافی:', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                            const SizedBox(height: 4),
+                            Text(bio, style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF0F172A), height: 1.4)),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    if (services.isNotEmpty) ...[
+                      const Text('خزمەتگوزارییە پزیشکییەکان', style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
+                      const SizedBox(height: 8),
+                      ...services.map((srv) => Container(
+                        margin: const EdgeInsets.only(bottom: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(srv['name'] ?? '', style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                            Text('${srv['price'] ?? 0} د.ع', style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+                          ],
+                        ),
+                      )),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+
+            // Bottom Actions Bar
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -2)),
+                ],
+              ),
+              child: Row(
+                children: [
+                  if (isPending)
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _approveDoctor(user['id']);
+                        },
+                        icon: const Icon(Iconsax.tick_circle, color: Colors.white, size: 18),
+                        label: const Text('پەسەندکردن', style: TextStyle(fontFamily: 'Rabar', color: Colors.white, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  if (!isPending)
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _rejectDoctor(user['id']);
+                        },
+                        icon: const Icon(Iconsax.close_circle, color: Colors.white, size: 18),
+                        label: const Text('ڕەتکردنەوە', style: TextStyle(fontFamily: 'Rabar', color: Colors.white, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF59E0B),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _deleteDoctor(user['id']);
+                    },
+                    icon: const Icon(Iconsax.trash, color: Colors.white, size: 18),
+                    label: const Text('سڕینەوە', style: TextStyle(fontFamily: 'Rabar', color: Colors.white, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      elevation: 0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoTile({required IconData icon, required String title, required String value}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xFF64748B), size: 18),
+          const SizedBox(width: 10),
+          Text('$title: ', style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFF64748B))),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIconActionBtn({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: color, size: 18),
       ),
     );
   }
@@ -418,14 +746,14 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: 6),
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
                 fontFamily: 'Rabar',
                 color: color,
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),

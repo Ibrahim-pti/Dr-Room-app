@@ -11,7 +11,10 @@ class AdminDoctorController extends Controller
 {
     public function index()
     {
-        $doctors = User::where('role', 'doctor')->with('doctor')->get();
+        $doctors = User::where('role', 'doctor')
+            ->with(['doctor.services', 'doctor.schedules'])
+            ->orderBy('created_at', 'desc')
+            ->get();
         return response()->json($doctors);
     }
 
