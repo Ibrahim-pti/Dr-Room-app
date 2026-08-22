@@ -101,6 +101,26 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
     String selectedCategory = existingArticle?['category'] ?? 'گشتی';
     final shortDescController = TextEditingController(text: existingArticle?['short_desc'] ?? '');
     final contentController = TextEditingController(text: existingArticle?['content'] ?? '');
+    final ambulanceController = TextEditingController(
+      text: existingArticle?['when_to_call_ambulance'] ?? '',
+    );
+
+    final symptomControllers = _decodeStringList(existingArticle?['symptoms'])
+        .map((v) => TextEditingController(text: v))
+        .toList();
+    final dosControllers = _decodeStringList(existingArticle?['dos'])
+        .map((v) => TextEditingController(text: v))
+        .toList();
+    final dontsControllers = _decodeStringList(existingArticle?['donts'])
+        .map((v) => TextEditingController(text: v))
+        .toList();
+    final stepControllers = _decodeStepList(existingArticle?['steps'])
+        .map((step) => (
+              title: TextEditingController(text: step['title'] ?? ''),
+              desc: TextEditingController(text: step['desc'] ?? ''),
+            ))
+        .toList();
+
     bool isSubmitting = false;
 
     await showModalBottomSheet(
@@ -219,6 +239,76 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                       hint: '١. هەنگاوی یەکەم...\n٢. هەنگاوی دووەم...\n٣. ئاگادارییەکان...',
                       maxLines: 5,
                     ),
+                    const SizedBox(height: 18),
+
+                    // Symptoms
+                    _buildListSection(
+                      title: 'نیشانە سەرەکییەکان',
+                      subtitle: 'ئەو نیشانانەی لە ئەپەکەدا بە ✓ دەردەکەون',
+                      addLabel: 'زیادکردنی نیشانە',
+                      accent: const Color(0xFF3B82F6),
+                      controllers: symptomControllers,
+                      hint: 'وەک: دەستبردن بۆ قوڕگ و نەتوانینی قسەکردن',
+                      onAdd: () => setModalState(() => symptomControllers.add(TextEditingController())),
+                      onRemove: (i) => setModalState(() {
+                        symptomControllers.removeAt(i).dispose();
+                      }),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Steps
+                    _buildStepsSection(
+                      steps: stepControllers,
+                      onAdd: () => setModalState(() => stepControllers.add((
+                            title: TextEditingController(),
+                            desc: TextEditingController(),
+                          ))),
+                      onRemove: (i) => setModalState(() {
+                        final removed = stepControllers.removeAt(i);
+                        removed.title.dispose();
+                        removed.desc.dispose();
+                      }),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // DOs
+                    _buildListSection(
+                      title: 'پێویستە بکەیت ✅',
+                      subtitle: 'ئەو کارانەی دەبێت ئەنجام بدرێن',
+                      addLabel: 'زیادکردنی کار',
+                      accent: const Color(0xFF10B981),
+                      controllers: dosControllers,
+                      hint: 'وەک: ئارام بە و دڵنیای بکەرەوە',
+                      onAdd: () => setModalState(() => dosControllers.add(TextEditingController())),
+                      onRemove: (i) => setModalState(() {
+                        dosControllers.removeAt(i).dispose();
+                      }),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // DON'Ts
+                    _buildListSection(
+                      title: 'قەدەغەیە بکەیت ❌',
+                      subtitle: 'ئەو کارانەی مەترسیدارن و نابێت بکرێن',
+                      addLabel: 'زیادکردنی قەدەغە',
+                      accent: const Color(0xFFEF4444),
+                      controllers: dontsControllers,
+                      hint: 'وەک: پەنجەت مەکەرە ناو دەمی ئەگەر تەنەکە نەبینیت',
+                      onAdd: () => setModalState(() => dontsControllers.add(TextEditingController())),
+                      onRemove: (i) => setModalState(() {
+                        dontsControllers.removeAt(i).dispose();
+                      }),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // When to call an ambulance
+                    const Text('کەی دەستبەجێ پەیوەندی بە ١٢٢ بکەیت؟', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                    const SizedBox(height: 6),
+                    _buildInput(
+                      controller: ambulanceController,
+                      hint: 'وەک: ئەگەر دوای چەند چرکەیەک تەنەکە دەرنەهات یان بێهۆش بوو...',
+                      maxLines: 2,
+                    ),
                     const SizedBox(height: 16),
 
                     // Image Picker
@@ -319,6 +409,19 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                                   request.fields['short_desc'] = shortDescController.text.trim();
                                   request.fields['content'] = contentController.text.trim();
                                   request.fields['is_published'] = '1';
+                                  request.fields['symptoms'] = jsonEncode(_valuesOf(symptomControllers));
+                                  request.fields['dos'] = jsonEncode(_valuesOf(dosControllers));
+                                  request.fields['donts'] = jsonEncode(_valuesOf(dontsControllers));
+                                  request.fields['steps'] = jsonEncode(
+                                    stepControllers
+                                        .map((c) => {
+                                              'title': c.title.text.trim(),
+                                              'desc': c.desc.text.trim(),
+                                            })
+                                        .where((m) => m['title']!.isNotEmpty || m['desc']!.isNotEmpty)
+                                        .toList(),
+                                  );
+                                  request.fields['when_to_call_ambulance'] = ambulanceController.text.trim();
 
                                   if (selectedImage != null) {
                                     request.files.add(
@@ -373,6 +476,182 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
           },
         );
       },
+    );
+  }
+
+  /// The API may hand these back as a real List or as a raw JSON string,
+  /// depending on where the record was written from.
+  List<String> _decodeStringList(dynamic raw) {
+    final decoded = _decodeList(raw);
+    return decoded.map((e) => e.toString()).where((e) => e.trim().isNotEmpty).toList();
+  }
+
+  List<Map<String, String>> _decodeStepList(dynamic raw) {
+    return _decodeList(raw).map((e) {
+      if (e is Map) {
+        return {
+          'title': (e['title'] ?? '').toString(),
+          'desc': (e['desc'] ?? '').toString(),
+        };
+      }
+      return {'title': 'هەنگاو', 'desc': e.toString()};
+    }).toList();
+  }
+
+  List<dynamic> _decodeList(dynamic raw) {
+    if (raw is List) return raw;
+    if (raw is String && raw.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) return decoded;
+      } catch (_) {}
+    }
+    return [];
+  }
+
+  List<String> _valuesOf(List<TextEditingController> controllers) {
+    return controllers
+        .map((c) => c.text.trim())
+        .where((v) => v.isNotEmpty)
+        .toList();
+  }
+
+  Widget _buildListSection({
+    required String title,
+    required String subtitle,
+    required String addLabel,
+    required Color accent,
+    required List<TextEditingController> controllers,
+    required String hint,
+    required VoidCallback onAdd,
+    required void Function(int index) onRemove,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+        const SizedBox(height: 2),
+        Text(subtitle, style: const TextStyle(fontFamily: 'Rabar', fontSize: 11, color: Color(0xFF94A3B8))),
+        const SizedBox(height: 8),
+        ...List.generate(controllers.length, (i) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  margin: const EdgeInsets.only(left: 8),
+                  decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+                ),
+                Expanded(child: _buildInput(controller: controllers[i], hint: hint)),
+                IconButton(
+                  onPressed: () => onRemove(i),
+                  icon: const Icon(Iconsax.trash, size: 18, color: Color(0xFFEF4444)),
+                  tooltip: 'سڕینەوە',
+                ),
+              ],
+            ),
+          );
+        }),
+        _buildAddButton(label: addLabel, accent: accent, onTap: onAdd),
+      ],
+    );
+  }
+
+  Widget _buildStepsSection({
+    required List<({TextEditingController title, TextEditingController desc})> steps,
+    required VoidCallback onAdd,
+    required void Function(int index) onRemove,
+  }) {
+    const accent = Color(0xFF2563EB);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('هەنگاوەکانی فریاگوزاری بەپەلە', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+        const SizedBox(height: 2),
+        const Text('هەر هەنگاوێک بە ژمارە و ناونیشانەوە لە ئەپەکەدا دەردەکەوێت', style: TextStyle(fontFamily: 'Rabar', fontSize: 11, color: Color(0xFF94A3B8))),
+        const SizedBox(height: 8),
+        ...List.generate(steps.length, (i) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${i + 1}',
+                          style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold, color: accent),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildInput(controller: steps[i].title, hint: 'ناونیشانی هەنگاو، وەک: هاندانی بۆ کۆکین'),
+                    ),
+                    IconButton(
+                      onPressed: () => onRemove(i),
+                      icon: const Icon(Iconsax.trash, size: 18, color: Color(0xFFEF4444)),
+                      tooltip: 'سڕینەوەی هەنگاو',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _buildInput(
+                  controller: steps[i].desc,
+                  hint: 'ڕوونکردنەوەی هەنگاوەکە...',
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          );
+        }),
+        _buildAddButton(label: 'زیادکردنی هەنگاو', accent: accent, onTap: onAdd),
+      ],
+    );
+  }
+
+  Widget _buildAddButton({
+    required String label,
+    required Color accent,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: accent.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Iconsax.add, size: 16, color: accent),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold, color: accent),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

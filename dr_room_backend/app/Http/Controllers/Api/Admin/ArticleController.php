@@ -10,6 +10,57 @@ use Stichoza\GoogleTranslate\GoogleTranslate;
 
 class ArticleController extends Controller
 {
+    /**
+     * Fields sent from the admin panel as JSON strings (multipart/form-data
+     * cannot carry real arrays). Decode them so the model casts store proper JSON.
+     */
+    private function decodeJsonFields(array $data): array
+    {
+        foreach (['symptoms', 'steps', 'dos', 'donts'] as $field) {
+            if (!array_key_exists($field, $data)) {
+                continue;
+            }
+
+            $value = $data[$field];
+
+            if (is_string($value)) {
+                $decoded = json_decode($value, true);
+                $value = json_last_error() === JSON_ERROR_NONE ? $decoded : null;
+            }
+
+            if (!is_array($value)) {
+                $data[$field] = null;
+                continue;
+            }
+
+            if ($field === 'steps') {
+                $steps = [];
+                foreach ($value as $step) {
+                    if (is_array($step)) {
+                        $title = trim((string)($step['title'] ?? ''));
+                        $desc = trim((string)($step['desc'] ?? ''));
+                    } else {
+                        $title = 'هەنگاو';
+                        $desc = trim((string)$step);
+                    }
+                    if ($title === '' && $desc === '') {
+                        continue;
+                    }
+                    $steps[] = ['title' => $title !== '' ? $title : 'هەنگاو', 'desc' => $desc];
+                }
+                $data[$field] = $steps ?: null;
+                continue;
+            }
+
+            $items = array_values(array_filter(
+                array_map(fn ($item) => trim((string)$item), $value),
+                fn ($item) => $item !== ''
+            ));
+            $data[$field] = $items ?: null;
+        }
+
+        return $data;
+    }
     public function index()
     {
         return Article::latest()->get();
@@ -23,8 +74,15 @@ class ArticleController extends Controller
             'short_desc' => 'nullable|string',
             'content' => 'required|string',
             'image' => 'nullable|image',
-            'is_published' => 'nullable|boolean'
+            'is_published' => 'nullable|boolean',
+            'symptoms' => 'nullable|string',
+            'steps' => 'nullable|string',
+            'dos' => 'nullable|string',
+            'donts' => 'nullable|string',
+            'when_to_call_ambulance' => 'nullable|string',
         ]);
+
+        $medical = $this->decodeJsonFields($request->only(['symptoms', 'steps', 'dos', 'donts']));
 
         $path = null;
         if ($request->hasFile('image')) {
@@ -61,10 +119,10 @@ class ArticleController extends Controller
             'content' => $request->content,
             'content_en' => $content_en,
             'content_ar' => $content_ar,
-            'symptoms' => $request->symptoms,
-            'steps' => $request->steps,
-            'dos' => $request->dos,
-            'donts' => $request->donts,
+            'symptoms' => $medical['symptoms'] ?? null,
+            'steps' => $medical['steps'] ?? null,
+            'dos' => $medical['dos'] ?? null,
+            'donts' => $medical['donts'] ?? null,
             'when_to_call_ambulance' => $request->when_to_call_ambulance,
             'image_path' => $path,
             'is_published' => $request->has('is_published') ? (bool)$request->is_published : true,
@@ -88,7 +146,12 @@ class ArticleController extends Controller
             'short_desc' => 'nullable|string',
             'content' => 'nullable|string',
             'image' => 'nullable|image',
-            'is_published' => 'nullable|boolean'
+            'is_published' => 'nullable|boolean',
+            'symptoms' => 'nullable|string',
+            'steps' => 'nullable|string',
+            'dos' => 'nullable|string',
+            'donts' => 'nullable|string',
+            'when_to_call_ambulance' => 'nullable|string',
         ]);
 
         if ($request->hasFile('image')) {
@@ -98,7 +161,7 @@ class ArticleController extends Controller
             $article->image_path = $request->file('image')->store('articles', 'public');
         }
 
-        $data = $request->except('image');
+        $data = $this->decodeJsonFields($request->except(['image', '_method']));
 
         if ($request->has('title') && $request->title != $article->title) {
             try {

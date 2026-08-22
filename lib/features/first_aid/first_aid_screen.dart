@@ -48,45 +48,38 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
             ico = Icons.accessibility_new_rounded;
           }
 
-          List<String> symptoms = [];
-          if (item['symptoms'] is List) {
-            symptoms = (item['symptoms'] as List).map((s) => s.toString()).toList();
-          } else if (item['symptoms'] is String && item['symptoms'].toString().isNotEmpty) {
-            symptoms = [item['symptoms'].toString()];
-          }
+          final symptoms = _stringList(item['symptoms']);
+          final dos = _stringList(item['dos']);
+          final donts = _stringList(item['donts']);
 
-          List<Map<String, dynamic>> steps = [];
-          if (item['steps'] is List) {
-            steps = (item['steps'] as List).map((st) {
-              if (st is Map) return Map<String, dynamic>.from(st);
-              return {'title': 'هەنگاو', 'desc': st.toString()};
-            }).toList();
-          } else if (item['content'] != null && item['content'].toString().isNotEmpty) {
+          var steps = _rawList(item['steps']).map((st) {
+            if (st is Map) {
+              final title = (st['title'] ?? '').toString().trim();
+              final desc = (st['desc'] ?? '').toString().trim();
+              return {'title': title.isNotEmpty ? title : 'هەنگاو', 'desc': desc};
+            }
+            return {'title': 'هەنگاو', 'desc': st.toString()};
+          }).where((st) => (st['desc'] as String).isNotEmpty || st['title'] != 'هەنگاو').toList();
+
+          // Fall back to the free-text content when no structured steps were entered.
+          if (steps.isEmpty && item['content'] != null && item['content'].toString().trim().isNotEmpty) {
             steps = [{'title': 'ڕێنمایی چارەسەر', 'desc': item['content'].toString()}];
-          }
-
-          List<String> dos = [];
-          if (item['dos'] is List) {
-            dos = (item['dos'] as List).map((d) => d.toString()).toList();
-          }
-
-          List<String> donts = [];
-          if (item['donts'] is List) {
-            donts = (item['donts'] as List).map((d) => d.toString()).toList();
           }
 
           return FirstAidTopic(
             id: item['id'].toString(),
             title: item['title'] ?? '',
             category: cat,
-            shortDesc: item['short_desc'] ?? item['content'] ?? '',
+            shortDesc: _shortDesc(item),
             icon: ico,
             color: col,
             symptoms: symptoms,
             steps: steps,
             dos: dos,
             donts: donts,
-            whenToCallAmbulance: item['when_to_call_ambulance'] ?? 'لە کاتی باری لەناکاودا دەستبەجێ پەیوەندی بە ١٢٢ بکە.',
+            whenToCallAmbulance: (item['when_to_call_ambulance']?.toString().trim().isNotEmpty ?? false)
+                ? item['when_to_call_ambulance'].toString()
+                : 'لە کاتی باری لەناکاودا دەستبەجێ پەیوەندی بە ١٢٢ بکە.',
           );
         }).toList();
 
@@ -102,6 +95,35 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
       debugPrint('Error fetching first aid topics: $e');
     }
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  /// Laravel casts these to arrays, but a record written before the cast
+  /// existed can still come back as a raw JSON string.
+  List<dynamic> _rawList(dynamic raw) {
+    if (raw is List) return raw;
+    if (raw is String && raw.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) return decoded;
+      } catch (_) {}
+    }
+    return [];
+  }
+
+  List<String> _stringList(dynamic raw) {
+    return _rawList(raw)
+        .map((e) => e.toString().trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
+
+  String _shortDesc(dynamic item) {
+    final short = (item['short_desc'] ?? '').toString().trim();
+    if (short.isNotEmpty) return short;
+
+    final content = (item['content'] ?? '').toString().trim();
+    if (content.length <= 120) return content;
+    return '${content.substring(0, 120).trimRight()}…';
   }
 
   TextStyle _kStyle({

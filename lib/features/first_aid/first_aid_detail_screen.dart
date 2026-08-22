@@ -240,22 +240,24 @@ class FirstAidDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            step['title'] as String,
+                            (step['title'] ?? 'هەنگاو').toString(),
                             style: _kStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14.5,
                               color: isDark ? Colors.white : const Color(0xFF0F172A),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            step['desc'] as String,
-                            style: _kStyle(
-                              fontSize: 13,
-                              color: const Color(0xFF64748B),
-                              height: 1.4,
+                          if ((step['desc'] ?? '').toString().trim().isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              step['desc'].toString(),
+                              style: _kStyle(
+                                fontSize: 13,
+                                color: const Color(0xFF64748B),
+                                height: 1.4,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -267,6 +269,7 @@ class FirstAidDetailScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // DOs and DON'Ts Section
+            if (topic.dos.isNotEmpty || topic.donts.isNotEmpty)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
