@@ -45,16 +45,16 @@ class PharmacyProfileController extends Controller
         $user->name_ar = $request->name_ar;
         $user->name_en = $request->name_en;
         $user->phone = $request->phone;
-
-        if ($request->hasFile('profile_image')) {
-            if ($user->profile_image && !str_starts_with($user->profile_image, 'http')) {
-                Storage::disk('public')->delete($user->profile_image);
-            }
-            $user->profile_image = $request->file('profile_image')->store('pharmacies', 'public');
-        }
         $user->save();
 
         $pharmacy = Pharmacy::firstOrCreate(['user_id' => $user->id]);
+
+        if ($request->hasFile('profile_image')) {
+            if ($pharmacy->image_path && !str_starts_with($pharmacy->image_path, 'http')) {
+                Storage::disk('public')->delete($pharmacy->image_path);
+            }
+            $pharmacy->image_path = $request->file('profile_image')->store('pharmacies', 'public');
+        }
         
         $gallery = $pharmacy->gallery_images ?? [];
         if (!is_array($gallery)) {
@@ -69,6 +69,7 @@ class PharmacyProfileController extends Controller
         }
 
         $pharmacy->update([
+            'image_path' => $pharmacy->image_path,
             'location' => $request->location ?? $pharmacy->location,
             'location_ar' => $request->location_ar ?? $pharmacy->location_ar,
             'location_en' => $request->location_en ?? $pharmacy->location_en,
