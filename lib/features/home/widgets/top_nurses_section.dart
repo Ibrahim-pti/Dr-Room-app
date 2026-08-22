@@ -26,8 +26,9 @@ class TopNursesSection extends StatelessWidget {
       'https://images.unsplash.com/photo-1594824813511-236b283d0cfa?w=500&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=500&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=500&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=500&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=500&auto=format&fit=crop&q=80',
     ];
 
     return Column(
@@ -73,9 +74,9 @@ class TopNursesSection extends StatelessWidget {
 
         const SizedBox(height: 12),
 
-        // ── Modern Sleek Nurse Cards ──
+        // ── Nurse Cards Horizontal List ──
         SizedBox(
-          height: 232,
+          height: 236,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -85,12 +86,10 @@ class TopNursesSection extends StatelessWidget {
               final name = nurse['user'] != null
                   ? nurse['user']['name']
                   : (nurse['name'] ?? 'پەرستار');
-              final specialty = nurse['specialty'] ?? 'پەرستاری ماڵەوە و برینپێچی';
-              final city = (nurse['city'] != null && nurse['city'].toString().isNotEmpty)
-                  ? nurse['city'].toString()
-                  : 'هەولێر';
+              final specialty = nurse['specialty'] ?? 'پەرستاری ماڵەوە و فریاگوزاری';
               final rating = nurse['rating']?.toString() ?? '4.9';
-              final isAvailable = nurse['is_available'] != false;
+              final totalReviews = nurse['total_reviews'] ?? 45;
+              final reviews = '($totalReviews)';
 
               final fallbackImage = fallbackImages[index % fallbackImages.length];
               final rawPath = nurse['image']?.toString() ?? nurse['image_path']?.toString();
@@ -115,7 +114,7 @@ class TopNursesSection extends StatelessWidget {
                   );
                 },
                 child: Container(
-                  width: 162,
+                  width: 165,
                   margin: const EdgeInsetsDirectional.only(
                     end: 14,
                     bottom: 6,
@@ -123,39 +122,42 @@ class TopNursesSection extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: cardBg,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(
-                      color: borderColor,
-                      width: 1.1,
-                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: borderColor),
                     boxShadow: [
                       BoxShadow(
-                        color: isDark
-                            ? Colors.black.withValues(alpha: 0.3)
-                            : const Color(0xFF0F172A).withValues(alpha: 0.06),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.25 : 0.05,
+                        ),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Top Image Container ──
+                      // Top Image Container
                       Stack(
                         children: [
                           ClipRRect(
                             borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(21),
+                              top: Radius.circular(19),
                             ),
                             child: Container(
-                              height: 112,
+                              height: 114,
                               width: double.infinity,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: isDark
-                                      ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
-                                      : [const Color(0xFFE0F2FE), const Color(0xFFF0FDF4)],
+                                      ? [
+                                          const Color(0xFF0F172A),
+                                          const Color(0xFF1E293B),
+                                        ]
+                                      : [
+                                          const Color(0xFFEFF6FF),
+                                          const Color(0xFFDBEAFE),
+                                        ],
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                 ),
@@ -164,36 +166,35 @@ class TopNursesSection extends StatelessWidget {
                                   ? CachedNetworkImage(
                                       imageUrl: image,
                                       fit: BoxFit.cover,
-                                      alignment: Alignment.topCenter,
-                                      errorWidget: (context, url, error) => const Center(
-                                        child: Icon(
-                                          Icons.person,
-                                          size: 44,
-                                          color: Color(0xFF0D9488),
-                                        ),
+                                      alignment: const Alignment(0, -0.15),
+                                      errorWidget: (context, url, error) => const Icon(
+                                        Icons.person,
+                                        size: 45,
+                                        color: Color(0xFF3B82F6),
                                       ),
                                     )
                                   : Image.asset(
                                       image,
                                       fit: BoxFit.cover,
-                                      alignment: Alignment.topCenter,
+                                      alignment: const Alignment(0, -0.15),
                                     ),
                             ),
                           ),
-
-                          // Rating badge (Top End)
+                          // Verified Tag
                           PositionedDirectional(
-                            top: 8,
-                            end: 8,
+                            top: 6,
+                            start: 6,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2.5,
+                              ),
                               decoration: BoxDecoration(
-                                color: (isDark ? const Color(0xFF0F172A) : Colors.white)
-                                    .withValues(alpha: 0.92),
-                                borderRadius: BorderRadius.circular(8),
+                                color: const Color(0xFF10B981),
+                                borderRadius: BorderRadius.circular(6),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.12),
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.3),
                                     blurRadius: 4,
                                     offset: const Offset(0, 1),
                                   ),
@@ -201,61 +202,12 @@ class TopNursesSection extends StatelessWidget {
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.star_rounded,
-                                    color: Color(0xFFF59E0B),
-                                    size: 13,
-                                  ),
-                                  const SizedBox(width: 2.5),
+                                children: const [
+                                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 10),
+                                  SizedBox(width: 3),
                                   Text(
-                                    rating,
+                                    'باوەڕپێکراو',
                                     style: TextStyle(
-                                      fontFamily: 'Rabar',
-                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          // Availability Pill (Top Start)
-                          PositionedDirectional(
-                            top: 8,
-                            start: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
-                              decoration: BoxDecoration(
-                                color: (isAvailable ? const Color(0xFF059669) : Colors.grey[700]!)
-                                    .withValues(alpha: 0.95),
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (isAvailable ? const Color(0xFF059669) : Colors.black)
-                                        .withValues(alpha: 0.25),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 5,
-                                    height: 5,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 3.5),
-                                  Text(
-                                    isAvailable ? 'ئامادەیە' : 'ئامادە نییە',
-                                    style: const TextStyle(
                                       fontFamily: 'Rabar',
                                       color: Colors.white,
                                       fontSize: 8.5,
@@ -266,93 +218,125 @@ class TopNursesSection extends StatelessWidget {
                               ),
                             ),
                           ),
+                          // Favorite Icon
+                          PositionedDirectional(
+                            top: 6,
+                            end: 6,
+                            child: Container(
+                              width: 26,
+                              height: 26,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.35),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.favorite_border_rounded,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
 
-                      // ── Details Section ──
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(9, 7, 9, 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                name,
-                                style: TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                      // Content
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
                               ),
-                              const SizedBox(height: 1),
-                              Text(
-                                specialty,
-                                style: TextStyle(
-                                  fontFamily: 'Rabar',
-                                  color: isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0D9488),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              specialty,
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                fontSize: 10.5,
                               ),
-                              const Spacer(),
-                              // Location & Book Button
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Iconsax.location,
-                                    color: Color(0xFF3B82F6),
-                                    size: 11,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star_rounded,
+                                  color: Color(0xFFF59E0B),
+                                  size: 13,
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  rating,
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    color: Color(0xFFD97706),
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  const SizedBox(width: 3),
-                                  Expanded(
-                                    child: Text(
-                                      city,
-                                      style: TextStyle(
-                                        fontFamily: 'Rabar',
-                                        color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  reviews,
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                                    fontSize: 9.5,
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [Color(0xFF0D9488), Color(0xFF059669)],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF0D9488).withValues(alpha: 0.25),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 1),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Text(
-                                      'داواکردن',
-                                      style: TextStyle(
-                                        fontFamily: 'Rabar',
-                                        color: Colors.white,
-                                        fontSize: 9.5,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            // Action Button
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF3B82F6),
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(
+                                    Iconsax.calendar_1,
+                                    color: Colors.white,
+                                    size: 12,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'داواکردنی خزمەتگوزاری',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      color: Colors.white,
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
