@@ -32,7 +32,7 @@ class FcmService
     /**
      * Send to a set of device tokens. Returns [sent, failed, invalid tokens].
      */
-    public function sendToTokens(array $tokens, string $title, string $body, array $data = []): array
+    public function sendToTokens(array $tokens, string $title, string $body, array $data = [], ?string $imageUrl = null): array
     {
         $tokens = array_values(array_filter(array_unique($tokens)));
 
@@ -55,19 +55,39 @@ class FcmService
         $failed = 0;
         $invalid = [];
 
+        $notificationPayload = [
+            'title' => $title,
+            'body'  => $body,
+        ];
+        if (!empty($imageUrl)) {
+            $notificationPayload['image'] = $imageUrl;
+            $data['image'] = $imageUrl;
+        }
+
         foreach ($tokens as $token) {
+            $message = [
+                'token' => $token,
+                'notification' => $notificationPayload,
+                'data' => array_map(fn ($v) => (string)$v, $data),
+                'android' => [
+                    'priority' => 'high',
+                ],
+                'apns' => [
+                    'payload' => [
+                        'aps' => ['sound' => 'default'],
+                    ],
+                ],
+            ];
+
+            if (!empty($imageUrl)) {
+                $message['android']['notification'] = ['image' => $imageUrl];
+                $message['apns']['fcm_options'] = ['image' => $imageUrl];
+                $message['apns']['payload']['aps']['mutable-content'] = 1;
+            }
+
             $response = Http::withToken($accessToken)
                 ->acceptJson()
-                ->post($url, [
-                    'message' => [
-                        'token' => $token,
-                        'notification' => ['title' => $title, 'body' => $body],
-                        // FCM requires every data value to be a string.
-                        'data' => array_map(fn ($v) => (string)$v, $data),
-                        'android' => ['priority' => 'high'],
-                        'apns' => ['payload' => ['aps' => ['sound' => 'default']]],
-                    ],
-                ]);
+                ->post($url, ['message' => $message]);
 
             if ($response->successful()) {
                 $sent++;
@@ -92,7 +112,7 @@ class FcmService
     }
 
     /** Broadcast to every registered device, or just one user's devices. */
-    public function sendToUsers(?array $userIds, string $title, string $body, array $data = []): array
+    public function sendToUsers(?array $userIds, string $title, string $body, array $data = [], ?string $imageUrl = null): array
     {
         $query = DeviceToken::query();
 
@@ -100,7 +120,7 @@ class FcmService
             $query->whereIn('user_id', $userIds);
         }
 
-        return $this->sendToTokens($query->pluck('token')->all(), $title, $body, $data);
+        return $this->sendToTokens($query->pluck('token')->all(), $title, $body, $data, $imageUrl);
     }
 
     /** OAuth token for the service account, cached until just before it expires. */

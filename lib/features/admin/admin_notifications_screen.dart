@@ -131,9 +131,30 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen> {
                           ),
                         ),
                         child: selectedImage != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Image.file(selectedImage!, fit: BoxFit.cover),
+                            ? Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Image.file(selectedImage!, fit: BoxFit.cover),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: GestureDetector(
+                                      onTap: () => setModalState(() => selectedImage = null),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.black54,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.close, color: Colors.white, size: 18),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               )
                             : Column(
                                 mainAxisAlignment: MainAxisAlignment.center,

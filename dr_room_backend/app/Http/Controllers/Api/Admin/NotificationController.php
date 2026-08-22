@@ -52,6 +52,11 @@ class NotificationController extends Controller
 
         $notification = AppNotification::create($data);
 
+        $imageUrl = null;
+        if (!empty($notification->image_path)) {
+            $imageUrl = url('storage/' . $notification->image_path);
+        }
+
         // Null user_id means a broadcast; otherwise it targets one account.
         $delivery = app(FcmService::class)->sendToUsers(
             $request->user_id ? [$request->user_id] : null,
@@ -60,7 +65,9 @@ class NotificationController extends Controller
             [
                 'notification_id' => $notification->id,
                 'type' => $notification->type,
-            ]
+                'image_path' => $notification->image_path ?? '',
+            ],
+            $imageUrl
         );
 
         return response()->json([
