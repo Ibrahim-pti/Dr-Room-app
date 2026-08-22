@@ -118,8 +118,9 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
         title: 'کەتەگۆرییەکان',
         subtitle: 'بەڕێوەبردنی هەموو لیستەکانی ئەپ',

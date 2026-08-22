@@ -90,6 +90,7 @@ class _AdminPharmaciesScreenState extends State<AdminPharmaciesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pendingPharmacies =
         _pharmacies.where((d) => d['status'] == 'pending').toList();
     final approvedPharmacies =
@@ -99,7 +100,7 @@ class _AdminPharmaciesScreenState extends State<AdminPharmaciesScreen>
     final filteredApproved = _filterList(approvedPharmacies);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
       appBar: const AdminAppBar(
         title: 'دەرمانخانەکان',
         subtitle: 'بەڕێوەبردنی دەرمانخانەکانی ئەپ',

@@ -61,9 +61,10 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     FontWeight fontWeight = FontWeight.normal,
     double? height,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextStyle(
       fontFamily: 'Rabar',
-      color: color ?? const Color(0xFF0F172A),
+      color: color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
       fontSize: fontSize,
       fontWeight: fontWeight,
       height: height,
@@ -115,6 +116,8 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final lang = context.locale.languageCode;
     final isArabic = lang == 'ar';
     final isEnglish = lang == 'en';
@@ -195,7 +198,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: 24),
         child: Column(

@@ -529,11 +529,12 @@ class _NurseListScreenState extends State<NurseListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: RefreshIndicator(
         color: const Color(0xFF0D9488),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
         displacement: 40,
         onRefresh: _fetchNurses,
         child: CustomScrollView(
@@ -604,7 +605,7 @@ class _NurseListScreenState extends State<NurseListScreen> {
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       pinned: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,

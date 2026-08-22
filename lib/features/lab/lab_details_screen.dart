@@ -285,14 +285,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   TextStyle _kStyle({
     double fontSize = 14,
     FontWeight fontWeight = FontWeight.normal,
-    Color color = const Color(0xFF0F172A),
+    Color? color,
     double? height,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextStyle(
       fontFamily: 'Rabar',
       fontSize: fontSize,
       fontWeight: fontWeight,
-      color: color,
+      color: color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
       height: height,
     );
   }
@@ -409,6 +410,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final String name = context.localizedField(_labData, 'name', fallback: 'cat_lab'.tr());
     final String location = context.localizedField(_labData, 'location', fallback: context.localizedField(_labData, 'address', fallback: ''));
     final String rating = '${_labData['rating'] ?? 4.8}';
@@ -420,7 +422,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: _buildAppBar(context),
       body: Stack(
         children: [
@@ -486,7 +488,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,

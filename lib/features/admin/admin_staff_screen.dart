@@ -83,8 +83,9 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
         title: 'ستاف و دەسەڵاتەکان',
         subtitle: '${_staff.length} هەژماری ستاف',

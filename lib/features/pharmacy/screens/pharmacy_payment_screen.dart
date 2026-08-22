@@ -192,6 +192,7 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cartState = ref.watch(cartProvider);
 
     return Scaffold(

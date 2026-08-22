@@ -90,6 +90,7 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pendingDoctors =
         _doctors.where((d) => d['status'] == 'pending').toList();
     final approvedDoctors =
@@ -99,7 +100,7 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
     final filteredApproved = _filterList(approvedDoctors);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
       appBar: AdminAppBar(
         title: 'پزیشکەکان',
         subtitle: '${pendingDoctors.length} چاوەڕێکراو',

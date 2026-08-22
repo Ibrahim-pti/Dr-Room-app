@@ -110,6 +110,7 @@ class _BookingSlotScreenState extends State<BookingSlotScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final canContinue = _chosenDateTime != null;
 
     return Scaffold(

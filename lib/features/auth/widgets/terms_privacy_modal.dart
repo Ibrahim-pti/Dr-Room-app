@@ -54,6 +54,7 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
     final isKurdish = context.locale.languageCode == 'ckb';
     final isArabic = context.locale.languageCode == 'ar';

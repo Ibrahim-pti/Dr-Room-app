@@ -90,6 +90,7 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pendingLabs =
         _labs.where((d) => d['status'] == 'pending').toList();
     final approvedLabs =
@@ -99,7 +100,7 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
     final filteredApproved = _filterList(approvedLabs);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
       appBar: const AdminAppBar(
         title: 'تاقیگەکان',
         subtitle: 'بینین و قبوڵکردنی تاقیگەکان',

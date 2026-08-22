@@ -92,13 +92,14 @@ class _LabMapScreenState extends State<LabMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final name = widget.lab['name']?.toString() ?? 'تاقیگەی پزیشکی';
     final location = widget.lab['location']?.toString() ?? 'هەولێر - شەقامی پزیشکان';
     final rating = '${widget.lab['rating'] ?? 4.8}';
     final openingHours = widget.lab['opening_hours']?.toString() ?? '08:00 AM - 10:00 PM';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: Stack(
         children: [
           // ── 1. Official Google Map ──

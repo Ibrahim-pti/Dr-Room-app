@@ -1358,12 +1358,13 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final filteredArticles = _selectedFilter == 'هەمووی'
         ? _articles
         : _articles.where((a) => (a['category'] ?? '') == _selectedFilter).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
         title: 'فریاگوزاری',
         subtitle: '${_articles.length} بابەتی بڵاوکراوە',
@@ -1427,7 +1428,7 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                     ),
                     selected: isSelected,
                     selectedColor: const Color(0xFF2563EB),
-                    backgroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
                     side: BorderSide(
                       color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
                     ),

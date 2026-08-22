@@ -90,6 +90,7 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pendingXRays =
         _xrays.where((d) => d['status'] == 'pending').toList();
     final approvedXRays =
@@ -99,7 +100,7 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
     final filteredApproved = _filterList(approvedXRays);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
       appBar: const AdminAppBar(
         title: 'تیشک و سۆنەر',
         subtitle: 'سەنتەرەکانی تیشک و سۆنەر',

@@ -27,6 +27,7 @@ class _OrganDetailsScreenState extends State<OrganDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final title = widget.organData['title'] ?? 'Wikipedia Medical Summary';
     final imageUrl = widget.organData['imageUrl'] ?? '';
     final description = widget.organData['description'] ??
@@ -56,9 +57,9 @@ class _OrganDetailsScreenState extends State<OrganDetailsScreen> {
         };
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(

@@ -616,6 +616,7 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final activeOrganData = selectedOrgan != null
         ? organQuickData[selectedOrgan]
         : null;
@@ -623,7 +624,7 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
     final isAllSelected = selectedSystem == 'All';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
       appBar: _buildAppBar(),
       body: SafeArea(
         child: Column(
@@ -745,7 +746,7 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
       elevation: 0,
       scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,

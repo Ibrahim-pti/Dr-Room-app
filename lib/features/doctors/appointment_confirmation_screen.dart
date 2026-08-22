@@ -125,6 +125,7 @@ class _AppointmentConfirmationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isBooking = context.watch<AppointmentProvider>().isLoading;
 
     return Scaffold(

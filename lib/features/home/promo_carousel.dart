@@ -329,4 +329,3 @@ class _PromoCarouselState extends State<PromoCarousel> {
     );
   }
 }
-

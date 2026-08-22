@@ -532,11 +532,12 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: RefreshIndicator(
         color: const Color(0xFF3B82F6),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
         displacement: 40,
         onRefresh: _fetchLabs,
         child: CustomScrollView(
@@ -622,7 +623,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       pinned: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,

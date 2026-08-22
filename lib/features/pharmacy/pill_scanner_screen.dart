@@ -205,6 +205,7 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool showSuccess = _result != null && _result!['identified'] == true;
     final bool showProblem =
         _errorMessage != null || _notConfidentlyIdentified || _cameraUnavailable;

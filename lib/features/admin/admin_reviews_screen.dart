@@ -149,10 +149,11 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hiddenCount = _reviews.where((r) => r['is_hidden'] == true).length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
         title: 'هەڵسەنگاندنەکان',
         subtitle: '${_reviews.length} هەڵسەنگاندن · $hiddenCount شاردراوە',
