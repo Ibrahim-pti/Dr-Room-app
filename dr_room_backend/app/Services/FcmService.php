@@ -65,25 +65,47 @@ class FcmService
         }
 
         foreach ($tokens as $token) {
+            $androidNotification = [
+                'icon' => 'launcher_icon',
+                'color' => '#3B82F6',
+                'sound' => 'default',
+                'channel_id' => 'drroom_high_importance_channel',
+                'notification_priority' => 'PRIORITY_MAX',
+                'visibility' => 'PUBLIC',
+                'default_sound' => true,
+                'default_vibrate_timings' => true,
+            ];
+            if (!empty($imageUrl)) {
+                $androidNotification['image'] = $imageUrl;
+            }
+
             $message = [
                 'token' => $token,
+
                 'notification' => $notificationPayload,
                 'data' => array_map(fn ($v) => (string)$v, $data),
                 'android' => [
                     'priority' => 'high',
+                    'notification' => $androidNotification,
                 ],
                 'apns' => [
+                    'headers' => [
+                        'apns-priority' => '10',
+                    ],
                     'payload' => [
-                        'aps' => ['sound' => 'default'],
+                        'aps' => [
+                            'sound' => 'default',
+                            'badge' => 1,
+                            'mutable-content' => 1,
+                        ],
                     ],
                 ],
             ];
 
             if (!empty($imageUrl)) {
-                $message['android']['notification'] = ['image' => $imageUrl];
                 $message['apns']['fcm_options'] = ['image' => $imageUrl];
-                $message['apns']['payload']['aps']['mutable-content'] = 1;
             }
+
 
             $response = Http::withToken($accessToken)
                 ->acceptJson()

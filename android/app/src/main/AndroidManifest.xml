@@ -55,7 +55,19 @@
              gitignored. Never hardcode the key here. -->
         <meta-data android:name="com.google.android.geo.API_KEY"
                    android:value="${MAPS_API_KEY}"/>
+
+        <!-- Default Notification Icon, Color & Channel for Firebase Messaging -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/launcher_icon" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_color" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="drroom_high_importance_channel" />
     </application>
+
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
          https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.

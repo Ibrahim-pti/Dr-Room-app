@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../utils/api_client.dart';
 import '../../firebase_options.dart';
 import '../../main.dart';
-
+import '../../features/notifications/notifications_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -76,61 +76,115 @@ class PushNotificationService {
           final messenger = ScaffoldMessenger.maybeOf(state.context);
           messenger?.showSnackBar(
             SnackBar(
-              backgroundColor: const Color(0xFF1E293B),
+              backgroundColor: const Color(0xFF0F172A),
               behavior: SnackBarBehavior.floating,
-              elevation: 6,
+              elevation: 10,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               margin: const EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              content: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.notifications_active_rounded, color: Color(0xFF3B82F6), size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
-                        if (body.toString().isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            body.toString(),
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: BorderSide(
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+              ),
+              content: InkWell(
+                onTap: () {
+                  messenger.hideCurrentSnackBar();
+                  state.push(
+                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                  );
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                            blurRadius: 8,
                           ),
                         ],
-                      ],
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/app_icon.png',
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) => const Icon(
+                            Icons.notifications_active_rounded,
+                            color: Color(0xFF3B82F6),
+                            size: 24,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    fontSize: 14.5,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text(
+                                  'Dr-Room',
+                                  style: TextStyle(
+                                    color: Color(0xFF60A5FA),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (body.toString().isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              body.toString(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                color: Color(0xFFCBD5E1),
+                                fontSize: 12.5,
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              duration: const Duration(seconds: 4),
+              duration: const Duration(seconds: 5),
             ),
           );
         }
-
       });
-
 
       // Handle notification opened from background / terminated
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -177,4 +231,3 @@ class PushNotificationService {
     }
   }
 }
-
