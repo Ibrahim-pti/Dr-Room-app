@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class AppNotification extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     
     protected $fillable = ['title', 'title_en', 'title_ar', 'message', 'message_en', 'message_ar', 'type', 'user_id', 'is_read', 'image_path'];
     

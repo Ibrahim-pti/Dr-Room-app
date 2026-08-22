@@ -171,6 +171,8 @@ class AuthController extends Controller
         $user->otp_expires_at = null;
         $user->save();
 
+        $user->forceFill(['last_login_at' => now()])->save();
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

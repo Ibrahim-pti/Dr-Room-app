@@ -15,10 +15,15 @@ class PharmacyReview extends Model
         'pharmacy_id',
         'rating',
         'comment',
+        'is_hidden',
+        'hidden_reason',
+        'hidden_at',
     ];
 
     protected $casts = [
         'rating' => 'decimal:1',
+        'is_hidden' => 'boolean',
+        'hidden_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

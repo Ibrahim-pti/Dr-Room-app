@@ -2,20 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\LogsActivity;
-
 use Illuminate\Database\Eloquent\Model;
 
-class XRay extends Model
+class DeviceToken extends Model
 {
-    use LogsActivity;
-
     protected $guarded = [];
 
     protected $casts = [
-        'available_days' => 'array',
-        'rating' => 'decimal:1',
-        'is_approved' => 'boolean',
+        'last_used_at' => 'datetime',
     ];
 
     public function user()

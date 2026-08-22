@@ -78,4 +78,10 @@ return [
         'manual_code' => env('OTP_MANUAL_CODE'),
     ],
 
+
+    'fcm' => [
+        'project_id'  => env('FCM_PROJECT_ID'),
+        'credentials' => env('FCM_CREDENTIALS', 'storage/app/firebase-service-account.json'),
+    ],
+
 ];

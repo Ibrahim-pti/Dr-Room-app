@@ -45,6 +45,15 @@ Route::get('/medicines/lookup', [\App\Http\Controllers\Api\MedicineInfoControlle
 Route::get('/anatomy/systems', [\App\Http\Controllers\Api\AnatomyController::class, 'systems']);
 Route::get('/anatomy/organs', [\App\Http\Controllers\Api\AnatomyController::class, 'organs']);
 
+// ─── Service Categories (nursing, lab, pharmacy, doctor, first aid) ───
+Route::get('/service-categories', function (\Illuminate\Http\Request $request) {
+    return \App\Models\ServiceCategory::active()
+        ->when($request->filled('scope'), fn ($q) => $q->ofScope($request->scope))
+        ->orderBy('sort_order')
+        ->orderBy('name')
+        ->get();
+});
+
 // ─── Emergency Reels API ──────────────────────────────────────────────
 Route::get('/emergency-reels', [\App\Http\Controllers\Api\EmergencyReelController::class, 'index']);
 
@@ -123,19 +132,79 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ─── Admin Routes ───────────────────────────────────────────────────────
-    Route::middleware([\App\Http\Middleware\IsAdmin::class])->prefix('admin')->group(function () {
+    Route::middleware('staff')->prefix('admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
-        Route::apiResource('banners', BannerController::class);
-        Route::apiResource('articles', ArticleController::class);
-        Route::apiResource('notifications', NotificationController::class);
-        Route::get('/appointments', [AppointmentController::class, 'index']);
+
+        // Who am I and what may I touch — the admin app builds its menu from this.
+        Route::get('/me', function (\Illuminate\Http\Request $request) {
+            $user = $request->user();
+            return response()->json([
+                'id'          => $user->id,
+                'name'        => $user->name,
+                'email'       => $user->email,
+                'role'        => $user->role,
+                'role_label'  => \App\Support\Permissions::ROLE_LABELS[$user->role] ?? $user->role,
+                'permissions' => $user->permission_list,
+            ]);
+        });
+
+        // ── Staff accounts, roles and the audit trail ──────────────────────
+        Route::middleware('permission:manage_staff')->group(function () {
+            Route::get('/staff/meta', [\App\Http\Controllers\Api\Admin\StaffController::class, 'meta']);
+            Route::get('/staff', [\App\Http\Controllers\Api\Admin\StaffController::class, 'index']);
+            Route::post('/staff', [\App\Http\Controllers\Api\Admin\StaffController::class, 'store']);
+            Route::put('/staff/{id}', [\App\Http\Controllers\Api\Admin\StaffController::class, 'update']);
+            Route::delete('/staff/{id}', [\App\Http\Controllers\Api\Admin\StaffController::class, 'destroy']);
+        });
+
+        Route::middleware('permission:view_logs')
+            ->get('/activity-logs', [\App\Http\Controllers\Api\Admin\ActivityLogController::class, 'index']);
+
+        // ── Review moderation ──────────────────────────────────────────────
+        Route::middleware('permission:manage_reviews')->group(function () {
+            Route::get('/reviews', [\App\Http\Controllers\Api\Admin\AdminReviewController::class, 'index']);
+            Route::patch('/reviews/{type}/{id}/hide', [\App\Http\Controllers\Api\Admin\AdminReviewController::class, 'hide']);
+            Route::patch('/reviews/{type}/{id}/restore', [\App\Http\Controllers\Api\Admin\AdminReviewController::class, 'restore']);
+            Route::delete('/reviews/{type}/{id}', [\App\Http\Controllers\Api\Admin\AdminReviewController::class, 'destroy']);
+        });
+
+        // ── Service categories ─────────────────────────────────────────────
+        Route::middleware('permission:manage_categories')->group(function () {
+            Route::get('/service-categories/scopes', [\App\Http\Controllers\Api\Admin\ServiceCategoryController::class, 'scopes']);
+            Route::post('/service-categories/reorder', [\App\Http\Controllers\Api\Admin\ServiceCategoryController::class, 'reorder']);
+            Route::get('/service-categories', [\App\Http\Controllers\Api\Admin\ServiceCategoryController::class, 'index']);
+            Route::post('/service-categories', [\App\Http\Controllers\Api\Admin\ServiceCategoryController::class, 'store']);
+            Route::put('/service-categories/{id}', [\App\Http\Controllers\Api\Admin\ServiceCategoryController::class, 'update']);
+            Route::delete('/service-categories/{id}', [\App\Http\Controllers\Api\Admin\ServiceCategoryController::class, 'destroy']);
+        });
+
+        // ── Payments and revenue ───────────────────────────────────────────
+        Route::middleware('permission:view_payments')->group(function () {
+            Route::get('/transactions/summary', [\App\Http\Controllers\Api\Admin\AdminTransactionController::class, 'summary']);
+            Route::get('/transactions', [\App\Http\Controllers\Api\Admin\AdminTransactionController::class, 'index']);
+            Route::patch('/transactions/{id}/status', [\App\Http\Controllers\Api\Admin\AdminTransactionController::class, 'updateStatus']);
+        });
+
+        Route::middleware('permission:manage_content')->group(function () {
+            Route::apiResource('banners', BannerController::class);
+            Route::apiResource('articles', ArticleController::class);
+            Route::apiResource('notifications', NotificationController::class);
+        });
+
+        Route::middleware('permission:manage_orders')
+            ->get('/appointments', [AppointmentController::class, 'index']);
 
         // Orders
+        Route::middleware('permission:manage_orders')->group(function () {
         Route::get('/orders', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'index']);
         Route::patch('/orders/{id}/assign-nurse', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'assignNurse']);
         Route::patch('/orders/{id}/assign-pharmacy', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'assignPharmacy']);
         Route::patch('/orders/{id}/status', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'updateStatus']);
         Route::delete('/orders/{id}', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'destroy']);
+        });
+
+        // Providers: doctors, nurses, labs, pharmacies, x-rays
+        Route::middleware('permission:manage_providers')->group(function () {
 
         // Doctors
         Route::get('/doctors', [\App\Http\Controllers\Api\Admin\AdminDoctorController::class, 'index']);
@@ -175,10 +244,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/xrays/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'reject']);
         Route::delete('/xrays/{id}', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'destroy']);
 
+        });
+
         // Users
-        Route::get('/users', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'index']);
-        Route::patch('/users/{id}/block', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'block']);
-        Route::patch('/users/{id}/unblock', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'unblock']);
-        Route::post('/add-admin', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'storeAdmin']);
+        Route::middleware('permission:manage_users')->group(function () {
+            Route::get('/users', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'index']);
+            Route::patch('/users/{id}/block', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'block']);
+            Route::patch('/users/{id}/unblock', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'unblock']);
+        });
+
+        Route::middleware('permission:manage_staff')
+            ->post('/add-admin', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'storeAdmin']);
     });
 });

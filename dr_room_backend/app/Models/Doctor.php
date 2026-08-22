@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Doctor extends Model
 {
+    use LogsActivity;
+
     protected $guarded = [];
 
     protected $casts = [

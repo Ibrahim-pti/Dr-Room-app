@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use App\Models\Appointment;
+use App\Models\Transaction;
 use Illuminate\Support\Str;
 
 class PaymentController extends Controller
@@ -24,6 +25,19 @@ class PaymentController extends Controller
 
         $id = 'pi_' . Str::random(20);
         $clientSecret = 'seti_' . Str::random(24);
+
+        Transaction::create([
+            'reference'   => 'txn_' . Str::random(16),
+            'intent_id'   => $id,
+            'user_id'     => Auth::id(),
+            'amount'      => (float)$request->amount,
+            'currency'    => $request->currency ?? 'IQD',
+            'status'      => 'pending',
+            'method'      => $request->input('method', 'cash'),
+            'description' => $request->description,
+            'payable_type' => $request->input('payable_type'),
+            'payable_id'   => $request->input('payable_id'),
+        ]);
 
         return response()->json([
             'id' => $id,
@@ -45,26 +59,43 @@ class PaymentController extends Controller
             'paymentMethodId' => 'nullable|string',
         ]);
 
-        $user = Auth::user();
-        $id = 'txn_' . Str::random(16);
+        $record = Transaction::where('intent_id', $request->paymentIntentId)->first();
 
-        $transaction = [
-            'id' => $id,
-            'amount' => $request->amount ?? 25000,
-            'currency' => 'IQD',
-            'status' => 'completed',
-            'description' => 'Medical Service Payment',
-            'date' => now()->toIso8601String(),
+        if (!$record) {
+            $record = Transaction::create([
+                'reference'   => 'txn_' . Str::random(16),
+                'intent_id'   => $request->paymentIntentId,
+                'user_id'     => Auth::id(),
+                'amount'      => (float)($request->amount ?? 0),
+                'currency'    => 'IQD',
+                'description' => 'Medical Service Payment',
+            ]);
+        }
+
+        $record->update([
+            'status'  => 'completed',
+            'method'  => $request->input('method', $record->method),
+            'paid_at' => now(),
+            'meta'    => array_merge($record->meta ?? [], [
+                'payment_method_id' => $request->paymentMethodId,
+            ]),
+        ]);
+
+        return response()->json([
+            'id' => $record->reference,
+            'amount' => (float)$record->amount,
+            'currency' => $record->currency,
+            'status' => $record->status,
+            'description' => $record->description ?? 'Medical Service Payment',
+            'date' => $record->paid_at?->toIso8601String() ?? now()->toIso8601String(),
             'paymentMethod' => [
                 'id' => $request->paymentMethodId ?? 'pm_cash',
-                'type' => 'card',
-                'last4' => '4242',
-                'brand' => 'visa',
+                'type' => $record->method,
+                'last4' => 'COD',
+                'brand' => $record->method,
             ],
-            'receiptUrl' => url('/api/payments/receipt/' . $id),
-        ];
-
-        return response()->json($transaction);
+            'receiptUrl' => url('/api/payments/receipt/' . $record->reference),
+        ]);
     }
 
     /**
@@ -76,6 +107,25 @@ class PaymentController extends Controller
         $orders = Order::where('patient_id', $user ? $user->id : 1)
             ->orderBy('created_at', 'desc')
             ->get();
+
+        $recorded = Transaction::where('user_id', $user?->id)
+            ->latest()
+            ->get()
+            ->map(fn (Transaction $t) => [
+                'id' => $t->reference,
+                'amount' => (float)$t->amount,
+                'currency' => $t->currency,
+                'status' => $t->status,
+                'description' => $t->description ?? 'Medical Service',
+                'date' => ($t->paid_at ?? $t->created_at)->toIso8601String(),
+                'paymentMethod' => [
+                    'id' => 'pm_' . $t->method,
+                    'type' => $t->method,
+                    'last4' => 'COD',
+                    'brand' => $t->method,
+                ],
+                'receiptUrl' => url('/api/payments/receipt/' . $t->reference),
+            ]);
 
         $transactions = $orders->map(function($order) {
             return [
@@ -97,7 +147,7 @@ class PaymentController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $transactions
+            'data' => $recorded->concat($transactions)->sortByDesc('date')->values(),
         ]);
     }
 

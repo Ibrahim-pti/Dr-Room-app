@@ -10,6 +10,8 @@ class NurseReview extends Model
 
     protected $casts = [
         'rating' => 'integer',
+            'is_hidden' => 'boolean',
+        'hidden_at' => 'datetime',
     ];
 
     public function nurse()

@@ -11,10 +11,15 @@ class LabReview extends Model
         'patient_id',
         'rating',
         'comment',
+        'is_hidden',
+        'hidden_reason',
+        'hidden_at',
     ];
 
     protected $casts = [
         'rating' => 'integer',
+        'is_hidden' => 'boolean',
+        'hidden_at' => 'datetime',
     ];
 
     public function lab()

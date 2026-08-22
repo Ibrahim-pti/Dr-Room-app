@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Banner extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     
     protected $fillable = ['title', 'title_en', 'title_ar', 'image_path', 'link_url', 'is_active', 'sort_order'];
     

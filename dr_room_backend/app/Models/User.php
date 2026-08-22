@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'name_en', 'name_ar', 'email', 'phone', 'password', 'role', 'status', 'profile_image', 'otp_code', 'otp_expires_at'])]
+#[Fillable(['name', 'name_en', 'name_ar', 'email', 'phone', 'password', 'role', 'status', 'profile_image', 'otp_code', 'otp_expires_at', 'permissions', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,12 +28,42 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'permissions' => 'array',
+            'last_login_at' => 'datetime',
         ];
     }
 
     public function getIsAdminAttribute(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /** Anyone who may sign in to the admin dashboard, at any permission level. */
+    public function getIsStaffAttribute(): bool
+    {
+        return in_array($this->role, \App\Support\Permissions::STAFF_ROLES, true);
+    }
+
+    /**
+     * Effective permissions: the per-user override when one is set, otherwise
+     * whatever the role grants by default. A main admin always has everything.
+     */
+    public function getPermissionListAttribute(): array
+    {
+        if ($this->role === 'admin') {
+            return \App\Support\Permissions::ALL;
+        }
+
+        if (is_array($this->permissions) && $this->permissions !== []) {
+            return array_values(array_intersect($this->permissions, \App\Support\Permissions::ALL));
+        }
+
+        return \App\Support\Permissions::defaultsFor($this->role);
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return in_array($permission, $this->permission_list, true);
     }
 
     public function getIsDoctorAttribute(): bool
