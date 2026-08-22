@@ -6,7 +6,6 @@ import '../../core/utils/api_client.dart';
 import '../../core/utils/admin_permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../main.dart';
-import 'admin_users_screen.dart';
 import 'admin_staff_screen.dart';
 import 'admin_activity_log_screen.dart';
 import 'admin_reviews_screen.dart';
@@ -14,9 +13,6 @@ import 'admin_categories_screen.dart';
 import 'admin_transactions_screen.dart';
 import 'admin_banners_screen.dart';
 import 'admin_notifications_screen.dart';
-import 'admin_orders_screen.dart';
-import 'admin_appointments_screen.dart';
-import 'admin_xrays_screen.dart';
 import 'admin_app_bar.dart';
 
 class AdminMenuScreen extends StatefulWidget {
@@ -132,7 +128,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   List<Map<String, dynamic>> _visibleSections() {
     final all = [
       {
-        'sectionTitle': 'بەڕێوەبردنی ناوەڕۆک و خزمەتگوزارییەکان',
+        'sectionTitle': 'بەڕێوەبردنی ناوەڕۆک و ڕێکخستنەکان',
         'items': [
           {
             'title': 'بانەر و ڕیکلامەکان',
@@ -149,22 +145,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'icon': Iconsax.notification_bing,
             'color': const Color(0xFFD97706),
             'screen': const AdminNotificationsScreen(),
-          },
-          {
-            'title': 'داواکارییەکانی نەخۆش',
-            'permission': AdminPermissions.manageOrders,
-            'subtitle': 'بەڕێوەبردن و دابەشکردنی ئۆردەرەکان',
-            'icon': Iconsax.box,
-            'color': const Color(0xFF10B981),
-            'screen': const AdminOrdersScreen(),
-          },
-          {
-            'title': 'نۆرە و چاوپێکەوتنەکان',
-            'permission': AdminPermissions.manageOrders,
-            'subtitle': 'تەواوی نۆرە تۆمارکراوەکانی پزیشک',
-            'icon': Iconsax.calendar_1,
-            'color': const Color(0xFFEC4899),
-            'screen': const AdminAppointmentsScreen(),
           },
           {
             'title': 'کەتەگۆرییەکان',
@@ -190,27 +170,11 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'color': const Color(0xFF059669),
             'screen': const AdminTransactionsScreen(),
           },
-          {
-            'title': 'سەنتەرەکانی تیشک و سۆنەر',
-            'permission': AdminPermissions.manageProviders,
-            'subtitle': 'پەسەندکردن و بەڕێوەبردن',
-            'icon': Iconsax.scan,
-            'color': const Color(0xFF8B5CF6),
-            'screen': const AdminXRaysScreen(),
-          },
         ],
       },
       {
-        'sectionTitle': 'بەکارهێنەران و دەسەڵاتەکان',
+        'sectionTitle': 'ستاف و بەڕێوەبردنی سیستەم',
         'items': [
-          {
-            'title': 'بەکارهێنەرانی ئەپ',
-            'permission': AdminPermissions.manageUsers,
-            'subtitle': 'بینین و بلۆککردنی بەکارهێنەر',
-            'icon': Iconsax.people,
-            'color': const Color(0xFF3B82F6),
-            'screen': const AdminUsersScreen(),
-          },
           {
             'title': 'ستاف و دەسەڵاتەکان',
             'permission': AdminPermissions.manageStaff,
