@@ -1,21 +1,29 @@
 class Medication {
   final int id;
   final String name;
+  final String? category;
   final String? description;
   final double price;
   final double? originalPrice;
   final int? discountPercent;
+  final String? badge;
+  final String dosageForm;
   final int stock;
+  final bool requiresPrescription;
   final String? imageUrl;
 
   Medication({
     required this.id,
     required this.name,
+    this.category,
     this.description,
     required this.price,
     this.originalPrice,
     this.discountPercent,
+    this.badge,
+    this.dosageForm = 'پاکەت',
     required this.stock,
+    this.requiresPrescription = false,
     this.imageUrl,
   });
 
@@ -46,8 +54,9 @@ class Medication {
 
   factory Medication.fromJson(Map<String, dynamic> json) {
     return Medication(
-      id: json['id'],
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
       name: json['name'] ?? '',
+      category: json['category'],
       description: json['description'],
       price: double.parse(json['price'].toString()),
       originalPrice: json['original_price'] != null
@@ -56,8 +65,11 @@ class Medication {
       discountPercent: json['discount_percent'] != null
           ? int.tryParse(json['discount_percent'].toString())
           : null,
-      stock: json['stock'] ?? 0,
-      imageUrl: json['image_url'],
+      badge: json['badge'],
+      dosageForm: json['dosage_form'] ?? 'پاکەت',
+      stock: json['stock'] is int ? json['stock'] : int.tryParse(json['stock'].toString()) ?? 0,
+      requiresPrescription: json['requires_prescription'] == true || json['requires_prescription'] == 1,
+      imageUrl: json['image_url'] ?? json['image_path'],
     );
   }
 }

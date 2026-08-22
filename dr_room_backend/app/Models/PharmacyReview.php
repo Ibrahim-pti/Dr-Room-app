@@ -6,31 +6,28 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PharmacyOffer extends Model
+class PharmacyReview extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'title',
-        'promo_code',
-        'description',
-        'discount_percentage',
-        'image_path',
-        'is_active',
-        'start_date',
-        'end_date',
+        'pharmacy_id',
+        'rating',
+        'comment',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'discount_percentage' => 'decimal:2',
-        'is_active' => 'boolean',
+        'rating' => 'decimal:1',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function pharmacy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'pharmacy_id');
     }
 }

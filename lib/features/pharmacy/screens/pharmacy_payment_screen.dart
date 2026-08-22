@@ -47,6 +47,8 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
         'extra_fee': cartState.pharmacy!.deliveryFee,
         'total_price': cartState.total,
         'payment_method': _selectedPaymentMethod,
+        'assigned_pharmacy_id': cartState.pharmacy!.id,
+        'pharmacy_id': cartState.pharmacy!.id,
         'patient_details': {
           'name': widget.name,
           'phone': widget.phone,
@@ -60,9 +62,12 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
         'items': cartState.items.map((item) => {
           'id': item.medication.id,
           'name': item.medication.name,
-          'price': item.medication.price,
+          'price': item.unitPrice,
           'quantity': item.quantity,
-          'extra_data': {'pharmacy_id': cartState.pharmacy!.id}
+          'extra_data': {
+            'pharmacy_id': cartState.pharmacy!.id,
+            'unit': item.unit,
+          }
         }).toList(),
       };
 

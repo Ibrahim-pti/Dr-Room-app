@@ -4,7 +4,7 @@
 <div class="fade-up">
     <div style="margin-bottom: 24px;">
         <h2 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">زیادکردنی ئۆفەر</h2>
-        <p style="color: #64748b; font-size: 0.95rem;">ئۆفەرێکی نوێ دابنێ بۆ کڕیارەکانت.</p>
+        <p style="color: #64748b; font-size: 0.95rem;">ئۆفەرێکی نوێ و کۆدی داشکاندن دابنێ بۆ کڕیارەکانت لە ئەپەکە.</p>
     </div>
 
     @if ($errors->any())
@@ -25,21 +25,27 @@
                 <!-- Title -->
                 <div>
                     <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">ناوی ئۆفەر *</label>
-                    <input type="text" name="title" value="{{ old('title') }}" required style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
+                    <input type="text" name="title" value="{{ old('title') }}" placeholder="بۆ نموونە: ئۆفەری داشکاندنی دەرمانەکان 🎉" required style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
                 </div>
 
-                <!-- Discount Percentage -->
+                <!-- Promo Code -->
                 <div>
-                    <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">ڕێژەی داشکاندن (%) *</label>
-                    <input type="number" name="discount_percentage" value="{{ old('discount_percentage', 0) }}" required min="0" max="100" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
+                    <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">کۆدی داشکاندن (Promo Code)</label>
+                    <input type="text" name="promo_code" value="{{ old('promo_code', 'PHARMA10') }}" placeholder="PHARMA10" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <!-- Discount Percentage -->
+                <div>
+                    <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">ڕێژەی داشکاندن (%) *</label>
+                    <input type="number" name="discount_percentage" value="{{ old('discount_percentage', 10) }}" required min="0" max="100" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
+                </div>
+
                 <!-- Start Date -->
                 <div>
                     <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">بەرواری دەستپێکردن</label>
-                    <input type="date" name="start_date" value="{{ old('start_date') }}" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
+                    <input type="date" name="start_date" value="{{ old('start_date', date('Y-m-d')) }}" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
                 </div>
 
                 <!-- End Date -->
@@ -51,20 +57,20 @@
 
             <!-- Image -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">وێنەی ئۆفەر (ئارەزوومەندانە)</label>
+                <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">وێنەی ئۆفەر (بانەر)</label>
                 <input type="file" name="image" accept="image/*" style="width: 100%; padding: 9px 16px; border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 0.95rem; background: #f8fafc; color: #64748b;">
             </div>
 
             <!-- Description -->
             <div style="margin-bottom: 24px;">
                 <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">وەسفی ئۆفەر</label>
-                <textarea name="description" rows="4" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none; resize: vertical;">{{ old('description') }}</textarea>
+                <textarea name="description" rows="3" placeholder="داشکاندنی ١٠٪ بە کۆدی PHARMA10 لە کاتی کڕین" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none; resize: vertical;">{{ old('description') }}</textarea>
             </div>
 
             <!-- Is Active -->
             <div style="margin-bottom: 32px; display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" name="is_active" id="is_active" checked style="width: 18px; height: 18px;">
-                <label for="is_active" style="font-weight: 600; color: #334155; cursor: pointer;">ئۆفەرەکە چالاکە</label>
+                <input type="checkbox" name="is_active" id="is_active" value="1" checked style="width: 18px; height: 18px;">
+                <label for="is_active" style="font-weight: 600; color: #334155; cursor: pointer;">ئۆفەرەکە چالاکە و لە ئەپەکە پیشانبدرێت</label>
             </div>
 
             <!-- Buttons -->

@@ -25,6 +25,7 @@ class PharmacyOfferController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'promo_code' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'discount_percentage' => 'required|numeric|min:0|max:100',
             'image' => 'nullable|image|max:2048',
@@ -34,7 +35,7 @@ class PharmacyOfferController extends Controller
 
         $data = $request->except('image');
         $data['user_id'] = Auth::id();
-        $data['is_active'] = $request->has('is_active');
+        $data['is_active'] = $request->has('is_active') ? true : true;
 
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('offers', 'public');
@@ -57,6 +58,7 @@ class PharmacyOfferController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
+            'promo_code' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'discount_percentage' => 'required|numeric|min:0|max:100',
             'image' => 'nullable|image|max:2048',
@@ -68,7 +70,9 @@ class PharmacyOfferController extends Controller
         $data['is_active'] = $request->has('is_active');
 
         if ($request->hasFile('image')) {
-            if ($offer->image_path) Storage::disk('public')->delete($offer->image_path);
+            if ($offer->image_path && !str_starts_with($offer->image_path, 'http')) {
+                Storage::disk('public')->delete($offer->image_path);
+            }
             $data['image_path'] = $request->file('image')->store('offers', 'public');
         }
 
@@ -81,7 +85,9 @@ class PharmacyOfferController extends Controller
     {
         if ($offer->user_id !== Auth::id()) abort(403);
         
-        if ($offer->image_path) Storage::disk('public')->delete($offer->image_path);
+        if ($offer->image_path && !str_starts_with($offer->image_path, 'http')) {
+            Storage::disk('public')->delete($offer->image_path);
+        }
         
         $offer->delete();
 

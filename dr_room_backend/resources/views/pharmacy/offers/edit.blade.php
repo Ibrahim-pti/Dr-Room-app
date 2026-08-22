@@ -4,7 +4,7 @@
 <div class="fade-up">
     <div style="margin-bottom: 24px;">
         <h2 style="font-size: 1.5rem; font-weight: 700; color: #0f172a;">دەستکاریکردنی ئۆفەر</h2>
-        <p style="color: #64748b; font-size: 0.95rem;">لێرە دەتوانیت زانیارییەکانی "{{ $offer->title }}" بگۆڕیت.</p>
+        <p style="color: #64748b; font-size: 0.95rem;">نوێکردنەوەی زانیارییەکانی ئۆفەری {{ $offer->title }}.</p>
     </div>
 
     @if ($errors->any())
@@ -18,7 +18,7 @@
     @endif
 
     <div style="background: white; border-radius: 16px; border: 1px solid #f1f5f9; padding: 32px; max-width: 800px;">
-        <form action="{{ route('pharmacy.offers.update', $offer) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('pharmacy.offers.update', $offer->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             
@@ -29,14 +29,20 @@
                     <input type="text" name="title" value="{{ old('title', $offer->title) }}" required style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
                 </div>
 
-                <!-- Discount Percentage -->
+                <!-- Promo Code -->
                 <div>
-                    <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">ڕێژەی داشکاندن (%) *</label>
-                    <input type="number" name="discount_percentage" value="{{ old('discount_percentage', round($offer->discount_percentage)) }}" required min="0" max="100" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
+                    <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">کۆدی داشکاندن (Promo Code)</label>
+                    <input type="text" name="promo_code" value="{{ old('promo_code', $offer->promo_code) }}" placeholder="PHARMA10" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <!-- Discount Percentage -->
+                <div>
+                    <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">ڕێژەی داشکاندن (%) *</label>
+                    <input type="number" name="discount_percentage" value="{{ old('discount_percentage', (int)$offer->discount_percentage) }}" required min="0" max="100" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none;">
+                </div>
+
                 <!-- Start Date -->
                 <div>
                     <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">بەرواری دەستپێکردن</label>
@@ -52,26 +58,25 @@
 
             <!-- Image -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">وێنەی ئۆفەر (ئەگەر دەتەوێت بیگۆڕیت)</label>
-                <input type="file" name="image" accept="image/*" style="width: 100%; padding: 9px 16px; border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 0.95rem; background: #f8fafc; color: #64748b;">
+                <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">وێنەی ئۆفەر (بانەر)</label>
                 @if($offer->image_path)
-                    <div style="margin-top: 12px; font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 8px;">
-                        <img src="{{ Storage::url($offer->image_path) }}" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;">
-                        وێنەی ئێستا دانراوە
+                    <div style="margin-bottom: 12px;">
+                        <img src="{{ str_starts_with($offer->image_path, 'http') ? $offer->image_path : asset('storage/' . $offer->image_path) }}" alt="{{ $offer->title }}" style="width: 120px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0;">
                     </div>
                 @endif
+                <input type="file" name="image" accept="image/*" style="width: 100%; padding: 9px 16px; border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 0.95rem; background: #f8fafc; color: #64748b;">
             </div>
 
             <!-- Description -->
             <div style="margin-bottom: 24px;">
                 <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 8px;">وەسفی ئۆفەر</label>
-                <textarea name="description" rows="4" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none; resize: vertical;">{{ old('description', $offer->description) }}</textarea>
+                <textarea name="description" rows="3" style="width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; outline: none; resize: vertical;">{{ old('description', $offer->description) }}</textarea>
             </div>
 
             <!-- Is Active -->
             <div style="margin-bottom: 32px; display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" name="is_active" id="is_active" {{ $offer->is_active ? 'checked' : '' }} style="width: 18px; height: 18px;">
-                <label for="is_active" style="font-weight: 600; color: #334155; cursor: pointer;">ئۆفەرەکە چالاکە</label>
+                <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', $offer->is_active) ? 'checked' : '' }} style="width: 18px; height: 18px;">
+                <label for="is_active" style="font-weight: 600; color: #334155; cursor: pointer;">ئۆفەرەکە چالاکە و لە ئەپەکە پیشانبدرێت</label>
             </div>
 
             <!-- Buttons -->

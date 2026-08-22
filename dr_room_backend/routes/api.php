@@ -49,8 +49,10 @@ Route::get('/emergency-reels', [\App\Http\Controllers\Api\EmergencyReelControlle
 
 // ─── Pharmacy Mobile App API ──────────────────────────────────────────────
 Route::get('/pharmacies', [\App\Http\Controllers\Api\PharmacyApiController::class, 'index']);
+Route::get('/pharmacies/{id}', [\App\Http\Controllers\Api\PharmacyApiController::class, 'show']);
 Route::get('/pharmacies/{id}/medications', [\App\Http\Controllers\Api\PharmacyApiController::class, 'medications']);
 Route::get('/pharmacies/{id}/offers', [\App\Http\Controllers\Api\PharmacyApiController::class, 'offers']);
+Route::get('/pharmacies/{id}/reviews', [\App\Http\Controllers\Api\PharmacyApiController::class, 'reviews']);
 
 // ─── Lab Mobile App API ─────────────────────────────────────────────────
 Route::get('/labs', [\App\Http\Controllers\Api\LabApiController::class, 'index']);
@@ -74,10 +76,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments', [AppointmentBookingController::class, 'store']);
     Route::delete('/appointments/{id}', [AppointmentBookingController::class, 'destroy']);
 
-    // ─── Patient: Doctor, Lab & Nurse Reviews ──────────────────────────────
+    // ─── Patient: Doctor, Lab, Nurse & Pharmacy Reviews ─────────────────────
     Route::post('/doctors/{id}/reviews', [\App\Http\Controllers\Api\DoctorReviewController::class, 'store']);
     Route::post('/labs/{id}/reviews', [\App\Http\Controllers\Api\LabReviewController::class, 'store']);
     Route::post('/nurses/{id}/reviews', [\App\Http\Controllers\Api\NurseReviewController::class, 'store']);
+    Route::post('/pharmacies/{id}/reviews', [\App\Http\Controllers\Api\PharmacyApiController::class, 'storeReview']);
 
     // ─── Patient: Orders (Labs, Pharmacy, Nursing) ──────────────────────────
     Route::post('/nursing/book', [\App\Http\Controllers\Api\NurseApiController::class, 'book']);

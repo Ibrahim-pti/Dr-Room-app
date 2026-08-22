@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/pharmacy_model.dart';
 import '../models/medication_model.dart';
+import '../models/offer_model.dart';
 import '../data/pharmacy_repository.dart';
 import '../providers/cart_provider.dart';
 import 'cart_screen.dart';
@@ -29,6 +30,8 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
   Timer? _carouselTimer;
 
   List<Medication> _medications = [];
+  List<PharmacyOffer> _offers = [];
+  List<String> _pharmacyGallery = [];
   bool _isLoading = true;
   String _selectedCategory = 'هەمووی';
   bool _isOfferApplied = false;
@@ -48,23 +51,30 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     );
   }
 
-  late final List<String> _pharmacyGallery = [
-    widget.pharmacy.profileImage ??
-        'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800',
-    'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=800',
-    'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=800',
-  ];
-
   @override
   void initState() {
     super.initState();
+    _initGallery();
     _fetchData();
     _startCarouselTimer();
   }
 
+  void _initGallery() {
+    if (widget.pharmacy.galleryImages.isNotEmpty) {
+      _pharmacyGallery = List<String>.from(widget.pharmacy.galleryImages);
+    } else {
+      _pharmacyGallery = [
+        widget.pharmacy.profileImage ??
+            'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800',
+        'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=800',
+        'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=800',
+      ];
+    }
+  }
+
   void _startCarouselTimer() {
     _carouselTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (_carouselController.hasClients) {
+      if (_carouselController.hasClients && _pharmacyGallery.isNotEmpty) {
         int nextIndex = (_currentCarouselIndex + 1) % _pharmacyGallery.length;
         _carouselController.animateToPage(
           nextIndex,
@@ -85,64 +95,18 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
 
   Future<void> _fetchData() async {
     try {
-      final meds = await _repository.getMedications(widget.pharmacy.id);
+      final results = await Future.wait([
+        _repository.getMedications(widget.pharmacy.id),
+        _repository.getOffers(widget.pharmacy.id),
+      ]);
+      final meds = results[0] as List<Medication>;
+      final offers = results[1] as List<PharmacyOffer>;
+
       if (mounted) {
         setState(() {
+          _offers = offers;
           if (meds.isNotEmpty) {
-            _medications = meds.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final m = entry.value;
-              if (m.originalPrice == null && m.discountPercent == null) {
-                if (idx == 0) {
-                  // 20% discount on first item
-                  final orig = ((m.price * 1.25) / 250).round() * 250.0;
-                  return Medication(
-                    id: m.id,
-                    name: m.name,
-                    description: m.description,
-                    price: m.price,
-                    originalPrice: orig,
-                    discountPercent: 20,
-                    stock: m.stock > 0 ? m.stock : 30,
-                    imageUrl: m.imageUrl,
-                  );
-                } else if (idx == 1 && meds.length == 2) {
-                  // Out of stock demo on second item if only 2 items
-                  return Medication(
-                    id: m.id,
-                    name: m.name,
-                    description: m.description,
-                    price: m.price,
-                    originalPrice: m.originalPrice,
-                    discountPercent: m.discountPercent,
-                    stock: 0,
-                    imageUrl: m.imageUrl,
-                  );
-                } else if (idx % 2 == 0) {
-                  final orig = ((m.price * 1.2) / 250).round() * 250.0;
-                  return Medication(
-                    id: m.id,
-                    name: m.name,
-                    description: m.description,
-                    price: m.price,
-                    originalPrice: orig,
-                    discountPercent: 18,
-                    stock: m.stock > 0 ? m.stock : 25,
-                    imageUrl: m.imageUrl,
-                  );
-                } else if (idx == 3 || m.stock == 0) {
-                  return Medication(
-                    id: m.id,
-                    name: m.name,
-                    description: m.description,
-                    price: m.price,
-                    stock: 0,
-                    imageUrl: m.imageUrl,
-                  );
-                }
-              }
-              return m;
-            }).toList();
+            _medications = meds;
           } else {
             _medications = _fallbackMedications;
           }
@@ -233,17 +197,25 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
   }
 
   Future<void> _openFacebook() async {
-    final Uri uri = Uri.parse('https://facebook.com');
+    final url = widget.pharmacy.facebookUrl ?? 'https://facebook.com';
+    final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
   Future<void> _openMap() async {
-    final address = widget.pharmacy.address ?? 'Erbil Kurdistan';
-    final Uri uri = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}',
-    );
+    Uri uri;
+    if (widget.pharmacy.latitude != null && widget.pharmacy.longitude != null) {
+      uri = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=${widget.pharmacy.latitude},${widget.pharmacy.longitude}',
+      );
+    } else {
+      final address = widget.pharmacy.address ?? 'Erbil Kurdistan';
+      uri = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}',
+      );
+    }
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
@@ -1129,21 +1101,31 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       if (!matchesQuery) return false;
 
       if (_selectedCategory == 'ئازارشکێن') {
-        return med.name.contains('Panadol') ||
+        return (med.category == 'ئازارشکێن') ||
+            med.name.contains('Panadol') ||
             med.name.contains('Ibuprofen') ||
             (med.description?.contains('ئازار') ?? false);
       } else if (_selectedCategory == 'دژەهەوکردن') {
-        return med.name.contains('Amoxicillin') ||
+        return (med.category == 'دژەهەوکردن') ||
+            med.name.contains('Amoxicillin') ||
+            med.name.contains('Augmentin') ||
             (med.description?.contains('هەوکردن') ?? false);
       } else if (_selectedCategory == 'ڤیتامین') {
-        return med.name.contains('Vitamin') ||
+        return (med.category == 'ڤیتامین') ||
+            med.name.contains('Vitamin') ||
             (med.description?.contains('ڤیتامین') ?? false);
       } else if (_selectedCategory == 'گەدە و هەرس') {
-        return med.name.contains('Omeprazole') ||
+        return (med.category == 'گەدە و هەرس') ||
+            med.name.contains('Omeprazole') ||
+            med.name.contains('Gaviscon') ||
             (med.description?.contains('گەدە') ?? false);
       } else if (_selectedCategory == 'منداڵان') {
-        return med.name.contains('Baby') ||
+        return (med.category == 'منداڵان') ||
+            med.name.contains('Baby') ||
+            med.name.contains('Kids') ||
             (med.description?.contains('منداڵ') ?? false);
+      } else if (_selectedCategory != 'هەمووی') {
+        return med.category == _selectedCategory;
       }
       return true;
     }).toList();
@@ -1708,62 +1690,60 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                  child: Builder(
+                                    builder: (context) {
+                                      final activeOffer = _offers.isNotEmpty ? _offers.first : null;
+                                      final offerTitle = activeOffer?.title ?? 'ئۆفەری داشکاندنی دەرمانەکان 🎉';
+                                      final promoCode = activeOffer?.promoCode ?? 'PHARMA10';
+                                      final offerDesc = activeOffer?.description ?? 'داشکاندنی ١٠٪ بە کۆدی $promoCode لە کاتی کڕین';
+
+                                      return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                _isOfferApplied ? 'داشکاندن کرا ✓' : offerTitle,
+                                                style: _kStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 2.5,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withValues(alpha: 0.22),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Text(
+                                                  _isOfferApplied ? 'چالاک کرا' : 'داگرە بۆ داشکاندن',
+                                                  style: _kStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
                                           Text(
                                             _isOfferApplied
-                                                ? 'داشکاندن کرا ✓'
-                                                : 'ئۆفەری داشکاندنی دەرمانەکان 🎉',
+                                                ? 'کۆدی $promoCode لە کڕینەکەت حساب دەکرێت'
+                                                : offerDesc,
                                             style: _kStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2.5,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withValues(
-                                                alpha: 0.22,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              _isOfferApplied
-                                                  ? 'چالاک کرا'
-                                                  : 'داگرە بۆ داشکاندن',
-                                              style: _kStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              color: Colors.white.withValues(alpha: 0.9),
+                                              fontSize: 11,
                                             ),
                                           ),
                                         ],
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        _isOfferApplied
-                                            ? 'داشکاندنی ١٠٪ بە کۆدی PHARMA10 لە کڕینەکەت حساب دەکرێت'
-                                            : 'داشکاندنی ١٠٪ بە کۆدی PHARMA10 لە کاتی کڕین',
-                                        style: _kStyle(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.9,
-                                          ),
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
+                                      );
+                                    },
                                   ),
                                 ),
                               ],

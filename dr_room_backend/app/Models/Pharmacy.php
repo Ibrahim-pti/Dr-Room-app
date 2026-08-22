@@ -10,8 +10,11 @@ class Pharmacy extends Model
 
     protected $casts = [
         'available_days' => 'array',
+        'gallery_images' => 'array',
         'rating' => 'decimal:1',
+        'delivery_fee' => 'decimal:2',
         'is_approved' => 'boolean',
+        'is_open' => 'boolean',
     ];
 
     public function user()
