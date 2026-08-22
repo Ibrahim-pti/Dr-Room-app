@@ -416,6 +416,8 @@
                 });
             });
         </script>
+        @yield('scripts')
+        @stack('scripts')
     @else
         <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f2f5;padding:16px;position:relative;overflow:hidden;">
             <div style="position:absolute;top:-20%;right:-10%;width:50%;height:50%;border-radius:50%;background:rgba(13,148,136,0.06);filter:blur(80px);pointer-events:none;"></div>
@@ -424,6 +426,8 @@
                 @yield('content')
             </div>
         </main>
+        @yield('scripts')
+        @stack('scripts')
     @endif
 </body>
 </html>

@@ -20,18 +20,28 @@ class PharmacyProfileController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
+            'name_en' => 'nullable|string|max:255',
             'phone' => 'required|string|max:30',
             'location' => 'nullable|string|max:255',
+            'location_ar' => 'nullable|string|max:255',
+            'location_en' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:100',
             'delivery_fee' => 'nullable|numeric|min:0',
             'delivery_time' => 'nullable|string|max:100',
             'facebook_url' => 'nullable|string|max:255',
             'bio' => 'nullable|string',
+            'bio_ar' => 'nullable|string',
+            'bio_en' => 'nullable|string',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
             'profile_image' => 'nullable|image|max:2048',
         ]);
 
         $user = Auth::user();
         $user->name = $request->name;
+        $user->name_ar = $request->name_ar;
+        $user->name_en = $request->name_en;
         $user->phone = $request->phone;
 
         if ($request->hasFile('profile_image')) {
@@ -45,11 +55,17 @@ class PharmacyProfileController extends Controller
         $pharmacy = Pharmacy::firstOrCreate(['user_id' => $user->id]);
         $pharmacy->update([
             'location' => $request->location ?? $pharmacy->location,
+            'location_ar' => $request->location_ar ?? $pharmacy->location_ar,
+            'location_en' => $request->location_en ?? $pharmacy->location_en,
             'city' => $request->city ?? 'هەولێر',
             'delivery_fee' => $request->delivery_fee ?? 3000,
             'delivery_time' => $request->delivery_time ?? '۲۰-۳۰ خولەک',
             'facebook_url' => $request->facebook_url,
             'bio' => $request->bio,
+            'bio_ar' => $request->bio_ar,
+            'bio_en' => $request->bio_en,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
             'is_open' => $request->has('is_open'),
         ]);
 
