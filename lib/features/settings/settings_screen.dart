@@ -15,6 +15,7 @@ import 'help_support_screen.dart';
 import '../checkout/payment_history_screen.dart';
 import '../doctors/favorite_doctors_screen.dart';
 import '../records/medical_records_screen.dart';
+import '../notifications/notifications_screen.dart';
 import '../admin/admin_dashboard_shell.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -483,9 +484,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             );
                           },
                         ),
+
+                        _buildDivider(context),
+                        _buildListItem(
+                          context,
+                          icon: Iconsax.notification,
+                          title: 'notifications'.tr(),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const NotificationsScreen(),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 16),
 
                   // Section 2

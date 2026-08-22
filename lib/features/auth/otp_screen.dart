@@ -9,6 +9,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/dr_widgets.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/services/push_notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -89,6 +90,9 @@ class _OtpScreenState extends State<OtpScreen> {
         await prefs.setString('user_name', data['user']['name'] ?? '');
         await prefs.setString('user_phone', data['user']['phone'] ?? '');
         await prefs.setBool('has_completed_setup', true);
+
+        // Sync push notification token with authenticated user
+        PushNotificationService.instance.reRegisterToken();
 
         widget.onVerified(role);
       } else {

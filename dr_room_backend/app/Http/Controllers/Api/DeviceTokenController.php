@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\DeviceToken;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class DeviceTokenController extends Controller
 {
@@ -18,10 +17,13 @@ class DeviceTokenController extends Controller
             'device_name' => 'nullable|string|max:120',
         ]);
 
+        $user = $request->user('sanctum') ?? auth('sanctum')->user();
+        $userId = $user ? $user->id : null;
+
         $device = DeviceToken::updateOrCreate(
             ['token' => $data['token']],
             [
-                'user_id'      => Auth::id(),
+                'user_id'      => $userId,
                 'platform'     => $data['platform'] ?? null,
                 'device_name'  => $data['device_name'] ?? null,
                 'last_used_at' => now(),
@@ -41,3 +43,4 @@ class DeviceTokenController extends Controller
         return response()->json(null, 204);
     }
 }
+

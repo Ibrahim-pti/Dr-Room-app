@@ -90,6 +90,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['put', 'post'], '/user', [AuthController::class, 'updateProfile']);
     Route::delete('/user', [AuthController::class, 'destroy']);
 
+    // ─── Patient: Notifications ───────────────────────────────────────────
+    Route::post('/notifications/mark-read', [AppController::class, 'markNotificationsRead']);
+    Route::delete('/notifications/{id}', [AppController::class, 'deleteNotification']);
+
     // ─── Patient: Appointment Booking ──────────────────────────────────────
     Route::get('/appointments', [AppointmentBookingController::class, 'index']);
     Route::post('/appointments', [AppointmentBookingController::class, 'store']);

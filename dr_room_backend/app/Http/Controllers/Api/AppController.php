@@ -81,13 +81,37 @@ class AppController extends Controller
     public function notifications(Request $request = null)
     {
         $request = $request ?: request();
-        $userId = $request->user() ? $request->user()->id : null;
+        $user = $request->user('sanctum') ?? auth('sanctum')->user();
+        $userId = $user ? $user->id : null;
         
-        return AppNotification::whereNull('user_id')
-            ->orWhere('user_id', $userId)
-            ->latest()
-            ->get();
+        return AppNotification::where(function($q) use ($userId) {
+            $q->whereNull('user_id');
+            if ($userId) {
+                $q->orWhere('user_id', $userId);
+            }
+        })
+        ->latest()
+        ->get();
     }
+
+    public function markNotificationsRead(Request $request)
+    {
+        $user = $request->user('sanctum') ?? auth('sanctum')->user();
+        if ($user) {
+            AppNotification::where('user_id', $user->id)->update(['is_read' => true]);
+        }
+        return response()->json(['message' => 'All marked as read']);
+    }
+
+    public function deleteNotification(Request $request, $id)
+    {
+        $user = $request->user('sanctum') ?? auth('sanctum')->user();
+        if ($user) {
+            AppNotification::where('id', $id)->where('user_id', $user->id)->delete();
+        }
+        return response()->json(null, 204);
+    }
+
 
     public function doctors(Request $request)
     {

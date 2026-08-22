@@ -99,4 +99,17 @@ class PushNotificationService {
       debugPrint('Failed to register device token: $e');
     }
   }
+
+  /// Re-sync device token after user logs in or switches account
+  Future<void> reRegisterToken() async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        await registerToken(token);
+      }
+    } catch (e) {
+      debugPrint('PushNotificationService reRegisterToken error: $e');
+    }
+  }
 }
+
