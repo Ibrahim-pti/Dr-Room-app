@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/pharmacy_model.dart';
 import '../models/medication_model.dart';
-import '../models/offer_model.dart';
 import '../data/pharmacy_repository.dart';
 import '../providers/cart_provider.dart';
 import 'cart_screen.dart';
@@ -30,7 +29,6 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
   Timer? _carouselTimer;
 
   List<Medication> _medications = [];
-  List<PharmacyOffer> _offers = [];
   List<Map<String, dynamic>> _reviews = [];
   List<Map<String, String>> _categories = [
     {'name': 'هەمووی', 'icon': '💊'},
@@ -43,7 +41,6 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
   List<String> _pharmacyGallery = [];
   bool _isLoading = true;
   String _selectedCategory = 'هەمووی';
-  bool _isOfferApplied = false;
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -106,18 +103,15 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
     try {
       final results = await Future.wait([
         _repository.getMedications(widget.pharmacy.id),
-        _repository.getOffers(widget.pharmacy.id),
         _repository.getCategories(),
         _repository.getReviews(widget.pharmacy.id),
       ]);
       final meds = results[0] as List<Medication>;
-      final offers = results[1] as List<PharmacyOffer>;
-      final cats = results[2] as List<Map<String, String>>;
-      final rawReviews = results[3] as List<dynamic>;
+      final cats = results[1] as List<Map<String, String>>;
+      final rawReviews = results[2] as List<dynamic>;
 
       if (mounted) {
         setState(() {
-          _offers = offers;
           if (cats.isNotEmpty) {
             _categories = cats;
           }
@@ -2149,143 +2143,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                           ],
                         ),
 
-                        const SizedBox(height: 12),
-
-                        // Special Offer Banner
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isOfferApplied = !_isOfferApplied;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: _isOfferApplied
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFF64748B),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                content: Text(
-                                  _isOfferApplied
-                                      ? 'کۆدی PHARMA10 چالاک کرا! داشکاندنی ١٠٪ جێبەجێ کرا 🎉'
-                                      : 'داشکاندن لابرا',
-                                  style: _kStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 11,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: _isOfferApplied
-                                    ? [
-                                        const Color(0xFF059669),
-                                        const Color(0xFF10B981),
-                                      ]
-                                    : [
-                                        const Color(0xFF8B5CF6),
-                                        const Color(0xFF6D28D9),
-                                      ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      (_isOfferApplied
-                                              ? const Color(0xFF10B981)
-                                              : const Color(0xFF8B5CF6))
-                                          .withValues(alpha: 0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _isOfferApplied
-                                      ? Icons.check_circle_rounded
-                                      : Icons.discount_rounded,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Builder(
-                                    builder: (context) {
-                                      final activeOffer = _offers.isNotEmpty ? _offers.first : null;
-                                      final offerTitle = activeOffer?.title ?? 'ئۆفەری داشکاندنی دەرمانەکان 🎉';
-                                      final promoCode = activeOffer?.promoCode ?? 'PHARMA10';
-                                      final offerDesc = activeOffer?.description ?? 'داشکاندنی ١٠٪ بە کۆدی $promoCode لە کاتی کڕین';
-
-                                      return Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                _isOfferApplied ? 'داشکاندن کرا ✓' : offerTitle,
-                                                style: _kStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 2.5,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white.withValues(alpha: 0.22),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  _isOfferApplied ? 'چالاک کرا' : 'داگرە بۆ داشکاندن',
-                                                  style: _kStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            _isOfferApplied
-                                                ? 'کۆدی $promoCode لە کڕینەکەت حساب دەکرێت'
-                                                : offerDesc,
-                                            style: _kStyle(
-                                              color: Colors.white.withValues(alpha: 0.9),
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
 
                         // Categories Horizontal Scroll
                         SingleChildScrollView(
@@ -2484,19 +2342,10 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                 .where((i) => i.medication.id == med.id)
                                 .firstOrNull;
                             final int qty = inCartItem?.quantity ?? 0;
-                            final bool isPromoOn = _isOfferApplied && !med.isOutOfStock;
-                            final bool hasDiscount = med.hasDiscount || isPromoOn;
-                            final int discountPercent = med.hasDiscount
-                                ? med.calculatedDiscountPercent
-                                : (isPromoOn ? 10 : 0);
-                            final double crossedPrice = med.hasDiscount
-                                ? med.effectiveOriginalPrice
-                                : (isPromoOn ? med.price : med.price);
-                            final double currentPrice = med.hasDiscount
-                                ? med.price
-                                : (isPromoOn
-                                    ? (((med.price * 0.9) / 250).round() * 250.0).clamp(500.0, med.price)
-                                    : med.price);
+                            final bool hasDiscount = med.hasDiscount;
+                            final int discountPercent = med.calculatedDiscountPercent;
+                            final double crossedPrice = med.effectiveOriginalPrice;
+                            final double currentPrice = med.price;
 
                             return GestureDetector(
                               onTap: () =>
