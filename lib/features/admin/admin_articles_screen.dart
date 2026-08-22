@@ -35,7 +35,161 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
   @override
   void initState() {
     super.initState();
+    _loadCategories();
     _fetchArticles();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getStringList('admin_custom_article_categories');
+      if (saved != null) {
+        for (final c in saved) {
+          if (!_categories.contains(c) && c.trim().isNotEmpty) {
+            _categories.add(c.trim());
+          }
+        }
+        if (mounted) setState(() {});
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveCategories() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final toSave = _categories.where((c) => c != 'هەمووی').toList();
+      await prefs.setStringList('admin_custom_article_categories', toSave);
+    } catch (_) {}
+  }
+
+  Future<void> _showAddCategoryDialog(StateSetter setModalState, Function(String) onSelected) async {
+    final textController = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Iconsax.add_circle, color: Color(0xFF2563EB), size: 22),
+            SizedBox(width: 8),
+            Text(
+              'زیادکردنی کەتەگۆری نوێ',
+              style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'ناوی کەتەگۆرییە نوێیەکە بنووسە:',
+              style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: textController,
+              autofocus: true,
+              style: const TextStyle(fontFamily: 'Rabar', fontSize: 14),
+              decoration: InputDecoration(
+                hintText: 'وەک: چاو و بینین، دەمار، منداڵان...',
+                hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 13, color: Color(0xFF94A3B8)),
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('پاشگەزبوونەوە', style: TextStyle(fontFamily: 'Rabar', color: Color(0xFF64748B))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              final val = textController.text.trim();
+              if (val.isNotEmpty) {
+                Navigator.pop(ctx, val);
+              }
+            },
+            child: const Text('زیادکردن', style: TextStyle(fontFamily: 'Rabar', color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.trim().isNotEmpty) {
+      final newCat = result.trim();
+      if (!_categories.contains(newCat)) {
+        setState(() {
+          _categories.add(newCat);
+        });
+        await _saveCategories();
+      }
+      setModalState(() {
+        onSelected(newCat);
+      });
+    }
+  }
+
+  Future<void> _showDeleteCategoryDialog(
+    String cat,
+    StateSetter setModalState,
+    Function(String) onSelected,
+    String currentSelected,
+  ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'سڕینەوەی کەتەگۆری',
+          style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        content: Text(
+          'ئایا دڵنیایت لە سڕینەوەی کەتەگۆری "$cat" لە لیستەکە؟',
+          style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('پاشگەزبوونەوە', style: TextStyle(fontFamily: 'Rabar', color: Color(0xFF64748B))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('سڕینەوە', style: TextStyle(fontFamily: 'Rabar', color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() {
+        _categories.remove(cat);
+      });
+      await _saveCategories();
+      setModalState(() {
+        if (currentSelected == cat) {
+          onSelected('گشتی');
+        }
+      });
+    }
   }
 
   Future<void> _fetchArticles() async {
@@ -45,8 +199,15 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
       if (response.statusCode == 200 && mounted) {
         setState(() {
           _articles = jsonDecode(response.body);
+          for (final a in _articles) {
+            final cat = (a['category'] ?? '').toString().trim();
+            if (cat.isNotEmpty && !_categories.contains(cat)) {
+              _categories.add(cat);
+            }
+          }
           _isLoading = false;
         });
+        _saveCategories();
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -225,37 +386,134 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
                           const SizedBox(height: 14),
 
                           // Category Selector
-                          const Text('کەتەگۆری فریاگوزاری *', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'کەتەگۆری فریاگوزاری *',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF334155),
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: () => _showAddCategoryDialog(
+                                  setModalState,
+                                  (newCat) => selectedCategory = newCat,
+                                ),
+                                icon: const Icon(Iconsax.add_circle, size: 16, color: Color(0xFF2563EB)),
+                                label: const Text(
+                                  'زیادکردنی کەتەگۆری نوێ',
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: _categories.where((c) => c != 'هەمووی').map((cat) {
-                              final isSelected = selectedCategory == cat;
-                              return GestureDetector(
-                                onTap: () => setModalState(() => selectedCategory = cat),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                            children: [
+                              ..._categories.where((c) => c != 'هەمووی').map((cat) {
+                                final isSelected = selectedCategory == cat;
+                                final isCustom = !['هەناسەدان', 'پێست و برین', 'دڵ و سووڕی خوێن', 'ئێسک و شکان', 'ژەهراویبوون', 'گشتی'].contains(cat);
+
+                                return GestureDetector(
+                                  onTap: () => setModalState(() => selectedCategory = cat),
+                                  onLongPress: () => _showDeleteCategoryDialog(
+                                    cat,
+                                    setModalState,
+                                    (fallback) => selectedCategory = fallback,
+                                    selectedCategory,
+                                  ),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 150),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                    decoration: BoxDecoration(
+                                      color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          cat,
+                                          style: TextStyle(
+                                            fontFamily: 'Rabar',
+                                            fontSize: 12,
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                            color: isSelected ? Colors.white : const Color(0xFF475569),
+                                          ),
+                                        ),
+                                        if (isCustom) ...[
+                                          const SizedBox(width: 6),
+                                          GestureDetector(
+                                            onTap: () => _showDeleteCategoryDialog(
+                                              cat,
+                                              setModalState,
+                                              (fallback) => selectedCategory = fallback,
+                                              selectedCategory,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 13,
+                                              color: isSelected ? Colors.white70 : const Color(0xFF94A3B8),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }),
+                              // Direct + Add Category Button
+                              GestureDetector(
+                                onTap: () => _showAddCategoryDialog(
+                                  setModalState,
+                                  (newCat) => selectedCategory = newCat,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+                                    color: const Color(0xFFEFF6FF),
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
-                                      color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+                                      color: const Color(0xFF93C5FD),
                                     ),
                                   ),
-                                  child: Text(
-                                    cat,
-                                    style: TextStyle(
-                                      fontFamily: 'Rabar',
-                                      fontSize: 12,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                      color: isSelected ? Colors.white : const Color(0xFF475569),
-                                    ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Iconsax.add, size: 14, color: Color(0xFF2563EB)),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'کەتەگۆری نوێ +',
+                                        style: TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF2563EB),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              );
-                            }).toList(),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 14),
 

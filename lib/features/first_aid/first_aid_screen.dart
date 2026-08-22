@@ -467,36 +467,49 @@ class _FirstAidScreenState extends State<FirstAidScreen> {
 
             const SizedBox(height: 16),
 
-            // Category Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: ['هەمووی', 'هەناسەدان', 'پێست و برین', 'دڵ و دەمار', 'ژەهراویبوون', 'هۆشیاری'].map((cat) {
-                  final isSel = _selectedCategory == cat;
-                  return Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 8),
-                    child: ChoiceChip(
-                      label: Text(
-                        cat,
-                        style: _kStyle(
-                          color: isSel ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+            // Dynamic Category Chips
+            Builder(
+              builder: (context) {
+                final categorySet = <String>{'هەمووی'};
+                for (final t in _apiTopics) {
+                  if (t.category.trim().isNotEmpty) categorySet.add(t.category.trim());
+                }
+                for (final t in _allTopics) {
+                  if (t.category.trim().isNotEmpty) categorySet.add(t.category.trim());
+                }
+                final allCats = categorySet.toList();
+
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: allCats.map((cat) {
+                      final isSel = _selectedCategory == cat;
+                      return Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8),
+                        child: ChoiceChip(
+                          label: Text(
+                            cat,
+                            style: _kStyle(
+                              color: isSel ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          selected: isSel,
+                          selectedColor: const Color(0xFF3B82F6),
+                          backgroundColor: cardBg,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: BorderSide(color: isSel ? const Color(0xFF3B82F6) : borderColor),
+                          ),
+                          onSelected: (val) => setState(() => _selectedCategory = cat),
                         ),
-                      ),
-                      selected: isSel,
-                      selectedColor: const Color(0xFF3B82F6),
-                      backgroundColor: cardBg,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        side: BorderSide(color: isSel ? const Color(0xFF3B82F6) : borderColor),
-                      ),
-                      onSelected: (val) => setState(() => _selectedCategory = cat),
-                    ),
-                  );
-                }).toList(),
-              ),
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 20),
