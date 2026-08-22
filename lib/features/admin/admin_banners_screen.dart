@@ -416,25 +416,48 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
                                 ),
                                 child: Column(
                                   children: [
-                                    if (banner['image_path'] != null)
+                                    if (banner['image_path'] != null && banner['image_path'].toString().isNotEmpty)
                                       ClipRRect(
                                         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                                        child: Image.network(
-                                          '${ApiClient.storageUrl}/${banner['image_path']}',
-                                          height: 160,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (c, e, s) => Container(
-                                            height: 160,
-                                            color: AppColors.getBackground(context),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons.image_not_supported,
-                                                color: AppColors.getBorder(context),
-                                                size: 40,
+                                        child: Builder(
+                                          builder: (context) {
+                                            final imgPath = banner['image_path'].toString();
+                                            final url = imgPath.startsWith('http')
+                                                ? imgPath
+                                                : (imgPath.startsWith('assets/')
+                                                    ? null
+                                                    : '${ApiClient.storageUrl}/$imgPath');
+                                            if (url == null) {
+                                              return Container(
+                                                height: 160,
+                                                color: AppColors.primary.withValues(alpha: 0.1),
+                                                child: const Center(
+                                                  child: Icon(
+                                                    Icons.image_outlined,
+                                                    color: AppColors.primary,
+                                                    size: 40,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            return Image.network(
+                                              url,
+                                              height: 160,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (c, e, s) => Container(
+                                                height: 160,
+                                                color: AppColors.getBackground(context),
+                                                child: Center(
+                                                  child: Icon(
+                                                    Icons.image_not_supported,
+                                                    color: AppColors.getBorder(context),
+                                                    size: 40,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                          ),
+                                            );
+                                          },
                                         ),
                                       ),
                                     Padding(
