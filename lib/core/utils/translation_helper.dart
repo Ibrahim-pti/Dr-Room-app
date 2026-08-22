@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'api_client.dart';
 
 class TranslationHelper {
-  static Future<Map<String, String>> translate(String text) => translateText(text);
+  static Future<Map<String, String>> translate(String text) =>
+      translateText(text);
 
   /// Translates a single text string into English, Arabic, and Kurdish.
   static Future<Map<String, String>> translateText(String text) async {
@@ -10,9 +11,7 @@ class TranslationHelper {
     if (trimmed.isEmpty) return {'en': '', 'ar': '', 'ckb': ''};
 
     try {
-      final res = await ApiClient.post('/translate', body: {
-        'text': trimmed,
-      });
+      final res = await ApiClient.post('/translate', body: {'text': trimmed});
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -30,16 +29,13 @@ class TranslationHelper {
     return {'en': trimmed, 'ar': trimmed, 'ckb': trimmed};
   }
 
-  /// Batch translates multiple key-value pairs at once.
-  /// Example input: `{"title": "سووتان", "content": "..."}`
-  /// Example output: `{"title": {"en": "Burns", "ar": "حروق", "ckb": "سووتان"}, ...}`
-  static Future<Map<String, Map<String, String>>> translateFields(Map<String, String> fields) async {
+  static Future<Map<String, Map<String, String>>> translateFields(
+    Map<String, String> fields,
+  ) async {
     if (fields.isEmpty) return {};
 
     try {
-      final res = await ApiClient.post('/translate', body: {
-        'fields': fields,
-      });
+      final res = await ApiClient.post('/translate', body: {'fields': fields});
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
