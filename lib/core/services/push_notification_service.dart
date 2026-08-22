@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import '../utils/api_client.dart';
 import '../../firebase_options.dart';
+import '../../main.dart';
+
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -65,7 +68,69 @@ class PushNotificationService {
       // Handle foreground notifications
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('Foreground notification received: ${message.notification?.title}');
+        final title = message.notification?.title ?? message.data['title'] ?? 'ئاگادارکردنەوە';
+        final body = message.notification?.body ?? message.data['message'] ?? '';
+        
+        final state = appNavigatorKey.currentState;
+        if (state != null && state.mounted) {
+          final messenger = ScaffoldMessenger.maybeOf(state.context);
+          messenger?.showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFF1E293B),
+              behavior: SnackBarBehavior.floating,
+              elevation: 6,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              content: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.notifications_active_rounded, color: Color(0xFF3B82F6), size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                        if (body.toString().isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            body.toString(),
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+
       });
+
 
       // Handle notification opened from background / terminated
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
