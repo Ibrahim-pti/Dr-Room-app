@@ -69,7 +69,7 @@ class TopPharmaciesSection extends StatelessWidget {
 
         // ── Pharmacies Horizontal List ──
         SizedBox(
-          height: 198,
+          height: 204,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -77,9 +77,36 @@ class TopPharmaciesSection extends StatelessWidget {
             itemBuilder: (context, index) {
               final pharm = pharmaciesList[index];
               final userObj = pharm['user'] is Map ? pharm['user'] : pharm;
+              final pharmObj = pharm['pharmacy'] is Map ? pharm['pharmacy'] : null;
+
               final name = context.localizedField(userObj, 'name', fallback: 'cat_pharmacy'.tr());
-              final city = context.localizedField(pharm, 'city', fallback: context.localizedField(pharm, 'address', fallback: ''));
-              final time = context.localizedField(pharm, 'working_hours', fallback: 'open_24h'.tr());
+
+              // Extract City with comprehensive fallbacks
+              String city = '';
+              if (pharmObj != null) {
+                city = context.localizedField(pharmObj, 'city', fallback: '');
+                if (city.isEmpty) city = context.localizedField(pharmObj, 'location', fallback: '');
+                if (city.isEmpty) city = context.localizedField(pharmObj, 'address', fallback: '');
+              }
+              if (city.isEmpty) {
+                city = context.localizedField(pharm, 'city', fallback: '');
+              }
+              if (city.isEmpty) {
+                city = context.localizedField(pharm, 'address', fallback: '');
+              }
+              if (city.isEmpty) {
+                city = context.localizedField(pharm, 'location', fallback: '');
+              }
+              if (city.isEmpty) {
+                city = context.localizedField(userObj, 'city', fallback: '');
+              }
+              if (city.isEmpty) {
+                final defaultCities = ['هەولێر', 'سلێمانی', 'دهۆک', 'کەرکوک'];
+                city = defaultCities[index % defaultCities.length];
+              }
+
+              final time = context.localizedField(pharm, 'working_hours', fallback: pharm['time']?.toString() ?? 'open_24h'.tr());
+              final rating = (pharm['rating'] != null) ? pharm['rating'].toString() : '4.9';
               final profileImage = pharm['profile_image'];
 
               final fallbackPharmacyImages = [
@@ -104,18 +131,18 @@ class TopPharmaciesSection extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => PharmacyDetailScreen(
                         pharmacy: Pharmacy(
-                          id: pharm['id'] ?? 1,
-                          name: pharm['name'] ?? 'دەرمانخانە',
-                          rating: double.tryParse(pharm['rating']?.toString() ?? '4.8') ?? 4.8,
+                          id: pharm['id'] ?? (index + 1),
+                          name: name,
+                          rating: double.tryParse(rating) ?? 4.9,
                           deliveryFee: double.tryParse(pharm['delivery_fee']?.toString() ?? '1500.0') ?? 1500.0,
-                          profileImage: pharm['profile_image'],
+                          profileImage: profileImage?.toString(),
                         ),
                       ),
                     ),
                   );
                 },
                 child: Container(
-                  width: 175,
+                  width: 172,
                   margin: const EdgeInsetsDirectional.only(
                     end: 14,
                     bottom: 6,
@@ -123,7 +150,7 @@ class TopPharmaciesSection extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: cardBg,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: borderColor),
                     boxShadow: [
                       BoxShadow(
@@ -138,17 +165,17 @@ class TopPharmaciesSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top Image Section
+                      // ── Top Image Section ──
                       Stack(
                         children: [
                           ClipRRect(
                             borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(19),
+                              top: Radius.circular(17),
                             ),
                             child: Container(
-                              height: 92,
+                              height: 96,
                               width: double.infinity,
-                              color: const Color(0xFFF8FAFC),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                               child: isNetworkPharm
                                   ? CachedNetworkImage(
                                       imageUrl: pharmImg,
@@ -164,18 +191,66 @@ class TopPharmaciesSection extends StatelessWidget {
                                     ),
                             ),
                           ),
+
+                          // Top Category Badge
+                          PositionedDirectional(
+                            top: 6,
+                            start: 6,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF064E3B).withValues(alpha: 0.9)
+                                    : Colors.white.withValues(alpha: 0.92),
+                                borderRadius: BorderRadius.circular(6),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.local_pharmacy_rounded,
+                                    color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                                    size: 10,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'cat_pharmacy'.tr(),
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
                           // Rating Badge
                           PositionedDirectional(
                             bottom: 6,
                             end: 6,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
+                                horizontal: 6.5,
                                 vertical: 2.5,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.95),
-                                borderRadius: BorderRadius.circular(10),
+                                color: isDark
+                                    ? const Color(0xFF0F172A).withValues(alpha: 0.9)
+                                    : Colors.white.withValues(alpha: 0.95),
+                                borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.15),
@@ -186,18 +261,18 @@ class TopPharmaciesSection extends StatelessWidget {
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(
+                                children: [
+                                  const Icon(
                                     Icons.star_rounded,
                                     color: Color(0xFFF59E0B),
-                                    size: 13,
+                                    size: 12,
                                   ),
-                                  SizedBox(width: 3),
+                                  const SizedBox(width: 3),
                                   Text(
-                                    '4.9',
+                                    rating,
                                     style: TextStyle(
                                       fontFamily: 'Rabar',
-                                      color: Color(0xFF1E293B),
+                                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -209,9 +284,9 @@ class TopPharmaciesSection extends StatelessWidget {
                         ],
                       ),
 
-                      // Details Section
+                      // ── Details Section ──
                       Padding(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -219,29 +294,29 @@ class TopPharmaciesSection extends StatelessWidget {
                               name,
                               style: TextStyle(
                                 fontFamily: 'Rabar',
-                                fontSize: 12.5,
+                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 3),
+                            const SizedBox(height: 4),
                             Row(
                               children: [
                                 const Icon(
                                   Iconsax.location,
                                   color: Color(0xFF3B82F6),
-                                  size: 11,
+                                  size: 12,
                                 ),
-                                const SizedBox(width: 3),
+                                const SizedBox(width: 4),
                                 Expanded(
                                   child: Text(
                                     city,
                                     style: TextStyle(
                                       fontFamily: 'Rabar',
-                                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                      fontSize: 10.5,
+                                      color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                                      fontSize: 11,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -249,7 +324,7 @@ class TopPharmaciesSection extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Row(
                               children: [
                                 const Icon(
@@ -258,17 +333,23 @@ class TopPharmaciesSection extends StatelessWidget {
                                   size: 11,
                                 ),
                                 const SizedBox(width: 3),
-                                Text(
-                                  time,
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
-                                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                                    fontSize: 10,
+                                Expanded(
+                                  child: Text(
+                                    time,
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                                      fontSize: 10,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                const Spacer(),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF10B981).withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(6),
@@ -287,7 +368,7 @@ class TopPharmaciesSection extends StatelessWidget {
                                         style: TextStyle(
                                           fontFamily: 'Rabar',
                                           color: Color(0xFF10B981),
-                                          fontSize: 9.5,
+                                          fontSize: 9,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),

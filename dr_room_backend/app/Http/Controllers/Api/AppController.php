@@ -58,13 +58,47 @@ class AppController extends Controller
                 ];
             });
 
+        $topPharmacies = \App\Models\User::where('role', 'pharmacy')
+            ->where('status', 'approved')
+            ->with('pharmacy')
+            ->take(6)
+            ->get()
+            ->map(function ($user) {
+                $pharmacy = $user->pharmacy;
+                $image = $pharmacy && $pharmacy->image_path 
+                    ? (str_starts_with($pharmacy->image_path, 'http') ? $pharmacy->image_path : asset('storage/' . $pharmacy->image_path)) 
+                    : ($user->profile_image ? (str_starts_with($user->profile_image, 'http') ? $user->profile_image : asset('storage/' . $user->profile_image)) : null);
+
+                $city = $pharmacy && !empty($pharmacy->city) 
+                    ? $pharmacy->city 
+                    : ($user->city ?? ($pharmacy && !empty($pharmacy->location) ? $pharmacy->location : 'هەولێر'));
+
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'name_ar' => $user->name_ar ?? $user->name,
+                    'name_en' => $user->name_en ?? $user->name,
+                    'email' => $user->email,
+                    'phone' => $pharmacy && $pharmacy->phone ? $pharmacy->phone : ($user->phone ?? ''),
+                    'city' => $city,
+                    'address' => $pharmacy && $pharmacy->location ? $pharmacy->location : ($user->address ?? $city),
+                    'profile_image' => $image,
+                    'rating' => $pharmacy && $pharmacy->rating ? (double)$pharmacy->rating : 4.9,
+                    'total_reviews' => $pharmacy && $pharmacy->total_reviews ? (int)$pharmacy->total_reviews : 18,
+                    'delivery_fee' => $pharmacy && $pharmacy->delivery_fee !== null ? (double)$pharmacy->delivery_fee : 1500.0,
+                    'delivery_time' => $pharmacy && $pharmacy->delivery_time ? $pharmacy->delivery_time : '٢٠-٣٠ خولەک',
+                    'working_hours' => $pharmacy && $pharmacy->working_hours ? $pharmacy->working_hours : '٢٤ کاتژمێر',
+                    'is_open' => $pharmacy && $pharmacy->is_open !== null ? (bool)$pharmacy->is_open : true,
+                ];
+            });
+
         return response()->json([
             'banners' => Banner::where('is_active', true)->orderBy('sort_order')->get(),
             'categories' => Category::all(),
             'latest_articles' => Article::where('is_published', true)->latest()->take(5)->get(),
             'top_doctors' => $topDoctors,
             'top_nurses' => $topNurses,
-            'top_pharmacies' => \App\Models\User::where('role', 'pharmacy')->where('status', 'approved')->take(4)->get(),
+            'top_pharmacies' => $topPharmacies,
         ]);
     }
 
