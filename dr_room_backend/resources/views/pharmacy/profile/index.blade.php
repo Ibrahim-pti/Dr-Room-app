@@ -220,12 +220,9 @@
 
             <!-- Map Picker Section (Leaflet Interactive Map) -->
             <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 mb-6 pt-4">
-                <div class="flex items-center justify-between mb-3">
-                    <div>
-                        <h4 class="text-sm font-bold text-slate-800">دیاریکردنی شوێن لەسەر نەخشە (Map Location)</h4>
-                        <p class="text-xs text-slate-500 mt-0.5">کرتە لەسەر نەخشەکە بکە یان نیشاندەرەکە ڕابکێشە بۆ دیاریکردنی شوێنی دەرمانخانە.</p>
-                    </div>
-                    <span id="coords_label" class="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200" dir="ltr"></span>
+                <div class="mb-3">
+                    <h4 class="text-sm font-bold text-slate-800">دیاریکردنی شوێن لەسەر نەخشە (Map Location)</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">کرتە لەسەر نەخشەکە بکە یان نیشاندەرەکە ڕابکێشە بۆ دیاریکردنی شوێنی دەرمانخانە.</p>
                 </div>
 
                 <input type="hidden" id="latitude" name="latitude" value="{{ old('latitude', $pharmacy?->latitude) }}">
@@ -320,10 +317,6 @@ function setMarker(lat, lng) {
 function updateCoords(lat, lng) {
     document.getElementById('latitude').value = lat.toFixed(6);
     document.getElementById('longitude').value = lng.toFixed(6);
-    const label = document.getElementById('coords_label');
-    if (label) {
-        label.textContent = `📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    }
 }
 
 function clearLocation() {
@@ -333,10 +326,6 @@ function clearLocation() {
     }
     document.getElementById('latitude').value = '';
     document.getElementById('longitude').value = '';
-    const label = document.getElementById('coords_label');
-    if (label) {
-        label.textContent = '';
-    }
 }
 
 function useMyLocation() {
