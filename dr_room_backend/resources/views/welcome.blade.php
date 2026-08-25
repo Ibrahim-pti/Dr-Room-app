@@ -212,17 +212,8 @@
                 <!-- Hero Left / Start Content -->
                 <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
                     
-                    <!-- Badge -->
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/90 border border-blue-200/80 text-blue-700 text-xs font-extrabold mb-6 shadow-sm">
-                        <span class="flex h-2.5 w-2.5 relative">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
-                        </span>
-                        {{ __('landing.hero_badge') }}
-                    </div>
-
                     <!-- Headline -->
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-black text-slate-900 leading-[1.22] mb-6 tracking-tight">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-black text-slate-900 leading-[1.22] mb-6 tracking-tight">
                         {{ __('landing.hero_title_1') }}<br/>
                         <span class="gradient-text">{{ __('landing.hero_title_2') }}</span><br/>
                         {{ __('landing.hero_title_3') }}
@@ -234,7 +225,7 @@
                     </p>
                     
                     <!-- Action Download Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-3.5 mb-10 w-full justify-center lg:justify-start max-w-md">
+                    <div class="flex flex-col sm:flex-row gap-3.5 w-full justify-center lg:justify-start max-w-md">
                         <!-- Google Play Button -->
                         <a href="#download" class="flex-1 bg-slate-950 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-medium transition shadow-lg shadow-slate-950/20 flex items-center justify-center gap-3 group border border-slate-800">
                             <svg class="w-6 h-6 text-emerald-400 flex-shrink-0 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a2.023 2.023 0 01-.61-1.45V3.264c0-.56.22-1.07.609-1.45zm11.602 11.602L18.49 10.13a2.012 2.012 0 000-3.26l-3.279-3.286-4.526 4.526 4.526 4.526zm-9.336 9.336l9.336-9.336-3.818-3.818-9.845 9.845c.87.87 2.37.87 4.327 3.309zm9.336-18.672L5.875 3.416C3.918 5.855 2.418 5.855 1.548 6.725l9.845 9.845 3.818-3.818z"/></svg>
@@ -252,23 +243,6 @@
                                 <div class="text-sm font-extrabold">{{ __('landing.ios') }}</div>
                             </div>
                         </a>
-                    </div>
-
-                    <!-- Social Proof / Reviews -->
-                    <div class="flex items-center gap-4 pt-4 border-t border-slate-200/60 w-full justify-center lg:justify-start">
-                        <div class="flex -space-x-3 rtl:space-x-reverse">
-                            <img class="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="User">
-                            <img class="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" alt="User">
-                            <img class="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" alt="User">
-                            <img class="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80" alt="User">
-                        </div>
-                        <div class="text-start">
-                            <div class="text-base font-black text-slate-900 flex items-center gap-1.5">
-                                <span>{{ __('landing.stat_users') }}</span>
-                                <span class="text-amber-500 text-xs">★★★★★</span>
-                            </div>
-                            <div class="text-xs font-semibold text-slate-500">{{ __('landing.rating_text') }}</div>
-                        </div>
                     </div>
                 </div>
 
@@ -714,44 +688,28 @@
             <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-[2.5rem] overflow-hidden relative shadow-2xl shadow-blue-600/25">
                 
                 <div class="flex flex-col lg:flex-row">
-                    <!-- Stats Side -->
+                    <!-- Download CTA Side -->
                     <div class="w-full lg:w-3/5 p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-8 text-white divide-y sm:divide-y-0 sm:divide-x rtl:sm:divide-x-reverse divide-blue-400/40">
-                            <div>
-                                <div class="text-3xl sm:text-4xl font-black mb-1">{{ __('landing.stat_users') }}</div>
-                                <div class="text-blue-100 font-medium text-xs sm:text-sm">{{ __('landing.stat_users_title') }}</div>
-                            </div>
-                            <div class="pt-4 sm:pt-0 sm:ps-6">
-                                <div class="text-3xl sm:text-4xl font-black mb-1">{{ __('landing.stat_staff') }}</div>
-                                <div class="text-blue-100 font-medium text-xs sm:text-sm">{{ __('landing.stat_staff_title') }}</div>
-                            </div>
-                            <div class="pt-4 sm:pt-0 sm:ps-6 col-span-2 sm:col-span-1">
-                                <div class="text-3xl sm:text-4xl font-black mb-1">{{ __('landing.stat_orders') }}</div>
-                                <div class="text-blue-100 font-medium text-xs sm:text-sm">{{ __('landing.stat_orders_title') }}</div>
-                            </div>
-                        </div>
-
-                        <div class="mt-10 pt-8 border-t border-blue-400/30">
-                            <h3 class="text-xl sm:text-2xl font-black text-white mb-2">{{ __('landing.download_drroom') }}</h3>
-                            <p class="text-blue-100 text-sm max-w-md mb-6 leading-relaxed">{{ __('landing.get_best_exp') }}</p>
+                        <span class="text-blue-200 font-extrabold text-xs uppercase tracking-wider mb-2">دابەزاندنی ئەپ</span>
+                        <h3 class="text-2xl sm:text-4xl font-black text-white mb-4 leading-tight">{{ __('landing.download_drroom') }}</h3>
+                        <p class="text-blue-100 text-base max-w-md mb-8 leading-relaxed font-medium">{{ __('landing.get_best_exp') }}</p>
+                        
+                        <div class="flex flex-wrap gap-3">
+                            <button class="bg-black text-white px-6 py-3.5 rounded-2xl flex items-center gap-3 hover:bg-slate-900 transition shadow-lg">
+                                <svg class="w-6 h-6 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a2.023 2.023 0 01-.61-1.45V3.264c0-.56.22-1.07.609-1.45zm11.602 11.602L18.49 10.13a2.012 2.012 0 000-3.26l-3.279-3.286-4.526 4.526 4.526 4.526zm-9.336 9.336l9.336-9.336-3.818-3.818-9.845 9.845c.87.87 2.37.87 4.327 3.309zm9.336-18.672L5.875 3.416C3.918 5.855 2.418 5.855 1.548 6.725l9.845 9.845 3.818-3.818z"/></svg>
+                                <div class="text-start leading-tight">
+                                    <div class="text-[9px] text-slate-400 font-normal">{{ __('landing.get_on') }}</div>
+                                    <div class="text-xs font-extrabold">{{ __('landing.google_play') }}</div>
+                                </div>
+                            </button>
                             
-                            <div class="flex flex-wrap gap-3">
-                                <button class="bg-black text-white px-5 py-3 rounded-2xl flex items-center gap-3 hover:bg-slate-900 transition shadow-lg">
-                                    <svg class="w-6 h-6 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a2.023 2.023 0 01-.61-1.45V3.264c0-.56.22-1.07.609-1.45zm11.602 11.602L18.49 10.13a2.012 2.012 0 000-3.26l-3.279-3.286-4.526 4.526 4.526 4.526zm-9.336 9.336l9.336-9.336-3.818-3.818-9.845 9.845c.87.87 2.37.87 4.327 3.309zm9.336-18.672L5.875 3.416C3.918 5.855 2.418 5.855 1.548 6.725l9.845 9.845 3.818-3.818z"/></svg>
-                                    <div class="text-start leading-tight">
-                                        <div class="text-[9px] text-slate-400 font-normal">{{ __('landing.get_on') }}</div>
-                                        <div class="text-xs font-extrabold">{{ __('landing.google_play') }}</div>
-                                    </div>
-                                </button>
-                                
-                                <button class="bg-black text-white px-5 py-3 rounded-2xl flex items-center gap-3 hover:bg-slate-900 transition shadow-lg">
-                                    <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 1.01-2.85-.9.04-2.03.62-2.68 1.38-.58.67-.99 1.74-.96 2.81 1.01.08 2.01-.59 2.63-1.34z"/></svg>
-                                    <div class="text-start leading-tight">
-                                        <div class="text-[9px] text-slate-400 font-normal">{{ __('landing.download_on') }}</div>
-                                        <div class="text-xs font-extrabold">{{ __('landing.app_store') }}</div>
-                                    </div>
-                                </button>
-                            </div>
+                            <button class="bg-black text-white px-6 py-3.5 rounded-2xl flex items-center gap-3 hover:bg-slate-900 transition shadow-lg">
+                                <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 1.01-2.85-.9.04-2.03.62-2.68 1.38-.58.67-.99 1.74-.96 2.81 1.01.08 2.01-.59 2.63-1.34z"/></svg>
+                                <div class="text-start leading-tight">
+                                    <div class="text-[9px] text-slate-400 font-normal">{{ __('landing.download_on') }}</div>
+                                    <div class="text-xs font-extrabold">{{ __('landing.app_store') }}</div>
+                                </div>
+                            </button>
                         </div>
                     </div>
 
@@ -802,65 +760,7 @@
         </div>
     </section>
 
-    <!-- Testimonials Section -->
-    <section class="py-24 bg-white relative overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="text-blue-600 font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200/60">{{ __('landing.testimonials') }}</span>
-                <h2 class="text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 tracking-tight">{{ __('landing.testimonials') }}</h2>
-                <p class="text-slate-600 text-base md:text-lg font-medium">{{ __('landing.test_desc') }}</p>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                
-                <!-- Card 1 -->
-                <div class="bg-slate-50/70 rounded-3xl p-8 border border-slate-100 flex flex-col justify-between">
-                    <div>
-                        <div class="flex text-amber-400 mb-4 text-base">★★★★★</div>
-                        <p class="text-slate-700 text-sm leading-relaxed font-medium mb-6">{{ __('landing.test_1') }}</p>
-                    </div>
-                    <div class="flex items-center gap-3.5 pt-4 border-t border-slate-200/60">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" class="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm" alt="User">
-                        <div>
-                            <div class="font-extrabold text-slate-900 text-sm">{{ __('landing.test_1_author') }}</div>
-                            <div class="text-xs text-slate-400">{{ __('landing.test_1_city') }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="bg-slate-50/70 rounded-3xl p-8 border border-slate-100 flex flex-col justify-between">
-                    <div>
-                        <div class="flex text-amber-400 mb-4 text-base">★★★★★</div>
-                        <p class="text-slate-700 text-sm leading-relaxed font-medium mb-6">{{ __('landing.test_2') }}</p>
-                    </div>
-                    <div class="flex items-center gap-3.5 pt-4 border-t border-slate-200/60">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" class="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm" alt="User">
-                        <div>
-                            <div class="font-extrabold text-slate-900 text-sm">{{ __('landing.test_2_author') }}</div>
-                            <div class="text-xs text-slate-400">{{ __('landing.test_2_city') }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="bg-slate-50/70 rounded-3xl p-8 border border-slate-100 flex flex-col justify-between">
-                    <div>
-                        <div class="flex text-amber-400 mb-4 text-base">★★★★★</div>
-                        <p class="text-slate-700 text-sm leading-relaxed font-medium mb-6">{{ __('landing.test_3') }}</p>
-                    </div>
-                    <div class="flex items-center gap-3.5 pt-4 border-t border-slate-200/60">
-                        <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=100&auto=format&fit=crop&q=80" class="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm" alt="Doctor">
-                        <div>
-                            <div class="font-extrabold text-slate-900 text-sm">{{ __('landing.test_3_author') }}</div>
-                            <div class="text-xs text-slate-400">{{ __('landing.test_3_city') }}</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
 
     <!-- FAQ Section -->
     <section id="faq" class="py-24 bg-slate-50 relative border-t border-slate-100">
