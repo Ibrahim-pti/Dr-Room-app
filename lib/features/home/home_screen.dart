@@ -9,6 +9,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/providers/appointment_provider.dart';
+import '../../core/services/app_version_service.dart';
 import 'promo_carousel.dart';
 import 'widgets/emergency_sos_banner.dart';
 import 'widgets/home_header.dart';
@@ -38,7 +39,10 @@ class HomeScreenState extends State<HomeScreen> {
     _loadCachedUser();
     _fetchHomeData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<AppointmentProvider>().fetchAppointments();
+      if (mounted) {
+        context.read<AppointmentProvider>().fetchAppointments();
+        AppVersionService.checkAppVersion(context);
+      }
     });
   }
 

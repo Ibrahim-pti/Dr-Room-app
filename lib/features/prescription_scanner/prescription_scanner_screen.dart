@@ -629,6 +629,37 @@ class _PrescriptionScannerScreenState extends State<PrescriptionScannerScreen> {
                   ),
                 ],
               ),
+
+              const SizedBox(height: 16),
+
+              // Medical Disclaimer Card (App Store & Google Play Health Policy requirement)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline_rounded, color: Color(0xFFB45309), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'ئاگاداری: خوێندنەوەی ڕەچەتە بە ژیری دەستکرد بۆ هاوکاری سەرەتاییە. تکایە پێش بەکارهێنانی هەر دەرمانێک، دڵنیابەرەوە لە ڕێنمایی پزیشک یان دەرمانساز.',
+                        style: _kStyle(
+                          fontSize: 11.5,
+                          color: const Color(0xFF92400E),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               const SizedBox(height: 30),
             ],
           ],

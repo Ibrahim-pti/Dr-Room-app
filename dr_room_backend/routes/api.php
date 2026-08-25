@@ -27,6 +27,19 @@ Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('/translate', [\App\Http\Controllers\Api\TranslateController::class, 'translate']);
 
+// App Version & Force Update Config
+Route::get('/app-version', function () {
+    return response()->json([
+        'latest_version' => '1.0.0',
+        'min_required_version' => '1.0.0',
+        'force_update' => false,
+        'update_title' => 'وەشانی نوێ بەردەستە',
+        'update_message' => 'تکایە ئەپەکە نوێبکەرەوە بۆ بەدەستهێنانی نوێترین تایبەتمەندی و خزمەتگوزارییە تەندروستییەکان.',
+        'android_store_url' => 'https://play.google.com/store/apps/details?id=com.drroom.app',
+        'ios_store_url' => 'https://apps.apple.com/app/id6400000000',
+    ]);
+});
+
 // Public User App Routes
 Route::get('/home', [AppController::class, 'home']);
 Route::get('/banners', [AppController::class, 'banners']);

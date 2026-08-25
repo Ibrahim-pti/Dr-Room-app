@@ -893,8 +893,8 @@
                     &copy; {{ date('Y') }} DrRoom. {{ __('landing.rights_reserved') }}.
                 </div>
                 <div class="flex gap-6">
-                    <a href="#" class="hover:text-slate-600 transition">{{ __('landing.privacy') }}</a>
-                    <a href="#" class="hover:text-slate-600 transition">{{ __('landing.terms') }}</a>
+                    <a href="/privacy-policy" class="text-blue-600 font-bold hover:underline transition">{{ __('landing.privacy') }}</a>
+                    <a href="/privacy-policy" class="hover:text-slate-600 transition">{{ __('landing.terms') }}</a>
                     <a href="/staff/login" class="text-blue-600 font-bold hover:underline transition">چوونەژوورەوەی ستاف</a>
                 </div>
             </div>

@@ -228,6 +228,11 @@ Route::prefix('pharmacy')->middleware(['auth', \App\Http\Middleware\IsPharmacy::
     Route::post('/settings', [\App\Http\Controllers\Web\PharmacySettingsController::class, 'update'])->name('pharmacy.settings.update');
 });
 
+// Privacy Policy & Compliance
+Route::get('/privacy-policy', function () {
+    return view('privacy');
+})->name('privacy.policy');
+
 Route::get('/{locale?}', function ($locale = 'ckb') {
     if (!in_array($locale, ['en', 'ar', 'ckb'])) {
         abort(404);

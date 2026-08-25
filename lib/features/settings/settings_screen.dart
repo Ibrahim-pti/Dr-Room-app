@@ -11,6 +11,8 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/utils/api_client.dart';
 import 'personal_information_screen.dart';
 import 'help_support_screen.dart';
+import 'privacy_policy_screen.dart';
+import '../../core/services/store_review_service.dart';
 import '../checkout/payment_history_screen.dart';
 import '../doctors/favorite_doctors_screen.dart';
 import '../records/medical_records_screen.dart';
@@ -525,6 +527,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _buildDivider(context),
                         _buildListItem(
                           context,
+                          icon: Iconsax.shield_security,
+                          title: 'privacy_policy'.tr(),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const PrivacyPolicyScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildDivider(context),
+                        _buildListItem(
+                          context,
+                          icon: Iconsax.star,
+                          title: 'rate_app_store'.tr(),
+                          onTap: () {
+                            StoreReviewService.showInAppReviewPrompt(context);
+                          },
+                        ),
+                        _buildDivider(context),
+                        _buildListItem(
+                          context,
                           imagePath: 'assets/images/drawer_help.png',
                           title: 'help_support'.tr(),
                           onTap: () {
@@ -542,8 +567,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: Iconsax.user_add,
                           title: 'invite_friends'.tr(),
                           onTap: () {
-                            Share.shareUri(
-                              Uri.parse('https://drroom.com/download'),
+                            SharePlus.instance.share(
+                              ShareParams(text: 'https://drroom.app/download'),
                             );
                           },
                         ),
@@ -553,7 +578,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Log Out
+                  // Log Out Button
                   Container(
                     width: double.infinity,
                     height: 52,
@@ -583,16 +608,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: [
                             const Icon(
                               Iconsax.logout,
-                              color: Color(0xFFEF4444),
-                              size: 22,
+                              color: Color(0xFF64748B),
+                              size: 20,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'log_out'.tr(),
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFFEF4444),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
@@ -601,13 +627,166 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 12),
+
+                  // Delete Account Button (Prominent & Required by Apple/Google)
+                  Container(
+                    width: double.infinity,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFFECACA)),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _showDeleteAccountDialog(context),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Iconsax.trash,
+                              color: Color(0xFFEF4444),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'delete_account'.tr(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                color: Color(0xFFEF4444),
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Generous bottom spacing so bottom navigation bar never overlaps buttons
+                  const SizedBox(height: 120),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        bool isDeleting = false;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            contentPadding: const EdgeInsets.all(24),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Iconsax.trash, color: Color(0xFFEF4444), size: 30),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'delete_account_title'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'delete_account_confirm_msg'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 12.5,
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: isDeleting
+                        ? null
+                        : () async {
+                            setDialogState(() => isDeleting = true);
+                            try {
+                              await ApiClient.delete('/user');
+                            } catch (_) {}
+                            if (context.mounted) {
+                              await SessionService.signOut(context);
+                            }
+                            if (context.mounted) {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (context) => const AppFlow()),
+                                (route) => false,
+                              );
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                    ),
+                    child: isDeleting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : Text(
+                            'yes_delete_account'.tr(),
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: isDeleting ? null : () => Navigator.pop(ctx),
+                  child: Text(
+                    'cancel'.tr(),
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

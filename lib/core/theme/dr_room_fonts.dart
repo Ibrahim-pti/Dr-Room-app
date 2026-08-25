@@ -187,3 +187,20 @@ class GoogleFonts {
     );
   }
 }
+
+class DrRoomFonts {
+  static TextStyle primary({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.normal,
+    Color? color,
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: 'Rabar',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+    );
+  }
+}
