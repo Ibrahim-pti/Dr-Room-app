@@ -117,6 +117,40 @@ return [
     'faq_4_q' => 'When will I receive my lab test results?',
     'faq_4_a' => 'Most routine test results are available within 2-4 hours as an official PDF report in your app\'s Medical Records tab with push notification alerts.',
 
+    // App Screenshots Showcase
+    'app_showcase_tag' => 'Explore The App Experience',
+    'app_showcase_title' => 'Modern Design Built For',
+    'app_showcase_title_2' => 'Effortless Healthcare',
+    'app_showcase_desc' => 'DrRoom is crafted with an intuitive, ultra-fast interface designed to provide seamless healthcare access to users of all ages.',
+    
+    'screen_home_tab' => 'Home & SOS',
+    'screen_home_title' => 'Main Hub & Emergency SOS Dispatch',
+    'screen_home_desc' => 'Instant access to all home healthcare services, ongoing offers, and a dedicated 1-tap Emergency SOS trigger connecting directly to 122 ambulance and emergency hospitals.',
+    'screen_home_f1' => 'Instant booking for home nursing and mobile laboratory tests',
+    'screen_home_f2' => 'Dedicated Emergency SOS button for immediate medical assistance',
+    'screen_home_f3' => 'Voice & text smart search for doctors and clinics',
+
+    'screen_ai_tab' => 'AI Medicine Scanner',
+    'screen_ai_title' => 'AI-Powered Medicine & Prescription Recognition',
+    'screen_ai_desc' => 'Simply aim your camera at any medicine packaging or handwritten doctor prescription. DrRoom\'s AI scans with 99.4% precision and delivers instant dosage instructions.',
+    'screen_ai_f1' => 'Instant camera and gallery scan with high-speed OCR',
+    'screen_ai_f2' => 'Clear medicine guidance and usage instructions',
+    'screen_ai_f3' => 'Comprehensive history archive of all previous scans',
+
+    'screen_labs_tab' => 'Medical Laboratories',
+    'screen_labs_title' => 'Extensive Accredited Laboratory Network',
+    'screen_labs_desc' => 'Browse verified laboratories across Erbil, Sulaymaniyah, Duhok, and Kirkuk with ratings, real-time operating hours, and exclusive discounts.',
+    'screen_labs_f1' => 'Filter by nearest lab, top ratings, and specialized panels',
+    'screen_labs_f2' => 'Exclusive discounts up to 25% on home sample collection',
+    'screen_labs_f3' => 'Certified mobile lab phlebotomists dispatched to your door',
+
+    'screen_firstaid_tab' => 'First Aid & CPR',
+    'screen_firstaid_title' => 'Life-Saving Emergency & First Aid Guidelines',
+    'screen_firstaid_desc' => 'Step-by-step certified emergency protocols for choking, burns, cardiac arrest (CPR), and trauma care before the ambulance arrives.',
+    'screen_firstaid_f1' => 'Cardiac pulmonary resuscitation (CPR) & Heimlich maneuver protocols',
+    'screen_firstaid_f2' => 'Immediate first aid for 1st, 2nd, and 3rd degree burns and wounds',
+    'screen_firstaid_f3' => 'Categorized into Respiratory, Skin, and Cardiovascular emergencies',
+
     // Testimonials
     'testimonials' => 'What Our Patients Say',
     'test_desc' => 'Real stories and reviews from patients across Kurdistan',
@@ -143,3 +177,4 @@ return [
     'address' => 'Erbil, Kurdistan Region, Iraq',
     'rights_reserved' => 'All rights reserved by DrRoom',
 ];
+

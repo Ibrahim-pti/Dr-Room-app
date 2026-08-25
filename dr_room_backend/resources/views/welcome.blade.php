@@ -34,6 +34,21 @@
                             900: '#1e3a8a',
                             950: '#0f172a',
                         }
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+                            '50%': { opacity: '0.8', transform: 'scale(1.05)' },
+                        }
+                    },
+                    animation: {
+                        float: 'float 4s ease-in-out infinite',
+                        'float-slow': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 5s ease-in-out infinite',
                     }
                 }
             }
@@ -52,13 +67,21 @@
         .hero-mesh {
             background-color: #ffffff;
             background-image: 
-                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(30, 64, 175, 0.04) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.09) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.09) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);
         }
         .pattern-grid {
             background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
             background-size: 24px 24px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .phone-frame {
+            box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.2);
         }
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
@@ -78,7 +101,7 @@
                 
                 <!-- Brand Logo -->
                 <a href="/" class="flex-shrink-0 flex items-center gap-3 group">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform duration-200">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform duration-200">
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                             <line x1="12" y1="9" x2="12" y2="15"></line>
@@ -94,11 +117,11 @@
                 <!-- Desktop Menu -->
                 <div class="hidden lg:flex space-x-1 rtl:space-x-reverse items-center bg-slate-50/80 p-1.5 rounded-2xl border border-slate-100">
                     <a href="#" class="text-blue-600 bg-white font-bold px-4 py-2 rounded-xl shadow-sm text-sm transition">{{ __('landing.home') }}</a>
+                    <a href="#app-screens" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.app_showcase_tag') }}</a>
                     <a href="#services" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.services') }}</a>
                     <a href="#why-us" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.about_tag') }}</a>
                     <a href="#how-it-works" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.how_it_works') }}</a>
                     <a href="#faq" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.faq') }}</a>
-                    <a href="#contact" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.contact') }}</a>
                 </div>
 
                 <!-- Right Actions (Language & Staff Portal & Download) -->
@@ -157,11 +180,11 @@
         <div x-show="mobileMenuOpen" x-transition class="lg:hidden bg-white border-t border-slate-100 shadow-xl" style="display: none;">
             <div class="px-4 pt-3 pb-6 space-y-2">
                 <a href="#" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-blue-600 font-bold bg-blue-50 rounded-xl text-sm">{{ __('landing.home') }}</a>
+                <a href="#app-screens" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.app_showcase_tag') }}</a>
                 <a href="#services" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.services') }}</a>
                 <a href="#why-us" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.about_tag') }}</a>
                 <a href="#how-it-works" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.how_it_works') }}</a>
                 <a href="#faq" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.faq') }}</a>
-                <a href="#contact" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.contact') }}</a>
                 <a href="/staff" class="block px-4 py-2.5 text-blue-700 font-extrabold bg-blue-50/60 rounded-xl text-sm border border-blue-100">{{ __('landing.staff_portal') }}</a>
                 
                 <!-- Mobile Language Selector -->
@@ -180,8 +203,8 @@
     <!-- Hero Section -->
     <section class="pt-32 pb-16 md:pt-40 md:pb-28 hero-mesh overflow-hidden relative">
         <!-- Floating decorative blurs -->
-        <div class="absolute top-20 start-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute top-40 end-10 w-96 h-96 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-20 start-10 w-80 h-80 bg-blue-400/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+        <div class="absolute top-40 end-10 w-96 h-96 bg-sky-400/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style="animation-delay: 2s;"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16">
@@ -190,16 +213,16 @@
                 <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
                     
                     <!-- Badge -->
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-xs font-extrabold mb-6 shadow-sm">
-                        <span class="flex h-2 w-2 relative">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/90 border border-blue-200/80 text-blue-700 text-xs font-extrabold mb-6 shadow-sm">
+                        <span class="flex h-2.5 w-2.5 relative">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
                         </span>
                         {{ __('landing.hero_badge') }}
                     </div>
 
                     <!-- Headline -->
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-black text-slate-900 leading-[1.2] mb-6 tracking-tight">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-black text-slate-900 leading-[1.22] mb-6 tracking-tight">
                         {{ __('landing.hero_title_1') }}<br/>
                         <span class="gradient-text">{{ __('landing.hero_title_2') }}</span><br/>
                         {{ __('landing.hero_title_3') }}
@@ -213,7 +236,7 @@
                     <!-- Action Download Buttons -->
                     <div class="flex flex-col sm:flex-row gap-3.5 mb-10 w-full justify-center lg:justify-start max-w-md">
                         <!-- Google Play Button -->
-                        <a href="#download" class="flex-1 bg-slate-900 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-medium transition shadow-lg shadow-slate-900/10 flex items-center justify-center gap-3 group">
+                        <a href="#download" class="flex-1 bg-slate-950 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-medium transition shadow-lg shadow-slate-950/20 flex items-center justify-center gap-3 group border border-slate-800">
                             <svg class="w-6 h-6 text-emerald-400 flex-shrink-0 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a2.023 2.023 0 01-.61-1.45V3.264c0-.56.22-1.07.609-1.45zm11.602 11.602L18.49 10.13a2.012 2.012 0 000-3.26l-3.279-3.286-4.526 4.526 4.526 4.526zm-9.336 9.336l9.336-9.336-3.818-3.818-9.845 9.845c.87.87 2.37.87 4.327 3.309zm9.336-18.672L5.875 3.416C3.918 5.855 2.418 5.855 1.548 6.725l9.845 9.845 3.818-3.818z"/></svg>
                             <div class="text-start leading-tight">
                                 <div class="text-[10px] text-slate-400 font-normal">{{ __('landing.download_android') }}</div>
@@ -232,7 +255,7 @@
                     </div>
 
                     <!-- Social Proof / Reviews -->
-                    <div class="flex items-center gap-4 pt-2 border-t border-slate-200/60 w-full justify-center lg:justify-start">
+                    <div class="flex items-center gap-4 pt-4 border-t border-slate-200/60 w-full justify-center lg:justify-start">
                         <div class="flex -space-x-3 rtl:space-x-reverse">
                             <img class="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="User">
                             <img class="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" alt="User">
@@ -249,27 +272,242 @@
                     </div>
                 </div>
 
-                <!-- Hero Right / Phone Mockup Showcase -->
-                <div class="w-full lg:w-1/2 relative flex justify-center lg:justify-end min-h-[520px] select-none">
+                <!-- Hero Right / Dual Phone Showcase -->
+                <div class="w-full lg:w-1/2 relative flex justify-center lg:justify-end min-h-[560px] sm:min-h-[620px] select-none">
                     
-                    <!-- Back Phone: Doctor Appointment Booking -->
-                    <div class="absolute end-2 sm:end-12 top-8 w-[230px] sm:w-[250px] h-[480px] sm:h-[510px] rounded-[2.8rem] shadow-2xl transform rotate-6 z-0 overflow-hidden border-[7px] border-slate-800 bg-slate-900 transition-transform duration-300 hover:rotate-3">
-                        <img src="{{ asset('images/app-screen-back.png') }}" alt="DrRoom Doctor Profile" class="w-full h-full object-cover rounded-[2.2rem]">
+                    <!-- Floating Badge: AI Scanner Feature -->
+                    <div class="absolute -top-4 start-4 sm:start-10 z-30 bg-white/95 backdrop-blur-md rounded-2xl p-3.5 shadow-xl border border-slate-100 flex items-center gap-3 animate-float">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg font-bold">
+                            🤖
+                        </div>
+                        <div>
+                            <div class="text-[11px] font-extrabold text-slate-900">سکانەری زیرەکی دەرمان</div>
+                            <div class="text-[10px] text-purple-600 font-bold">دروستی ٩٩.٤٪ بە کامێرا</div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Badge: Emergency SOS -->
+                    <div class="absolute bottom-6 end-0 sm:end-8 z-30 bg-white/95 backdrop-blur-md rounded-2xl p-3.5 shadow-xl border border-rose-100 flex items-center gap-3 animate-float-slow">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-lg font-bold">
+                            🚨
+                        </div>
+                        <div>
+                            <div class="text-[11px] font-extrabold text-slate-900">فریاکەوتنی ١٢٢ و SOS</div>
+                            <div class="text-[10px] text-rose-600 font-bold">پەیوەندی بەپەلە بە نەخۆشخانە</div>
+                        </div>
+                    </div>
+
+                    <!-- Back Phone: AI Medicine & Prescription Scanner -->
+                    <div class="absolute end-4 sm:end-8 top-12 w-[240px] sm:w-[270px] h-[500px] sm:h-[550px] rounded-[3rem] shadow-2xl transform rotate-6 z-10 overflow-hidden border-[8px] border-slate-900 bg-slate-900 transition-transform duration-300 hover:rotate-3">
+                        <div class="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-full z-20"></div>
+                        <img src="{{ asset('images/app_ai_scanner.png') }}" alt="DrRoom AI Scanner" class="w-full h-full object-cover rounded-[2.4rem]">
                     </div>
 
                     <!-- Front Phone: Main Home Screen -->
-                    <div class="absolute start-2 sm:start-14 top-0 w-[245px] sm:w-[265px] h-[510px] sm:h-[540px] rounded-[3rem] shadow-[0_25px_60px_-15px_rgba(37,99,235,0.3)] z-10 overflow-hidden border-[8px] border-slate-950 bg-slate-950 transition-transform duration-300 hover:-translate-y-2">
-                        <!-- Top Speaker / Dynamic Island Simulation -->
-                        <div class="absolute top-2.5 left-1/2 transform -translate-x-1/2 w-20 h-4 bg-slate-950 rounded-full z-20 shadow-inner"></div>
-                        <img src="{{ asset('images/app-screen-front.png') }}" alt="DrRoom App Home" class="w-full h-full object-cover rounded-[2.4rem]">
+                    <div class="absolute start-4 sm:start-10 top-0 w-[250px] sm:w-[280px] h-[520px] sm:h-[570px] rounded-[3.2rem] phone-frame z-20 overflow-hidden border-[9px] border-slate-950 bg-slate-950 transition-transform duration-300 hover:-translate-y-2">
+                        <div class="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-950 rounded-full z-30 shadow-inner"></div>
+                        <img src="{{ asset('images/app_home.png') }}" alt="DrRoom Home" class="w-full h-full object-cover rounded-[2.5rem]">
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- NEW INTERACTIVE SECTION: App Screens Showcase -->
+    <section id="app-screens" class="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 relative border-t border-slate-100 overflow-hidden" x-data="{ activeTab: 'home' }">
+        <div class="absolute end-0 top-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute start-0 bottom-1/4 w-96 h-96 bg-purple-100/40 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            
+            <div class="text-center max-w-3xl mx-auto mb-14">
+                <span class="text-blue-600 font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200/60">
+                    {{ __('landing.app_showcase_tag') }}
+                </span>
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mt-4 mb-4 tracking-tight">
+                    {{ __('landing.app_showcase_title') }} <span class="gradient-text">{{ __('landing.app_showcase_title_2') }}</span>
+                </h2>
+                <p class="text-slate-600 text-base md:text-lg font-medium leading-relaxed">
+                    {{ __('landing.app_showcase_desc') }}
+                </p>
+            </div>
+
+            <!-- Tab Switcher Navigation -->
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mb-16">
+                <!-- Tab 1: Home & SOS -->
+                <button @click="activeTab = 'home'" :class="activeTab === 'home' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/80'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center gap-2">
+                    <span>🏠</span>
+                    <span>{{ __('landing.screen_home_tab') }}</span>
+                </button>
+
+                <!-- Tab 2: AI Scanner -->
+                <button @click="activeTab = 'ai'" :class="activeTab === 'ai' ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30 scale-105' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/80'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center gap-2">
+                    <span>🤖</span>
+                    <span>{{ __('landing.screen_ai_tab') }}</span>
+                </button>
+
+                <!-- Tab 3: Labs -->
+                <button @click="activeTab = 'labs'" :class="activeTab === 'labs' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 scale-105' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/80'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center gap-2">
+                    <span>🧪</span>
+                    <span>{{ __('landing.screen_labs_tab') }}</span>
+                </button>
+
+                <!-- Tab 4: First Aid -->
+                <button @click="activeTab = 'firstaid'" :class="activeTab === 'firstaid' ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/30 scale-105' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/80'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center gap-2">
+                    <span>🚑</span>
+                    <span>{{ __('landing.screen_firstaid_tab') }}</span>
+                </button>
+            </div>
+
+            <!-- Tab Content Presentation -->
+            <div class="bg-white rounded-[2.5rem] p-6 sm:p-10 lg:p-14 border border-slate-100 shadow-xl shadow-slate-200/50">
+                
+                <!-- CONTENT 1: Home & SOS Screen -->
+                <div x-show="activeTab === 'home'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+                    <div class="w-full lg:w-1/2 flex justify-center">
+                        <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] rounded-[3.2rem] phone-frame border-[8px] border-slate-950 bg-slate-950 overflow-hidden relative group">
+                            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-950 rounded-full z-20"></div>
+                            <img src="{{ asset('images/app_home.png') }}" alt="DrRoom App Home" class="w-full h-full object-cover rounded-[2.5rem] group-hover:scale-105 transition-transform duration-300">
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-1/2">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-black mb-4">
+                            <span>🏠</span> {{ __('landing.screen_home_tab') }}
+                        </div>
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">
+                            {{ __('landing.screen_home_title') }}
+                        </h3>
+                        <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
+                            {{ __('landing.screen_home_desc') }}
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_home_f1') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-rose-50 border border-rose-100">
+                                <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold flex-shrink-0">🚨</div>
+                                <span class="text-sm font-bold text-rose-900">{{ __('landing.screen_home_f2') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_home_f3') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENT 2: AI Medicine Scanner Screen -->
+                <div x-show="activeTab === 'ai'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16" style="display: none;">
+                    <div class="w-full lg:w-1/2 flex justify-center">
+                        <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] rounded-[3.2rem] phone-frame border-[8px] border-purple-950 bg-purple-950 overflow-hidden relative group">
+                            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-purple-950 rounded-full z-20"></div>
+                            <img src="{{ asset('images/app_ai_scanner.png') }}" alt="DrRoom AI Scanner" class="w-full h-full object-cover rounded-[2.5rem] group-hover:scale-105 transition-transform duration-300">
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-1/2">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-50 text-purple-700 text-xs font-black mb-4">
+                            <span>🤖</span> {{ __('landing.screen_ai_tab') }}
+                        </div>
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">
+                            {{ __('landing.screen_ai_title') }}
+                        </h3>
+                        <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
+                            {{ __('landing.screen_ai_desc') }}
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-purple-50/70 border border-purple-100">
+                                <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold flex-shrink-0">📷</div>
+                                <span class="text-sm font-bold text-purple-950">{{ __('landing.screen_ai_f1') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_ai_f2') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_ai_f3') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENT 3: Medical Laboratories Screen -->
+                <div x-show="activeTab === 'labs'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16" style="display: none;">
+                    <div class="w-full lg:w-1/2 flex justify-center">
+                        <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] rounded-[3.2rem] phone-frame border-[8px] border-emerald-950 bg-emerald-950 overflow-hidden relative group">
+                            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-emerald-950 rounded-full z-20"></div>
+                            <img src="{{ asset('images/app_labs.png') }}" alt="DrRoom Medical Labs" class="w-full h-full object-cover rounded-[2.5rem] group-hover:scale-105 transition-transform duration-300">
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-1/2">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-black mb-4">
+                            <span>🧪</span> {{ __('landing.screen_labs_tab') }}
+                        </div>
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">
+                            {{ __('landing.screen_labs_title') }}
+                        </h3>
+                        <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
+                            {{ __('landing.screen_labs_desc') }}
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold flex-shrink-0">★</div>
+                                <span class="text-sm font-bold text-emerald-950">{{ __('landing.screen_labs_f1') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-amber-50 border border-amber-100">
+                                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold flex-shrink-0">%</div>
+                                <span class="text-sm font-bold text-amber-950">{{ __('landing.screen_labs_f2') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_labs_f3') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENT 4: First Aid Screen -->
+                <div x-show="activeTab === 'firstaid'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16" style="display: none;">
+                    <div class="w-full lg:w-1/2 flex justify-center">
+                        <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] rounded-[3.2rem] phone-frame border-[8px] border-rose-950 bg-rose-950 overflow-hidden relative group">
+                            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-rose-950 rounded-full z-20"></div>
+                            <img src="{{ asset('images/app_first_aid.png') }}" alt="DrRoom First Aid Guide" class="w-full h-full object-cover rounded-[2.5rem] group-hover:scale-105 transition-transform duration-300">
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-1/2">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-black mb-4">
+                            <span>🚑</span> {{ __('landing.screen_firstaid_tab') }}
+                        </div>
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">
+                            {{ __('landing.screen_firstaid_title') }}
+                        </h3>
+                        <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
+                            {{ __('landing.screen_firstaid_desc') }}
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-rose-50/70 border border-rose-100">
+                                <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold flex-shrink-0">🫀</div>
+                                <span class="text-sm font-bold text-rose-950">{{ __('landing.screen_firstaid_f1') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">🔥</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_firstaid_f2') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_firstaid_f3') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
     <!-- Core Services Section -->
-    <section id="services" class="py-24 bg-slate-50/80 relative border-t border-slate-100">
+    <section id="services" class="py-24 bg-white relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             
             <div class="text-center max-w-3xl mx-auto mb-16">
@@ -281,25 +519,25 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 
                 <!-- Service 1: Lab Tests -->
-                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
+                <div class="bg-slate-50/70 hover:bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
                     <div>
-                        <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-100/70 text-emerald-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
                             🧪
                         </div>
                         <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.lab_tests') }}</h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.lab_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-200/60 flex items-center justify-between">
                         <span class="bg-emerald-50 text-emerald-700 text-xs font-extrabold px-3 py-1 rounded-lg">{{ __('landing.available_home') }}</span>
                         <span class="text-xs font-bold text-slate-400">PDF ئەنجام</span>
                     </div>
                 </div>
                 
                 <!-- Service 2: Home Nursing -->
-                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border-2 border-blue-100/80 flex flex-col justify-between group relative overflow-hidden">
+                <div class="bg-white rounded-3xl p-8 shadow-md hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border-2 border-blue-200 flex flex-col justify-between group relative overflow-hidden">
                     <div class="absolute top-0 end-0 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-wider">سەرەکی</div>
                     <div>
-                        <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <div class="w-16 h-16 rounded-2xl bg-blue-100/70 text-blue-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
                             👩‍⚕️
                         </div>
                         <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.nursing') }}</h3>
@@ -311,61 +549,61 @@
                     </div>
                 </div>
                 
-                <!-- Service 3: Doctor Consultation & Visits -->
-                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
+                <!-- Service 3: AI Prescription Scanner -->
+                <div class="bg-slate-50/70 hover:bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
                     <div>
-                        <div class="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
-                            👨‍⚕️
+                        <div class="w-16 h-16 rounded-2xl bg-purple-100/70 text-purple-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                            🤖
                         </div>
-                        <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.doctor') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.doctor_desc') }}</p>
+                        <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.screen_ai_tab') }}</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.screen_ai_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span class="bg-purple-50 text-purple-700 text-xs font-extrabold px-3 py-1 rounded-lg">ئۆنلاین و ماڵەوە</span>
-                        <span class="text-xs font-bold text-slate-400">بۆردی پسپۆڕی</span>
+                    <div class="pt-4 border-t border-slate-200/60 flex items-center justify-between">
+                        <span class="bg-purple-50 text-purple-700 text-xs font-extrabold px-3 py-1 rounded-lg">AI شیکاری بە دەستبەجێ</span>
+                        <span class="text-xs font-bold text-purple-500">٩٩.٤٪ ڕێژەی دروستی</span>
                     </div>
                 </div>
                 
                 <!-- Service 4: Pharmacy -->
-                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
+                <div class="bg-slate-50/70 hover:bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
                     <div>
-                        <div class="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <div class="w-16 h-16 rounded-2xl bg-rose-100/70 text-rose-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
                             💊
                         </div>
                         <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.pharmacy') }}</h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.pharmacy_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-200/60 flex items-center justify-between">
                         <span class="bg-rose-50 text-rose-700 text-xs font-extrabold px-3 py-1 rounded-lg">{{ __('landing.instant_delivery') }}</span>
                         <span class="text-xs font-bold text-slate-400">بارکردنی ڕەچەتە</span>
                     </div>
                 </div>
                 
-                <!-- Service 5: Radiology / X-Ray -->
-                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
+                <!-- Service 5: First Aid & Emergency Guide -->
+                <div class="bg-slate-50/70 hover:bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
                     <div>
-                        <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
-                            🩻
+                        <div class="w-16 h-16 rounded-2xl bg-amber-100/70 text-amber-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                            🚑
                         </div>
-                        <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.xray') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.xray_desc') }}</p>
+                        <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.screen_firstaid_tab') }}</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.screen_firstaid_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span class="bg-amber-50 text-amber-700 text-xs font-extrabold px-3 py-1 rounded-lg">ئامێری گەڕۆک</span>
-                        <span class="text-xs font-bold text-slate-400">تیشک و سۆنەر</span>
+                    <div class="pt-4 border-t border-slate-200/60 flex items-center justify-between">
+                        <span class="bg-amber-50 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-lg">ڕێبەری CPR و سووتان</span>
+                        <span class="text-xs font-bold text-rose-500">SOS ١٢٢</span>
                     </div>
                 </div>
                 
                 <!-- Service 6: Smart Records -->
-                <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
+                <div class="bg-slate-50/70 hover:bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
                     <div>
-                        <div class="w-16 h-16 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <div class="w-16 h-16 rounded-2xl bg-cyan-100/70 text-cyan-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
                             📁
                         </div>
                         <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.more_services') }}</h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.more_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-200/60 flex items-center justify-between">
                         <span class="bg-cyan-50 text-cyan-700 text-xs font-extrabold px-3 py-1 rounded-lg">پارێزراو بە تەواوی</span>
                         <span class="text-xs font-bold text-slate-400">مەلەفی دیجیتاڵی</span>
                     </div>
@@ -374,19 +612,19 @@
         </div>
     </section>
 
-    <!-- Why Choose Us / Live Tracking Section -->
-    <section id="why-us" class="py-24 relative overflow-hidden">
+    <!-- Why Choose Us Section -->
+    <section id="why-us" class="py-24 bg-slate-50/70 relative overflow-hidden border-t border-slate-100">
         <div class="absolute start-0 top-1/3 w-64 h-64 pattern-grid opacity-30 -z-10"></div>
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col lg:flex-row items-center gap-14 lg:gap-20">
                 
-                <!-- Left: Phone mockup with Live Map & Tracking -->
+                <!-- Left: Phone mockup with First Aid & CPR Guides -->
                 <div class="w-full lg:w-1/2 flex justify-center relative select-none">
-                    <div class="w-[260px] sm:w-[290px] h-[520px] sm:h-[580px] bg-slate-950 rounded-[3rem] border-[8px] border-slate-950 shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden relative z-10 flex flex-col justify-center items-center">
-                        <!-- Notch -->
+                    <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] bg-slate-950 rounded-[3.2rem] border-[9px] border-slate-950 phone-frame overflow-hidden relative z-10 flex flex-col justify-center items-center">
+                        <!-- Dynamic Island -->
                         <div class="absolute top-2 w-24 h-4 bg-slate-950 rounded-full z-20"></div>
-                        <img src="{{ asset('images/app-screen-map.png') }}" alt="DrRoom Live Tracking" class="w-full h-full object-cover rounded-[2.4rem]">
+                        <img src="{{ asset('images/app_first_aid.png') }}" alt="DrRoom First Aid & CPR" class="w-full h-full object-cover rounded-[2.5rem]">
                     </div>
                 </div>
 
@@ -406,7 +644,7 @@
                     <div class="space-y-6">
                         <!-- Feature 1 -->
                         <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-100/70 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                             </div>
                             <div>
@@ -417,7 +655,7 @@
 
                         <!-- Feature 2 -->
                         <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-sm">
+                            <div class="flex-shrink-0 w-12 h-12 bg-emerald-100/70 text-emerald-600 rounded-2xl flex items-center justify-center shadow-sm">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
                             <div>
@@ -428,7 +666,7 @@
 
                         <!-- Feature 3 -->
                         <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center shadow-sm">
+                            <div class="flex-shrink-0 w-12 h-12 bg-purple-100/70 text-purple-600 rounded-2xl flex items-center justify-center shadow-sm">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
                             <div>
@@ -439,7 +677,7 @@
 
                         <!-- Feature 4 -->
                         <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-sm">
+                            <div class="flex-shrink-0 w-12 h-12 bg-amber-100/70 text-amber-600 rounded-2xl flex items-center justify-center shadow-sm">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                             </div>
                             <div>
@@ -454,13 +692,13 @@
     </section>
 
     <!-- Staff & Healthcare Professionals Banner -->
-    <section class="py-12 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white">
+    <section class="py-12 bg-gradient-to-r from-slate-950 via-blue-950 to-slate-950 text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col lg:flex-row items-center justify-between gap-8 py-6">
                 <div>
                     <span class="text-blue-400 font-extrabold text-xs uppercase tracking-wider bg-blue-500/10 px-3 py-1 rounded-full border border-blue-400/20">{{ __('landing.staff_banner_tag') }}</span>
                     <h3 class="text-2xl sm:text-3xl font-black mt-3 mb-2">{{ __('landing.staff_banner_title') }}</h3>
-                    <p class="text-slate-300 text-sm sm:text-base max-w-2xl">{{ __('landing.staff_banner_desc') }}</p>
+                    <p class="text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">{{ __('landing.staff_banner_desc') }}</p>
                 </div>
                 <a href="/staff" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm px-8 py-4 rounded-2xl shadow-xl shadow-blue-600/30 transition transform hover:-translate-y-0.5 flex-shrink-0 flex items-center gap-2">
                     <span>{{ __('landing.staff_banner_btn') }}</span>
@@ -473,7 +711,7 @@
     <!-- Stats and App Download Section -->
     <section id="download" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] overflow-hidden relative shadow-2xl shadow-blue-600/25">
+            <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-[2.5rem] overflow-hidden relative shadow-2xl shadow-blue-600/25">
                 
                 <div class="flex flex-col lg:flex-row">
                     <!-- Stats Side -->
@@ -519,8 +757,8 @@
 
                     <!-- App Visual Mockup Side -->
                     <div class="w-full lg:w-2/5 bg-blue-700/40 p-8 sm:p-12 relative overflow-hidden flex items-center justify-center">
-                        <div class="w-56 sm:w-64 h-80 sm:h-96 rounded-t-[2.5rem] border-8 border-slate-900 shadow-2xl transform rotate-6 overflow-hidden bg-slate-900">
-                            <img src="{{ asset('images/app-screen-banner.png') }}" alt="DrRoom App Banner" class="w-full h-full object-cover">
+                        <div class="w-60 sm:w-68 h-84 sm:h-96 rounded-t-[2.8rem] border-8 border-slate-900 shadow-2xl transform rotate-3 overflow-hidden bg-slate-900">
+                            <img src="{{ asset('images/app_home.png') }}" alt="DrRoom App" class="w-full h-full object-cover">
                         </div>
                     </div>
                 </div>
@@ -681,7 +919,7 @@
                 <!-- Brand Info -->
                 <div class="lg:col-span-2">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25">
+                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25">
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                 <line x1="12" y1="9" x2="12" y2="15"></line>
@@ -710,6 +948,7 @@
                     <h4 class="font-black text-slate-900 text-sm mb-6">{{ __('landing.quick_links') }}</h4>
                     <ul class="space-y-3 text-sm text-slate-600 font-medium">
                         <li><a href="#" class="hover:text-blue-600 transition">{{ __('landing.home') }}</a></li>
+                        <li><a href="#app-screens" class="hover:text-blue-600 transition">{{ __('landing.app_showcase_tag') }}</a></li>
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.services') }}</a></li>
                         <li><a href="#why-us" class="hover:text-blue-600 transition">{{ __('landing.about_tag') }}</a></li>
                         <li><a href="#how-it-works" class="hover:text-blue-600 transition">{{ __('landing.how_it_works') }}</a></li>
@@ -723,9 +962,9 @@
                     <ul class="space-y-3 text-sm text-slate-600 font-medium">
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.lab_tests') }}</a></li>
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.nursing') }}</a></li>
-                        <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.doctor') }}</a></li>
+                        <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.screen_ai_tab') }}</a></li>
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.pharmacy') }}</a></li>
-                        <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.xray') }}</a></li>
+                        <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.screen_firstaid_tab') }}</a></li>
                     </ul>
                 </div>
 
