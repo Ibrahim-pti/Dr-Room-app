@@ -1,3 +1,9 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "dart.flutterSdkPath": "/Users/ibrahimpti/develop/flutter",
+    "dart.env": {
+        "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/Users/ibrahimpti/develop/flutter/bin:${env:PATH}",
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "en_US.UTF-8"
+    }
 }
