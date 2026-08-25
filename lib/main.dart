@@ -28,6 +28,8 @@ import 'features/setup/language_selection_screen.dart';
 import 'features/setup/health_profile_screen.dart';
 import 'features/setup/medical_history_screen.dart';
 import 'core/services/push_notification_service.dart';
+import 'core/services/connectivity_service.dart';
+import 'core/widgets/no_internet_widget.dart';
 
 /// Lets code without a BuildContext (notably [ApiClient]) drive navigation.
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
@@ -36,6 +38,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await PushNotificationService.instance.init();
+  ConnectivityService.instance.initialize();
 
   // A rejected token used to fail silently on every subsequent call. Now it
   // tears the session down and returns the user to login.
@@ -106,6 +109,11 @@ class DrRoomApp extends StatelessWidget {
             supportedLocales: context.supportedLocales,
             locale: context.locale,
             home: const AppFlow(),
+            builder: (context, child) {
+              return GlobalInternetBannerWrapper(
+                child: child ?? const SizedBox(),
+              );
+            },
           );
         },
       ),
