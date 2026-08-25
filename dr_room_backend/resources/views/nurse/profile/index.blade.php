@@ -189,6 +189,82 @@
                 @endforeach
             </div>
 
+            <!-- Custom Services & Pricing (Dynamic List) -->
+            <div class="border-t border-slate-200/80 pt-6 mt-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            خزمەتگوزارییەکان و نرخەکان
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">ئەو خزمەتگوزارییانەی پێشکەشی نەخۆشی دەکەیت لەگەڵ نرخەکانیان دیاریبکە (دەرزی، کانیۆلا، برینپێچی، هتد).</p>
+                    </div>
+                    <button type="button" onclick="addCustomServiceRow()"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold border border-emerald-200 transition-colors shadow-sm cursor-pointer self-start sm:self-auto">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        + زیادکردنی خزمەتگوزاری
+                    </button>
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="mb-4 flex flex-wrap items-center gap-2">
+                    <span class="text-[11px] font-bold text-slate-500">پێشنیاری خێرا:</span>
+                    <button type="button" onclick="quickAddService('دانانی کانیۆلا و سێرووم', 'Cannula & IV Infusion', 'تركيب كانيولا ومغذي', 15000)" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ دانانی کانیۆلا</button>
+                    <button type="button" onclick="quickAddService('لێدانی دەرزی (ماسولکە و دەمار)', 'Injections (IM / IV)', 'حقن عضل ووريد', 10000)" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ لێدانی دەرزی</button>
+                    <button type="button" onclick="quickAddService('پانسمانی برین و سووتان', 'Wound & Burn Dressing', 'تضميد الجروح والحروق', 20000)" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ پانسمانی برین</button>
+                    <button type="button" onclick="quickAddService('دانان و گۆڕینی سۆندەی میز', 'Urinary Catheter Care', 'تركيب وتبديل قسطرة البول', 25000)" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ سۆندەی میز</button>
+                    <button type="button" onclick="quickAddService('پێوانی زەخت و ڕێژەی شەکرە', 'Blood Pressure & Glucose Check', 'فحص الضغط والسكري', 8000)" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ پشکنینی زەخت و شەکرە</button>
+                </div>
+
+                @php
+                    $customServicesRows = is_array($nurse->custom_services) && count($nurse->custom_services) > 0 
+                        ? $nurse->custom_services 
+                        : [
+                            [
+                                'name' => '',
+                                'name_en' => '',
+                                'name_ar' => '',
+                                'price' => '',
+                            ]
+                        ];
+                @endphp
+
+                <div id="custom-services-container" class="space-y-3 mb-5">
+                    @foreach($customServicesRows as $cIdx => $csRow)
+                        <div class="custom-service-row bg-slate-50 border border-slate-200/80 rounded-2xl p-4 transition-all hover:border-emerald-300 relative">
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                                <div class="md:col-span-4">
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">ناوی خزمەتگوزاری (کوردی)</label>
+                                    <input type="text" name="custom_services[{{ $cIdx }}][name]" value="{{ $csRow['name'] ?? '' }}" placeholder="وەک: دانانی کانیۆلا و سێرووم"
+                                        class="service-kurdish-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                                </div>
+                                <div class="md:col-span-3">
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">خزمەتگوزاری (ئینگلیزی)</label>
+                                    <input type="text" name="custom_services[{{ $cIdx }}][name_en]" value="{{ $csRow['name_en'] ?? '' }}" dir="ltr" placeholder="IV Cannula"
+                                        class="service-english-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                                </div>
+                                <div class="md:col-span-3">
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">خزمەتگوزاری (عەرەبی)</label>
+                                    <input type="text" name="custom_services[{{ $cIdx }}][name_ar]" value="{{ $csRow['name_ar'] ?? '' }}" dir="rtl" placeholder="تركيب كانيولا"
+                                        class="service-arabic-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-[11px] font-bold text-slate-600 mb-1">نرخ (د.ع)</label>
+                                    <input type="number" name="custom_services[{{ $cIdx }}][price]" value="{{ $csRow['price'] ?? '' }}" min="0" placeholder="15000"
+                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                                </div>
+                                <div class="md:col-span-12 flex justify-end pt-1">
+                                    <button type="button" onclick="removeCustomServiceRow(this)" class="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors" title="سڕینەوە">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        سڕینەوەی ئەم خزمەتگوزارییە
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
             <!-- City & Service Type -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <!-- City with Select & Custom Input -->
@@ -518,6 +594,73 @@
         }
     }
 
+    // Dynamic Custom Service Rows Management
+    let customServiceRowIdx = {{ count($customServicesRows) }};
+
+    function addCustomServiceRow(name = '', nameEn = '', nameAr = '', price = '') {
+        const container = document.getElementById('custom-services-container');
+        if (!container) return;
+
+        const row = document.createElement('div');
+        row.className = 'custom-service-row bg-slate-50 border border-slate-200/80 rounded-2xl p-4 transition-all hover:border-emerald-300 relative animate-fadeIn';
+        row.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                <div class="md:col-span-4">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">ناوی خزمەتگوزاری (کوردی)</label>
+                    <input type="text" name="custom_services[${customServiceRowIdx}][name]" value="${name}" placeholder="وەک: دانانی کانیۆلا و سێرووم"
+                        class="service-kurdish-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">خزمەتگوزاری (ئینگلیزی)</label>
+                    <input type="text" name="custom_services[${customServiceRowIdx}][name_en]" value="${nameEn}" dir="ltr" placeholder="IV Cannula"
+                        class="service-english-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">خزمەتگوزاری (عەرەبی)</label>
+                    <input type="text" name="custom_services[${customServiceRowIdx}][name_ar]" value="${nameAr}" dir="rtl" placeholder="تركيب كانيولا"
+                        class="service-arabic-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">نرخ (د.ع)</label>
+                    <input type="number" name="custom_services[${customServiceRowIdx}][price]" value="${price}" min="0" placeholder="15000"
+                        class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                </div>
+                <div class="md:col-span-12 flex justify-end pt-1">
+                    <button type="button" onclick="removeCustomServiceRow(this)" class="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors" title="سڕینەوە">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        سڕینەوەی ئەم خزمەتگوزارییە
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(row);
+        customServiceRowIdx++;
+    }
+
+    function quickAddService(name, nameEn, nameAr, price) {
+        // If there's an empty first row, use it
+        const firstKurdishInput = document.querySelector('.custom-service-row .service-kurdish-input');
+        if (firstKurdishInput && !firstKurdishInput.value.trim()) {
+            const row = firstKurdishInput.closest('.custom-service-row');
+            row.querySelector('.service-kurdish-input').value = name;
+            row.querySelector('.service-english-input').value = nameEn;
+            row.querySelector('.service-arabic-input').value = nameAr;
+            row.querySelector('input[type="number"]').value = price;
+        } else {
+            addCustomServiceRow(name, nameEn, nameAr, price);
+        }
+    }
+
+    function removeCustomServiceRow(btn) {
+        const rows = document.querySelectorAll('.custom-service-row');
+        if (rows.length > 1) {
+            btn.closest('.custom-service-row').remove();
+        } else {
+            const row = btn.closest('.custom-service-row');
+            row.querySelectorAll('input').forEach(i => i.value = '');
+        }
+    }
+
     // Translate All Function
     async function handleTranslateAll() {
         const btn = document.getElementById('translate-all-btn');
@@ -545,7 +688,23 @@
             }
         });
 
-        if (!nameVal && specialtiesPayload.length === 0 && !addressVal && !bioVal) {
+        // Collect all custom services from dynamic rows
+        const customServiceRows = document.querySelectorAll('.custom-service-row');
+        const customServicesPayload = [];
+        customServiceRows.forEach(row => {
+            const kInput = row.querySelector('.service-kurdish-input');
+            const eInput = row.querySelector('.service-english-input');
+            const aInput = row.querySelector('.service-arabic-input');
+            if (kInput && kInput.value.trim()) {
+                customServicesPayload.push({
+                    name: kInput.value.trim(),
+                    name_en: eInput ? eInput.value.trim() : '',
+                    name_ar: aInput ? aInput.value.trim() : '',
+                });
+            }
+        });
+
+        if (!nameVal && specialtiesPayload.length === 0 && customServicesPayload.length === 0 && !addressVal && !bioVal) {
             alert('تکایە سەرەتا خانە کوردییەکان پڕبکەرەوە.');
             return;
         }
@@ -565,6 +724,7 @@
                 body: JSON.stringify({
                     name: nameVal,
                     specialties: specialtiesPayload,
+                    custom_services: customServicesPayload,
                     city: cityVal,
                     address: addressVal,
                     bio: bioVal,
@@ -613,6 +773,27 @@
                                 aInput.value = item.name_ar;
                                 aInput.classList.add('ring-2', 'ring-teal-400', 'bg-teal-50/40');
                                 setTimeout(() => aInput.classList.remove('ring-2', 'ring-teal-400', 'bg-teal-50/40'), 2000);
+                            }
+                        }
+                    });
+                }
+
+                // Set Translated Custom Services into rows
+                if (d.custom_services_translated && Array.isArray(d.custom_services_translated)) {
+                    customServiceRows.forEach((row, i) => {
+                        const item = d.custom_services_translated[i];
+                        if (item) {
+                            const eInput = row.querySelector('.service-english-input');
+                            const aInput = row.querySelector('.service-arabic-input');
+                            if (eInput && item.name_en) {
+                                eInput.value = item.name_en;
+                                eInput.classList.add('ring-2', 'ring-emerald-400', 'bg-emerald-50/40');
+                                setTimeout(() => eInput.classList.remove('ring-2', 'ring-emerald-400', 'bg-emerald-50/40'), 2000);
+                            }
+                            if (aInput && item.name_ar) {
+                                aInput.value = item.name_ar;
+                                aInput.classList.add('ring-2', 'ring-emerald-400', 'bg-emerald-50/40');
+                                setTimeout(() => aInput.classList.remove('ring-2', 'ring-emerald-400', 'bg-emerald-50/40'), 2000);
                             }
                         }
                     });

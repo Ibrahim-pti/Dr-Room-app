@@ -116,8 +116,6 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final lang = context.locale.languageCode;
     final isArabic = lang == 'ar';
     final isEnglish = lang == 'en';
@@ -228,7 +226,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                   const SizedBox(height: 14),
 
                   // ── 3. Segmented Tab Bar ──
-                  _buildTabsHeader(allSpecialties.length),
+                  _buildTabsHeader(allSpecialties.length, customServices.length),
                   const SizedBox(height: 14),
 
                   // ── 4. Dynamic Tab Content ──
@@ -244,10 +242,10 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     ],
                     _buildReviewsSection(nurseId, name),
                   ] else ...[
-                    // 🩺 Tab 2: پسپۆڕییەکان (Specialties)
+                    // 🩺 Tab 2: پسپۆڕییەکان و خزمەتگوزارییەکان (Specialties & Services)
                     _buildSpecialtiesSection(allSpecialties),
                     const SizedBox(height: 14),
-                    _buildServiceRequestCard(fee, nurse),
+                    _buildServicesAndPricingSection(customServices, fee, nurse, isArabic, isEnglish),
                   ],
                 ],
               ),
@@ -671,7 +669,27 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+
+        // ── Specialty Centered (Directly below city/location as requested) ──
+        if (specialty.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              specialty,
+              textAlign: TextAlign.center,
+              style: _kStyle(
+                color: const Color(0xFF0D9488),
+                fontSize: 13.5,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 10),
 
         // ── Badges Pill Row (Experience + Specialty + Status) ──
         SingleChildScrollView(
@@ -853,12 +871,12 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
   }
 
   // ─── Tab Bar ───
-  Widget _buildTabsHeader(int specialtiesCount) {
+  Widget _buildTabsHeader(int specialtiesCount, int servicesCount) {
     final tabs = [
       {'id': 0, 'title': 'ناساندن', 'icon': Iconsax.info_circle},
       {
         'id': 1,
-        'title': 'پسپۆڕییەکان ($specialtiesCount)',
+        'title': 'پسپۆڕیی و خزمەتگوزارییەکان',
         'icon': Iconsax.health,
       },
     ];
@@ -1350,6 +1368,174 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
+
+  // ─── Tab 2: خزمەتگوزارییەکان و نرخ (Services & Pricing) ───
+  Widget _buildServicesAndPricingSection(
+    List<dynamic> customServices,
+    dynamic fee,
+    Map<String, dynamic> nurse,
+    bool isArabic,
+    bool isEnglish,
+  ) {
+    final nurseName = nurse['user'] != null ? (nurse['user']['name'] ?? '') : (nurse['name'] ?? 'پەرستاری ماڵەوە');
+    final nurseId = nurse['id'];
+    final defaultFee = fee != null ? (double.tryParse(fee.toString()) ?? 25000.0) : 25000.0;
+
+    // Filter valid custom services
+    final validServices = customServices.where((cs) {
+      if (cs is Map) {
+        final n = cs['name']?.toString() ?? '';
+        return n.trim().isNotEmpty;
+      }
+      return false;
+    }).toList();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Iconsax.activity, color: Color(0xFF0D9488), size: 18),
+              const SizedBox(width: 8),
+              Text(
+                'خزمەتگوزارییەکان و نرخ (${validServices.isNotEmpty ? validServices.length : 1})',
+                style: _kStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          if (validServices.isNotEmpty) ...[
+            ...validServices.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final cs = entry.value as Map;
+              final sName = isEnglish
+                  ? (cs['name_en'] != null && cs['name_en'].toString().isNotEmpty ? cs['name_en'] : (cs['name'] ?? ''))
+                  : (isArabic
+                      ? (cs['name_ar'] != null && cs['name_ar'].toString().isNotEmpty ? cs['name_ar'] : (cs['name'] ?? ''))
+                      : (cs['name'] ?? ''));
+              final sPrice = cs['price'] != null ? (double.tryParse(cs['price'].toString()) ?? defaultFee) : defaultFee;
+
+              return Container(
+                width: double.infinity,
+                margin: EdgeInsets.only(bottom: idx < validServices.length - 1 ? 10 : 0),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Iconsax.health, color: Color(0xFF0D9488), size: 18),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            sName.toString(),
+                            style: _kStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${sPrice.toInt()} د.ع',
+                            style: _kStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF0D9488),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        final cart = context.read<CartProvider>();
+                        cart.clearCart();
+                        cart.setServiceType('Nursing Services', extraFee: 0.0);
+                        cart.addItem(CartItem(
+                          id: 'nurse_${nurseId ?? 1}_srv_$idx',
+                          name: '$nurseName ($sName)',
+                          price: sPrice,
+                          extraData: nurseId != null ? {'nurse_id': nurseId, 'service_name': sName} : null,
+                        ));
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CheckoutDetailsScreen(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0D9488),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'داواکردن',
+                          style: _kStyle(
+                            color: Colors.white,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ] else ...[
+            _buildServiceRequestCard(fee, nurse),
+          ],
+        ],
+      ),
+    );
+  }
 
   // ─── Service Request Card (Price + Request Button) ───
   Widget _buildServiceRequestCard(dynamic fee, Map<String, dynamic> nurse) {

@@ -32,6 +32,11 @@ class NurseProfileController extends Controller
             'specialties.*.name' => 'nullable|string|max:255',
             'specialties.*.name_en' => 'nullable|string|max:255',
             'specialties.*.name_ar' => 'nullable|string|max:255',
+            'custom_services' => 'nullable|array',
+            'custom_services.*.name' => 'nullable|string|max:255',
+            'custom_services.*.name_en' => 'nullable|string|max:255',
+            'custom_services.*.name_ar' => 'nullable|string|max:255',
+            'custom_services.*.price' => 'nullable|numeric|min:0',
             'bio' => 'nullable|string',
             'bio_en' => 'nullable|string',
             'bio_ar' => 'nullable|string',
@@ -72,6 +77,21 @@ class NurseProfileController extends Controller
             $specialtyAr = implode('، ', array_filter(array_column($specialtiesList, 'name_ar')));
         }
 
+        // Process custom services & fees
+        $customServicesList = [];
+        if ($request->has('custom_services') && is_array($request->custom_services)) {
+            foreach ($request->custom_services as $cs) {
+                if (!empty($cs['name'])) {
+                    $customServicesList[] = [
+                        'name' => trim($cs['name']),
+                        'name_en' => trim($cs['name_en'] ?? ''),
+                        'name_ar' => trim($cs['name_ar'] ?? ''),
+                        'price' => !empty($cs['price']) ? (float)$cs['price'] : 0,
+                    ];
+                }
+            }
+        }
+
         // Automatic Translation helper
         $userNameEn = $request->name_en;
         $userNameAr = $request->name_ar;
@@ -98,6 +118,19 @@ class NurseProfileController extends Controller
             if ($specialtyKurdish && !$specialtyAr) {
                 $specialtyAr = $tr->setTarget('ar')->translate($specialtyKurdish);
             }
+
+            // Custom services translations
+            foreach ($customServicesList as &$cService) {
+                if (!empty($cService['name'])) {
+                    if (empty($cService['name_en'])) {
+                        $cService['name_en'] = $tr->setTarget('en')->translate($cService['name']);
+                    }
+                    if (empty($cService['name_ar'])) {
+                        $cService['name_ar'] = $tr->setTarget('ar')->translate($cService['name']);
+                    }
+                }
+            }
+            unset($cService);
 
             // Bio translations
             if ($request->bio && !$bioEn) {
@@ -131,6 +164,7 @@ class NurseProfileController extends Controller
                 'specialty' => $specialtyKurdish,
                 'specialty_en' => $specialtyEn,
                 'specialty_ar' => $specialtyAr,
+                'custom_services' => $customServicesList,
                 'bio' => $request->bio,
                 'bio_en' => $bioEn,
                 'bio_ar' => $bioAr,
@@ -188,6 +222,7 @@ class NurseProfileController extends Controller
             'name' => 'nullable|string',
             'specialty' => 'nullable|string',
             'specialties' => 'nullable|array',
+            'custom_services' => 'nullable|array',
             'city' => 'nullable|string',
             'address' => 'nullable|string',
             'bio' => 'nullable|string',
@@ -199,6 +234,7 @@ class NurseProfileController extends Controller
             'specialty_en' => '',
             'specialty_ar' => '',
             'specialties_translated' => [],
+            'custom_services_translated' => [],
             'city_en' => '',
             'city_ar' => '',
             'address_en' => '',
@@ -232,6 +268,25 @@ class NurseProfileController extends Controller
                     ];
                 }
                 $translations['specialties_translated'] = $specList;
+            }
+
+            if ($request->has('custom_services') && is_array($request->custom_services)) {
+                $csList = [];
+                foreach ($request->custom_services as $idx => $cs) {
+                    $kurdish = trim($cs['name'] ?? '');
+                    $en = trim($cs['name_en'] ?? '');
+                    $ar = trim($cs['name_ar'] ?? '');
+                    if ($kurdish) {
+                        if (!$en) $en = $tr->setTarget('en')->translate($kurdish);
+                        if (!$ar) $ar = $tr->setTarget('ar')->translate($kurdish);
+                    }
+                    $csList[$idx] = [
+                        'name' => $kurdish,
+                        'name_en' => $en,
+                        'name_ar' => $ar,
+                    ];
+                }
+                $translations['custom_services_translated'] = $csList;
             }
 
             if ($request->filled('specialty')) {
