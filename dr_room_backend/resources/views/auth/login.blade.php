@@ -5,26 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - چوونەژوورەوەی ستاف</title>
     <link rel="stylesheet" href="/css/kurdish-font.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Rabar', 'Inter', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Kufi Arabic', 'Plus Jakarta Sans', sans-serif; }
         body { 
             background: #f1f5f9; 
             min-height: 100vh; 
-            overflow-x: auto; 
+            overflow-x: hidden; 
             margin: 0; 
             display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 16px;
         }
         
         .split-layout { 
             display: flex; 
             width: 100%; 
-            max-width: 1200px; 
-            min-height: calc(100vh - 32px);
+            max-width: 1100px; 
+            min-height: 600px;
             background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-radius: 28px;
+            box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.1);
             overflow: hidden;
             margin: auto;
         }
@@ -48,54 +50,64 @@
             margin: 0 auto;
         }
 
-        .logo-wrapper { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+        .logo-wrapper { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
         .logo-icon { 
-            color: #2563EB;
+            width: 46px; height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            color: #ffffff;
             display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.25);
+            flex-shrink: 0;
         }
-        .logo-text h2 { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1; font-family: 'Inter', sans-serif; }
-        .logo-text p { font-size: 12px; color: #64748b; font-weight: 500; margin-top: 4px; }
+        .logo-text h2 { font-size: 24px; font-weight: 900; color: #0f172a; line-height: 1; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .logo-text p { font-size: 11.5px; color: #64748b; font-weight: 600; margin-top: 4px; }
 
-        h1 { font-size: 26px; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
-        .subtitle { font-size: 13.5px; color: #64748b; margin-bottom: 30px; }
+        h1 { font-size: 24px; font-weight: 900; color: #0f172a; margin-bottom: 6px; line-height: 1.4; }
+        .subtitle { font-size: 13.5px; color: #475569; margin-bottom: 24px; line-height: 1.6; font-weight: 500; }
 
         .err-box {
-            background: #FEF2F2; border: 1px solid #FEE2E2; border-radius: 10px;
-            padding: 12px; margin-bottom: 20px; color: #DC2626; font-size: 13px; font-weight: 500;
+            background: #FEF2F2; border: 1px solid #FEE2E2; border-radius: 12px;
+            padding: 12px; margin-bottom: 18px; color: #DC2626; font-size: 13px; font-weight: 600;
         }
 
-        .form-group { margin-bottom: 18px; position: relative; }
-        .form-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
-        .form-icon-right { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; background: none; border: none; }
+        .form-group { margin-bottom: 16px; position: relative; }
+        .form-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #64748b; pointer-events: none; }
+        .form-icon-right { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #64748b; cursor: pointer; background: none; border: none; }
         
         .form-control {
-            width: 100%; padding: 14px 46px 14px 46px;
-            border: 1.5px solid #e2e8f0; border-radius: 14px;
-            font-size: 13.5px; color: #334155; outline: none; transition: all 0.2s;
+            width: 100%; height: 50px; padding: 0 46px 0 46px;
+            border: 1.5px solid #cbd5e1; border-radius: 14px;
+            font-size: 14.5px; font-weight: 600; color: #0f172a; outline: none; transition: all 0.2s;
             text-align: right;
+            background: #f8fafc;
         }
-        .form-control::placeholder { color: #94a3b8; }
-        .form-control:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .form-control::placeholder { color: #64748b; font-weight: 500; font-size: 14px; }
+        .form-control:focus { border-color: #2563EB; background: #ffffff; box-shadow: 0 0 0 4px rgba(37,99,235,0.12); }
 
-        .options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .remember { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; cursor: pointer; font-weight: 500; }
+        .options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .remember { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #475569; cursor: pointer; font-weight: 600; }
         .remember input { width: 18px; height: 18px; accent-color: #2563EB; cursor: pointer; }
-        .forgot { font-size: 13px; color: #2563EB; font-weight: 600; text-decoration: none; }
+        .forgot { font-size: 13px; color: #2563EB; font-weight: 700; text-decoration: none; }
+        .forgot:hover { text-decoration: underline; }
 
         .btn-login {
-            width: 100%; padding: 14px;
+            width: 100%; height: 50px;
             background: #2563EB; color: #fff;
             border: none; border-radius: 14px;
-            font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s;
+            font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            display: flex; align-items: center; justify-content: center;
         }
-        .btn-login:hover { background: #1D4ED8; }
+        .btn-login:hover { background: #1D4ED8; transform: translateY(-1px); }
 
-        .signup { text-align: center; margin-top: 24px; font-size: 13.5px; color: #64748b; }
-        .signup a { color: #2563EB; font-weight: bold; text-decoration: none; }
+        .signup { text-align: center; margin-top: 20px; font-size: 13.5px; color: #475569; font-weight: 600; }
+        .signup a { color: #2563EB; font-weight: 800; text-decoration: none; margin-right: 4px; }
+        .signup a:hover { text-decoration: underline; }
 
         .secure-footer { 
-            display: flex; justify-content: center; align-items: center; gap: 8px; 
-            color: #94a3b8; font-size: 12.5px; font-weight: 500; margin-top: 36px; 
+            display: flex; justify-content: center; align-items: center; gap: 6px; 
+            color: #64748b; font-size: 12.5px; font-weight: 600; margin-top: 26px; 
         }
 
         /* === LEFT/IMAGE SIDE === */
@@ -121,28 +133,22 @@
         }
 
         @media (max-width: 900px) {
-            .left-side { padding: 40px 30px; width: 60%; }
+            .left-side { padding: 36px 24px; width: 60%; }
             .right-side { width: 40%; }
             .logo-text h2 { font-size: 22px; }
             h1 { font-size: 22px; }
-            .subtitle { font-size: 12.5px; margin-bottom: 24px; }
-            .form-group { margin-bottom: 20px; }
         }
         @media (max-width: 600px) {
             body { padding: 12px; }
-            .split-layout { border-radius: 20px; min-height: calc(100vh - 24px); }
-            .left-side { padding: 30px 20px; width: 100%; }
+            .split-layout { border-radius: 24px; min-height: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
+            .left-side { padding: 28px 18px; width: 100%; }
             .right-side { display: none; } 
-            .logo-wrapper { margin-bottom: 24px; }
-            h1 { font-size: 20px; }
-            .subtitle { font-size: 12.5px; margin-bottom: 24px; line-height: 1.5; }
-            .form-group { margin-bottom: 18px; }
-            .form-control { padding: 13px 42px; font-size: 13px; border-radius: 12px; }
-            .btn-login { padding: 13px; font-size: 14px; border-radius: 12px; margin-bottom: 16px; }
-            .options { margin-bottom: 20px; }
-            .remember { font-size: 12px; }
-            .forgot { font-size: 12px; }
-            .secure-footer { font-size: 12px; margin-top: 24px; }
+            .logo-wrapper { margin-bottom: 20px; }
+            h1 { font-size: 22px; }
+            .subtitle { font-size: 13px; margin-bottom: 18px; }
+            .form-control { height: 50px; font-size: 14.5px; padding: 0 46px 0 46px; }
+            .btn-login { height: 50px; font-size: 15px; }
+            .secure-footer { font-size: 12px; margin-top: 20px; }
         }
     </style>
 </head>
@@ -154,7 +160,7 @@
             <div class="left-content">
                 <div class="logo-wrapper">
                     <div class="logo-icon">
-                        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                             <line x1="12" y1="9" x2="12" y2="15"></line>
                             <line x1="9" y1="12" x2="15" y2="12"></line>

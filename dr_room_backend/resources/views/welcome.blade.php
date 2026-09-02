@@ -59,10 +59,16 @@
         * {
             font-family: 'Noto Kufi Arabic', 'Plus Jakarta Sans', sans-serif;
         }
+        h1, h2, h3, h4, h5, h6 {
+            line-height: 1.65 !important;
+        }
         .gradient-text {
             background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #38bdf8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: inline-block;
+            padding-top: 0.15em;
+            padding-bottom: 0.15em;
         }
         .hero-mesh {
             background-color: #ffffff;
@@ -95,41 +101,40 @@
 <body class="text-slate-800 antialiased bg-white selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
 
     <!-- Header Navigation -->
-    <nav class="fixed w-full bg-white/90 backdrop-blur-lg z-50 border-b border-slate-100/80 transition-all duration-200" x-data="{ mobileMenuOpen: false }">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
+    <nav class="fixed w-full bg-white/95 backdrop-blur-lg z-50 border-b border-slate-100/80 transition-all duration-200" x-data="{ mobileMenuOpen: false }">
+        <div class="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20 gap-4 lg:gap-8">
                 
-                <!-- Brand Logo -->
-                <a href="/" class="flex-shrink-0 flex items-center gap-3 group">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform duration-200">
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <!-- Brand Logo (Compact & Crisp) -->
+                <a href="/" class="flex-shrink-0 flex items-center gap-2.5 group">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform duration-200">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                             <line x1="12" y1="9" x2="12" y2="15"></line>
                             <line x1="9" y1="12" x2="15" y2="12"></line>
                         </svg>
                     </div>
                     <div>
-                        <div class="text-xl font-black text-slate-900 leading-none tracking-tight">DrRoom</div>
-                        <p class="text-[11px] font-semibold text-slate-400 mt-1 leading-none">{{ __('landing.subtitle') }}</p>
+                        <div class="text-xl font-black text-slate-900 tracking-tight leading-none">DrRoom</div>
                     </div>
                 </a>
 
-                <!-- Desktop Menu -->
-                <div class="hidden lg:flex space-x-1 rtl:space-x-reverse items-center bg-slate-50/80 p-1.5 rounded-2xl border border-slate-100">
-                    <a href="#" class="text-blue-600 bg-white font-bold px-4 py-2 rounded-xl shadow-sm text-sm transition">{{ __('landing.home') }}</a>
-                    <a href="#app-screens" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.app_showcase_tag') }}</a>
-                    <a href="#services" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.services') }}</a>
-                    <a href="#why-us" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.about_tag') }}</a>
-                    <a href="#how-it-works" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.how_it_works') }}</a>
-                    <a href="#faq" class="text-slate-600 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-sm transition">{{ __('landing.faq') }}</a>
+                <!-- Desktop Menu (Center floating pill, spacious & clean) -->
+                <div class="hidden xl:flex items-center gap-1 bg-slate-50/90 p-1.5 rounded-2xl border border-slate-100/80 shadow-sm">
+                    <a href="#" class="text-blue-600 bg-white font-bold px-3.5 py-1.5 rounded-xl shadow-xs text-[13px] transition whitespace-nowrap">{{ __('landing.home') }}</a>
+                    <a href="#services" class="text-slate-600 hover:text-blue-600 font-bold px-3.5 py-1.5 rounded-xl text-[13px] transition whitespace-nowrap">{{ __('landing.services') }}</a>
+                    <a href="#app-screens" class="text-slate-600 hover:text-blue-600 font-bold px-3.5 py-1.5 rounded-xl text-[13px] transition whitespace-nowrap">{{ __('landing.features') }}</a>
+                    <a href="#why-us" class="text-slate-600 hover:text-blue-600 font-bold px-3.5 py-1.5 rounded-xl text-[13px] transition whitespace-nowrap">{{ __('landing.about_tag') }}</a>
+                    <a href="#how-it-works" class="text-slate-600 hover:text-blue-600 font-bold px-3.5 py-1.5 rounded-xl text-[13px] transition whitespace-nowrap">{{ __('landing.how_it_works') }}</a>
+                    <a href="#faq" class="text-slate-600 hover:text-blue-600 font-bold px-3.5 py-1.5 rounded-xl text-[13px] transition whitespace-nowrap">{{ __('landing.faq') }}</a>
                 </div>
 
                 <!-- Right Actions (Language & Staff Portal & Download) -->
-                <div class="hidden sm:flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2.5 flex-shrink-0">
                     <!-- Staff Portal Link -->
-                    <a href="/staff" class="hidden xl:flex items-center gap-2 text-slate-700 hover:text-blue-600 font-bold text-sm px-3.5 py-2 rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200">
+                    <a href="/staff" class="hidden lg:flex items-center gap-1.5 text-slate-700 hover:text-blue-600 font-bold text-xs px-3 py-2 rounded-xl hover:bg-slate-50 transition border border-transparent hover:border-slate-200">
                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        <span>{{ __('landing.staff_portal') }}</span>
+                        <span class="whitespace-nowrap">{{ __('landing.staff_portal') }}</span>
                     </a>
 
                     <!-- Language Switcher -->
@@ -157,15 +162,15 @@
                     </div>
 
                     <!-- Download Button -->
-                    <a href="#download" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md shadow-blue-500/25 flex items-center gap-2">
+                    <a href="#download" class="bg-blue-600 hover:bg-blue-700 text-white px-4 xl:px-5 py-2.5 rounded-xl font-bold text-xs transition shadow-md shadow-blue-500/25 flex items-center gap-2 whitespace-nowrap">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         <span>{{ __('landing.download_app') }}</span>
                     </a>
                 </div>
 
-                <!-- Mobile Menu Button -->
-                <div class="lg:hidden flex items-center gap-2">
-                    <a href="/staff" class="sm:hidden text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg">ستاف</a>
+                <!-- Mobile & Tablet Menu Button -->
+                <div class="xl:hidden flex items-center gap-2">
+                    <a href="/staff" class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg">ستاف</a>
                     <button @click="mobileMenuOpen = !mobileMenuOpen" class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-center text-slate-700 hover:text-slate-900 focus:outline-none">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -177,11 +182,11 @@
         </div>
 
         <!-- Mobile Menu Drawer -->
-        <div x-show="mobileMenuOpen" x-transition class="lg:hidden bg-white border-t border-slate-100 shadow-xl" style="display: none;">
+        <div x-show="mobileMenuOpen" x-transition class="xl:hidden bg-white border-t border-slate-100 shadow-xl" style="display: none;">
             <div class="px-4 pt-3 pb-6 space-y-2">
                 <a href="#" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-blue-600 font-bold bg-blue-50 rounded-xl text-sm">{{ __('landing.home') }}</a>
-                <a href="#app-screens" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.app_showcase_tag') }}</a>
                 <a href="#services" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.services') }}</a>
+                <a href="#app-screens" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.features') }}</a>
                 <a href="#why-us" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.about_tag') }}</a>
                 <a href="#how-it-works" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.how_it_works') }}</a>
                 <a href="#faq" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.faq') }}</a>
@@ -212,11 +217,11 @@
                 <!-- Hero Left / Start Content -->
                 <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
                     
-                    <!-- Headline -->
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-black text-slate-900 leading-[1.22] mb-6 tracking-tight">
-                        {{ __('landing.hero_title_1') }}<br/>
-                        <span class="gradient-text">{{ __('landing.hero_title_2') }}</span><br/>
-                        {{ __('landing.hero_title_3') }}
+                    <!-- Headline with clean vertical spacing for Kurdish/Arabic script -->
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-black text-slate-900 leading-[1.65] mb-6 tracking-normal">
+                        <span class="block mb-1.5">{{ __('landing.hero_title_1') }}</span>
+                        <span class="gradient-text inline-block py-1 mb-1.5">{{ __('landing.hero_title_2') }}</span>
+                        <span class="block">{{ __('landing.hero_title_3') }}</span>
                     </h1>
                     
                     <!-- Description -->
@@ -250,7 +255,7 @@
                 <div class="w-full lg:w-1/2 relative flex justify-center lg:justify-end min-h-[560px] sm:min-h-[620px] select-none">
                     
                     <!-- Floating Badge: AI Scanner Feature -->
-                    <div class="absolute -top-4 start-4 sm:start-10 z-30 bg-white/95 backdrop-blur-md rounded-2xl p-3.5 shadow-xl border border-slate-100 flex items-center gap-3 animate-float">
+                    <div class="absolute -top-3 start-2 sm:start-8 z-30 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-xl border border-slate-100 flex items-center gap-3 animate-float">
                         <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg font-bold">
                             🤖
                         </div>
@@ -261,7 +266,7 @@
                     </div>
 
                     <!-- Floating Badge: Emergency SOS -->
-                    <div class="absolute bottom-6 end-0 sm:end-8 z-30 bg-white/95 backdrop-blur-md rounded-2xl p-3.5 shadow-xl border border-rose-100 flex items-center gap-3 animate-float-slow">
+                    <div class="absolute bottom-6 end-0 sm:end-6 z-30 bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-xl border border-rose-100 flex items-center gap-3 animate-float-slow">
                         <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-lg font-bold">
                             🚨
                         </div>
@@ -298,8 +303,9 @@
                 <span class="text-blue-600 font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200/60">
                     {{ __('landing.app_showcase_tag') }}
                 </span>
-                <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mt-4 mb-4 tracking-tight">
-                    {{ __('landing.app_showcase_title') }} <span class="gradient-text">{{ __('landing.app_showcase_title_2') }}</span>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-black text-slate-900 mt-4 mb-4 leading-[1.65] tracking-normal">
+                    <span class="block mb-1">{{ __('landing.app_showcase_title') }}</span>
+                    <span class="gradient-text inline-block py-1">{{ __('landing.app_showcase_title_2') }}</span>
                 </h2>
                 <p class="text-slate-600 text-base md:text-lg font-medium leading-relaxed">
                     {{ __('landing.app_showcase_desc') }}
@@ -348,7 +354,7 @@
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-black mb-4">
                             <span>🏠</span> {{ __('landing.screen_home_tab') }}
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
                             {{ __('landing.screen_home_title') }}
                         </h3>
                         <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
@@ -383,7 +389,7 @@
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-50 text-purple-700 text-xs font-black mb-4">
                             <span>🤖</span> {{ __('landing.screen_ai_tab') }}
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
                             {{ __('landing.screen_ai_title') }}
                         </h3>
                         <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
@@ -418,7 +424,7 @@
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-black mb-4">
                             <span>🧪</span> {{ __('landing.screen_labs_tab') }}
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
                             {{ __('landing.screen_labs_title') }}
                         </h3>
                         <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
@@ -453,7 +459,7 @@
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-black mb-4">
                             <span>🚑</span> {{ __('landing.screen_firstaid_tab') }}
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-tight">
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
                             {{ __('landing.screen_firstaid_title') }}
                         </h3>
                         <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
@@ -606,9 +612,9 @@
                 <div class="w-full lg:w-1/2">
                     <div class="text-blue-600 font-extrabold tracking-wider text-xs mb-3 uppercase bg-blue-50 px-3.5 py-1.5 rounded-full inline-block border border-blue-200/60">{{ __('landing.about_tag') }}</div>
                     
-                    <h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-6 leading-tight tracking-tight">
-                        {{ __('landing.quality_care') }}<br/>
-                        <span class="gradient-text">{{ __('landing.can_trust') }}</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-6 leading-[1.5] tracking-tight">
+                        <span class="block mb-1">{{ __('landing.quality_care') }}</span>
+                        <span class="gradient-text inline-block py-1">{{ __('landing.can_trust') }}</span>
                     </h2>
                     
                     <p class="text-slate-600 text-base md:text-lg mb-8 leading-relaxed font-medium">
@@ -691,7 +697,7 @@
                     <!-- Download CTA Side -->
                     <div class="w-full lg:w-3/5 p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
                         <span class="text-blue-200 font-extrabold text-xs uppercase tracking-wider mb-2">دابەزاندنی ئەپ</span>
-                        <h3 class="text-2xl sm:text-4xl font-black text-white mb-4 leading-tight">{{ __('landing.download_drroom') }}</h3>
+                        <h3 class="text-2xl sm:text-4xl font-black text-white mb-4 leading-[1.5]">{{ __('landing.download_drroom') }}</h3>
                         <p class="text-blue-100 text-base max-w-md mb-8 leading-relaxed font-medium">{{ __('landing.get_best_exp') }}</p>
                         
                         <div class="flex flex-wrap gap-3">

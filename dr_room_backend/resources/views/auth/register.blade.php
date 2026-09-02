@@ -5,27 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - تۆمارکردنی ستاف</title>
     <link rel="stylesheet" href="/css/kurdish-font.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Rabar', 'Inter', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Kufi Arabic', 'Plus Jakarta Sans', sans-serif; }
         body { 
             background: #f1f5f9; 
             min-height: 100vh; 
-            overflow-x: auto; 
+            overflow-x: hidden; 
             margin: 0; 
             display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 16px;
         }
         
         .split-layout { 
             display: flex; 
             width: 100%; 
-            max-width: 1200px; 
-            min-height: calc(100vh - 32px);
+            max-width: 1100px; 
+            min-height: 640px;
             background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
+            border-radius: 28px;
+            box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.1);
+            overflow: visible;
             margin: auto;
         }
         
@@ -36,6 +39,7 @@
             display: flex;
             flex-direction: column;
             padding: 40px;
+            border-radius: 28px 0 0 28px;
         }
         
         .left-content {
@@ -48,49 +52,111 @@
             margin: 0 auto;
         }
 
-        .logo-wrapper { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+        .logo-wrapper { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
         .logo-icon { 
-            color: #2563EB;
+            width: 46px; height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            color: #ffffff;
             display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.25);
+            flex-shrink: 0;
         }
-        .logo-text h2 { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1; font-family: 'Inter', sans-serif; }
-        .logo-text p { font-size: 12px; color: #64748b; font-weight: 500; margin-top: 4px; }
+        .logo-text h2 { font-size: 24px; font-weight: 900; color: #0f172a; line-height: 1; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .logo-text p { font-size: 11.5px; color: #64748b; font-weight: 600; margin-top: 4px; }
 
-        h1 { font-size: 26px; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
-        .subtitle { font-size: 13.5px; color: #64748b; margin-bottom: 24px; }
+        h1 { font-size: 24px; font-weight: 900; color: #0f172a; margin-bottom: 6px; line-height: 1.4; }
+        .subtitle { font-size: 13.5px; color: #475569; margin-bottom: 22px; line-height: 1.6; font-weight: 500; }
 
         .err-box {
-            background: #FEF2F2; border: 1px solid #FEE2E2; border-radius: 10px;
-            padding: 12px; margin-bottom: 20px; color: #DC2626; font-size: 13px; font-weight: 500;
+            background: #FEF2F2; border: 1px solid #FEE2E2; border-radius: 12px;
+            padding: 12px; margin-bottom: 18px; color: #DC2626; font-size: 13px; font-weight: 600;
         }
 
         .form-group { margin-bottom: 14px; position: relative; }
-        .form-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
-        .form-icon-right { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; background: none; border: none; }
+        .form-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #64748b; pointer-events: none; z-index: 2; }
         
         .form-control {
-            width: 100%; padding: 13px 46px 13px 46px;
-            border: 1.5px solid #e2e8f0; border-radius: 14px;
-            font-size: 13.5px; color: #334155; outline: none; transition: all 0.2s;
+            width: 100%; height: 50px; padding: 0 46px 0 46px;
+            border: 1.5px solid #cbd5e1; border-radius: 14px;
+            font-size: 14.5px; font-weight: 600; color: #0f172a; outline: none; transition: all 0.2s;
             text-align: right;
+            background: #f8fafc;
         }
-        .form-control::placeholder { color: #94a3b8; }
-        .form-control:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .form-control::placeholder { color: #64748b; font-weight: 500; font-size: 14px; }
+        .form-control:focus { border-color: #2563EB; background: #ffffff; box-shadow: 0 0 0 4px rgba(37,99,235,0.12); }
+
+        /* Custom Dropdown Trigger */
+        .select-btn {
+            width: 100%; height: 50px; padding: 0 16px 0 16px;
+            border: 1.5px solid #cbd5e1; border-radius: 14px;
+            background: #f8fafc; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: all 0.2s; outline: none;
+        }
+        .select-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+        .select-btn.active { border-color: #2563EB; background: #ffffff; box-shadow: 0 0 0 4px rgba(37,99,235,0.12); }
+
+        /* Custom Dropdown Menu (Opens Below) */
+        .custom-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 18px;
+            box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(0,0,0,0.05);
+            padding: 8px;
+            z-index: 50;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-bottom: 2px;
+        }
+        .dropdown-item:last-child { margin-bottom: 0; }
+        .dropdown-item:hover { background: #f1f5f9; }
+        .dropdown-item.selected { background: #EFF6FF; border: 1px solid #BFDBFE; }
+
+        .item-content { display: flex; align-items: center; gap: 12px; }
+        .item-icon-box {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+        .item-title { font-size: 14.5px; font-weight: 800; color: #0f172a; line-height: 1.2; text-align: right; }
+        .item-sub { font-size: 11.5px; font-weight: 600; color: #64748b; line-height: 1.2; text-align: right; }
+        .check-badge {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #2563eb; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold;
+        }
 
         .btn-login {
-            width: 100%; padding: 14px; margin-top: 8px;
+            width: 100%; height: 50px; margin-top: 8px;
             background: #2563EB; color: #fff;
             border: none; border-radius: 14px;
-            font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s;
+            font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            display: flex; align-items: center; justify-content: center;
         }
-        .btn-login:hover { background: #1D4ED8; }
+        .btn-login:hover { background: #1D4ED8; transform: translateY(-1px); }
 
-        .signup { text-align: center; margin-top: 20px; font-size: 13.5px; color: #64748b; }
-        .signup a { color: #2563EB; font-weight: bold; text-decoration: none; }
+        .signup { text-align: center; margin-top: 18px; font-size: 13.5px; color: #475569; font-weight: 600; }
+        .signup a { color: #2563EB; font-weight: 800; text-decoration: none; margin-right: 4px; }
+        .signup a:hover { text-decoration: underline; }
 
         .secure-footer { 
-            display: flex; justify-content: center; align-items: center; gap: 8px; 
-            color: #94a3b8; font-size: 12.5px; font-weight: 500; margin-top: 26px; 
+            display: flex; justify-content: center; align-items: center; gap: 6px; 
+            color: #64748b; font-size: 12.5px; font-weight: 600; margin-top: 24px; 
         }
 
         /* === IMAGE SIDE === */
@@ -102,6 +168,7 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
+            border-radius: 0 28px 28px 0;
         }
         
         .right-side img {
@@ -116,24 +183,22 @@
         }
 
         @media (max-width: 900px) {
-            .left-side { padding: 40px 30px; width: 60%; }
+            .left-side { padding: 36px 24px; width: 60%; }
             .right-side { width: 40%; }
             .logo-text h2 { font-size: 22px; }
             h1 { font-size: 22px; }
-            .subtitle { font-size: 12.5px; margin-bottom: 20px; }
-            .form-group { margin-bottom: 14px; }
         }
         @media (max-width: 600px) {
             body { padding: 12px; }
-            .split-layout { border-radius: 20px; min-height: calc(100vh - 24px); }
-            .left-side { padding: 30px 20px; width: 100%; }
+            .split-layout { border-radius: 24px; min-height: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
+            .left-side { padding: 28px 18px; width: 100%; border-radius: 24px; }
             .right-side { display: none; } 
             .logo-wrapper { margin-bottom: 20px; }
-            h1 { font-size: 20px; }
-            .subtitle { font-size: 12.5px; margin-bottom: 20px; line-height: 1.5; }
-            .form-group { margin-bottom: 14px; }
-            .form-control { padding: 12px 42px; font-size: 13px; border-radius: 12px; }
-            .btn-login { padding: 13px; font-size: 14px; border-radius: 12px; margin-bottom: 14px; }
+            h1 { font-size: 22px; }
+            .subtitle { font-size: 13px; margin-bottom: 18px; }
+            .form-control { height: 50px; font-size: 14.5px; padding: 0 46px 0 46px; }
+            .select-btn { height: 50px; }
+            .btn-login { height: 50px; font-size: 15px; }
             .secure-footer { font-size: 12px; margin-top: 20px; }
         }
     </style>
@@ -146,7 +211,7 @@
             <div class="left-content">
                 <div class="logo-wrapper">
                     <div class="logo-icon">
-                        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                             <line x1="12" y1="9" x2="12" y2="15"></line>
                             <line x1="9" y1="12" x2="15" y2="12"></line>
@@ -199,17 +264,104 @@
                         <input type="text" name="phone" value="{{ old('phone') }}" required dir="ltr" class="form-control" placeholder="ژمارەی مۆبایل">
                     </div>
                     
-                    <div class="form-group">
-                        <svg class="form-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                        </svg>
-                        <select name="role" required class="form-control" style="appearance: auto;">
-                            <option value="" disabled selected>ڕۆڵ یان پیشەکەت هەڵبژێرە...</option>
-                            <option value="doctor" {{ old('role') == 'doctor' ? 'selected' : '' }}>پزیشک (Doctor)</option>
-                            <option value="nurse" {{ old('role') == 'nurse' ? 'selected' : '' }}>پەرستار (Nurse)</option>
-                            <option value="lab" {{ old('role') == 'lab' ? 'selected' : '' }}>تاقیگە (Laboratory)</option>
-                            <option value="pharmacy" {{ old('role') == 'pharmacy' ? 'selected' : '' }}>دەرمانخانە (Pharmacy)</option>
-                        </select>
+                    <!-- Luxury Downward Opening Custom Dropdown -->
+                    <div class="form-group" 
+                         x-data="{ 
+                             open: false, 
+                             selected: '{{ old('role', '') }}', 
+                             selectedTitle: '{{ old('role') == 'doctor' ? 'پزیشک (Doctor)' : (old('role') == 'nurse' ? 'پەرستار (Nurse)' : (old('role') == 'lab' ? 'تاقیگە (Laboratory)' : (old('role') == 'pharmacy' ? 'دەرمانخانە (Pharmacy)' : ''))) }}' 
+                         }">
+                        
+                        <input type="hidden" name="role" :value="selected" required>
+                        
+                        <button type="button" 
+                                @click="open = !open" 
+                                @click.away="open = false" 
+                                class="select-btn"
+                                :class="{ 'active': open }">
+                            
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <svg width="20" height="20" fill="none" stroke="#64748b" viewBox="0 0 24 24" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <span :style="selected ? 'color: #0f172a; font-weight: 800;' : 'color: #64748b; font-weight: 500;'" 
+                                      x-text="selectedTitle || 'ڕۆڵ یان پیشەکەت هەڵبژێرە...'" 
+                                      style="font-size: 14.5px;"></span>
+                            </div>
+
+                            <svg width="20" height="20" fill="none" stroke="#64748b" viewBox="0 0 24 24" stroke-width="2.2" 
+                                 :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+
+                        <!-- Dropdown Menu Below -->
+                        <div x-show="open" 
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 transform -translate-y-2"
+                             x-transition:enter-end="opacity-100 transform translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 transform translate-y-0"
+                             x-transition:leave-end="opacity-0 transform -translate-y-2"
+                             class="custom-dropdown-menu" 
+                             style="display: none;">
+                            
+                            <!-- Doctor -->
+                            <div class="dropdown-item" 
+                                 :class="{ 'selected': selected === 'doctor' }" 
+                                 @click="selected = 'doctor'; selectedTitle = 'پزیشک (Doctor)'; open = false;">
+                                <div class="item-content">
+                                    <div class="item-icon-box" style="background: #EFF6FF; color: #2563eb;">🩺</div>
+                                    <div>
+                                        <div class="item-title">پزیشک</div>
+                                        <div class="item-sub">Doctor</div>
+                                    </div>
+                                </div>
+                                <div class="check-badge" x-show="selected === 'doctor'">✓</div>
+                            </div>
+
+                            <!-- Nurse -->
+                            <div class="dropdown-item" 
+                                 :class="{ 'selected': selected === 'nurse' }" 
+                                 @click="selected = 'nurse'; selectedTitle = 'پەرستار (Nurse)'; open = false;">
+                                <div class="item-content">
+                                    <div class="item-icon-box" style="background: #F0FDF4; color: #16a34a;">💉</div>
+                                    <div>
+                                        <div class="item-title">پەرستار</div>
+                                        <div class="item-sub">Nurse</div>
+                                    </div>
+                                </div>
+                                <div class="check-badge" x-show="selected === 'nurse'">✓</div>
+                            </div>
+
+                            <!-- Lab -->
+                            <div class="dropdown-item" 
+                                 :class="{ 'selected': selected === 'lab' }" 
+                                 @click="selected = 'lab'; selectedTitle = 'تاقیگە (Laboratory)'; open = false;">
+                                <div class="item-content">
+                                    <div class="item-icon-box" style="background: #FAF5FF; color: #9333ea;">🔬</div>
+                                    <div>
+                                        <div class="item-title">تاقیگە</div>
+                                        <div class="item-sub">Laboratory</div>
+                                    </div>
+                                </div>
+                                <div class="check-badge" x-show="selected === 'lab'">✓</div>
+                            </div>
+
+                            <!-- Pharmacy -->
+                            <div class="dropdown-item" 
+                                 :class="{ 'selected': selected === 'pharmacy' }" 
+                                 @click="selected = 'pharmacy'; selectedTitle = 'دەرمانخانە (Pharmacy)'; open = false;">
+                                <div class="item-content">
+                                    <div class="item-icon-box" style="background: #FFF7ED; color: #ea580c;">💊</div>
+                                    <div>
+                                        <div class="item-title">دەرمانخانە</div>
+                                        <div class="item-sub">Pharmacy</div>
+                                    </div>
+                                </div>
+                                <div class="check-badge" x-show="selected === 'pharmacy'">✓</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
