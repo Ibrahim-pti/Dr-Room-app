@@ -1,4 +1,4 @@
-package com.drroom.dr_room
+package com.drroom.app
 
 import io.flutter.embedding.android.FlutterActivity
 

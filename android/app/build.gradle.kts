@@ -30,7 +30,7 @@ if (localPropertiesFile.exists()) {
 val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY") ?: ""
 
 android {
-    namespace = "com.drroom.dr_room"
+    namespace = "com.drroom.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -44,7 +44,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.drroom.dr_room"
+        applicationId = "com.drroom.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
