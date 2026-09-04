@@ -453,7 +453,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const MedicalRecordsScreen(),
+                                    const MedicalRecordsScreen(showBackButton: true),
                               ),
                             );
                           },

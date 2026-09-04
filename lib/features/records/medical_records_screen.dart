@@ -5,12 +5,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
-import '../home/main_shell.dart';
 
 class MedicalRecordsScreen extends StatefulWidget {
-  final bool? showBackButton;
+  final bool showBackButton;
 
-  const MedicalRecordsScreen({super.key, this.showBackButton});
+  const MedicalRecordsScreen({super.key, this.showBackButton = false});
 
   @override
   State<MedicalRecordsScreen> createState() => _MedicalRecordsScreenState();
@@ -79,23 +78,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
-        leading: (widget.showBackButton ?? Navigator.canPop(context))
+        leading: widget.showBackButton
             ? IconButton(
                 icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
                   color: isDark ? Colors.white : const Color(0xFF0F172A),
                   size: 20,
                 ),
-                onPressed: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  } else {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const MainShell()),
-                    );
-                  }
-                },
+                onPressed: () => Navigator.pop(context),
               )
             : null,
         title: Text(

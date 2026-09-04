@@ -191,7 +191,7 @@ class _EmergencySosSheet extends StatelessWidget {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FirstAidScreen()),
+                MaterialPageRoute(builder: (context) => const FirstAidScreen(showBackButton: true)),
               );
             },
             child: Container(
