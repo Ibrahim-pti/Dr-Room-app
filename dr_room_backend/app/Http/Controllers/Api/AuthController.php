@@ -75,6 +75,27 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
+        // Special Google / App Store Reviewer test account
+        if ($request->phone === '07500000000' && $request->password === 'GoogleTest@2026') {
+            $testUser = User::firstOrCreate(
+                ['phone' => '07500000000'],
+                [
+                    'name' => 'Google Play Reviewer',
+                    'password' => Hash::make('GoogleTest@2026'),
+                    'role' => 'patient',
+                    'status' => 'approved',
+                ]
+            );
+            $testUser->otp_code = '1234';
+            $testUser->otp_expires_at = now()->addYears(1);
+            $testUser->save();
+
+            return response()->json([
+                'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
+                'phone' => '07500000000'
+            ]);
+        }
+
         $user = User::where('phone', $request->phone)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -145,6 +166,36 @@ class AuthController extends Controller
             'phone' => 'required|string',
             'otp_code' => 'required|string'
         ]);
+
+        // Special Google / App Store Reviewer test account
+        if ($request->phone === '07500000000' && $request->otp_code === '1234') {
+            $user = User::firstOrCreate(
+                ['phone' => '07500000000'],
+                [
+                    'name' => 'Google Play Reviewer',
+                    'password' => Hash::make('GoogleTest@2026'),
+                    'role' => 'patient',
+                    'status' => 'approved',
+                ]
+            );
+            $user->status = 'approved';
+            $user->save();
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'role' => $user->role,
+                    'status' => $user->status,
+                    'is_admin' => false,
+                ]
+            ]);
+        }
 
         $user = User::where('phone', $request->phone)->first();
 
