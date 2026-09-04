@@ -1,4 +1,4 @@
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -328,6 +328,7 @@ class _MainShellState extends State<MainShell> {
                   const SizedBox(height: 4),
                   Text(
                     _userPhone,
+                    textDirection: TextDirection.ltr,
                     style: _kStyle(
                       color: Colors.white.withValues(alpha: 0.85),
                       fontSize: 13,

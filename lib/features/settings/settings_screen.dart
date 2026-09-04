@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../main.dart';
 import '../../core/services/session_service.dart';
@@ -57,6 +57,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       });
     }
+  }
+
+  String get _formattedPhone {
+    if (_userPhone.isEmpty) return '';
+    var p = _userPhone.trim();
+    if (p.startsWith('+964')) {
+      p = p.substring(4).trim();
+    } else if (p.startsWith('00964')) {
+      p = p.substring(5).trim();
+    } else if (p.startsWith('964')) {
+      p = p.substring(3).trim();
+    }
+    if (p.startsWith('0')) {
+      p = p.substring(1).trim();
+    }
+    p = p.replaceAll(' ', '');
+    return '+964 $p';
   }
 
   @override
@@ -299,15 +316,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _userPhone.isNotEmpty ? '+964 $_userPhone' : '',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.getTextSubtitle(context),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
+                        if (_userPhone.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text(
+                              _formattedPhone,
+                              textDirection: TextDirection.ltr,
+                              style: GoogleFonts.poppins(
+                                color: AppColors.getTextSubtitle(context),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
