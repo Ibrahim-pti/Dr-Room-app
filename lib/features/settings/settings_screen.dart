@@ -357,53 +357,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ],
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(10),
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        clipBehavior: Clip.antiAlias,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
                           ),
-                          child: const Icon(
-                            Iconsax.shield_security,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                        ),
-                        title: const Text(
-                          'داشبۆردی ئەدمین (Admin Panel)',
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            color: Colors.white,
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: const Text(
-                          'بەڕێوەبردنی پزیشکان، دەرمانخانە، تاقیگەکان و سیستەم',
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            color: Colors.white70,
-                            fontSize: 11,
-                          ),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          color: Colors.white70,
-                          size: 16,
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AdminDashboardShell(),
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                          );
-                        },
+                            child: const Icon(
+                              Iconsax.shield_security,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                          title: const Text(
+                            'داشبۆردی ئەدمین (Admin Panel)',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              color: Colors.white,
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: const Text(
+                            'بەڕێوەبردنی پزیشکان، دەرمانخانە، تاقیگەکان و سیستەم',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              color: Colors.white70,
+                              fontSize: 11,
+                            ),
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: Colors.white70,
+                            size: 16,
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AdminDashboardShell(),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ],

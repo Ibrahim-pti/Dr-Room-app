@@ -242,12 +242,13 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   }
 
   Widget _buildFAQItem(BuildContext context, {required String question, required String answer}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.getSurface(context),
+    return Material(
+      color: AppColors.getSurface(context),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.getBorder(context)),
+        side: BorderSide(color: AppColors.getBorder(context)),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
