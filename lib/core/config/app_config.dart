@@ -1,5 +1,4 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
+import 'package:flutter/foundation.dart' show kReleaseMode;
 
 /// Build-time environment selection.
 ///
@@ -32,25 +31,17 @@ class AppConfig {
 
   static bool get isProd => environment == Environment.prod;
 
-  /// Host used in development. Android emulators reach the host machine's
-  /// loopback through 10.0.2.2; everything else uses 127.0.0.1. Override with
-  /// --dart-define=DEV_HOST=192.168.1.5 to test against a real device.
-  static String get _devHost {
-    const override = String.fromEnvironment('DEV_HOST');
-    if (override.isNotEmpty) return override;
-    if (kIsWeb) return '127.0.0.1';
-    if (Platform.isAndroid) return '10.0.2.2';
-    return '127.0.0.1';
-  }
+  static const String liveServerUrl = 'https://sys.shaqamonline.org';
 
   static String get _origin {
+    const override = String.fromEnvironment('SERVER_URL');
+    if (override.isNotEmpty) return override;
+
     switch (environment) {
       case Environment.prod:
-        return 'https://api.drroom.com';
       case Environment.staging:
-        return 'https://staging-api.drroom.com';
       case Environment.dev:
-        return 'http://$_devHost:8000';
+        return liveServerUrl;
     }
   }
 

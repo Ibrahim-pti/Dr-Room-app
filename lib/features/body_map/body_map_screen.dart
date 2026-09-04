@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/utils/api_client.dart';
 import 'organ_details_screen.dart';
 
 class BodyMapScreen extends StatefulWidget {
@@ -426,9 +427,7 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
   Future<void> _fetchAnatomyApiData() async {
     setState(() => isLoadingApi = true);
     final urls = [
-      'http://127.0.0.1:8000/api/anatomy/organs',
-      'http://10.0.2.2:8000/api/anatomy/organs',
-      'http://localhost:8000/api/anatomy/organs',
+      '${ApiClient.baseUrl}/anatomy/organs',
     ];
 
     bool fetchedFromLaravel = false;
