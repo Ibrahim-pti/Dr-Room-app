@@ -4,7 +4,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/utils/api_client.dart';
-import '../home/main_shell.dart';
 import 'first_aid_detail_screen.dart';
 
 class FirstAidScreen extends StatefulWidget {
