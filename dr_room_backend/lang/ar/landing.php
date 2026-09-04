@@ -8,6 +8,7 @@ return [
     'how_it_works' => 'كيف نعمل',
     'about_us' => 'من نحن',
     'staff_portal' => 'بوابة الكادر الطبي',
+    'staff_short' => 'بوابة الكادر',
     'faq' => 'الأسئلة الشائعة',
     'contact' => 'اتصل بنا',
     'download_app' => 'تحميل التطبيق',

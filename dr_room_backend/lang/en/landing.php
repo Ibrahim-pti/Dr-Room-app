@@ -8,6 +8,7 @@ return [
     'how_it_works' => 'How It Works',
     'about_us' => 'About Us',
     'staff_portal' => 'Doctor & Staff Portal',
+    'staff_short' => 'Staff Portal',
     'faq' => 'FAQ',
     'contact' => 'Contact',
     'download_app' => 'Download App',
