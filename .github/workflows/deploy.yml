@@ -1,0 +1,84 @@
+name: Deploy Laravel Backend to Server
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'dr_room_backend/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to aaPanel Server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          envs: GITHUB_TOKEN,GITHUB_REPOSITORY
+          timeout: 120s
+          command_timeout: 15m
+          script: |
+            set -e
+
+            REPO_CACHE="/www/wwwroot/sys.shaqamonline.org/.dr_room_repo_cache"
+            DEPLOY_DIR="/www/wwwroot/sys.shaqamonline.org"
+            REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+            echo "🚀 --- هێنانی نوێترین کۆد لە GitHub ---"
+            if [ ! -d "$REPO_CACHE/.git" ]; then
+              git clone "$REPO_URL" "$REPO_CACHE"
+            else
+              git config --global --add safe.directory "$REPO_CACHE"
+              cd "$REPO_CACHE"
+              git remote set-url origin "$REPO_URL"
+              git fetch origin
+              git reset --hard origin/main
+            fi
+
+            echo "📦 --- sync کردنی بەشی dr_room_backend بۆ سەر سێرڤەر ---"
+            rsync -av --delete \
+              --exclude='.env' \
+              --exclude='.user.ini' \
+              --exclude='public/.user.ini' \
+              --exclude='public/storage' \
+              --exclude='.dr_room_repo_cache' \
+              --exclude='__MACOSX' \
+              --exclude='.DS_Store' \
+              --exclude='storage/' \
+              --exclude='vendor/' \
+              "$REPO_CACHE/dr_room_backend/" "$DEPLOY_DIR/"
+
+            cd "$DEPLOY_DIR"
+
+            echo "⚡ --- دابەزاندنی پاکەیجەکان (Composer) ---"
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+            echo "🗄️ --- جێبەجێکردنی مایگرەیشنەکان (Database Migrate) ---"
+            php artisan migrate --force
+
+            echo "🔗 --- بەستنەوەی storage:link ---"
+            php artisan storage:link || true
+
+            echo "🧹 --- پاککردنەوە و دروستکردنی کاش (Optimize & Cache) ---"
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "🔒 --- ڕێکخستنی دەسەڵاتی فایلەکان (Permissions) ---"
+            chown -R www:www "$DEPLOY_DIR"
+            chmod -R 775 storage bootstrap/cache
+
+            echo "🔄 --- ڕیلۆدکردنی خزمەتگوزاری PHP-FPM ---"
+            /etc/init.d/php-fpm-84 reload 2>/dev/null || systemctl reload php-fpm 2>/dev/null || true
+
+            echo "✅ دیپلۆیکردن بە سەرکەوتوویی تەواو بوو!"
