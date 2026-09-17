@@ -39,7 +39,7 @@ class AuthController extends Controller
      * When OTP_MANUAL_CODE is set the provider is skipped entirely and that
      * fixed code is stored instead.
      */
-    private function sendOtp(User $user, string $provider = 'auto'): bool
+    private function sendOtp(User $user, string $provider = 'auto', ?string &$errorMessage = null): bool
     {
         $configuredCode = config('services.otpiq.manual_code');
         $isProduction = app()->environment('production');
@@ -77,12 +77,19 @@ class AuthController extends Controller
                 ->post('https://api.otpiq.com/api/sms', $payload);
 
             if (!$response->successful()) {
+                $rawError = $response->json('error') ?? $response->body();
                 Log::error('OTPIQ SMS API error', [
                     'status' => $response->status(),
                     'response' => $response->json() ?? $response->body(),
                     'phone' => $this->toIraqPhone($user->phone),
                     'provider' => $chosenProvider,
                 ]);
+
+                if (is_string($rawError) && stripos($rawError, 'trial mode') !== false) {
+                    $errorMessage = 'ئەکاونتی OTPIQ لە دۆخی تاقیکاری (Trial) دایە؛ پێویستە لە داشبۆردی otpiq.com باڵانس (Credit) زیاد بکرێت بۆ ئەوەی کۆد بۆ هەموو ژمارەیەک بنێردرێت.';
+                } else {
+                    $errorMessage = 'نەکرا کۆدی پشتڕاستکردنەوە بنێردرێت: ' . ($response->json('error') ?? 'هەڵەی سێرڤەری OTPIQ');
+                }
                 return false;
             }
 
@@ -98,6 +105,7 @@ class AuthController extends Controller
                 'phone' => $this->toIraqPhone($user->phone),
                 'provider' => $chosenProvider,
             ]);
+            $errorMessage = 'نەتوانرا پەیوەندی بە سێرڤەری ناردنی کۆد (OTPIQ) بکرێت.';
             return false;
         }
     }
@@ -155,9 +163,10 @@ class AuthController extends Controller
             ], 403);
         }
 
-        if (!$this->sendOtp($user, $provider)) {
+        $otpError = null;
+        if (!$this->sendOtp($user, $provider, $otpError)) {
             return response()->json([
-                'message' => 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە'
+                'message' => $otpError ?: 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە'
             ], 502);
         }
 
@@ -225,9 +234,10 @@ class AuthController extends Controller
             ], 403);
         }
 
-        if (!$this->sendOtp($user, $provider)) {
+        $otpError = null;
+        if (!$this->sendOtp($user, $provider, $otpError)) {
             return response()->json([
-                'message' => 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە'
+                'message' => $otpError ?: 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە'
             ], 502);
         }
 
@@ -252,17 +262,26 @@ class AuthController extends Controller
         $status = ($role === 'patient') ? 'approved' : 'pending';
         $provider = $request->input('provider', $request->input('channel', config('services.otpiq.provider', 'auto')));
 
-        $user = User::create([
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-            'role' => $role,
-            'status' => $status,
-        ]);
+        $otpError = null;
+        try {
+            $user = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $role, $status, $provider, &$otpError) {
+                $createdUser = User::create([
+                    'name' => $request->name,
+                    'phone' => $request->phone,
+                    'password' => Hash::make($request->password),
+                    'role' => $role,
+                    'status' => $status,
+                ]);
 
-        if (!$this->sendOtp($user, $provider)) {
+                if (!$this->sendOtp($createdUser, $provider, $otpError)) {
+                    throw new \Exception($otpError ?: 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە');
+                }
+
+                return $createdUser;
+            });
+        } catch (\Throwable $e) {
             return response()->json([
-                'message' => 'هەژمارەکەت دروستکرا، بەڵام نەکرا کۆدەکە بنێردرێت. تکایە لە لۆگیندا هەوڵبدەرەوە'
+                'message' => $otpError ?: $e->getMessage()
             ], 502);
         }
 
