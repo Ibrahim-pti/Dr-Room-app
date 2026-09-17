@@ -143,6 +143,30 @@ class AuthController extends Controller
             ]);
         }
 
+        // Special Patient test account (for testing while OTPiq balance is being funded)
+        if ($request->phone === '07501112222' && in_array($request->password, ['user123456', '123456', 'test123456'])) {
+            $testUser = User::firstOrCreate(
+                ['phone' => '07501112222'],
+                [
+                    'name' => 'نەخۆش / بەکارهێنەر',
+                    'email' => 'user@drroom.com',
+                    'password' => Hash::make('user123456'),
+                    'role' => 'patient',
+                    'status' => 'approved',
+                ]
+            );
+            $testUser->status = 'approved';
+            $testUser->otp_code = '1234';
+            $testUser->otp_expires_at = now()->addYears(1);
+            $testUser->save();
+
+            return response()->json([
+                'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
+                'phone' => '07501112222',
+                'provider' => $provider,
+            ]);
+        }
+
         $user = User::where('phone', $request->phone)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -209,6 +233,30 @@ class AuthController extends Controller
             ]);
         }
 
+        // Special Patient test account (for testing while OTPiq balance is being funded)
+        if ($phone === '07501112222') {
+            $testUser = User::firstOrCreate(
+                ['phone' => '07501112222'],
+                [
+                    'name' => 'نەخۆش / بەکارهێنەر',
+                    'email' => 'user@drroom.com',
+                    'password' => Hash::make('user123456'),
+                    'role' => 'patient',
+                    'status' => 'approved',
+                ]
+            );
+            $testUser->status = 'approved';
+            $testUser->otp_code = '1234';
+            $testUser->otp_expires_at = now()->addYears(1);
+            $testUser->save();
+
+            return response()->json([
+                'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
+                'phone' => '07501112222',
+                'provider' => $provider,
+            ]);
+        }
+
         $user = User::where('phone', $phone)->first();
 
         // If user doesn't exist yet, automatically create patient account
@@ -261,6 +309,26 @@ class AuthController extends Controller
         $role = $request->role ?? 'patient';
         $status = ($role === 'patient') ? 'approved' : 'pending';
         $provider = $request->input('provider', $request->input('channel', config('services.otpiq.provider', 'auto')));
+
+        // Special test accounts bypass OTP sending
+        if ($request->phone === '07501112222' || $request->phone === '07500000000') {
+            $user = User::updateOrCreate(
+                ['phone' => $request->phone],
+                [
+                    'name' => $request->name,
+                    'password' => Hash::make($request->password),
+                    'role' => $role,
+                    'status' => 'approved',
+                    'otp_code' => '1234',
+                    'otp_expires_at' => now()->addYears(1),
+                ]
+            );
+            return response()->json([
+                'message' => 'هەژمارەکەت دروستکرا، تکایە کۆدەکە بنووسە',
+                'phone' => $user->phone,
+                'provider' => $provider,
+            ], 201);
+        }
 
         $otpError = null;
         try {
@@ -326,6 +394,37 @@ class AuthController extends Controller
                     'role' => $user->role,
                     'status' => $user->status,
                     'is_admin' => $user->role === 'admin',
+                ]
+            ]);
+        }
+
+        // Special Patient test account (for testing while OTPiq balance is being funded)
+        if ($request->phone === '07501112222' && $request->otp_code === '1234') {
+            $user = User::firstOrCreate(
+                ['phone' => '07501112222'],
+                [
+                    'name' => 'نەخۆش / بەکارهێنەر',
+                    'email' => 'user@drroom.com',
+                    'password' => Hash::make('user123456'),
+                    'role' => 'patient',
+                    'status' => 'approved',
+                ]
+            );
+            $user->status = 'approved';
+            $user->save();
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'role' => $user->role,
+                    'status' => $user->status,
+                    'is_admin' => false,
                 ]
             ]);
         }
