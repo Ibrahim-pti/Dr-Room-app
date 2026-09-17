@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Lab;
+use App\Models\LabTest;
+use App\Models\LabPackage;
 
 class LabApiController extends Controller
 {
@@ -197,6 +200,147 @@ class LabApiController extends Controller
         return response()->json([
             'success' => true,
             'data' => $data
+        ]);
+    }
+
+    /**
+     * Get all available lab tests dynamically across all labs
+     */
+    public function allTests(Request $request)
+    {
+        $query = LabTest::with('lab.user')->where('is_active', true);
+
+        if ($request->filled('category')) {
+            $query->where('type', $request->category);
+        }
+        if ($request->filled('lab_id')) {
+            $query->where('lab_id', $request->lab_id);
+        }
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function($q) use ($s) {
+                $q->where('name', 'like', "%$s%")
+                  ->orWhere('name_en', 'like', "%$s%")
+                  ->orWhere('name_ar', 'like', "%$s%")
+                  ->orWhere('type', 'like', "%$s%");
+            });
+        }
+
+        $tests = $query->get()->map(function($t) {
+            $lab = $t->lab;
+            $labUser = $lab ? $lab->user : null;
+            $labName = $labUser ? $labUser->name : 'تاقیگەی پزیشکی';
+            $discount = $t->discount ?: ($lab ? $lab->discount : null);
+            $originalPrice = $discount ? round($t->price / (1 - ($discount / 100))) : null;
+
+            return [
+                'id' => (string) $t->id,
+                'name' => $t->name,
+                'name_ku' => $t->name,
+                'name_en' => $t->name_en ?? $t->name,
+                'name_ar' => $t->name_ar ?? $t->name,
+                'price' => (double) $t->price,
+                'original_price' => $originalPrice ? (double) $originalPrice : null,
+                'discount' => $discount ? (int) $discount : null,
+                'category' => $t->type ?: 'خوێن',
+                'type' => $t->type ?: 'General',
+                'lab_id' => $lab ? $lab->id : null,
+                'lab_user_id' => $labUser ? $labUser->id : null,
+                'lab' => $labName,
+                'lab_name' => $labName,
+                'lab_image' => $lab && $lab->image_path ? $lab->image_path : ($labUser && $labUser->profile_image ? 'storage/' . $labUser->profile_image : 'assets/images/laboratory.jpg'),
+                'city' => $lab ? ($lab->city ?? 'Erbil') : 'Erbil',
+                'home_sample_collection' => $lab ? (bool) $lab->home_sample_collection : true,
+                'desc' => $t->description ?: 'پشکنینی ورد و خێرای تاقیگەیی',
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $tests,
+            'total' => $tests->count(),
+        ]);
+    }
+
+    /**
+     * Get all lab packages dynamically
+     */
+    public function allPackages(Request $request)
+    {
+        $packages = LabPackage::with(['lab.user'])->where('is_active', true)->get()->map(function($p) {
+            $lab = $p->lab;
+            $labUser = $lab ? $lab->user : null;
+            $labName = $labUser ? $labUser->name : 'تاقیگەی پزیشکی';
+
+            return [
+                'id' => (string) $p->id,
+                'name' => $p->name,
+                'name_ar' => $p->name_ar ?? $p->name,
+                'name_en' => $p->name_en ?? $p->name,
+                'desc' => $p->description ?: 'پاکێجی تایبەتی پشکنینی پزیشکی بە داشکاندنی تایبەت',
+                'description_ar' => $p->description_ar,
+                'description_en' => $p->description_en,
+                'price' => (double) $p->price,
+                'original_price' => $p->original_price ? (double) $p->original_price : round($p->price * 1.3),
+                'discount' => $p->discount ?: 25,
+                'lab_id' => $lab ? $lab->id : null,
+                'lab_user_id' => $labUser ? $labUser->id : null,
+                'lab_name' => $labName,
+                'tests_count' => is_array($p->test_ids) ? count($p->test_ids) : 5,
+                'tests' => $p->tests->pluck('name')->toArray(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $packages,
+            'total' => $packages->count(),
+        ]);
+    }
+
+    /**
+     * Get lab staff and sampling specialists
+     */
+    public function staff(Request $request)
+    {
+        $labs = User::with('lab')
+            ->where('role', 'lab')
+            ->where('status', 'approved')
+            ->get();
+
+        $titles = [
+            'پسپۆڕی شیکاری نەخۆشییەکان',
+            'دکتۆری بایۆلۆجی و پشکنین',
+            'شارەزای وەرگرتنی نموونە لە ماڵەوە',
+            'کارمەندی باڵای تاقیگە',
+        ];
+
+        $staff = $labs->map(function($user, $idx) use ($titles) {
+            $lab = $user->lab;
+            $title = $titles[$idx % count($titles)];
+            $sampleFee = 5000 + ($idx % 3) * 2500;
+
+            return [
+                'id' => (string) $user->id,
+                'name' => $user->name,
+                'title' => $title,
+                'lab_name' => $user->name,
+                'lab_id' => $lab ? $lab->id : $user->id,
+                'lab_user_id' => $user->id,
+                'rating' => $lab && $lab->rating ? (float)$lab->rating : 4.9,
+                'reviews_count' => $lab && $lab->total_reviews ? (int)$lab->total_reviews : (90 + $idx * 12),
+                'city' => $lab ? ($lab->city ?? 'Erbil') : 'Erbil',
+                'home_visit' => true,
+                'fee' => (double) $sampleFee,
+                'image' => $lab && $lab->image_path ? $lab->image_path : ($user->profile_image ? 'storage/' . $user->profile_image : 'assets/images/laboratory.jpg'),
+                'is_available' => true,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $staff,
+            'total' => $staff->count(),
         ]);
     }
 }

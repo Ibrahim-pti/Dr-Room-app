@@ -83,6 +83,9 @@ Route::post('/pharmacies/{id}/reviews', [\App\Http\Controllers\Api\PharmacyApiCo
 
 // ─── Lab Mobile App API ─────────────────────────────────────────────────
 Route::get('/labs', [\App\Http\Controllers\Api\LabApiController::class, 'index']);
+Route::get('/labs/tests', [\App\Http\Controllers\Api\LabApiController::class, 'allTests']);
+Route::get('/labs/packages', [\App\Http\Controllers\Api\LabApiController::class, 'allPackages']);
+Route::get('/labs/staff', [\App\Http\Controllers\Api\LabApiController::class, 'staff']);
 Route::get('/labs/{id}', [\App\Http\Controllers\Api\LabApiController::class, 'show']);
 Route::get('/labs/{id}/reviews', [\App\Http\Controllers\Api\LabReviewController::class, 'index']);
 

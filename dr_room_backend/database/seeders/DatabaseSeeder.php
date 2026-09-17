@@ -13,6 +13,7 @@ use App\Models\Medication;
 use App\Models\PharmacyOffer;
 use App\Models\Lab;
 use App\Models\LabTest;
+use App\Models\LabPackage;
 use App\Models\Nurse;
 use App\Models\Banner;
 use App\Models\Article;
@@ -411,6 +412,47 @@ class DatabaseSeeder extends Seeder
                     ]
                 );
             }
+
+            // Lab Packages
+            LabPackage::firstOrCreate(
+                ['lab_id' => $lab->id, 'name' => 'پاکێجی پشکنینی گشتی و تەواوی جەستە'],
+                [
+                    'name_ar' => 'باقة الفحص الشامل للجسم',
+                    'name_en' => 'Full Body Health Checkup',
+                    'description' => 'شاملی پشکنینی گشتی خوێن CBC، چەوری و کۆلیسترۆڵ، شەکرەی سێ مانگی، کاری جگەر و گورچیلە',
+                    'price' => 45000,
+                    'original_price' => 65000,
+                    'discount' => 30,
+                    'test_ids' => [1, 2, 3, 5, 6],
+                    'is_active' => true,
+                ]
+            );
+            LabPackage::firstOrCreate(
+                ['lab_id' => $lab->id, 'name' => 'پاکێجی چاودێری و پێوانەی شەکرە'],
+                [
+                    'name_ar' => 'باقة متابعة السكري',
+                    'name_en' => 'Diabetes Care Package',
+                    'description' => 'پشکنینی شەکرەی ڕۆژووان، شەکرەی سێ مانگی HbA1c، و پشکنینی کاری گورچیلە',
+                    'price' => 28000,
+                    'original_price' => 40000,
+                    'discount' => 30,
+                    'test_ids' => [3, 6],
+                    'is_active' => true,
+                ]
+            );
+            LabPackage::firstOrCreate(
+                ['lab_id' => $lab->id, 'name' => 'پاکێجی ڤیتامینەکان و هێز'],
+                [
+                    'name_ar' => 'باقة الفيتامينات والنشاط',
+                    'name_en' => 'Vitamins & Energy Package',
+                    'description' => 'پشکنینی وردی ڤیتامین D، ڤیتامین B12، ڕێژەی ئاسن و پێکهاتەکانی خوێن',
+                    'price' => 38000,
+                    'original_price' => 55000,
+                    'discount' => 30,
+                    'test_ids' => [1, 4],
+                    'is_active' => true,
+                ]
+            );
         }
 
         // 6. Home Care Nurses
