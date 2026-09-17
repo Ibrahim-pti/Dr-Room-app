@@ -273,6 +273,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Users
         Route::middleware('permission:manage_users')->group(function () {
             Route::get('/users', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'index']);
+            Route::put('/users/{id}', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'update']);
+            Route::delete('/users/{id}', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'destroy']);
             Route::patch('/users/{id}/block', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'block']);
             Route::patch('/users/{id}/unblock', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'unblock']);
         });

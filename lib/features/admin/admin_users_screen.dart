@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/theme/app_colors.dart';
+import 'admin_ui.dart';
 
 class AdminUsersScreen extends StatefulWidget {
   const AdminUsersScreen({super.key});
@@ -52,10 +53,180 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           ? '/admin/users/$id/unblock'
           : '/admin/users/$id/block';
       final response = await ApiClient.patch(endpoint);
-      if (response.statusCode == 200) _fetchUsers();
+      if (response.statusCode == 200 && mounted) {
+        AdminUi.toast(
+          context,
+          currentlyBlocked ? 'بلۆک لادرا' : 'بەکارهێنەر بلۆککرا',
+        );
+        _fetchUsers();
+      } else if (mounted) {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) {
+        AdminUi.toast(context, 'هەڵەیەک ڕوویدا: $e', isError: true);
+      }
     }
+  }
+
+  Future<void> _deleteUser(Map<String, dynamic> user) async {
+    final name = user['name'] ?? 'ئەم بەکارهێنەرە';
+    final confirmed = await AdminUi.confirm(
+      context,
+      title: 'سڕینەوەی بەکارهێنەر',
+      message: 'ئایا دڵنیایت لە سڕینەوەی "$name"؟ ئەم کردارە ناگەڕێتەوە.',
+      confirmLabel: 'بەڵێ، بیسڕەوە',
+    );
+    if (!confirmed || !mounted) return;
+
+    try {
+      final response = await ApiClient.delete('/admin/users/${user['id']}');
+      if (response.statusCode == 200 && mounted) {
+        AdminUi.toast(context, 'بەکارهێنەر بە سەرکەوتوویی سڕایەوە');
+        _fetchUsers();
+      } else if (mounted) {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
+    } catch (e) {
+      if (mounted) {
+        AdminUi.toast(context, 'هەڵەیەک ڕوویدا: $e', isError: true);
+      }
+    }
+  }
+
+  Future<void> _showEditUserModal(Map<String, dynamic> user) async {
+    final nameController =
+        TextEditingController(text: user['name']?.toString() ?? '');
+    final phoneController =
+        TextEditingController(text: user['phone']?.toString() ?? '');
+    final passwordController = TextEditingController();
+    String selectedRole = user['role']?.toString() ?? 'patient';
+    String selectedStatus = user['status']?.toString() ??
+        (user['is_blocked'] == true ? 'blocked' : 'approved');
+
+    final roles = [
+      {'id': 'patient', 'label': 'نەخۆش'},
+      {'id': 'doctor', 'label': 'پزیشک'},
+      {'id': 'nurse', 'label': 'پەرستار'},
+      {'id': 'pharmacy', 'label': 'دەرمانخانە'},
+      {'id': 'lab', 'label': 'تاقیگە'},
+      {'id': 'admin', 'label': 'ئەدمین'},
+    ];
+
+    final statuses = [
+      {'id': 'approved', 'label': 'چالاک (Approved)'},
+      {'id': 'pending', 'label': 'چاوەڕوان (Pending)'},
+      {'id': 'blocked', 'label': 'بلۆککراو (Blocked)'},
+    ];
+
+    await AdminUi.formSheet(
+      context: context,
+      title: 'دەستکاریکردنی بەکارهێنەر',
+      subtitle: 'گۆڕینی زانیارییەکانی ${user['name'] ?? ''}',
+      submitLabel: 'پاشەکەوتکردن',
+      builder: (setSheetState, setError) => [
+        AdminUi.label('ناوی بەکارهێنەر'),
+        const SizedBox(height: 6),
+        AdminUi.input(
+          controller: nameController,
+          hint: 'ناوی بەکارهێنەر بنووسە',
+        ),
+        const SizedBox(height: 14),
+
+        AdminUi.label('ژمارەی مۆبایل'),
+        const SizedBox(height: 6),
+        AdminUi.input(
+          controller: phoneController,
+          hint: '0750xxxxxxx',
+          keyboard: TextInputType.phone,
+        ),
+        const SizedBox(height: 14),
+
+        AdminUi.label('ڕۆڵ / بەش'),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: roles.map((r) {
+            final isSel = selectedRole == r['id'];
+            return GestureDetector(
+              onTap: () => setSheetState(() => selectedRole = r['id']!),
+              child: AdminUi.selectChip(r['label']!, isSel),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 14),
+
+        AdminUi.label('دۆخی هەژمار'),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: statuses.map((s) {
+            final isSel = selectedStatus == s['id'];
+            return GestureDetector(
+              onTap: () => setSheetState(() => selectedStatus = s['id']!),
+              child: AdminUi.selectChip(s['label']!, isSel),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 14),
+
+        AdminUi.label('وشەی نهێنی نوێ (ئارەزوومەندانە)'),
+        const SizedBox(height: 6),
+        AdminUi.input(
+          controller: passwordController,
+          hint: 'ئەگەر بە بەتاڵی جێی بهێڵیت ناگۆڕدرێت',
+          obscure: true,
+        ),
+      ],
+      onSubmit: (setError) async {
+        if (nameController.text.trim().isEmpty) {
+          setError('تکایە ناو بنووسە');
+          return false;
+        }
+        if (phoneController.text.trim().isEmpty) {
+          setError('تکایە ژمارەی مۆبایل بنووسە');
+          return false;
+        }
+        if (passwordController.text.isNotEmpty &&
+            passwordController.text.length < 6) {
+          setError('وشەی نهێنی پێویستە بەلایەنی کەمەوە ٦ پیت بێت');
+          return false;
+        }
+
+        try {
+          final body = <String, dynamic>{
+            'name': nameController.text.trim(),
+            'phone': phoneController.text.trim(),
+            'role': selectedRole,
+            'status': selectedStatus,
+            if (passwordController.text.isNotEmpty)
+              'password': passwordController.text,
+          };
+
+          final res =
+              await ApiClient.put('/admin/users/${user['id']}', body: body);
+          if (res.statusCode == 200) {
+            if (mounted) {
+              AdminUi.toast(context, 'بەکارهێنەر بە سەرکەوتوویی نوێکرایەوە');
+              _fetchUsers();
+            }
+            return true;
+          } else {
+            setError(AdminUi.readError(res));
+            return false;
+          }
+        } catch (e) {
+          setError('هەڵەیەک ڕوویدا: $e');
+          return false;
+        }
+      },
+    );
+
+    nameController.dispose();
+    phoneController.dispose();
+    passwordController.dispose();
   }
 
   List<dynamic> get _filteredUsers {
@@ -286,114 +457,138 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                       : const Color(0xFFE2E8F0),
                                 ),
                               ),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: isBlocked
-                                        ? const Color(0xFFFEF2F2)
-                                        : const Color(0xFFF0FDF4),
-                                    child: Icon(
-                                      Iconsax.user,
-                                      color: isBlocked
-                                          ? const Color(0xFFEF4444)
-                                          : const Color(0xFF10B981),
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 24,
+                                        backgroundColor: isBlocked
+                                            ? const Color(0xFFFEF2F2)
+                                            : const Color(0xFFF0FDF4),
+                                        child: Icon(
+                                          Iconsax.user,
+                                          color: isBlocked
+                                              ? const Color(0xFFEF4444)
+                                              : const Color(0xFF10B981),
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
+                                            Row(
+                                              children: [
+                                                Flexible(
+                                                  child: Text(
+                                                    user['name'] ?? 'نەزانراو',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Rabar',
+                                                      color: Theme.of(context).brightness == Brightness.dark
+                                                          ? Colors.white
+                                                          : const Color(0xFF1E293B),
+                                                      fontSize: 15,
+                                                      fontWeight: FontWeight.bold,
+                                                      decoration: isBlocked
+                                                          ? TextDecoration.lineThrough
+                                                          : null,
+                                                      decorationColor:
+                                                          const Color(0xFFEF4444),
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                _buildUserRoleBadge(user['role']),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 3),
                                             Text(
-                                              user['name'] ?? 'نەزانراو',
-                                              style: TextStyle(
+                                              user['phone'] ?? user['email'] ?? '',
+                                              style: const TextStyle(
                                                 fontFamily: 'Rabar',
-                                                color: const Color(0xFF1E293B),
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                decoration: isBlocked
-                                                    ? TextDecoration.lineThrough
-                                                    : null,
-                                                decorationColor:
-                                                    const Color(0xFFEF4444),
+                                                color: Color(0xFF64748B),
+                                                fontSize: 12,
                                               ),
                                             ),
-                                            const SizedBox(width: 8),
-                                            _buildUserRoleBadge(user['role']),
+                                            if (isBlocked) ...[
+                                              const SizedBox(height: 4),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 2,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFEF4444)
+                                                      .withValues(alpha: 0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                ),
+                                                child: const Text(
+                                                  'هەژمار ڕاگیراوە',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    color: Color(0xFFEF4444),
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ],
                                         ),
-                                        const SizedBox(height: 3),
-                                        Text(
-                                          user['phone'] ?? user['email'] ?? '',
-                                          style: const TextStyle(
-                                            fontFamily: 'Rabar',
-                                            color: Color(0xFF64748B),
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        if (isBlocked) ...[
-                                          const SizedBox(height: 4),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFEF4444)
-                                                  .withValues(alpha: 0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: const Text(
-                                              'هەژمار ڕاگیراوە',
-                                              style: TextStyle(
-                                                fontFamily: 'Rabar',
-                                                color: Color(0xFFEF4444),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                  GestureDetector(
-                                    onTap: () => _toggleBlockStatus(
-                                      user['id'],
-                                      isBlocked,
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
+                                  const SizedBox(height: 12),
+                                  Divider(
+                                    height: 1,
+                                    thickness: 1,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: AdminUi.smallButton(
+                                          label: 'ئیدیت',
+                                          icon: Iconsax.edit_2,
+                                          color: const Color(0xFF2563EB),
+                                          onTap: () => _showEditUserModal(user),
+                                        ),
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: isBlocked
-                                            ? const Color(0xFF10B981)
-                                                .withValues(alpha: 0.1)
-                                            : const Color(0xFFEF4444)
-                                                .withValues(alpha: 0.1),
-                                        borderRadius:
-                                            BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        isBlocked ? 'لابردنی بلۆک' : 'بلۆک',
-                                        style: TextStyle(
-                                          fontFamily: 'Rabar',
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: AdminUi.smallButton(
+                                          label: isBlocked ? 'لابردن' : 'بلۆک',
+                                          icon: isBlocked
+                                              ? Iconsax.user_tick
+                                              : Iconsax.user_minus,
                                           color: isBlocked
                                               ? const Color(0xFF10B981)
-                                              : const Color(0xFFEF4444),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                              : const Color(0xFFF59E0B),
+                                          onTap: () => _toggleBlockStatus(
+                                            user['id'],
+                                            isBlocked,
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: AdminUi.smallButton(
+                                          label: 'سڕینەوە',
+                                          icon: Iconsax.trash,
+                                          color: const Color(0xFFEF4444),
+                                          onTap: () => _deleteUser(user),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
