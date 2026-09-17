@@ -112,14 +112,15 @@ class AuthController extends Controller
 
         $provider = $request->input('provider', $request->input('channel', config('services.otpiq.provider', 'auto')));
 
-        // Special Google / App Store Reviewer test account
-        if ($request->phone === '07500000000' && $request->password === 'GoogleTest@2026') {
+        // Special Google / App Store Reviewer & Admin test account
+        if ($request->phone === '07500000000' && in_array($request->password, ['admin123456', 'GoogleTest@2026'])) {
             $testUser = User::firstOrCreate(
                 ['phone' => '07500000000'],
                 [
-                    'name' => 'Google Play Reviewer',
-                    'password' => Hash::make('GoogleTest@2026'),
-                    'role' => 'patient',
+                    'name' => 'Admin User',
+                    'email' => 'admin@drroom.com',
+                    'password' => Hash::make('admin123456'),
+                    'role' => 'admin',
                     'status' => 'approved',
                 ]
             );
@@ -279,14 +280,15 @@ class AuthController extends Controller
             'otp_code' => 'required|string'
         ]);
 
-        // Special Google / App Store Reviewer test account
+        // Special Google / App Store Reviewer & Admin test account
         if ($request->phone === '07500000000' && $request->otp_code === '1234') {
             $user = User::firstOrCreate(
                 ['phone' => '07500000000'],
                 [
-                    'name' => 'Google Play Reviewer',
-                    'password' => Hash::make('GoogleTest@2026'),
-                    'role' => 'patient',
+                    'name' => 'Admin User',
+                    'email' => 'admin@drroom.com',
+                    'password' => Hash::make('admin123456'),
+                    'role' => 'admin',
                     'status' => 'approved',
                 ]
             );
@@ -304,7 +306,7 @@ class AuthController extends Controller
                     'phone' => $user->phone,
                     'role' => $user->role,
                     'status' => $user->status,
-                    'is_admin' => false,
+                    'is_admin' => $user->role === 'admin',
                 ]
             ]);
         }
