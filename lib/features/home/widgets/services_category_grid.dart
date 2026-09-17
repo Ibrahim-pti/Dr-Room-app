@@ -7,9 +7,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../categories/all_categories_screen.dart';
 import '../../doctors/all_doctors_screen.dart';
 import '../../emergency/sos_screen.dart';
-import '../../lab/all_labs_screen.dart';
-import '../../nursing/nurse_list_screen.dart';
-import '../../pharmacy/screens/pharmacies_screen.dart';
+import '../../lab/lab_hub_screen.dart';
+import '../../nursing/nursing_hub_screen.dart';
 
 class ServicesCategoryGrid extends StatelessWidget {
   const ServicesCategoryGrid({super.key});
@@ -102,18 +101,7 @@ class ServicesCategoryGrid extends StatelessWidget {
                   accentColor: const Color(0xFF2563EB),
                 ),
               ),
-              const SizedBox(width: 12),
-              SizedBox(
-                width: 78,
-                child: _buildGridCard(
-                  context,
-                  imagePath: 'assets/images/medicine.png',
-                  titleKey: 'cat_pharmacy',
-                  id: 'pharmacy',
-                  isActive: true,
-                  accentColor: const Color(0xFF8B5CF6),
-                ),
-              ),
+
               const SizedBox(width: 12),
               SizedBox(
                 width: 78,
@@ -280,13 +268,11 @@ class ServicesCategoryGrid extends StatelessWidget {
 
   void _navigateService(BuildContext context, String id) {
     if (id == 'lab') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const AllLabsScreen()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const LabHubScreen()));
     } else if (id == 'nursing') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const NurseListScreen()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const NursingHubScreen()));
     } else if (id == 'doctor') {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const AllDoctorsScreen()));
-    } else if (id == 'pharmacy') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => PharmaciesScreen()));
     } else if (id == 'ambulance') {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const SosScreen()));
     } else if (id == 'more') {

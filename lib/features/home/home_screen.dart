@@ -16,7 +16,6 @@ import 'widgets/home_header.dart';
 import 'widgets/services_category_grid.dart';
 import 'widgets/top_nurses_section.dart';
 import 'widgets/top_labs_section.dart';
-import 'widgets/top_pharmacies_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,7 +30,6 @@ class HomeScreenState extends State<HomeScreen> {
   String? _profileImageUrl;
   List<dynamic> _banners = [];
   List<dynamic> _topNurses = [];
-  List<dynamic> _topPharmacies = [];
 
   @override
   void initState() {
@@ -80,7 +78,6 @@ class HomeScreenState extends State<HomeScreen> {
           setState(() {
             _banners = data['banners'] ?? [];
             _topNurses = data['top_nurses'] ?? [];
-            _topPharmacies = data['top_pharmacies'] ?? [];
             _userName = userName;
             _profileImageUrl = profileImg;
           });
@@ -152,10 +149,6 @@ class HomeScreenState extends State<HomeScreen> {
                         // ── Top Laboratories Section ──
                         const SizedBox(height: 16),
                         const TopLabsSection(),
-
-                        // ── Top Pharmacies Section ──
-                        const SizedBox(height: 16),
-                        TopPharmaciesSection(topPharmacies: _topPharmacies),
 
                         // ── Bottom Padding for Floating MainShell Bar ──
                         const SizedBox(height: 90),

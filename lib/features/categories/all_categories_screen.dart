@@ -4,16 +4,14 @@ import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../doctors/all_doctors_screen.dart';
-import '../pharmacy/screens/pharmacies_screen.dart';
-import '../lab/all_labs_screen.dart';
-import '../nursing/nurse_list_screen.dart';
+import '../lab/lab_hub_screen.dart';
+import '../nursing/nursing_hub_screen.dart';
 
 class AllCategoriesScreen extends StatelessWidget {
   const AllCategoriesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4FD),
       appBar: AppBar(
@@ -67,14 +65,6 @@ class AllCategoriesScreen extends StatelessWidget {
             id: 'doctor',
             isActive: false,
             delay: 200,
-          ),
-          _buildGridCard(
-            context,
-            imagePath: 'assets/images/medicine.png',
-            titleKey: 'cat_pharmacy',
-            id: 'pharmacy',
-            isActive: true,
-            delay: 250,
           ),
           _buildGridCard(
             context,
@@ -146,25 +136,20 @@ class AllCategoriesScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const AllLabsScreen(),
+                builder: (context) => const LabHubScreen(),
               ),
             );
           } else if (id == 'nursing') {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const NurseListScreen(),
+                builder: (context) => const NursingHubScreen(),
               ),
             );
           } else if (id == 'doctor') {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AllDoctorsScreen()),
-            );
-          } else if (id == 'pharmacy') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => PharmaciesScreen()),
             );
           } else if (id == 'ambulance') {
             Navigator.push(

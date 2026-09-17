@@ -1,8 +1,10 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SplashScreen extends StatefulWidget {
   final void Function(bool isLoggedIn, String role, bool isFirstTime) onFinished;
@@ -27,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen>
     )..forward();
 
     // Remove splash screen after delay and check auth
-    Future.delayed(const Duration(milliseconds: 2200), () async {
+    Future.delayed(const Duration(milliseconds: 2600), () async {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final role = prefs.getString('user_role') ?? 'patient';
@@ -47,7 +49,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -66,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   // ── App Name ──
                   Directionality(
-                    textDirection: TextDirection.ltr,
+                    textDirection: ui.TextDirection.ltr,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -112,6 +113,28 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                   ).animate(delay: 400.ms).fadeIn(duration: 600.ms),
+
+                  const SizedBox(height: 8),
+
+                  // ── App Slogan ──
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'app_slogan'.tr(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF64748B),
+                        letterSpacing: 0.2,
+                        height: 1.4,
+                      ),
+                    ),
+                  )
+                      .animate(delay: 600.ms)
+                      .fadeIn(duration: 700.ms)
+                      .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
                 ],
               ),
             ),
