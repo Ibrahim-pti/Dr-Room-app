@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\Admin\AdminPharmacyController;
 use App\Http\Controllers\Api\Admin\AdminXRayController;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login-otp', [AuthController::class, 'loginWithOtp']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);

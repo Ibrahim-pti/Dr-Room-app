@@ -67,10 +67,11 @@ return [
         'vision_model' => env('MISTRAL_VISION_MODEL', 'pixtral-12b-2409'),
     ],
 
-    // otpiq.com — sends the real login/register OTP as an SMS to Iraqi
+    // otpiq.com — sends the real login/register OTP as SMS or WhatsApp to Iraqi
     // numbers. See https://docs.otpiq.com/api-reference/messaging/post
     'otpiq' => [
         'key' => env('OTPIQ_API_KEY'),
+        'provider' => env('OTPIQ_PROVIDER', 'auto'),
 
         // Temporary manual mode: while the SMS credit is unpaid, no SMS is
         // sent and this fixed code is what every user types on the OTP screen.

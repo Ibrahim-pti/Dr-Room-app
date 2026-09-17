@@ -112,28 +112,44 @@ class _OtpScreenState extends State<OtpScreen> {
     }
   }
 
-  Future<void> _resendCode() async {
+  String? _resendingProvider;
+  String? _infoMessage;
+
+  Future<void> _resendCode([String provider = 'whatsapp']) async {
     setState(() {
       _isResending = true;
+      _resendingProvider = provider;
       _errorMessage = null;
+      _infoMessage = null;
     });
 
     try {
       final response = await ApiClient.post(
         '/resend-otp',
-        body: {'phone': widget.phoneNumber},
+        body: {'phone': widget.phoneNumber, 'provider': provider},
       );
 
       if (response.statusCode == 200) {
         _pinController.clear();
         _startTimer();
+        final channelName = provider == 'whatsapp'
+            ? 'receive_via_whatsapp'.tr()
+            : 'receive_via_sms'.tr();
+        setState(() {
+          _infoMessage = '${'code_sent_via'.tr()} $channelName';
+        });
       } else {
         setState(() => _errorMessage = 'otp_send_failed'.tr());
       }
     } catch (e) {
       if (mounted) setState(() => _errorMessage = 'otp_send_failed'.tr());
     } finally {
-      if (mounted) setState(() => _isResending = false);
+      if (mounted) {
+        setState(() {
+          _isResending = false;
+          _resendingProvider = null;
+        });
+      }
     }
   }
 
@@ -305,34 +321,141 @@ class _OtpScreenState extends State<OtpScreen> {
                 ).animate().fadeIn(duration: 250.ms),
               ],
 
-              const SizedBox(height: 36),
+              if (_infoMessage != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF25D366).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF25D366).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: Color(0xFF16A34A),
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _infoMessage!,
+                        style: AppTypography.bodySm.copyWith(
+                          color: const Color(0xFF15803D),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(duration: 250.ms),
+              ],
+
+              const SizedBox(height: 32),
 
               // ── Timer ──
               _buildTimer().animate(delay: 500.ms).fadeIn(duration: 400.ms),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
-              // ── Resend ──
-              TextButton(
-                onPressed: (_canResend && !_isResending) ? _resendCode : null,
-                child: _isResending
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.primary,
-                        ),
-                      )
-                    : Text(
-                        'resend_code'.tr(),
-                        style: AppTypography.labelMd.copyWith(
-                          color: _canResend
-                              ? AppColors.primary
-                              : AppColors.textLight,
+              // ── Dual Resend Options (WhatsApp & SMS) ──
+              if (_canResend) ...[
+                const Text(
+                  'کۆدەکەت پێنەگەیشت؟ شێوازێک هەڵبژێرە:',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 12.5,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Resend via WhatsApp
+                    OutlinedButton.icon(
+                      onPressed: !_isResending ? () => _resendCode('whatsapp') : null,
+                      icon: (_isResending && _resendingProvider == 'whatsapp')
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF25D366),
+                              ),
+                            )
+                          : const Icon(
+                              Icons.chat_bubble_rounded,
+                              size: 16,
+                              color: Color(0xFF25D366),
+                            ),
+                      label: Text(
+                        'receive_via_whatsapp'.tr(),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF15803D),
                         ),
                       ),
-              ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF25D366), width: 1.2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // Resend via SMS
+                    OutlinedButton.icon(
+                      onPressed: !_isResending ? () => _resendCode('sms') : null,
+                      icon: (_isResending && _resendingProvider == 'sms')
+                          ? SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary,
+                              ),
+                            )
+                          : Icon(
+                              Icons.sms_rounded,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
+                      label: Text(
+                        'receive_via_sms'.tr(),
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.primary, width: 1.2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                Text(
+                  'تکایە چاوەڕێ بکە تا کۆتایی کاتەکە بۆ دووبارە ناردنەوە',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 12,
+                    color: AppColors.getTextSubtitle(context),
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 40),
 

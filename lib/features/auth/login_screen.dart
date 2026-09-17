@@ -300,6 +300,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ).animate().shake(),
 
+                      // ── Login Mode Selector ──
                       // Phone Label
                       const Text(
                         'ژمارەی مۆبایل',

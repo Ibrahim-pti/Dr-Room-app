@@ -32,7 +32,14 @@ class AuthController extends Controller
      * fixed code is stored instead — the temporary mode used until the SMS
      * credit is paid for.
      */
-    private function sendOtp(User $user): bool
+    /**
+     * Generates a 4-digit OTP, stores it on the user, and sends it via otpiq.com
+     * (supporting WhatsApp, SMS, or auto routing).
+     *
+     * When OTP_MANUAL_CODE is set the provider is skipped entirely and that
+     * fixed code is stored instead.
+     */
+    private function sendOtp(User $user, string $provider = 'auto'): bool
     {
         $configuredCode = config('services.otpiq.manual_code');
         $isProduction = app()->environment('production');
@@ -41,15 +48,10 @@ class AuthController extends Controller
             Log::warning('OTP_MANUAL_CODE is set on a production server and was ignored');
         }
 
-        // Deliberately ignored in production: a fixed code left in the .env by
-        // accident would let anyone sign in as anyone. It is a development
-        // convenience, and it stays one.
         $manualCode = $isProduction ? null : $configuredCode;
 
         $otp = $manualCode ? (string) $manualCode : (string) random_int(1000, 9999);
         $user->otp_code = $otp;
-        // A manual code is typed by hand during testing, so it gets a longer
-        // window than a code that lands on the phone within seconds.
         $user->otp_expires_at = now()->addMinutes($manualCode ? 60 : 5);
         $user->save();
 
@@ -57,15 +59,47 @@ class AuthController extends Controller
             return true;
         }
 
-        $response = Http::withToken(config('services.otpiq.key'))
-            ->post('https://api.otpiq.com/api/sms', [
-                'phoneNumber' => $this->toIraqPhone($user->phone),
-                'smsType' => 'verification',
-                'provider' => 'sms',
-                'verificationCode' => $otp,
+        $validProviders = ['auto', 'sms', 'whatsapp', 'telegram'];
+        $chosenProvider = in_array(strtolower($provider), $validProviders)
+            ? strtolower($provider)
+            : (config('services.otpiq.provider') ?: 'auto');
+
+        $payload = [
+            'phoneNumber' => $this->toIraqPhone($user->phone),
+            'smsType' => 'verification',
+            'provider' => $chosenProvider,
+            'verificationCode' => $otp,
+        ];
+
+        try {
+            $response = Http::withToken(config('services.otpiq.key'))
+                ->timeout(15)
+                ->post('https://api.otpiq.com/api/sms', $payload);
+
+            if (!$response->successful()) {
+                Log::error('OTPIQ SMS API error', [
+                    'status' => $response->status(),
+                    'response' => $response->json() ?? $response->body(),
+                    'phone' => $this->toIraqPhone($user->phone),
+                    'provider' => $chosenProvider,
+                ]);
+                return false;
+            }
+
+            Log::info('OTPIQ OTP sent successfully', [
+                'phone' => $this->toIraqPhone($user->phone),
+                'provider' => $chosenProvider,
+                'response' => $response->json(),
             ]);
 
-        return $response->successful();
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('OTPIQ request exception: ' . $e->getMessage(), [
+                'phone' => $this->toIraqPhone($user->phone),
+                'provider' => $chosenProvider,
+            ]);
+            return false;
+        }
     }
 
     public function login(Request $request)
@@ -73,7 +107,10 @@ class AuthController extends Controller
         $request->validate([
             'phone' => 'required|string',
             'password' => 'required|string',
+            'provider' => 'nullable|string|in:auto,sms,whatsapp,telegram',
         ]);
+
+        $provider = $request->input('provider', $request->input('channel', config('services.otpiq.provider', 'auto')));
 
         // Special Google / App Store Reviewer test account
         if ($request->phone === '07500000000' && $request->password === 'GoogleTest@2026') {
@@ -92,7 +129,8 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
-                'phone' => '07500000000'
+                'phone' => '07500000000',
+                'provider' => $provider,
             ]);
         }
 
@@ -116,7 +154,7 @@ class AuthController extends Controller
             ], 403);
         }
 
-        if (!$this->sendOtp($user)) {
+        if (!$this->sendOtp($user, $provider)) {
             return response()->json([
                 'message' => 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە'
             ], 502);
@@ -124,7 +162,78 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
-            'phone' => $user->phone
+            'phone' => $user->phone,
+            'provider' => $provider,
+        ]);
+    }
+
+    public function loginWithOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'provider' => 'nullable|string|in:auto,sms,whatsapp,telegram',
+        ]);
+
+        $phone = $request->phone;
+        $provider = $request->input('provider', $request->input('channel', config('services.otpiq.provider', 'auto')));
+
+        // Special Google / App Store Reviewer test account
+        if ($phone === '07500000000') {
+            $testUser = User::firstOrCreate(
+                ['phone' => '07500000000'],
+                [
+                    'name' => 'Google Play Reviewer',
+                    'password' => Hash::make('GoogleTest@2026'),
+                    'role' => 'patient',
+                    'status' => 'approved',
+                ]
+            );
+            $testUser->otp_code = '1234';
+            $testUser->otp_expires_at = now()->addYears(1);
+            $testUser->save();
+
+            return response()->json([
+                'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
+                'phone' => '07500000000',
+                'provider' => $provider,
+            ]);
+        }
+
+        $user = User::where('phone', $phone)->first();
+
+        // If user doesn't exist yet, automatically create patient account
+        if (!$user) {
+            $user = User::create([
+                'name' => 'User ' . substr($phone, -4),
+                'phone' => $phone,
+                'password' => Hash::make(\Illuminate\Support\Str::random(16)),
+                'role' => 'patient',
+                'status' => 'approved',
+            ]);
+        }
+
+        if ($user->status === 'pending') {
+            return response()->json([
+                'message' => 'هەژمارەکەت لەژێر پێداچوونەوەی ئەدمیندایە. تکایە چاوەڕێ بکە.'
+            ], 403);
+        }
+
+        if ($user->status === 'blocked') {
+            return response()->json([
+                'message' => 'هەژمارەکەت بلۆک کراوە.'
+            ], 403);
+        }
+
+        if (!$this->sendOtp($user, $provider)) {
+            return response()->json([
+                'message' => 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە'
+            ], 502);
+        }
+
+        return response()->json([
+            'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
+            'phone' => $user->phone,
+            'provider' => $provider,
         ]);
     }
 
@@ -134,11 +243,13 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|unique:users',
             'password' => 'required|string|min:6',
-            'role' => 'nullable|string|in:patient,doctor,nurse,lab,pharmacy,admin'
+            'role' => 'nullable|string|in:patient,doctor,nurse,lab,pharmacy,admin',
+            'provider' => 'nullable|string|in:auto,sms,whatsapp,telegram',
         ]);
 
         $role = $request->role ?? 'patient';
         $status = ($role === 'patient') ? 'approved' : 'pending';
+        $provider = $request->input('provider', $request->input('channel', config('services.otpiq.provider', 'auto')));
 
         $user = User::create([
             'name' => $request->name,
@@ -148,7 +259,7 @@ class AuthController extends Controller
             'status' => $status,
         ]);
 
-        if (!$this->sendOtp($user)) {
+        if (!$this->sendOtp($user, $provider)) {
             return response()->json([
                 'message' => 'هەژمارەکەت دروستکرا، بەڵام نەکرا کۆدەکە بنێردرێت. تکایە لە لۆگیندا هەوڵبدەرەوە'
             ], 502);
@@ -156,7 +267,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'هەژمارەکەت دروستکرا، تکایە کۆدەکە بنووسە',
-            'phone' => $user->phone
+            'phone' => $user->phone,
+            'provider' => $provider,
         ], 201);
     }
 
@@ -244,6 +356,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'phone' => 'required|string',
+            'provider' => 'nullable|string|in:auto,sms,whatsapp,telegram',
         ]);
 
         $user = User::where('phone', $request->phone)->first();
@@ -254,7 +367,9 @@ class AuthController extends Controller
             ], 404);
         }
 
-        if (!$this->sendOtp($user)) {
+        $provider = $request->input('provider', $request->input('channel', config('services.otpiq.provider', 'auto')));
+
+        if (!$this->sendOtp($user, $provider)) {
             return response()->json([
                 'message' => 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە'
             ], 502);
@@ -262,7 +377,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'کۆدەکە دووبارە نێردرا',
-            'phone' => $user->phone
+            'phone' => $user->phone,
+            'provider' => $provider,
         ]);
     }
 

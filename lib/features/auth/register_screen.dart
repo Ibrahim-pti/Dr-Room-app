@@ -115,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return clean;
   }
 
-  Future<void> _handleRegister() async {
+  void _handleRegister() {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     final password = _passwordController.text;
@@ -125,19 +125,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final normalizedPhone = _normalizeIraqiPhone(phone);
 
     setState(() {
-      _nameError = name.isEmpty ? 'تکایە ناوی تەواو بنووسە' : null;
-      _phoneError = !isPhoneValid
-          ? 'تکایە ژمارە مۆبایلێکی عێراقی دروست بنووسە'
-          : null;
-      _passwordError = password.length < 6
-          ? 'وشەی نهێنی دەبێت لە ٦ پیت کەمتر نەبێت'
-          : null;
-      _confirmPasswordError = password != confirmPassword
-          ? 'وشەی نهێنی یەکناگرێتەوە'
-          : null;
-      _formError = !_agreeToTerms
-          ? 'تکایە ڕەزامەندی لەسەر مەرج و ڕێساکان دەرببڕە'
-          : null;
+      _nameError = name.isEmpty ? 'name_required'.tr() : null;
+      _phoneError = !isPhoneValid ? 'phone_invalid'.tr() : null;
+      _passwordError = password.length < 6 ? 'password_too_short'.tr() : null;
+      _confirmPasswordError = password != confirmPassword ? 'passwords_do_not_match'.tr() : null;
+      _formError = !_agreeToTerms ? 'must_agree_terms'.tr() : null;
     });
 
     if (_nameError != null ||
@@ -147,6 +139,233 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _formError != null) {
       return;
     }
+
+    _showOtpChannelSelectionModal(context, normalizedPhone);
+  }
+
+  void _showOtpChannelSelectionModal(BuildContext context, String normalizedPhone) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF1E293B) : Colors.white;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return SafeArea(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white24 : const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Icon
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.security_rounded,
+                    color: Color(0xFF2563EB),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                Text(
+                  'choose_otp_channel'.tr(),
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'choose_otp_channel_desc'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 13,
+                    color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // WhatsApp Card Option
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _submitRegistration(normalizedPhone, 'whatsapp');
+                  },
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF25D366).withValues(alpha: isDark ? 0.14 : 0.06),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: const Color(0xFF25D366).withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF25D366),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.chat_bubble_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'receive_via_whatsapp'.tr(),
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'receive_via_whatsapp_desc'.tr(),
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 12,
+                                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                          color: Color(0xFF25D366),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // SMS Card Option
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _submitRegistration(normalizedPhone, 'sms');
+                  },
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.14 : 0.06),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: const Color(0xFF2563EB).withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2563EB),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.sms_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'receive_via_sms'.tr(),
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'receive_via_sms_desc'.tr(),
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 12,
+                                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                          color: Color(0xFF2563EB),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _submitRegistration(String normalizedPhone, String provider) async {
+    final name = _nameController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
 
     setState(() => _isLoading = true);
 
@@ -158,6 +377,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'phone': normalizedPhone,
           'password': password,
           'password_confirmation': confirmPassword,
+          'provider': provider,
         },
       );
 
@@ -165,12 +385,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         widget.onOtpSent(normalizedPhone);
       } else {
         final err = jsonDecode(response.body);
-        final msg = err['message'] ?? 'هەڵەیەک ڕوویدا لە دروستکردنی هەژمار';
+        final msg = err['message'] ?? 'register_failed'.tr();
         if (mounted) setState(() => _formError = msg);
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _formError = 'کێشە لە پەیوەندی بە سێرڤەر هەیە: $e');
+        setState(() => _formError = '${'server_connection_error'.tr()}: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
