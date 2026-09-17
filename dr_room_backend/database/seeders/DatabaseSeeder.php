@@ -35,6 +35,18 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // 1.1 Test Patient User
+        User::firstOrCreate(
+            ['phone' => '07501112222'],
+            [
+                'name' => 'نەخۆش / بەکارهێنەر',
+                'email' => 'user@drroom.com',
+                'role' => 'patient',
+                'status' => 'approved',
+                'password' => Hash::make('user123456'),
+            ]
+        );
+
         // 2. Categories / Medical Specialties
         $categories = [
             ['name' => 'دڵ و لوولەکانی خوێن', 'name_en' => 'Cardiology', 'name_ar' => 'أمراض القلب', 'icon' => 'heart'],
