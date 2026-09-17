@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/utils/api_client.dart';
 import '../../core/providers/cart_provider.dart';
 import '../../core/utils/currency.dart';
 import '../checkout/checkout_details_screen.dart';
@@ -19,8 +21,11 @@ class LabHubScreen extends StatefulWidget {
 }
 
 class _LabHubScreenState extends State<LabHubScreen> {
+  bool _isLoading = false;
+  List<Map<String, dynamic>> _labsList = [];
+
   // Test Catalog
-  final List<Map<String, dynamic>> _testsList = [
+  List<Map<String, dynamic>> _testsList = [
     {
       'id': 'cbc',
       'name': 'Complete Blood Count (CBC)',
@@ -88,7 +93,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
   ];
 
   // Lab Packages
-  final List<Map<String, dynamic>> _packagesList = [
+  List<Map<String, dynamic>> _packagesList = [
     {
       'id': 'pkg_general',
       'title': 'پاکێجی پشکنینی گشتی تەندروستی',
@@ -128,7 +133,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
   ];
 
   // Staff list for home sampling
-  final List<Map<String, dynamic>> _staffList = [
+  List<Map<String, dynamic>> _staffList = [
     {
       'id': 'st_1',
       'name': 'ئاراس عەبدولڕەحمان',
@@ -161,15 +166,178 @@ class _LabHubScreenState extends State<LabHubScreen> {
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchDynamicData();
+  }
+
+  Future<void> _fetchDynamicData() async {
+    setState(() => _isLoading = true);
+    try {
+      final resList = await Future.wait([
+        ApiClient.get('/labs/tests'),
+        ApiClient.get('/labs/packages'),
+        ApiClient.get('/labs/staff'),
+        ApiClient.get('/labs'),
+      ]);
+
+      final testsRes = resList[0];
+      final packagesRes = resList[1];
+      final staffRes = resList[2];
+      final labsRes = resList[3];
+
+      if (testsRes.statusCode == 200) {
+        final decoded = jsonDecode(testsRes.body);
+        final list = (decoded['data'] as List? ?? []);
+        if (list.isNotEmpty) {
+          _testsList = list.map((e) {
+            final t = Map<String, dynamic>.from(e);
+            return {
+              'id': t['id'].toString(),
+              'name': t['name'] ?? '',
+              'name_ku': t['name_ku'] ?? t['name'] ?? '',
+              'name_en': t['name_en'] ?? t['name'] ?? '',
+              'name_ar': t['name_ar'] ?? t['name'] ?? '',
+              'price': (t['price'] as num?)?.toDouble() ?? 15000.0,
+              'original_price': (t['original_price'] as num?)?.toDouble(),
+              'discount': t['discount'],
+              'category': t['category'] ?? t['type'] ?? 'خوێن',
+              'lab': t['lab'] ?? t['lab_name'] ?? 'تاقیگەی پزیشکی',
+              'lab_id': t['lab_id'] ?? t['lab_user_id'],
+              'home_sample_collection': t['home_sample_collection'] ?? true,
+            };
+          }).toList();
+        }
+      }
+
+      if (packagesRes.statusCode == 200) {
+        final decoded = jsonDecode(packagesRes.body);
+        final list = (decoded['data'] as List? ?? []);
+        if (list.isNotEmpty) {
+          final colors = [
+            const Color(0xFF2563EB),
+            const Color(0xFF0D9488),
+            const Color(0xFF8B5CF6),
+            const Color(0xFFD97706),
+            const Color(0xFFEC4899),
+          ];
+          _packagesList = list.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final p = Map<String, dynamic>.from(entry.value);
+            final testsStr = p['tests'] is List
+                ? (p['tests'] as List).join('، ')
+                : (p['desc'] ?? '');
+            return {
+              'id': p['id'].toString(),
+              'title': p['name'] ?? '',
+              'title_en': p['name_en'] ?? p['name'] ?? '',
+              'tests': testsStr,
+              'tests_count': p['tests_count'] ?? 5,
+              'original_price': (p['original_price'] as num?)?.toDouble() ??
+                  ((p['price'] as num?)?.toDouble() ?? 50000.0) * 1.3,
+              'discount_price': (p['price'] as num?)?.toDouble() ?? 50000.0,
+              'discount_percent': '${p['discount'] ?? 25}%',
+              'color': colors[idx % colors.length],
+              'popular': idx == 0,
+              'lab_id': p['lab_id'] ?? p['lab_user_id'],
+              'lab_name': p['lab_name'] ?? 'تاقیگەی پزیشکی',
+            };
+          }).toList();
+        }
+      }
+
+      if (staffRes.statusCode == 200) {
+        final decoded = jsonDecode(staffRes.body);
+        final list = (decoded['data'] as List? ?? []);
+        if (list.isNotEmpty) {
+          _staffList = list.map((e) {
+            final s = Map<String, dynamic>.from(e);
+            return {
+              'id': s['id'].toString(),
+              'name': s['name'] ?? '',
+              'title': s['title'] ?? 'پسپۆڕی شیکاری نەخۆشییەکان',
+              'lab': s['lab_name'] ?? s['name'] ?? 'تاقیگەی پزیشکی',
+              'lab_id': s['lab_id'] ?? s['id'],
+              'rating': (s['rating'] as num?)?.toDouble() ?? 4.9,
+              'reviews': s['reviews_count'] ?? 110,
+              'city': s['city'] ?? 'Erbil',
+              'experience': 'پسپۆڕی ڕێگەپێدراو',
+              'visit_fee': (s['fee'] as num?)?.toDouble() ?? 10000.0,
+              'image': s['image'],
+            };
+          }).toList();
+        }
+      }
+
+      if (labsRes.statusCode == 200) {
+        final decoded = jsonDecode(labsRes.body);
+        final list = (decoded['data'] as List? ?? []);
+        if (list.isNotEmpty) {
+          _labsList = list.map((e) => Map<String, dynamic>.from(e)).toList();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching dynamic lab data: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _selectStaff(Map<String, dynamic> staff) {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    cart.setServiceType('lab', extraFee: (staff['visit_fee'] as num?)?.toDouble() ?? 5000.0);
+    cart.addItem(CartItem(
+      id: 'staff_${staff['id']}',
+      name: 'وەرگرتنی نموونە لە ماڵەوە (${staff['name']})',
+      price: (staff['visit_fee'] as num?)?.toDouble() ?? 5000.0,
+      quantity: 1,
+      extraData: {
+        'type': 'staff',
+        'staff_id': staff['id'],
+        'staff_name': staff['name'],
+        'lab_id': staff['lab_id'],
+        'lab_name': staff['lab'],
+      },
+    ));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF0F172A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '${staff['name']} وەک پسپۆڕی نموونەوەرگرتن هەڵبژێردرا',
+                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _addTestToCart(Map<String, dynamic> test) {
     final cart = Provider.of<CartProvider>(context, listen: false);
     cart.setServiceType('lab');
     cart.addItem(CartItem(
-      id: test['id'],
+      id: test['id'].toString(),
       name: test['name_ku'] ?? test['name'],
       price: (test['price'] as num).toDouble(),
       quantity: 1,
-      extraData: {'lab': test['lab'], 'type': 'test'},
+      extraData: {
+        'lab': test['lab'],
+        'lab_id': test['lab_id'],
+        'category': test['category'],
+        'type': 'test',
+      },
     ));
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -197,11 +365,16 @@ class _LabHubScreenState extends State<LabHubScreen> {
     final cart = Provider.of<CartProvider>(context, listen: false);
     cart.setServiceType('lab');
     cart.addItem(CartItem(
-      id: pkg['id'],
-      name: pkg['title'],
+      id: pkg['id'].toString(),
+      name: pkg['title'] ?? '',
       price: (pkg['discount_price'] as num).toDouble(),
       quantity: 1,
-      extraData: {'type': 'package', 'tests': pkg['tests']},
+      extraData: {
+        'type': 'package',
+        'tests': pkg['tests'],
+        'lab_id': pkg['lab_id'],
+        'lab_name': pkg['lab_name'],
+      },
     ));
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -507,24 +680,17 @@ class _LabHubScreenState extends State<LabHubScreen> {
                               ],
                             ),
                           ),
-                          OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFF2563EB)),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             ),
                             onPressed: () {
                               Navigator.pop(ctx);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: const Color(0xFF0F172A),
-                                  content: Text(
-                                    'ستاف "${staff['name']}" هەڵبژێردرا بۆ داواکارییەکەت',
-                                    style: const TextStyle(fontFamily: 'Rabar'),
-                                  ),
-                                ),
-                              );
+                              _selectStaff(staff);
                             },
-                            child: const Text('دیاریکردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 12)),
+                            child: const Text('دیاریکردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -622,21 +788,35 @@ class _LabHubScreenState extends State<LabHubScreen> {
                               ],
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              Currency.format(t['price']),
-                              style: const TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF10B981),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  Currency.format(t['price']),
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF10B981),
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 6),
+                              IconButton(
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(4),
+                                icon: const Icon(Iconsax.add_circle, color: Color(0xFF2563EB), size: 22),
+                                onPressed: () {
+                                  _addTestToCart(t);
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -899,12 +1079,12 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Iconsax.buildings, color: Color(0xFF2563EB), size: 16),
-                          SizedBox(width: 6),
+                        children: [
+                          const Icon(Iconsax.buildings, color: Color(0xFF2563EB), size: 16),
+                          const SizedBox(width: 6),
                           Text(
-                            'تاقیگەکان',
-                            style: TextStyle(
+                            _labsList.isNotEmpty ? 'تاقیگەکان (${_labsList.length})' : 'تاقیگەکان',
+                            style: const TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -919,12 +1099,25 @@ class _LabHubScreenState extends State<LabHubScreen> {
               ),
             ),
 
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: LinearProgressIndicator(
+                  minHeight: 2.5,
+                  backgroundColor: Colors.transparent,
+                  color: Color(0xFF2563EB),
+                ),
+              ),
+
             // ── Main 8 Feature Cards Grid / List ──
             Expanded(
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 6, 20, 100),
-                children: [
+              child: RefreshIndicator(
+                onRefresh: _fetchDynamicData,
+                color: const Color(0xFF2563EB),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 100),
+                  children: [
                   // 1. بارکردنی وێنەی ڕەچەتە
                   _buildFeatureCard(
                     context: context,
@@ -1059,6 +1252,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                 ],
               ),
             ),
+          ),
           ],
         ),
       ),

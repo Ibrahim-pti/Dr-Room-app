@@ -291,6 +291,58 @@ class LabApiController extends Controller
             ];
         });
 
+        if ($packages->isEmpty()) {
+            $labs = User::with('lab')->where('role', 'lab')->where('status', 'approved')->get();
+            $defaultLab = $labs->first();
+            $labName = $defaultLab ? $defaultLab->name : 'تاقیگەی پزیشکی ڕازی';
+            $labId = $defaultLab && $defaultLab->lab ? $defaultLab->lab->id : 1;
+
+            $packages = collect([
+                [
+                    'id' => '101',
+                    'name' => 'پاکێجی پشکنینی گشتی و تەواوی جەستە (Full Body)',
+                    'name_ar' => 'باقة الفحص الشامل للجسم',
+                    'name_en' => 'Full Body Health Checkup',
+                    'desc' => 'شاملی پشکنینی گشتی خوێن CBC، چەوری و کۆلیسترۆڵ، شەکرەی سێ مانگی، کاری جگەر و گورچیلە',
+                    'price' => 45000.0,
+                    'original_price' => 65000.0,
+                    'discount' => 30,
+                    'lab_id' => $labId,
+                    'lab_name' => $labName,
+                    'tests_count' => 6,
+                    'tests' => ['CBC', 'Lipid Profile', 'HbA1c', 'LFT', 'KFT', 'Urine Test'],
+                ],
+                [
+                    'id' => '102',
+                    'name' => 'پاکێجی چاودێری و پێوانەی شەکرە (Diabetes)',
+                    'name_ar' => 'باقة متابعة مرضى السكري',
+                    'name_en' => 'Comprehensive Diabetes Panel',
+                    'desc' => 'پشکنینی شەکری ڕۆژووان، شەکری سێ مانگی HbA1c، چەورییەکان و کاری گورچیلە',
+                    'price' => 28000.0,
+                    'original_price' => 40000.0,
+                    'discount' => 30,
+                    'lab_id' => $labId,
+                    'lab_name' => $labName,
+                    'tests_count' => 4,
+                    'tests' => ['FBS (Fasting Sugar)', 'HbA1c', 'Lipid Profile', 'Creatinine'],
+                ],
+                [
+                    'id' => '103',
+                    'name' => 'پاکێجی ڤیتامینەکان و وزەی جەستە (Vitamins)',
+                    'name_ar' => 'باقة الفيتامينات والنشاط',
+                    'name_en' => 'Vitamins & Minerals Vitality',
+                    'desc' => 'پشکنینی وردی ڤیتامین D3، ڤیتامین B12، ڕێژەی ئاسن، کالسیۆم و مەگنیسیۆم',
+                    'price' => 38000.0,
+                    'original_price' => 55000.0,
+                    'discount' => 30,
+                    'lab_id' => $labId,
+                    'lab_name' => $labName,
+                    'tests_count' => 5,
+                    'tests' => ['Vitamin D3', 'Vitamin B12', 'Iron (Serum)', 'Ferritin', 'Calcium'],
+                ],
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'data' => $packages,
