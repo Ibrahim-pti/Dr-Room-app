@@ -14,7 +14,8 @@ class UploadPrescriptionScreen extends StatefulWidget {
   const UploadPrescriptionScreen({super.key});
 
   @override
-  State<UploadPrescriptionScreen> createState() => _UploadPrescriptionScreenState();
+  State<UploadPrescriptionScreen> createState() =>
+      _UploadPrescriptionScreenState();
 }
 
 class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
@@ -87,7 +88,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     color: const Color(0xFF2563EB).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Iconsax.gallery, color: Color(0xFF2563EB), size: 22),
+                  child: const Icon(
+                    Iconsax.gallery,
+                    color: Color(0xFF2563EB),
+                    size: 22,
+                  ),
                 ),
                 title: Text(
                   'choose_gallery'.tr(),
@@ -108,7 +113,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     color: const Color(0xFF10B981).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Iconsax.camera, color: Color(0xFF10B981), size: 22),
+                  child: const Icon(
+                    Iconsax.camera,
+                    color: Color(0xFF10B981),
+                    size: 22,
+                  ),
                 ),
                 title: Text(
                   'camera'.tr(),
@@ -128,7 +137,10 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     );
 
     if (source != null) {
-      final XFile? image = await _picker.pickImage(source: source, imageQuality: 85);
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
       if (image != null) {
         setState(() {
           _imageFile = File(image.path);
@@ -143,7 +155,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         SnackBar(
           backgroundColor: const Color(0xFFEF4444),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           content: Text(
             'please_upload_image_first'.tr(),
             style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
@@ -158,7 +172,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         SnackBar(
           backgroundColor: const Color(0xFFEF4444),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           content: Text(
             'please_select_lab_first'.tr(),
             style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
@@ -204,27 +220,27 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     final finalUrl = uploadedUrl ?? _imageFile?.path;
     final finalPath = uploadedPath ?? _imageFile?.path;
 
-    cart.addItem(CartItem(
-      id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',
-      name: 'prescription_order_name'.tr(),
-      price: 0.0,
-      quantity: 1,
-      extraData: {
-        'prescription_path': finalPath,
-        'prescription_url': finalUrl,
-        'prescription_image': finalUrl,
-        'lab_id': _selectedLab!['id'],
-        'lab_name': _selectedLab!['name'],
-        'lab_user_id': _selectedLab!['user_id'] ?? _selectedLab!['id'],
-        'is_prescription': true,
-      },
-    ));
+    cart.addItem(
+      CartItem(
+        id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',
+        name: 'prescription_order_name'.tr(),
+        price: 0.0,
+        quantity: 1,
+        extraData: {
+          'prescription_path': finalPath,
+          'prescription_url': finalUrl,
+          'prescription_image': finalUrl,
+          'lab_id': _selectedLab!['id'],
+          'lab_name': _selectedLab!['name'],
+          'lab_user_id': _selectedLab!['user_id'] ?? _selectedLab!['id'],
+          'is_prescription': true,
+        },
+      ),
+    );
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const CheckoutDetailsScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const CheckoutDetailsScreen()),
     );
   }
 
@@ -233,7 +249,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     return Scaffold(
       backgroundColor: bg,
@@ -249,7 +267,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: borderColor),
             ),
-            child: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : const Color(0xFF0F172A), size: 16),
+            child: Icon(
+              Icons.arrow_back_ios_new,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              size: 16,
+            ),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -264,7 +286,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF2563EB)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+            )
           : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
@@ -303,12 +327,16 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                         color: cardBg,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: _imageFile != null ? const Color(0xFF10B981) : borderColor,
+                          color: _imageFile != null
+                              ? const Color(0xFF10B981)
+                              : borderColor,
                           width: _imageFile != null ? 2 : 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.3 : 0.04,
+                            ),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
@@ -322,7 +350,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                   width: 80,
                                   height: 80,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                                    color: const Color(
+                                      0xFF2563EB,
+                                    ).withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -339,7 +369,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                     fontFamily: 'Rabar',
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
                                   ),
                                 ),
                                 const SizedBox(height: 6),
@@ -368,7 +400,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 20),
+                                    const Icon(
+                                      Icons.check_circle_rounded,
+                                      color: Color(0xFF10B981),
+                                      size: 20,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       'change_image'.tr(),
@@ -401,7 +437,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                               fontFamily: 'Rabar',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -417,9 +455,14 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                       ),
                       if (_selectedLab != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -428,7 +471,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                               fontFamily: 'Rabar',
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                              color: isDark
+                                  ? const Color(0xFF34D399)
+                                  : const Color(0xFF059669),
                             ),
                           ),
                         ),
@@ -443,7 +488,10 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Text(
                           'هیچ تاقیگەیەک نەدۆزرایەوە',
-                          style: TextStyle(fontFamily: 'Rabar', color: isDark ? Colors.white60 : Colors.black54),
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            color: isDark ? Colors.white60 : Colors.black54,
+                          ),
                         ),
                       ),
                     )
@@ -464,18 +512,26 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF2563EB).withValues(alpha: 0.06)
+                                  ? const Color(
+                                      0xFF2563EB,
+                                    ).withValues(alpha: 0.06)
                                   : cardBg,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: isSelected ? const Color(0xFF2563EB) : borderColor,
+                                color: isSelected
+                                    ? const Color(0xFF2563EB)
+                                    : borderColor,
                                 width: isSelected ? 2 : 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: isSelected
-                                      ? const Color(0xFF2563EB).withValues(alpha: 0.12)
-                                      : Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                                      ? const Color(
+                                          0xFF2563EB,
+                                        ).withValues(alpha: 0.12)
+                                      : Colors.black.withValues(
+                                          alpha: isDark ? 0.2 : 0.02,
+                                        ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
                                 ),
@@ -487,15 +543,22 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                   width: 48,
                                   height: 48,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                                    color: const Color(
+                                      0xFF2563EB,
+                                    ).withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(14),
                                   ),
-                                  child: const Icon(Iconsax.hospital, color: Color(0xFF2563EB), size: 26),
+                                  child: const Icon(
+                                    Iconsax.hospital,
+                                    color: Color(0xFF2563EB),
+                                    size: 26,
+                                  ),
                                 ),
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
@@ -504,13 +567,19 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                           fontFamily: 'Rabar',
                                           fontSize: 14.5,
                                           fontWeight: FontWeight.bold,
-                                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                          color: isDark
+                                              ? Colors.white
+                                              : const Color(0xFF0F172A),
                                         ),
                                       ),
                                       const SizedBox(height: 3),
                                       Row(
                                         children: [
-                                          Icon(Iconsax.location, size: 13, color: const Color(0xFF64748B)),
+                                          Icon(
+                                            Iconsax.location,
+                                            size: 13,
+                                            color: const Color(0xFF64748B),
+                                          ),
                                           const SizedBox(width: 4),
                                           Text(
                                             lab['city'] ?? 'Erbil',
@@ -521,7 +590,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                             ),
                                           ),
                                           const SizedBox(width: 12),
-                                          const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 14),
+                                          const Icon(
+                                            Icons.star_rounded,
+                                            color: Color(0xFFF59E0B),
+                                            size: 14,
+                                          ),
                                           const SizedBox(width: 3),
                                           Text(
                                             '${lab['rating'] ?? 4.8}',
@@ -542,13 +615,21 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: isSelected ? const Color(0xFF2563EB) : borderColor,
+                                      color: isSelected
+                                          ? const Color(0xFF2563EB)
+                                          : borderColor,
                                       width: 2,
                                     ),
-                                    color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
+                                    color: isSelected
+                                        ? const Color(0xFF2563EB)
+                                        : Colors.transparent,
                                   ),
                                   child: isSelected
-                                      ? const Icon(Icons.check, size: 16, color: Colors.white)
+                                      ? const Icon(
+                                          Icons.check,
+                                          size: 16,
+                                          color: Colors.white,
+                                        )
                                       : null,
                                 ),
                               ],
@@ -595,7 +676,10 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                         SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         ),
                         SizedBox(width: 12),
                         Text(
@@ -612,7 +696,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Iconsax.tick_circle, color: Colors.white, size: 20),
+                        const Icon(
+                          Iconsax.tick_circle,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'continue_checkout'.tr(),
