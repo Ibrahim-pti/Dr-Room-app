@@ -50,6 +50,16 @@ class _LabHubScreenState extends State<LabHubScreen> {
       final staffRes = resList[2];
       final labsRes = resList[3];
 
+      // 1. Labs from API
+      if (labsRes.statusCode == 200) {
+        final decoded = jsonDecode(labsRes.body);
+        final list = (decoded['data'] as List? ?? []);
+        if (list.isNotEmpty) {
+          _labsList = list.map((e) => Map<String, dynamic>.from(e)).toList();
+        }
+      }
+
+      // 2. Tests from API
       if (testsRes.statusCode == 200) {
         final decoded = jsonDecode(testsRes.body);
         final list = (decoded['data'] as List? ?? []);
@@ -65,26 +75,31 @@ class _LabHubScreenState extends State<LabHubScreen> {
               'price': (t['price'] as num?)?.toDouble() ?? 15000.0,
               'original_price': (t['original_price'] as num?)?.toDouble(),
               'discount': t['discount'],
-              'category': t['category'] ?? t['type'] ?? 'خوێن',
+              'category': t['category'] ?? t['type'] ?? 'گشتی',
               'lab': t['lab'] ?? t['lab_name'] ?? 'تاقیگەی پزیشکی',
               'lab_id': t['lab_id'] ?? t['lab_user_id'],
+              'lab_image': t['lab_image'],
+              'city': t['city'] ?? '',
+              'desc': t['desc'] ?? '',
               'home_sample_collection': t['home_sample_collection'] ?? true,
             };
           }).toList();
         }
       }
 
+      // 3. Packages from API
+      final colors = [
+        const Color(0xFF2563EB),
+        const Color(0xFF0D9488),
+        const Color(0xFF8B5CF6),
+        const Color(0xFFD97706),
+        const Color(0xFFEC4899),
+      ];
+
       if (packagesRes.statusCode == 200) {
         final decoded = jsonDecode(packagesRes.body);
         final list = (decoded['data'] as List? ?? []);
         if (list.isNotEmpty) {
-          final colors = [
-            const Color(0xFF2563EB),
-            const Color(0xFF0D9488),
-            const Color(0xFF8B5CF6),
-            const Color(0xFFD97706),
-            const Color(0xFFEC4899),
-          ];
           _packagesList = list.asMap().entries.map((entry) {
             final idx = entry.key;
             final p = Map<String, dynamic>.from(entry.value);
@@ -110,6 +125,50 @@ class _LabHubScreenState extends State<LabHubScreen> {
         }
       }
 
+      // If backend /labs/packages is empty, fetch each lab's packages from API /labs/{id}
+      if (_packagesList.isEmpty && _labsList.isNotEmpty) {
+        final labResponses = await Future.wait(
+          _labsList.map((l) => ApiClient.get('/labs/${l['id']}')),
+        );
+        final List<Map<String, dynamic>> gatheredPackages = [];
+        int pkgIndex = 0;
+        for (int i = 0; i < labResponses.length; i++) {
+          final res = labResponses[i];
+          if (res.statusCode == 200) {
+            final decoded = jsonDecode(res.body);
+            final data = decoded['data'];
+            if (data != null && data['packages'] is List) {
+              final pkgs = data['packages'] as List;
+              final labName = data['name'] ?? _labsList[i]['name'] ?? 'تاقیگە';
+              final labId = data['id'] ?? _labsList[i]['id'];
+              for (final p in pkgs) {
+                final pMap = Map<String, dynamic>.from(p);
+                gatheredPackages.add({
+                  'id': '${labId}_pkg_${pMap['id']}',
+                  'title': pMap['name'] ?? '',
+                  'title_en': pMap['name_en'] ?? pMap['name'] ?? '',
+                  'tests': pMap['desc'] ?? (pMap['tests'] is List ? (pMap['tests'] as List).join('، ') : ''),
+                  'tests_count': (pMap['test_ids'] as List?)?.length ?? 5,
+                  'original_price': (pMap['original_price'] as num?)?.toDouble() ??
+                      ((pMap['price'] as num?)?.toDouble() ?? 50000.0) * 1.3,
+                  'discount_price': (pMap['price'] as num?)?.toDouble() ?? 50000.0,
+                  'discount_percent': '${pMap['discount'] ?? 25}%',
+                  'color': colors[pkgIndex % colors.length],
+                  'popular': pkgIndex == 0,
+                  'lab_id': labId,
+                  'lab_name': labName,
+                });
+                pkgIndex++;
+              }
+            }
+          }
+        }
+        if (gatheredPackages.isNotEmpty) {
+          _packagesList = gatheredPackages;
+        }
+      }
+
+      // 4. Staff from API
       if (staffRes.statusCode == 200) {
         final decoded = jsonDecode(staffRes.body);
         final list = (decoded['data'] as List? ?? []);
@@ -119,25 +178,19 @@ class _LabHubScreenState extends State<LabHubScreen> {
             return {
               'id': s['id'].toString(),
               'name': s['name'] ?? '',
-              'title': s['title'] ?? 'پسپۆڕی شیکاری نەخۆشییەکان',
-              'lab': s['lab_name'] ?? s['name'] ?? 'تاقیگەی پزیشکی',
-              'lab_id': s['lab_id'] ?? s['id'],
+              'title': s['title'] ?? s['specialty'] ?? 'پسپۆڕی شیکاری نەخۆشییەکان',
+              'lab': s['lab_name'] ?? 'تیمی پشکنینی دکتۆر ڕووم',
+              'lab_id': s['lab_id'] ?? s['lab_user_id'] ?? s['id'],
               'rating': (s['rating'] as num?)?.toDouble() ?? 4.9,
-              'reviews': s['reviews_count'] ?? 110,
-              'city': s['city'] ?? 'Erbil',
-              'experience': 'پسپۆڕی ڕێگەپێدراو',
+              'reviews': s['reviews_count'] ?? 50,
+              'city': s['city'] ?? 'هەولێر',
+              'experience': s['city'] != null && s['city'].toString().isNotEmpty
+                  ? s['city'].toString()
+                  : 'پسپۆڕی ڕێگەپێدراو',
               'visit_fee': (s['fee'] as num?)?.toDouble() ?? 10000.0,
               'image': s['image'],
             };
           }).toList();
-        }
-      }
-
-      if (labsRes.statusCode == 200) {
-        final decoded = jsonDecode(labsRes.body);
-        final list = (decoded['data'] as List? ?? []);
-        if (list.isNotEmpty) {
-          _labsList = list.map((e) => Map<String, dynamic>.from(e)).toList();
         }
       }
     } catch (e) {
@@ -346,11 +399,22 @@ class _LabHubScreenState extends State<LabHubScreen> {
                   ),
                   const SizedBox(height: 8),
                   Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
-                      itemBuilder: (context, idx) {
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+                          )
+                        : filtered.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'هیچ پشکنینێک نەدۆزرایەوە',
+                                  style: TextStyle(fontFamily: 'Rabar', fontSize: 14, color: Color(0xFF94A3B8)),
+                                ),
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                                itemCount: filtered.length,
+                                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                                itemBuilder: (context, idx) {
                         final t = filtered[idx];
                         final cart = Provider.of<CartProvider>(context);
                         final inCart = cart.items.any((i) => i.id == t['id']);
@@ -451,131 +515,243 @@ class _LabHubScreenState extends State<LabHubScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        String query = '';
 
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.75,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'lab_item_3'.tr(),
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'lab_item_3_desc'.tr(),
-                style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: _staffList.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, idx) {
-                    final staff = _staffList[idx];
-                    final cart = Provider.of<CartProvider>(context, listen: false);
-                    final isSelected = cart.items.any((item) =>
-                        (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) &&
-                        item.extraData?['staff_id'] == staff['id']);
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filteredStaff = _staffList.where((s) {
+              final q = query.toLowerCase();
+              return (s['name'] ?? '').toString().toLowerCase().contains(q) ||
+                  (s['city'] ?? '').toString().toLowerCase().contains(q) ||
+                  (s['title'] ?? '').toString().toLowerCase().contains(q);
+            }).toList();
 
-                    return Container(
-                      padding: const EdgeInsets.all(14),
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.82,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'lab_item_3'.tr(),
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 26,
-                            backgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                            child: const Icon(Iconsax.profile_circle, color: Color(0xFF2563EB), size: 30),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  staff['name'],
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  staff['title'],
-                                  style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 16),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      '${staff['rating']} (${staff['reviews']})',
-                                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      staff['experience'],
-                                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF10B981)),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isSelected ? const Color(0xFF10B981) : const Color(0xFF2563EB),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            ),
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              _selectStaff(staff);
-                            },
-                            child: Text(
-                              isSelected ? 'هەڵبژێردراوە ✓' : 'دیاریکردن',
-                              style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
+                      IconButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        icon: const Icon(Icons.close_rounded),
                       ),
-                    );
-                  },
-                ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'lab_item_3_desc'.tr(),
+                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF64748B)),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Search box for staff
+                  Container(
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: TextField(
+                      onChanged: (v) => setModalState(() => query = v),
+                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
+                      decoration: InputDecoration(
+                        hintText: 'گەڕان بەپێی ناو یان شار (هەولێر، سلێمانی...)...',
+                        hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 13, color: Color(0xFF94A3B8)),
+                        prefixIcon: const Icon(Iconsax.search_normal_1, size: 18, color: Color(0xFF94A3B8)),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+                          )
+                        : filteredStaff.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'هیچ کارمەند یان پسپۆڕێک نەدۆزرایەوە',
+                                  style: TextStyle(fontFamily: 'Rabar', fontSize: 14, color: Color(0xFF94A3B8)),
+                                ),
+                              )
+                            : ListView.separated(
+                                itemCount: filteredStaff.length,
+                                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                                itemBuilder: (context, idx) {
+                                  final staff = filteredStaff[idx];
+                                  final cart = Provider.of<CartProvider>(context, listen: false);
+                                  final isSelected = cart.items.any((item) =>
+                                      (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) &&
+                                      item.extraData?['staff_id'] == staff['id']);
+                                  final imgUrl = staff['image'] != null && staff['image'].toString().isNotEmpty
+                                      ? ApiClient.getImageUrl(staff['image'].toString())
+                                      : null;
+
+                                  return Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? const Color(0xFF10B981)
+                                            : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                        width: isSelected ? 1.5 : 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(14),
+                                          child: imgUrl != null
+                                              ? Image.network(
+                                                  imgUrl,
+                                                  width: 52,
+                                                  height: 52,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (_, _, _) => Container(
+                                                    width: 52,
+                                                    height: 52,
+                                                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                                                    child: const Icon(Iconsax.profile_circle, color: Color(0xFF2563EB), size: 28),
+                                                  ),
+                                                )
+                                              : Container(
+                                                  width: 52,
+                                                  height: 52,
+                                                  color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                                                  child: const Icon(Iconsax.profile_circle, color: Color(0xFF2563EB), size: 28),
+                                                ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      staff['name'],
+                                                      style: TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        fontSize: 14.5,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                  if (staff['city'] != null && staff['city'].toString().isNotEmpty)
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color(0xFF2563EB).withValues(alpha: 0.08),
+                                                        borderRadius: BorderRadius.circular(6),
+                                                      ),
+                                                      child: Text(
+                                                        staff['city'].toString(),
+                                                        style: const TextStyle(
+                                                          fontFamily: 'Rabar',
+                                                          fontSize: 10.5,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Color(0xFF2563EB),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                staff['title'] ?? 'پسپۆڕی نموونەوەرگرتن',
+                                                style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 15),
+                                                  const SizedBox(width: 3),
+                                                  Text(
+                                                    '${staff['rating']} (${staff['reviews']})',
+                                                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 11, fontWeight: FontWeight.bold),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    'کرێ: ${Currency.format(staff['visit_fee'])}',
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Rabar',
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Color(0xFF10B981),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: isSelected ? const Color(0xFF10B981) : const Color(0xFF2563EB),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            elevation: 0,
+                                          ),
+                                          onPressed: () {
+                                            Navigator.pop(ctx);
+                                            _selectStaff(staff);
+                                          },
+                                          child: Text(
+                                            isSelected ? 'دیاریکراوە ✓' : 'دیاریکردن',
+                                            style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -588,120 +764,174 @@ class _LabHubScreenState extends State<LabHubScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        String query = '';
 
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.78,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'lab_item_4'.tr(),
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'lab_item_4_desc'.tr(),
-                style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: _testsList.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 10),
-                  itemBuilder: (context, idx) {
-                    final t = _testsList[idx];
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filteredTests = _testsList.where((t) {
+              final q = query.toLowerCase();
+              return (t['name'] ?? '').toString().toLowerCase().contains(q) ||
+                  (t['name_ku'] ?? '').toString().toLowerCase().contains(q) ||
+                  (t['lab'] ?? '').toString().toLowerCase().contains(q);
+            }).toList();
 
-                    return Container(
-                      padding: const EdgeInsets.all(14),
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.82,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'lab_item_4'.tr(),
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  t['name_ku'] ?? t['name'],
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'تاقیگە: ${t['lab']}',
-                                  style: const TextStyle(fontFamily: 'Rabar', fontSize: 11, color: Color(0xFF64748B)),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'lab_item_4_desc'.tr(),
+                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF64748B)),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Search box for tests
+                  Container(
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: TextField(
+                      onChanged: (v) => setModalState(() => query = v),
+                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
+                      decoration: InputDecoration(
+                        hintText: 'گەڕان بۆ پشکنین یان تاقیگە...',
+                        hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 13, color: Color(0xFF94A3B8)),
+                        prefixIcon: const Icon(Iconsax.search_normal_1, size: 18, color: Color(0xFF94A3B8)),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+                          )
+                        : filteredTests.isEmpty
+                            ? const Center(
                                 child: Text(
-                                  Currency.format(t['price']),
-                                  style: const TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF10B981),
-                                  ),
+                                  'هیچ پشکنینێک نەدۆزرایەوە',
+                                  style: TextStyle(fontFamily: 'Rabar', fontSize: 14, color: Color(0xFF94A3B8)),
                                 ),
-                              ),
-                              const SizedBox(width: 6),
-                              IconButton(
-                                constraints: const BoxConstraints(),
-                                padding: const EdgeInsets.all(4),
-                                icon: const Icon(Iconsax.add_circle, color: Color(0xFF2563EB), size: 22),
-                                onPressed: () {
-                                  _addTestToCart(t);
+                              )
+                            : ListView.separated(
+                                itemCount: filteredTests.length,
+                                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                                itemBuilder: (context, idx) {
+                                  final t = filteredTests[idx];
+
+                                  return Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                t['name_ku'] ?? t['name'],
+                                                style: TextStyle(
+                                                  fontFamily: 'Rabar',
+                                                  fontSize: 13.5,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'تاقیگە: ${t['lab']}',
+                                                style: const TextStyle(fontFamily: 'Rabar', fontSize: 11, color: Color(0xFF64748B)),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                Currency.format(t['price']),
+                                                style: const TextStyle(
+                                                  fontFamily: 'Rabar',
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF10B981),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            IconButton(
+                                              constraints: const BoxConstraints(),
+                                              padding: const EdgeInsets.all(4),
+                                              icon: const Icon(Iconsax.add_circle, color: Color(0xFF2563EB), size: 22),
+                                              onPressed: () {
+                                                _addTestToCart(t);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
                                 },
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -714,172 +944,240 @@ class _LabHubScreenState extends State<LabHubScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        String query = '';
 
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.82,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'lab_item_5'.tr(),
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'lab_item_5_desc'.tr(),
-                style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: _packagesList.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 14),
-                  itemBuilder: (context, idx) {
-                    final pkg = _packagesList[idx];
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filteredPackages = _packagesList.where((p) {
+              final q = query.toLowerCase();
+              return (p['title'] ?? '').toString().toLowerCase().contains(q) ||
+                  (p['lab_name'] ?? '').toString().toLowerCase().contains(q) ||
+                  (p['tests'] ?? '').toString().toLowerCase().contains(q);
+            }).toList();
 
-                    return Container(
-                      padding: const EdgeInsets.all(16),
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.82,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: (pkg['color'] as Color).withValues(alpha: 0.35),
-                          width: 1.5,
+                        color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'lab_item_5'.tr(),
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: (pkg['color'] as Color).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(Iconsax.box_1, color: pkg['color'], size: 20),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
+                      IconButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'lab_item_5_desc'.tr(),
+                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: Color(0xFF64748B)),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Search box for packages
+                  Container(
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: TextField(
+                      onChanged: (v) => setModalState(() => query = v),
+                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
+                      decoration: InputDecoration(
+                        hintText: 'گەڕان بۆ پاکێج یان تاقیگە...',
+                        hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 13, color: Color(0xFF94A3B8)),
+                        prefixIcon: const Icon(Iconsax.search_normal_1, size: 18, color: Color(0xFF94A3B8)),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+                          )
+                        : filteredPackages.isEmpty
+                            ? const Center(
                                 child: Text(
-                                  pkg['title'],
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  ),
+                                  'هیچ پاکێجێک نەدۆزرایەوە',
+                                  style: TextStyle(fontFamily: 'Rabar', fontSize: 14, color: Color(0xFF94A3B8)),
                                 ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  'داشکاندن ${pkg['discount_percent']}',
-                                  style: const TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFEF4444),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'پشکنینەکان: ${pkg['tests']}',
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    Currency.format(pkg['original_price']),
-                                    style: const TextStyle(
-                                      fontFamily: 'Rabar',
-                                      fontSize: 12,
-                                      decoration: TextDecoration.lineThrough,
-                                      color: Color(0xFF94A3B8),
+                              )
+                            : ListView.separated(
+                                itemCount: filteredPackages.length,
+                                separatorBuilder: (_, _) => const SizedBox(height: 14),
+                                itemBuilder: (context, idx) {
+                                  final pkg = filteredPackages[idx];
+
+                                  return Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: (pkg['color'] as Color).withValues(alpha: 0.35),
+                                        width: 1.5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                  Text(
-                                    Currency.format(pkg['discount_price']),
-                                    style: TextStyle(
-                                      fontFamily: 'Rabar',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: pkg['color'],
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: (pkg['color'] as Color).withValues(alpha: 0.12),
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Icon(Iconsax.box_1, color: pkg['color'], size: 20),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    pkg['title'],
+                                                    style: TextStyle(
+                                                      fontFamily: 'Rabar',
+                                                      fontSize: 15,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                                    ),
+                                                  ),
+                                                  if (pkg['lab_name'] != null)
+                                                    Text(
+                                                      'تاقیگە: ${pkg['lab_name']}',
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        fontSize: 11,
+                                                        color: Color(0xFF64748B),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                'داشکاندن ${pkg['discount_percent']}',
+                                                style: const TextStyle(
+                                                  fontFamily: 'Rabar',
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFFEF4444),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'پشکنینەکان: ${pkg['tests']}',
+                                          style: const TextStyle(
+                                            fontFamily: 'Rabar',
+                                            fontSize: 12,
+                                            color: Color(0xFF64748B),
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  Currency.format(pkg['original_price']),
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 12,
+                                                    decoration: TextDecoration.lineThrough,
+                                                    color: Color(0xFF94A3B8),
+                                                  ),
+                                                ),
+                                                Text(
+                                                  Currency.format(pkg['discount_price']),
+                                                  style: TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: pkg['color'],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: pkg['color'],
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                              ),
+                                              onPressed: () {
+                                                _addPackageToCart(pkg);
+                                                Navigator.pop(ctx);
+                                              },
+                                              child: const Text(
+                                                'داواکردنی پاکێج',
+                                                style: TextStyle(fontFamily: 'Rabar', fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: pkg['color'],
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                                ),
-                                onPressed: () {
-                                  _addPackageToCart(pkg);
-                                  Navigator.pop(ctx);
+                                  );
                                 },
-                                child: const Text(
-                                  'داواکردنی پاکێج',
-                                  style: TextStyle(fontFamily: 'Rabar', fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold),
-                                ),
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -1010,6 +1308,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                     subtitle: 'lab_item_1_desc'.tr(),
                     icon: Iconsax.document_upload,
                     color: const Color(0xFF2563EB),
+                    badgeText: _labsList.isNotEmpty ? '${_labsList.length} تاقیگە' : null,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -1027,6 +1326,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                     subtitle: 'lab_item_2_desc'.tr(),
                     icon: Iconsax.health,
                     color: const Color(0xFF0D9488),
+                    badgeText: _testsList.isNotEmpty ? '${_testsList.length} پشکنین' : null,
                     onTap: _showSelectTestsModal,
                   ),
 
@@ -1041,7 +1341,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                     color: const Color(0xFF8B5CF6),
                     badgeText: selectedStaffItem != null
                         ? (selectedStaffItem.extraData?['staff_name'] ?? 'دیاریکراوە')
-                        : null,
+                        : (_staffList.isNotEmpty ? '${_staffList.length} پسپۆڕ' : null),
                     onTap: _showStaffSelectionModal,
                   ),
 
@@ -1054,6 +1354,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                     subtitle: 'lab_item_4_desc'.tr(),
                     icon: Iconsax.tag,
                     color: const Color(0xFFF59E0B),
+                    badgeText: 'بەراوردکاری',
                     onTap: _showTestPricesModal,
                   ),
 
@@ -1066,7 +1367,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                     subtitle: 'lab_item_5_desc'.tr(),
                     icon: Iconsax.box_1,
                     color: const Color(0xFFEC4899),
-                    badgeText: 'داشکاندن',
+                    badgeText: _packagesList.isNotEmpty ? '${_packagesList.length} پاکێج' : 'داشکاندن',
                     onTap: _showPackagesModal,
                   ),
 
