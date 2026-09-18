@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 
 import '../../core/utils/api_client.dart';
 import '../../core/providers/cart_provider.dart';
-import '../../core/utils/currency.dart';
 import '../checkout/checkout_details_screen.dart';
 
 class UploadPrescriptionScreen extends StatefulWidget {
@@ -23,31 +22,22 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
   final ImagePicker _picker = ImagePicker();
 
   bool _isLoading = true;
+  bool _isUploading = false;
   List<Map<String, dynamic>> _labs = [];
-  List<Map<String, dynamic>> _staff = [];
-
   Map<String, dynamic>? _selectedLab;
-  Map<String, dynamic>? _selectedStaff;
 
   @override
   void initState() {
     super.initState();
-    _fetchLabsAndStaff();
+    _fetchLabs();
   }
 
-  Future<void> _fetchLabsAndStaff() async {
+  Future<void> _fetchLabs() async {
     setState(() => _isLoading = true);
     try {
-      final resList = await Future.wait([
-        ApiClient.get('/labs'),
-        ApiClient.get('/labs/staff'),
-      ]);
-
-      final labsRes = resList[0];
-      final staffRes = resList[1];
-
-      if (labsRes.statusCode == 200) {
-        final decoded = jsonDecode(labsRes.body);
+      final res = await ApiClient.get('/labs');
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
         final list = (decoded['data'] as List? ?? []);
         if (list.isNotEmpty) {
           _labs = list.map((e) => Map<String, dynamic>.from(e)).toList();
@@ -56,16 +46,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
           }
         }
       }
-
-      if (staffRes.statusCode == 200) {
-        final decoded = jsonDecode(staffRes.body);
-        final list = (decoded['data'] as List? ?? []);
-        if (list.isNotEmpty) {
-          _staff = list.map((e) => Map<String, dynamic>.from(e)).toList();
-        }
-      }
     } catch (e) {
-      debugPrint('Error loading labs or staff: $e');
+      debugPrint('Error loading labs: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -155,7 +137,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     }
   }
 
-  void _proceedToCheckout() {
+  Future<void> _proceedToCheckout() async {
     if (_imageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -186,26 +168,54 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       return;
     }
 
+    setState(() => _isUploading = true);
+
+    String? uploadedUrl;
+    String? uploadedPath;
+
+    try {
+      final uploadRes = await ApiClient.uploadMultipart(
+        '/upload/prescription',
+        fileField: 'image',
+        filePath: _imageFile!.path,
+      );
+
+      if (uploadRes.statusCode == 200) {
+        final decoded = jsonDecode(uploadRes.body);
+        if (decoded['success'] == true) {
+          uploadedUrl = decoded['url'];
+          uploadedPath = decoded['path'];
+        }
+      }
+    } catch (e) {
+      debugPrint('Error uploading prescription image to server: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isUploading = false);
+      }
+    }
+
+    if (!mounted) return;
+
     final cart = context.read<CartProvider>();
     cart.clearCart();
+    cart.setServiceType('lab', extraFee: 0.0);
 
-    final visitFee = _selectedStaff != null
-        ? ((_selectedStaff!['visit_fee'] ?? _selectedStaff!['fee']) as num?)?.toDouble() ?? 5000.0
-        : 5000.0;
+    final finalUrl = uploadedUrl ?? _imageFile?.path;
+    final finalPath = uploadedPath ?? _imageFile?.path;
 
-    cart.setServiceType('lab', extraFee: visitFee);
     cart.addItem(CartItem(
       id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',
       name: 'prescription_order_name'.tr(),
       price: 0.0,
       quantity: 1,
       extraData: {
-        'prescription_path': _imageFile?.path,
+        'prescription_path': finalPath,
+        'prescription_url': finalUrl,
+        'prescription_image': finalUrl,
         'lab_id': _selectedLab!['id'],
         'lab_name': _selectedLab!['name'],
-        'staff_id': _selectedStaff?['id'],
-        'staff_name': _selectedStaff?['name'] ?? 'auto_assign_staff'.tr(),
-        'visit_fee': visitFee,
+        'lab_user_id': _selectedLab!['user_id'] ?? _selectedLab!['id'],
         'is_prescription': true,
       },
     ));
@@ -248,29 +258,27 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
           style: TextStyle(
             fontFamily: 'Rabar',
             color: isDark ? Colors.white : const Color(0xFF0F172A),
-            fontSize: 18,
             fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF2563EB)),
-            )
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF2563EB)))
           : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title & Instructions
+                  // ── Top Title & Description ──
                   Text(
                     'upload_your_doc'.tr(),
                     style: TextStyle(
                       fontFamily: 'Rabar',
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -278,46 +286,41 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     'upload_doc_subtitle'.tr(),
                     style: const TextStyle(
                       fontFamily: 'Rabar',
-                      color: Color(0xFF64748B),
                       fontSize: 13,
+                      color: Color(0xFF64748B),
                       height: 1.5,
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  // ── 1. Upload Prescription Card ──
+                  // ── 1. Upload Card / Preview ──
                   GestureDetector(
                     onTap: _pickImage,
                     child: Container(
                       width: double.infinity,
-                      height: 230,
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         color: cardBg,
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: _imageFile == null ? borderColor : const Color(0xFF2563EB),
-                          width: _imageFile == null ? 1.5 : 2,
+                          color: _imageFile != null ? const Color(0xFF10B981) : borderColor,
+                          width: _imageFile != null ? 2 : 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
                           ),
                         ],
-                        image: _imageFile != null
-                            ? DecorationImage(
-                                image: FileImage(_imageFile!),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
                       ),
                       child: _imageFile == null
                           ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(18),
+                                  width: 80,
+                                  height: 80,
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF2563EB).withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
@@ -328,64 +331,64 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                     size: 38,
                                   ),
                                 ),
-                                const SizedBox(height: 14),
+                                const SizedBox(height: 16),
                                 Text(
                                   'tap_to_capture_or_upload'.tr(),
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                    fontSize: 14.5,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Text(
                                   'jpg_png_pdf_hint'.tr(),
                                   style: const TextStyle(
                                     fontFamily: 'Rabar',
-                                    color: Color(0xFF94A3B8),
                                     fontSize: 12,
+                                    color: Color(0xFF94A3B8),
                                   ),
                                 ),
                               ],
                             )
-                          : Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.35),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Center(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.edit, size: 16, color: Color(0xFF2563EB)),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'change_image'.tr(),
-                                        style: const TextStyle(
-                                          fontFamily: 'Rabar',
-                                          color: Color(0xFF2563EB),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
+                          : Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.file(
+                                    _imageFile!,
+                                    height: 240,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
-                              ),
+                                const SizedBox(height: 14),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'change_image'.tr(),
+                                      style: const TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2563EB),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                     ),
                   ),
 
                   const SizedBox(height: 28),
 
-                  // ── 2. Select Laboratory (تاقیگەی مەبەست) ──
+                  // ── 2. Select Laboratory (دەستنیشانکردنی تاقیگە) ──
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -416,296 +419,144 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Text(
+                          child: Text(
                             'دیاریکراوە',
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF10B981),
+                              color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
                             ),
                           ),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
 
-                  // Laboratory List Horizontal Scroll
-                  SizedBox(
-                    height: 110,
-                    child: _labs.isEmpty
-                        ? Center(
-                            child: Text(
-                              'هیچ تاقیگەیەک نەدۆزرایەوە',
-                              style: TextStyle(fontFamily: 'Rabar', color: isDark ? Colors.white60 : Colors.black54),
+                  // Laboratory List
+                  if (_labs.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Text(
+                          'هیچ تاقیگەیەک نەدۆزرایەوە',
+                          style: TextStyle(fontFamily: 'Rabar', color: isDark ? Colors.white60 : Colors.black54),
+                        ),
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _labs.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (context, idx) {
+                        final lab = _labs[idx];
+                        final isSelected = _selectedLab?['id'] == lab['id'];
+
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedLab = lab),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? const Color(0xFF2563EB).withValues(alpha: 0.06)
+                                  : cardBg,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected ? const Color(0xFF2563EB) : borderColor,
+                                width: isSelected ? 2 : 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isSelected
+                                      ? const Color(0xFF2563EB).withValues(alpha: 0.12)
+                                      : Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
                             ),
-                          )
-                        : ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: _labs.length,
-                            separatorBuilder: (_, _) => const SizedBox(width: 12),
-                            itemBuilder: (context, idx) {
-                              final lab = _labs[idx];
-                              final isSelected = _selectedLab?['id'] == lab['id'];
-
-                              return GestureDetector(
-                                onTap: () => setState(() => _selectedLab = lab),
-                                child: Container(
-                                  width: 220,
-                                  padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
                                   decoration: BoxDecoration(
-                                    color: cardBg,
-                                    borderRadius: BorderRadius.circular(16),
+                                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: const Icon(Iconsax.hospital, color: Color(0xFF2563EB), size: 26),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        lab['name'] ?? '',
+                                        style: TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Row(
+                                        children: [
+                                          Icon(Iconsax.location, size: 13, color: const Color(0xFF64748B)),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            lab['city'] ?? 'Erbil',
+                                            style: const TextStyle(
+                                              fontFamily: 'Rabar',
+                                              fontSize: 12,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 14),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            '${lab['rating'] ?? 4.8}',
+                                            style: const TextStyle(
+                                              fontFamily: 'Rabar',
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isSelected ? const Color(0xFF2563EB) : borderColor,
-                                      width: isSelected ? 2 : 1,
+                                      width: 2,
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: isSelected
-                                            ? const Color(0xFF2563EB).withValues(alpha: 0.12)
-                                            : Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
+                                    color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 44,
-                                        height: 44,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: const Icon(Iconsax.hospital, color: Color(0xFF2563EB), size: 24),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              lab['name'] ?? '',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontFamily: 'Rabar',
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              lab['city'] ?? 'Erbil',
-                                              style: const TextStyle(
-                                                fontFamily: 'Rabar',
-                                                fontSize: 11,
-                                                color: Color(0xFF64748B),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Row(
-                                              children: [
-                                                const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 14),
-                                                const SizedBox(width: 3),
-                                                Text(
-                                                  '${lab['rating'] ?? 4.8}',
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Rabar',
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      if (isSelected)
-                                        const Icon(Icons.check_circle_rounded, color: Color(0xFF2563EB), size: 20),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── 3. Select Sampling Staff (دەستنیشانکردنی ستاف) ──
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'select_staff_sample'.tr(),
-                        style: TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'select_staff_subtitle'.tr(),
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 12,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Option A: Auto Assign
-                  GestureDetector(
-                    onTap: () => setState(() => _selectedStaff = null),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: _selectedStaff == null
-                            ? const Color(0xFF2563EB).withValues(alpha: 0.08)
-                            : cardBg,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: _selectedStaff == null ? const Color(0xFF2563EB) : borderColor,
-                          width: _selectedStaff == null ? 1.8 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Iconsax.magic_star, color: Color(0xFF10B981), size: 20),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'auto_assign_staff'.tr(),
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  'تاقیگە خێراترین و نزیکترین پسپۆڕ دەنێرێتە ماڵەوە (کرێ: ٥,٠٠٠ د.ع)',
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 11,
-                                    color: Color(0xFF64748B),
-                                  ),
+                                  child: isSelected
+                                      ? const Icon(Icons.check, size: 16, color: Colors.white)
+                                      : null,
                                 ),
                               ],
                             ),
                           ),
-                          if (_selectedStaff == null)
-                            const Icon(Icons.check_circle_rounded, color: Color(0xFF2563EB), size: 20),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Option B: Specific Staff List
-                  ..._staff.map((st) {
-                    final isSelected = _selectedStaff?['id'] == st['id'];
-                    final fee = (st['fee'] ?? st['visit_fee'] ?? 5000.0) as num;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedStaff = st),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFF2563EB).withValues(alpha: 0.08)
-                                : cardBg,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: isSelected ? const Color(0xFF2563EB) : borderColor,
-                              width: isSelected ? 1.8 : 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 22,
-                                backgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                                child: const Icon(Iconsax.profile_circle, color: Color(0xFF2563EB), size: 26),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      st['name'] ?? '',
-                                      style: TextStyle(
-                                        fontFamily: 'Rabar',
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${st['title'] ?? 'پسپۆڕی تاقیگە'} • ${st['lab_name'] ?? ''}',
-                                      style: const TextStyle(
-                                        fontFamily: 'Rabar',
-                                        fontSize: 11,
-                                        color: Color(0xFF64748B),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  Currency.format(fee),
-                                  style: const TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF10B981),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              if (isSelected)
-                                const Icon(Icons.check_circle_rounded, color: Color(0xFF2563EB), size: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
                 ],
               ),
             ),
@@ -729,7 +580,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: _proceedToCheckout,
+              onPressed: _isUploading ? null : _proceedToCheckout,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
                 shape: RoundedRectangleBorder(
@@ -737,22 +588,43 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                 ),
                 elevation: 0,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Iconsax.tick_circle, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'continue_checkout'.tr(),
-                    style: const TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+              child: _isUploading
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'خەریکی ناردنی وێنەیە بۆ سێرڤەر...',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Iconsax.tick_circle, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'continue_checkout'.tr(),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),

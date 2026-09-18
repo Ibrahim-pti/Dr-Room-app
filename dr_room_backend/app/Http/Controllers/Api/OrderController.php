@@ -44,6 +44,8 @@ class OrderController extends Controller
             $assignedNurseId = $request->assigned_nurse_id ?? $request->nurse_id;
             $assignedLabId = $request->assigned_lab_id ?? $request->lab_id;
 
+            $prescriptionImage = $request->prescription_url ?? $request->prescription_image ?? null;
+
             // Auto detect assigned pharmacy, nurse, or lab from item extra_data if not directly specified
             if (!empty($request->items)) {
                 foreach ($request->items as $item) {
@@ -56,15 +58,31 @@ class OrderController extends Controller
                     if (!$assignedLabId && !empty($item['extra_data']['lab_id'])) {
                         $assignedLabId = $item['extra_data']['lab_id'];
                     }
+                    if (!$prescriptionImage && !empty($item['extra_data']['prescription_url'])) {
+                        $prescriptionImage = $item['extra_data']['prescription_url'];
+                    }
+                    if (!$prescriptionImage && !empty($item['extra_data']['prescription_image'])) {
+                        $prescriptionImage = $item['extra_data']['prescription_image'];
+                    }
+                    if (!$prescriptionImage && !empty($item['extra_data']['prescription_path'])) {
+                        $prescriptionImage = $item['extra_data']['prescription_path'];
+                    }
                 }
             }
 
             // If it's a lab service and assignedLabId corresponds to a Lab model ID instead of User ID, resolve user_id
             if ($assignedLabId) {
                 $labRecord = \App\Models\Lab::find($assignedLabId);
-                if ($labRecord) {
+                if ($labRecord && $labRecord->user_id) {
                     $assignedLabId = $labRecord->user_id;
                 }
+            }
+
+            $patientDetails = $request->patient_details ?? [];
+            if ($prescriptionImage) {
+                $patientDetails['prescription_image'] = $prescriptionImage;
+                $patientDetails['prescription_url'] = $prescriptionImage;
+                $patientDetails['is_prescription'] = true;
             }
 
             $order = Order::create([
@@ -78,7 +96,7 @@ class OrderController extends Controller
                 'assigned_pharmacy_id' => $assignedPharmacyId,
                 'assigned_nurse_id' => $assignedNurseId,
                 'assigned_lab_id' => $assignedLabId,
-                'patient_details' => $request->patient_details ?? [],
+                'patient_details' => $patientDetails,
                 'location_details' => $request->location_details ?? [],
             ]);
 
@@ -104,5 +122,29 @@ class OrderController extends Controller
             DB::rollBack();
             return response()->json(['message' => 'Failed to create order: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Upload prescription file (camera / gallery photo)
+     */
+    public function uploadPrescription(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|file|mimes:jpeg,png,jpg,webp,pdf|max:20480',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = 'prescription_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('prescriptions', $filename, 'public');
+
+            return response()->json([
+                'success' => true,
+                'path' => 'storage/' . $path,
+                'url' => asset('storage/' . $path),
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'No image uploaded'], 400);
     }
 }

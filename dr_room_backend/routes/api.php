@@ -88,6 +88,7 @@ Route::get('/labs/packages', [\App\Http\Controllers\Api\LabApiController::class,
 Route::get('/labs/staff', [\App\Http\Controllers\Api\LabApiController::class, 'staff']);
 Route::get('/labs/{id}', [\App\Http\Controllers\Api\LabApiController::class, 'show']);
 Route::get('/labs/{id}/reviews', [\App\Http\Controllers\Api\LabReviewController::class, 'index']);
+Route::post('/upload/prescription', [\App\Http\Controllers\Api\OrderController::class, 'uploadPrescription']);
 
 // ─── Nursing Services ─────────────────────────────────────────────────
 Route::get('/nurses', [\App\Http\Controllers\Api\NurseApiController::class, 'index']);

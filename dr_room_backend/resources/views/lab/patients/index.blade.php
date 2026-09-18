@@ -186,6 +186,36 @@
                                 $paymentMethodKurdish = $order->payment_method ?? 'کاش لەکاتی وەرگرتن';
                             }
 
+                            $prescriptionImage = $details['prescription_image'] ?? $details['prescription_url'] ?? null;
+                            if (!$prescriptionImage && !empty($order->items)) {
+                                foreach ($order->items as $it) {
+                                    $extra = is_array($it->extra_data) ? $it->extra_data : (json_decode($it->extra_data, true) ?? []);
+                                    if (!empty($extra['prescription_url'])) {
+                                        $prescriptionImage = $extra['prescription_url'];
+                                        break;
+                                    }
+                                    if (!empty($extra['prescription_image'])) {
+                                        $prescriptionImage = $extra['prescription_image'];
+                                        break;
+                                    }
+                                    if (!empty($extra['prescription_path'])) {
+                                        $prescriptionImage = $extra['prescription_path'];
+                                        break;
+                                    }
+                                }
+                            }
+
+                            $fullPrescriptionUrl = null;
+                            if ($prescriptionImage) {
+                                if (str_starts_with($prescriptionImage, 'http://') || str_starts_with($prescriptionImage, 'https://')) {
+                                    $fullPrescriptionUrl = $prescriptionImage;
+                                } elseif (str_starts_with($prescriptionImage, 'storage/')) {
+                                    $fullPrescriptionUrl = asset($prescriptionImage);
+                                } else {
+                                    $fullPrescriptionUrl = asset('storage/' . ltrim($prescriptionImage, '/'));
+                                }
+                            }
+
                             $orderPayload = [
                                 'id' => $order->id,
                                 'patient_id' => $order->patient_id ?? $order->user_id,
@@ -203,12 +233,20 @@
                                 'lat' => (float)$lat,
                                 'lng' => (float)$lng,
                                 'items' => $order->items ?? [],
+                                'prescription_image' => $fullPrescriptionUrl,
                             ];
                         @endphp
                         <tr>
                             <!-- Order ID -->
                             <td>
                                 <span class="badge-ord">#ORD-{{ $order->id }}</span>
+                                @if($fullPrescriptionUrl)
+                                    <div style="margin-top: 4px;">
+                                        <span style="background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; font-size: 0.72rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                            📸 ڕەچەتە
+                                        </span>
+                                    </div>
+                                @endif
                             </td>
 
                             <!-- Date & Time -->
@@ -414,6 +452,26 @@ function openOrderModal(data) {
                 </div>
             </div>
         </div>
+
+        ${data.prescription_image ? `
+            <!-- Prescription Photo Box -->
+            <div style="background: #fff1f2; padding: 18px; border-radius: 16px; border: 1.5px solid #fecdd3;">
+                <div style="font-size: 0.82rem; font-weight: 900; color: #be123c; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                    <span>📸 وێنەی ڕەچەتەی پزیشکی (Prescription Photo)</span>
+                    <a href="${data.prescription_image}" target="_blank" download style="background: #be123c; color: #ffffff; padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; text-decoration: none;">
+                        داگرتن / بینین بە تەواوی ↗
+                    </a>
+                </div>
+                <div style="text-align: center; background: #ffffff; padding: 12px; border-radius: 12px; border: 1px solid #ffe4e6;">
+                    <a href="${data.prescription_image}" target="_blank">
+                        <img src="${data.prescription_image}" style="max-height: 280px; width: auto; max-width: 100%; border-radius: 8px; object-fit: contain; box-shadow: 0 4px 10px rgba(0,0,0,0.06);" alt="وێنەی ڕەچەتە" />
+                    </a>
+                    <div style="margin-top: 6px; font-size: 0.72rem; color: #9f1239; font-weight: 700;">
+                        کلیک لەسەر وێنەکە بکە بۆ کردنەوەی بە قەبارەی ڕەسەن
+                    </div>
+                </div>
+            </div>
+        ` : ''}
 
         <!-- Requested Tests List -->
         <div style="background: #f8fafc; padding: 16px; border-radius: 16px; border: 1px solid #e2e8f0;">
