@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/utils/api_client.dart';
+import '../../core/utils/localization_extensions.dart';
 import '../../core/providers/cart_provider.dart';
 import '../checkout/checkout_details_screen.dart';
 
@@ -39,7 +40,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       final res = await ApiClient.get('/labs');
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
-        final list = (decoded['data'] as List? ?? []);
+        final list = decoded is Map && decoded.containsKey('data')
+            ? (decoded['data'] as List? ?? [])
+            : (decoded is List ? decoded : []);
         if (list.isNotEmpty) {
           _labs = list.map((e) => Map<String, dynamic>.from(e)).toList();
           if (_labs.isNotEmpty) {
@@ -75,6 +78,78 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       return 'city_halabja'.tr();
     }
     return city.isNotEmpty ? city : 'city_erbil'.tr();
+  }
+
+  Widget _buildLabAvatar(Map<String, dynamic> lab, bool isDark) {
+    final imageRaw = lab['image'] ?? lab['profile_image'] ?? lab['image_path'];
+    final String imagePath =
+        (imageRaw != null && imageRaw.toString().trim().isNotEmpty)
+            ? imageRaw.toString().trim()
+            : '';
+
+    Widget imageWidget;
+    if (imagePath.startsWith('assets/')) {
+      imageWidget = Image.asset(
+        imagePath,
+        width: 52,
+        height: 52,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            _buildFallbackIcon(isDark),
+      );
+    } else if (imagePath.isNotEmpty) {
+      final fullUrl = ApiClient.getImageUrl(imagePath);
+      imageWidget = Image.network(
+        fullUrl,
+        width: 52,
+        height: 52,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            _buildFallbackIcon(isDark),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            width: 52,
+            height: 52,
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+            child: const Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      imageWidget = _buildFallbackIcon(isDark);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: 52,
+        height: 52,
+        child: imageWidget,
+      ),
+    );
+  }
+
+  Widget _buildFallbackIcon(bool isDark) {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Icon(
+        Iconsax.hospital,
+        color: Color(0xFF2563EB),
+        size: 26,
+      ),
+    );
   }
 
   Future<void> _pickImage() async {
@@ -560,21 +635,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             ),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF2563EB,
-                                    ).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: const Icon(
-                                    Iconsax.hospital,
-                                    color: Color(0xFF2563EB),
-                                    size: 26,
-                                  ),
-                                ),
+                                _buildLabAvatar(lab, isDark),
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
@@ -583,7 +644,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        lab['name'] ?? '',
+                                        context.localizedField(
+                                          lab,
+                                          'name',
+                                          fallback: 'cat_lab'.tr(),
+                                        ),
                                         style: TextStyle(
                                           fontFamily: 'Rabar',
                                           fontSize: 14.5,
@@ -592,18 +657,20 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                               ? Colors.white
                                               : const Color(0xFF0F172A),
                                         ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 3),
+                                      const SizedBox(height: 4),
                                       Row(
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Iconsax.location,
                                             size: 13,
-                                            color: const Color(0xFF64748B),
+                                            color: Color(0xFF64748B),
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            _formatCity(lab['city']),
+                                            _formatCity(lab['city'] ?? lab['location']),
                                             style: const TextStyle(
                                               fontFamily: 'Rabar',
                                               fontSize: 12,
