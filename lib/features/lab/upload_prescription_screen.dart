@@ -387,7 +387,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             )
           : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -608,28 +608,26 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(
-                                      0xFF2563EB,
-                                    ).withValues(alpha: 0.06)
+                                  ? (isDark
+                                      ? const Color(0xFF2563EB).withValues(alpha: 0.12)
+                                      : const Color(0xFFF6F9FE))
                                   : cardBg,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isSelected
-                                    ? const Color(0xFF2563EB)
+                                    ? const Color(0xFF3B82F6).withValues(alpha: 0.55)
                                     : borderColor,
-                                width: isSelected ? 2 : 1,
+                                width: isSelected ? 1.5 : 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: isSelected
-                                      ? const Color(
-                                          0xFF2563EB,
-                                        ).withValues(alpha: 0.12)
+                                      ? const Color(0xFF3B82F6).withValues(alpha: 0.08)
                                       : Colors.black.withValues(
                                           alpha: isDark ? 0.2 : 0.02,
                                         ),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
@@ -698,24 +696,24 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                   ),
                                 ),
                                 Container(
-                                  width: 24,
-                                  height: 24,
+                                  width: 22,
+                                  height: 22,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isSelected
-                                          ? const Color(0xFF2563EB)
+                                          ? const Color(0xFF3B82F6)
                                           : borderColor,
-                                      width: 2,
+                                      width: 1.5,
                                     ),
                                     color: isSelected
-                                        ? const Color(0xFF2563EB)
+                                        ? const Color(0xFF3B82F6)
                                         : Colors.transparent,
                                   ),
                                   child: isSelected
                                       ? const Icon(
                                           Icons.check,
-                                          size: 16,
+                                          size: 14,
                                           color: Colors.white,
                                         )
                                       : null,
@@ -731,24 +729,25 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             ),
 
       // ── Bottom Continue Button ──
-      bottomSheet: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: cardBg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, -3),
             ),
           ],
         ),
         child: SafeArea(
-          child: SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+            child: SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
               onPressed: _isUploading ? null : _proceedToCheckout,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
@@ -814,6 +813,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
