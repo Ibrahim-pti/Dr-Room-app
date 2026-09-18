@@ -263,11 +263,17 @@ class LabApiController extends Controller
     }
 
     /**
-     * Get all lab packages dynamically
+     * Get all lab packages dynamically from database
      */
     public function allPackages(Request $request)
     {
-        $packages = LabPackage::with(['lab.user'])->where('is_active', true)->get()->map(function($p) {
+        $query = LabPackage::with(['lab.user'])->where('is_active', true);
+
+        if ($request->filled('lab_id')) {
+            $query->where('lab_id', $request->lab_id);
+        }
+
+        $packages = $query->get()->map(function($p) {
             $lab = $p->lab;
             $labUser = $lab ? $lab->user : null;
             $labName = $labUser ? $labUser->name : 'تاقیگەی پزیشکی';
@@ -277,71 +283,19 @@ class LabApiController extends Controller
                 'name' => $p->name,
                 'name_ar' => $p->name_ar ?? $p->name,
                 'name_en' => $p->name_en ?? $p->name,
-                'desc' => $p->description ?: 'پاکێجی تایبەتی پشکنینی پزیشکی بە داشکاندنی تایبەت',
+                'desc' => $p->description ?: 'پاکێجی پشکنینی پزیشکی',
                 'description_ar' => $p->description_ar,
                 'description_en' => $p->description_en,
                 'price' => (double) $p->price,
-                'original_price' => $p->original_price ? (double) $p->original_price : round($p->price * 1.3),
-                'discount' => $p->discount ?: 25,
+                'original_price' => $p->original_price ? (double) $p->original_price : ($p->discount ? round($p->price / (1 - ($p->discount / 100))) : null),
+                'discount' => $p->discount ? (int) $p->discount : 0,
                 'lab_id' => $lab ? $lab->id : null,
                 'lab_user_id' => $labUser ? $labUser->id : null,
                 'lab_name' => $labName,
-                'tests_count' => is_array($p->test_ids) ? count($p->test_ids) : 5,
+                'tests_count' => is_array($p->test_ids) ? count($p->test_ids) : $p->tests->count(),
                 'tests' => $p->tests->pluck('name')->toArray(),
             ];
         });
-
-        if ($packages->isEmpty()) {
-            $labs = User::with('lab')->where('role', 'lab')->where('status', 'approved')->get();
-            $defaultLab = $labs->first();
-            $labName = $defaultLab ? $defaultLab->name : 'تاقیگەی پزیشکی ڕازی';
-            $labId = $defaultLab && $defaultLab->lab ? $defaultLab->lab->id : 1;
-
-            $packages = collect([
-                [
-                    'id' => '101',
-                    'name' => 'پاکێجی پشکنینی گشتی و تەواوی جەستە (Full Body)',
-                    'name_ar' => 'باقة الفحص الشامل للجسم',
-                    'name_en' => 'Full Body Health Checkup',
-                    'desc' => 'شاملی پشکنینی گشتی خوێن CBC، چەوری و کۆلیسترۆڵ، شەکرەی سێ مانگی، کاری جگەر و گورچیلە',
-                    'price' => 45000.0,
-                    'original_price' => 65000.0,
-                    'discount' => 30,
-                    'lab_id' => $labId,
-                    'lab_name' => $labName,
-                    'tests_count' => 6,
-                    'tests' => ['CBC', 'Lipid Profile', 'HbA1c', 'LFT', 'KFT', 'Urine Test'],
-                ],
-                [
-                    'id' => '102',
-                    'name' => 'پاکێجی چاودێری و پێوانەی شەکرە (Diabetes)',
-                    'name_ar' => 'باقة متابعة مرضى السكري',
-                    'name_en' => 'Comprehensive Diabetes Panel',
-                    'desc' => 'پشکنینی شەکری ڕۆژووان، شەکری سێ مانگی HbA1c، چەورییەکان و کاری گورچیلە',
-                    'price' => 28000.0,
-                    'original_price' => 40000.0,
-                    'discount' => 30,
-                    'lab_id' => $labId,
-                    'lab_name' => $labName,
-                    'tests_count' => 4,
-                    'tests' => ['FBS (Fasting Sugar)', 'HbA1c', 'Lipid Profile', 'Creatinine'],
-                ],
-                [
-                    'id' => '103',
-                    'name' => 'پاکێجی ڤیتامینەکان و وزەی جەستە (Vitamins)',
-                    'name_ar' => 'باقة الفيتامينات والنشاط',
-                    'name_en' => 'Vitamins & Minerals Vitality',
-                    'desc' => 'پشکنینی وردی ڤیتامین D3، ڤیتامین B12، ڕێژەی ئاسن، کالسیۆم و مەگنیسیۆم',
-                    'price' => 38000.0,
-                    'original_price' => 55000.0,
-                    'discount' => 30,
-                    'lab_id' => $labId,
-                    'lab_name' => $labName,
-                    'tests_count' => 5,
-                    'tests' => ['Vitamin D3', 'Vitamin B12', 'Iron (Serum)', 'Ferritin', 'Calcium'],
-                ],
-            ]);
-        }
 
         return response()->json([
             'success' => true,
@@ -351,41 +305,42 @@ class LabApiController extends Controller
     }
 
     /**
-     * Get lab staff and sampling specialists
+     * Get real sampling specialists and home care staff dynamically from database
      */
     public function staff(Request $request)
     {
-        $labs = User::with('lab')
-            ->where('role', 'lab')
-            ->where('status', 'approved')
-            ->get();
+        $query = \App\Models\Nurse::with('user')
+            ->where('is_approved', true)
+            ->where('is_available', true);
 
-        $titles = [
-            'پسپۆڕی شیکاری نەخۆشییەکان',
-            'دکتۆری بایۆلۆجی و پشکنین',
-            'شارەزای وەرگرتنی نموونە لە ماڵەوە',
-            'کارمەندی باڵای تاقیگە',
-        ];
+        if ($request->filled('city')) {
+            $query->where('city', $request->city);
+        }
 
-        $staff = $labs->map(function($user, $idx) use ($titles) {
-            $lab = $user->lab;
-            $title = $titles[$idx % count($titles)];
-            $sampleFee = 5000 + ($idx % 3) * 2500;
+        $staff = $query->get()->map(function($nurse) {
+            $user = $nurse->user;
+            $name = $user ? $user->name : ($nurse->name ?? 'کارمەندی تەندروستی');
 
             return [
-                'id' => (string) $user->id,
-                'name' => $user->name,
-                'title' => $title,
-                'lab_name' => $user->name,
-                'lab_id' => $lab ? $lab->id : $user->id,
-                'lab_user_id' => $user->id,
-                'rating' => $lab && $lab->rating ? (float)$lab->rating : 4.9,
-                'reviews_count' => $lab && $lab->total_reviews ? (int)$lab->total_reviews : (90 + $idx * 12),
-                'city' => $lab ? ($lab->city ?? 'Erbil') : 'Erbil',
+                'id' => (string) ($user ? $user->id : $nurse->id),
+                'nurse_id' => (string) $nurse->id,
+                'name' => $name,
+                'name_en' => $user ? ($user->name_en ?? $nurse->name_en) : $nurse->name_en,
+                'name_ar' => $user ? ($user->name_ar ?? $nurse->name_ar) : $nurse->name_ar,
+                'title' => $nurse->specialty ?: 'پسپۆڕی وەرگرتنی نموونە و پشکنین',
+                'specialty' => $nurse->specialty,
+                'lab_name' => 'تیمی نموونەگری دکتۆر ڕووم',
+                'lab_id' => null,
+                'lab_user_id' => $user ? $user->id : null,
+                'rating' => (float) ($nurse->rating ?: 4.9),
+                'reviews_count' => (int) ($nurse->total_reviews ?: 0),
+                'city' => $nurse->city ?? 'Erbil',
                 'home_visit' => true,
-                'fee' => (double) $sampleFee,
-                'image' => $lab && $lab->image_path ? $lab->image_path : ($user->profile_image ? 'storage/' . $user->profile_image : 'assets/images/laboratory.jpg'),
-                'is_available' => true,
+                'fee' => (double) ($nurse->fee ?: 5000.0),
+                'image' => $nurse->image_path
+                    ? (str_starts_with($nurse->image_path, 'http') ? $nurse->image_path : asset('storage/' . $nurse->image_path))
+                    : ($user && $user->profile_image ? asset('storage/' . $user->profile_image) : null),
+                'is_available' => (bool) $nurse->is_available,
             ];
         });
 

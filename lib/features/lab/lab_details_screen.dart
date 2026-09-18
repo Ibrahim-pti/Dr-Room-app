@@ -37,41 +37,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   bool _isVideoPlaying = false;
   List<Map<String, dynamic>> _reviews = [];
 
-  List<Map<String, dynamic>> _packages = [
-    {
-      'id': 101,
-      'name': 'پاکێجی پشکنینی گشتی (Full Body Checkup)',
-      'desc':
-          'شاملی سەرەکیترین پشکنینەکانی خوێن (CBC)، چەوری، جگەر، گورچیلە و شەکرە',
-      'original_price': 85000,
-      'price': 55000,
-      'discount': 35,
-      'icon': Iconsax.health,
-      'test_ids': [1, 2, 3, 5, 6],
-    },
-    {
-      'id': 102,
-      'name': 'پاکێجی ڤیتامین و ووزە (Vitamins & Energy)',
-      'desc':
-          'پشکنینی وردی ڤیتامین D، ڤیتامین B12، ڕێژەی ئاسن و کانزاکانی جەستە',
-      'original_price': 60000,
-      'price': 42000,
-      'discount': 30,
-      'icon': Iconsax.activity,
-      'test_ids': [4],
-    },
-    {
-      'id': 103,
-      'name': 'پاکێجی پاراستنی دڵ و چەوری (Cardiac & Lipid Care)',
-      'desc':
-          'شاملی کۆلیسترۆڵ، چەوری سیانی (Triglycerides)، و پشکنینی سێ مانگی شەکرە',
-      'original_price': 50000,
-      'price': 35000,
-      'discount': 30,
-      'icon': Iconsax.heart,
-      'test_ids': [2, 3],
-    },
-  ];
+  List<Map<String, dynamic>> _packages = [];
 
   @override
   void initState() {
@@ -150,59 +116,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         (_labData['tests'] as List).map((t) => Map<String, dynamic>.from(t)),
       );
     } else {
-      // High quality fallback tests
-      _tests = [
-        {
-          'id': 1,
-          'name': 'پشکنینی گشتی خوێن (CBC)',
-          'price': 10000,
-          'original_price': 14000,
-          'discount': 28,
-          'type': 'Blood Test',
-          'desc': 'Complete Blood Count',
-        },
-        {
-          'id': 2,
-          'name': 'چەوری و کۆلیسترۆڵ (Lipid Profile)',
-          'price': 15000,
-          'original_price': 20000,
-          'discount': 25,
-          'type': 'Blood Test',
-          'desc': 'Cholesterol & Triglycerides',
-        },
-        {
-          'id': 3,
-          'name': 'شەکرەی سێ مانگی (HbA1c)',
-          'price': 15000,
-          'type': 'Blood Test',
-          'desc': 'Glycated Hemoglobin',
-        },
-        {
-          'id': 4,
-          'name': 'پشکنینی ڤیتامین دی (Vitamin D)',
-          'price': 22000,
-          'original_price': 30000,
-          'discount': 27,
-          'type': 'Vitamin Test',
-          'desc': '25-OH Vitamin D',
-        },
-        {
-          'id': 5,
-          'name': 'کاری جگەر (Liver Function Test)',
-          'price': 18000,
-          'type': 'Liver Panel',
-          'desc': 'ALT, AST, Bilirubin',
-        },
-        {
-          'id': 6,
-          'name': 'کاری گورچیلە (Kidney Function Test)',
-          'price': 12000,
-          'original_price': 16000,
-          'discount': 25,
-          'type': 'Kidney Panel',
-          'desc': 'Urea & Creatinine',
-        },
-      ];
+      _tests = [];
     }
   }
 
