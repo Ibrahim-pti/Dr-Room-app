@@ -151,6 +151,10 @@ class _LabHubScreenState extends State<LabHubScreen> {
 
   void _selectStaff(Map<String, dynamic> staff) {
     final cart = Provider.of<CartProvider>(context, listen: false);
+    // Remove previous staff if any so there is only one assigned staff
+    cart.items.removeWhere((item) =>
+        item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'));
+
     cart.setServiceType('lab', extraFee: (staff['visit_fee'] as num?)?.toDouble() ?? 5000.0);
     cart.addItem(CartItem(
       id: 'staff_${staff['id']}',
@@ -161,10 +165,12 @@ class _LabHubScreenState extends State<LabHubScreen> {
         'type': 'staff',
         'staff_id': staff['id'],
         'staff_name': staff['name'],
+        'staff_title': staff['title'],
         'lab_id': staff['lab_id'],
         'lab_name': staff['lab'],
       },
     ));
+    setState(() {});
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -488,6 +494,10 @@ class _LabHubScreenState extends State<LabHubScreen> {
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, idx) {
                     final staff = _staffList[idx];
+                    final cart = Provider.of<CartProvider>(context, listen: false);
+                    final isSelected = cart.items.any((item) =>
+                        (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) &&
+                        item.extraData?['staff_id'] == staff['id']);
 
                     return Container(
                       padding: const EdgeInsets.all(14),
@@ -545,7 +555,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                           ),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2563EB),
+                              backgroundColor: isSelected ? const Color(0xFF10B981) : const Color(0xFF2563EB),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             ),
@@ -553,7 +563,10 @@ class _LabHubScreenState extends State<LabHubScreen> {
                               Navigator.pop(ctx);
                               _selectStaff(staff);
                             },
-                            child: const Text('دیاریکردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
+                            child: Text(
+                              isSelected ? 'هەڵبژێردراوە ✓' : 'دیاریکردن',
+                              style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ],
                       ),
@@ -877,6 +890,13 @@ class _LabHubScreenState extends State<LabHubScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
     final cart = Provider.of<CartProvider>(context);
+    CartItem? selectedStaffItem;
+    for (final item in cart.items) {
+      if (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) {
+        selectedStaffItem = item;
+        break;
+      }
+    }
 
     return Scaffold(
       backgroundColor: bg,
@@ -1019,6 +1039,9 @@ class _LabHubScreenState extends State<LabHubScreen> {
                     subtitle: 'lab_item_3_desc'.tr(),
                     icon: Iconsax.people,
                     color: const Color(0xFF8B5CF6),
+                    badgeText: selectedStaffItem != null
+                        ? (selectedStaffItem.extraData?['staff_name'] ?? 'دیاریکراوە')
+                        : null,
                     onTap: _showStaffSelectionModal,
                   ),
 

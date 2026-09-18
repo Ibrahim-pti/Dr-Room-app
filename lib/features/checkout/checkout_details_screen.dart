@@ -10,6 +10,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../core/utils/currency.dart';
 import 'payment_method_screen.dart';
 
 class CheckoutDetailsScreen extends StatefulWidget {
@@ -57,6 +58,15 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   void initState() {
     super.initState();
     _addressController.text = _locationDetails;
+
+    // If a staff was selected for home sample collection, default to home
+    final cart = context.read<CartProvider>();
+    final hasStaff = cart.items.any((item) =>
+        item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'));
+    if (hasStaff) {
+      _sampleCollectionMethod = 'home';
+    }
+
     // Auto fetch location on screen load
     _getCurrentLocation();
   }
@@ -276,6 +286,15 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         finalLocation = customAddr.isNotEmpty ? customAddr : _locationDetails;
       }
 
+      // Find selected staff if any
+      CartItem? staffItem;
+      for (final item in context.read<CartProvider>().items) {
+        if (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) {
+          staffItem = item;
+          break;
+        }
+      }
+
       // Save details to CartProvider
       context.read<CartProvider>().setPatientDetails({
         'name': _nameController.text.trim(),
@@ -284,6 +303,11 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         'patient_gender': _selectedGender,
         'nurse_gender': isLab ? null : _selectedNurseGender,
         'collection_method': isLab ? _sampleCollectionMethod : null,
+        'staff_id': staffItem?.extraData?['staff_id'],
+        'staff_name': staffItem?.extraData?['staff_name'],
+        'staff_title': staffItem?.extraData?['staff_title'],
+        'lab_id': staffItem?.extraData?['lab_id'],
+        'lab_name': staffItem?.extraData?['lab_name'],
         'location': finalLocation,
         'lat': _currentLatLng?.latitude,
         'lng': _currentLatLng?.longitude,
@@ -743,6 +767,16 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   }
 
   Widget _buildSampleCollectionSelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cart = context.watch<CartProvider>();
+    CartItem? staffItem;
+    for (final item in cart.items) {
+      if (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) {
+        staffItem = item;
+        break;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -762,7 +796,11 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                 label: 'home_sample_collection'.tr(),
                 icon: Icons.home_rounded,
                 isSelected: _sampleCollectionMethod == 'home',
-                onTap: () => setState(() => _sampleCollectionMethod = 'home'),
+                onTap: () {
+                  setState(() => _sampleCollectionMethod = 'home');
+                  final fee = (staffItem?.price ?? 5000.0);
+                  context.read<CartProvider>().setServiceType('lab', extraFee: fee);
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -771,11 +809,137 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                 label: 'visit_lab'.tr(),
                 icon: Icons.local_hospital_rounded,
                 isSelected: _sampleCollectionMethod == 'lab',
-                onTap: () => setState(() => _sampleCollectionMethod = 'lab'),
+                onTap: () {
+                  setState(() => _sampleCollectionMethod = 'lab');
+                  context.read<CartProvider>().setServiceType('lab', extraFee: 0.0);
+                },
               ),
             ),
           ],
         ),
+        if (_sampleCollectionMethod == 'home') ...[
+          const SizedBox(height: 12),
+          if (staffItem != null) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF6F9FE),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                  width: 1.2,
+                ),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.12),
+                    child: const Icon(
+                      Iconsax.profile_circle,
+                      color: Color(0xFF2563EB),
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                staffItem.extraData?['staff_name'] ?? staffItem.name,
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'پسپۆڕی دیاریکراو',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF059669),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          staffItem.extraData?['staff_title'] ?? staffItem.extraData?['lab_name'] ?? 'پسپۆڕی نموونەوەرگرتن لە ماڵەوە',
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 11.5,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Iconsax.car, size: 13, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'کرێی سەردانی ماڵەوە: ${Currency.format(staffItem.price)}',
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Iconsax.info_circle, color: Color(0xFF2563EB), size: 18),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'ستافی تاقیگە: تاقیگە باشترین پسپۆڕی بەردەست دیاری دەکات بۆ ئەوەی بێتە ماڵەوە بۆ وەرگرتنی نموونە',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 11.5,
+                        color: Color(0xFF2563EB),
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ],
     );
   }

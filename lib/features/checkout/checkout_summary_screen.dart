@@ -126,10 +126,22 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                   // ── Summary Card ──
                   Consumer<CartProvider>(
                     builder: (context, cartProvider, child) {
-                      final itemsString = cartProvider.items.map((e) => e.name).join('، ');
+                      CartItem? staffItem;
+                      for (final item in cartProvider.items) {
+                        if (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) {
+                          staffItem = item;
+                          break;
+                        }
+                      }
+                      final nonStaffItems = cartProvider.items.where(
+                        (e) => e.extraData?['type'] != 'staff' && !e.id.startsWith('staff_')
+                      ).toList();
+                      final itemsString = nonStaffItems.map((e) => e.name).join('، ');
                       final patient = cartProvider.patientDetails;
                       final String? location = patient?['location'];
                       final String? patientName = patient?['name'];
+                      final String? staffName = staffItem?.extraData?['staff_name'] ?? patient?['staff_name'];
+                      final String? staffTitle = staffItem?.extraData?['staff_title'] ?? patient?['staff_title'];
 
                       return Container(
                         decoration: BoxDecoration(
@@ -176,11 +188,22 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                         false,
                                       ),
                                     ],
+                                    if (staffName != null && staffName.isNotEmpty) ...[
+                                      const SizedBox(height: 14),
+                                      _buildSummaryRow(
+                                        Iconsax.profile_circle,
+                                        'پسپۆڕی دیاریکراو',
+                                        staffTitle != null && staffTitle.isNotEmpty
+                                            ? '$staffName ($staffTitle)'
+                                            : staffName,
+                                        false,
+                                      ),
+                                    ],
                                     if (itemsString.isNotEmpty) ...[
                                       const SizedBox(height: 14),
                                       _buildSummaryRow(
                                         Iconsax.box,
-                                        'پشکنینەکان (${cartProvider.items.length})',
+                                        'پشکنینەکان (${nonStaffItems.length})',
                                         itemsString,
                                         false,
                                       ),
@@ -204,8 +227,8 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                     if (cartProvider.extraFee > 0) ...[
                                       const SizedBox(height: 14),
                                       _buildSummaryRow(
-                                        Iconsax.coin_1,
-                                        'کرێی گەیاندن/وەرگرتن',
+                                        Iconsax.car,
+                                        'کرێی سەردانی ماڵەوە',
                                         '${NumberFormat('#,###').format(cartProvider.extraFee)} د.ع',
                                         false,
                                       ),
