@@ -56,6 +56,27 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     }
   }
 
+  String _formatCity(dynamic cityRaw) {
+    final city = cityRaw?.toString().trim() ?? '';
+    final lower = city.toLowerCase();
+    if (lower == 'erbil' || lower == 'hawler' || lower == 'hewler' || lower == 'هەولێر' || lower == 'أربيل') {
+      return 'city_erbil'.tr();
+    }
+    if (lower == 'sulaymaniyah' || lower == 'slemany' || lower == 'slemani' || lower == 'سلێمانی' || lower == 'السليمانية') {
+      return 'city_sulaymaniyah'.tr();
+    }
+    if (lower == 'duhok' || lower == 'dohuk' || lower == 'دهۆک' || lower == 'دهوك') {
+      return 'city_duhok'.tr();
+    }
+    if (lower == 'kirkuk' || lower == 'کەرکووک' || lower == 'كركوك') {
+      return 'city_kirkuk'.tr();
+    }
+    if (lower == 'halabja' || lower == 'هەڵەبجە' || lower == 'حلبجة') {
+      return 'city_halabja'.tr();
+    }
+    return city.isNotEmpty ? city : 'city_erbil'.tr();
+  }
+
   Future<void> _pickImage() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -466,7 +487,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'دیاریکراوە',
+                            'selected'.tr(),
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 11,
@@ -487,7 +508,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Text(
-                          'هیچ تاقیگەیەک نەدۆزرایەوە',
+                          'no_labs_found'.tr(),
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             color: isDark ? Colors.white60 : Colors.black54,
@@ -582,7 +603,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            lab['city'] ?? 'Erbil',
+                                            _formatCity(lab['city']),
                                             style: const TextStyle(
                                               fontFamily: 'Rabar',
                                               fontSize: 12,
@@ -674,8 +695,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
               child: _isUploading
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        SizedBox(
+                      children: [
+                        const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
@@ -683,9 +704,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             strokeWidth: 2,
                           ),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Text(
-                          'خەریکی ناردنی وێنەیە بۆ سێرڤەر...',
+                          'uploading_image_to_server'.tr(),
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 14,

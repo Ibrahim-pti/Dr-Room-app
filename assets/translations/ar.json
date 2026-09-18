@@ -62,6 +62,8 @@
   "continue_checkout": "متابعة لإكمال الطلب",
   "please_select_lab_first": "يرجى تحديد المختبر أولاً",
   "please_upload_image_first": "يرجى رفع صورة الوصفة الطبية أولاً",
+  "selected": "محدد",
+  "uploading_image_to_server": "جاري رفع الصورة إلى الخادم...",
   "auto_assign_staff": "تعيين أفضل كادر متاح تلقائياً",
   "prescription_order_name": "طلب فحص حسب الوصفة الطبية",
   "select_tests_manually": "اختيار الفحوصات يدوياً",

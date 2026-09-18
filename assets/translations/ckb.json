@@ -62,6 +62,8 @@
   "continue_checkout": "بەردەوامبە بۆ تەواوکردنی داواکاری",
   "please_select_lab_first": "تکایە سەرەتا تاقیگەیەک هەڵبژێرە",
   "please_upload_image_first": "تکایە سەرەتا وێنەی ڕەچەتەکە دیاری بکە",
+  "selected": "دیاریکراوە",
+  "uploading_image_to_server": "خەریکی ناردنی وێنەیە بۆ سێرڤەر...",
   "auto_assign_staff": "تاقیگە خۆی باشترین ستاف دیاری بکات",
   "prescription_order_name": "داواکاری پشکنین بەپێی وێنەی ڕەچەتە",
   "select_tests_manually": "هەڵبژاردنی پشکنینەکان بە دەستی",
