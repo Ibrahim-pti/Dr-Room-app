@@ -979,7 +979,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                 color: const Color(0xFF2563EB),
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 100),
+                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 16),
                   children: [
                   // 1. بارکردنی وێنەی ڕەچەتە
                   _buildFeatureCard(
@@ -1121,12 +1121,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
       ),
 
       // ── Bottom Cart Floater if Cart has items ──
-      bottomSheet: cart.items.isNotEmpty
+      bottomNavigationBar: cart.items.isNotEmpty
           ? Container(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
@@ -1135,47 +1134,53 @@ class _LabHubScreenState extends State<LabHubScreen> {
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  child: Row(
                     children: [
-                      Text(
-                        '${cart.items.length} خزمەتگوزاری دیاریکراو',
-                        style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${cart.items.length} خزمەتگوزاری دیاریکراو',
+                            style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
+                          ),
+                          Text(
+                            Currency.format(cart.total),
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF10B981),
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        Currency.format(cart.total),
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const CheckoutDetailsScreen()),
+                          );
+                        },
+                        icon: const Icon(Iconsax.arrow_right_3, size: 16, color: Colors.white),
+                        label: const Text(
+                          'تەواوکردنی داواکاری',
+                          style: TextStyle(fontFamily: 'Rabar', fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const CheckoutDetailsScreen()),
-                      );
-                    },
-                    icon: const Icon(Iconsax.arrow_right_3, size: 16, color: Colors.white),
-                    label: const Text(
-                      'تەواوکردنی داواکاری',
-                      style: TextStyle(fontFamily: 'Rabar', fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
-                ],
+                ),
               ),
             )
           : null,
