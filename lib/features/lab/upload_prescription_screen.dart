@@ -659,11 +659,13 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         child: SafeArea(
           child: SizedBox(
             width: double.infinity,
-            height: 52,
+            height: 54,
             child: ElevatedButton(
               onPressed: _isUploading ? null : _proceedToCheckout,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -689,12 +691,14 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
+                            height: 1.2,
                           ),
                         ),
                       ],
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
                           Iconsax.tick_circle,
@@ -702,13 +706,18 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                           size: 20,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          'continue_checkout'.tr(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        Flexible(
+                          child: Text(
+                            'continue_checkout'.tr(),
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
