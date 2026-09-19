@@ -5,7 +5,7 @@ import '../utils/api_client.dart';
 import '../theme/dr_room_fonts.dart';
 
 class AppVersionService {
-  static const String currentAppVersion = '1.0.0';
+  static const String currentAppVersion = '1.0.1';
 
   static Future<void> checkAppVersion(BuildContext context) async {
     try {
