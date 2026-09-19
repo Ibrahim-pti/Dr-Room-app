@@ -183,25 +183,35 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               const SizedBox(height: 20),
                               Container(
-                                width: 68,
-                                height: 68,
+                                width: 72,
+                                height: 72,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: const Color(0xFF0A1428),
                                   shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: const Color(0xFF38BDF8).withValues(alpha: 0.4),
+                                    width: 1.5,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      blurRadius: 16,
+                                      color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+                                      blurRadius: 18,
                                       offset: const Offset(0, 6),
                                     ),
                                   ],
                                 ),
-                                child: const Icon(
-                                  Icons.local_hospital_rounded,
-                                  color: Color(0xFF2563EB),
-                                  size: 36,
+                                clipBehavior: Clip.antiAlias,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Image.asset(
+                                    'assets/images/dr_room_icon_clean.png',
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, _, _) => const Icon(
+                                      Icons.local_hospital_rounded,
+                                      color: Color(0xFF38BDF8),
+                                      size: 36,
+                                    ),
+                                  ),
                                 ),
                               ).animate().scale(
                                 duration: 500.ms,
