@@ -15,6 +15,8 @@ import '../surgery/surgery_timeline_screen.dart';
 import '../prescriptions/pill_reminder_screen.dart';
 import '../checkout/payment_history_screen.dart';
 import '../first_aid/first_aid_screen.dart';
+import '../../core/utils/api_client.dart';
+import '../settings/personal_information_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -30,6 +32,7 @@ class _MainShellState extends State<MainShell> {
 
   String _userName = '';
   String _userPhone = '';
+  String? _profileImageUrl;
   int _currentIndex = 0;
 
   final GlobalKey<HomeScreenState> _homeKey = GlobalKey<HomeScreenState>();
@@ -64,6 +67,8 @@ class _MainShellState extends State<MainShell> {
         final un = prefs.getString('user_name') ?? '';
         _userName = un.isNotEmpty ? un : 'guest_greeting'.tr();
         _userPhone = prefs.getString('user_phone') ?? '';
+        _profileImageUrl = prefs.getString('user_profile_image') ??
+            prefs.getString('profile_image');
       });
     }
   }
@@ -288,15 +293,32 @@ class _MainShellState extends State<MainShell> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2.5),
-                        image: const DecorationImage(
-                          image: AssetImage('assets/images/doctor2.png'),
-                          fit: BoxFit.cover,
+                    GestureDetector(
+                      onTap: () async {
+                        Navigator.pop(context);
+                        final res = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const PersonalInformationScreen(),
+                          ),
+                        );
+                        if (res == true || mounted) {
+                          _loadUserInfo();
+                          _homeKey.currentState?.refresh();
+                        }
+                      },
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2.5),
+                          image: DecorationImage(
+                            image: ApiClient.getImageProvider(_profileImageUrl) ??
+                                const AssetImage('assets/images/default_avatar_3d.png'),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),

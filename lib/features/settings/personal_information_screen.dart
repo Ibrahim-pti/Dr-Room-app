@@ -260,7 +260,7 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                           image: _selectedImage != null
                               ? FileImage(_selectedImage!) as ImageProvider
                               : (ApiClient.getImageProvider(_profileImageUrl) ??
-                                  const AssetImage('assets/images/doctor2.png')),
+                                  const AssetImage('assets/images/default_avatar_3d.png')),
                           fit: BoxFit.cover,
                         ),
                       ),

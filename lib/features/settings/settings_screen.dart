@@ -259,27 +259,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ).scaffoldBackgroundColor,
                                     width: 4,
                                   ),
-                                  image:
-                                      _profileImageUrl != null &&
-                                          _profileImageUrl!.isNotEmpty
-                                      ? DecorationImage(
-                                          image: ApiClient.getImageProvider(_profileImageUrl) ??
-                                              const AssetImage('assets/images/doctor2.png'),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : null,
+                                  image: DecorationImage(
+                                    image: ApiClient.getImageProvider(_profileImageUrl) ??
+                                        const AssetImage('assets/images/default_avatar_3d.png'),
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
-                                child:
-                                    _profileImageUrl != null &&
-                                        _profileImageUrl!.isNotEmpty
-                                    ? null
-                                    : Icon(
-                                        Icons.person_rounded,
-                                        size: 50,
-                                        color: isDark
-                                            ? const Color(0xFF64748B)
-                                            : const Color(0xFF94A3B8),
-                                      ),
                               ),
                               PositionedDirectional(
                                 bottom: 0,

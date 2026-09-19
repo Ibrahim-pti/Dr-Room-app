@@ -16,6 +16,7 @@ import 'widgets/home_header.dart';
 import 'widgets/services_category_grid.dart';
 import 'widgets/top_nurses_section.dart';
 import 'widgets/top_labs_section.dart';
+import '../settings/personal_information_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -104,7 +105,21 @@ class HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           // ── Fixed Top Curved Header & Search (Never moves) ──
-          HomeHeader(userName: _userName, profileImageUrl: _profileImageUrl),
+          HomeHeader(
+            userName: _userName,
+            profileImageUrl: _profileImageUrl,
+            onAvatarTap: () async {
+              final res = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PersonalInformationScreen(),
+                ),
+              );
+              if (res == true || mounted) {
+                _loadCachedUser();
+              }
+            },
+          ),
 
           // ── Scrollable & Refreshable Body ──
           Expanded(

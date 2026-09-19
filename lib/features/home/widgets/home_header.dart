@@ -13,8 +13,9 @@ import '../../search/global_search_screen.dart';
 class HomeHeader extends StatelessWidget {
   final String userName;
   final String? profileImageUrl;
+  final VoidCallback? onAvatarTap;
 
-  const HomeHeader({super.key, required this.userName, this.profileImageUrl});
+  const HomeHeader({super.key, required this.userName, this.profileImageUrl, this.onAvatarTap});
 
   @override
   Widget build(BuildContext context) {
@@ -99,23 +100,26 @@ class HomeHeader extends StatelessWidget {
                       child: Row(
                         children: [
                           // User Avatar
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.2),
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2,
-                              ),
-                              image: DecorationImage(
-                                image: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
-                                    ? (ApiClient.getImageProvider(profileImageUrl) ??
-                                        const AssetImage('assets/images/doctor2.png'))
-                                    : const AssetImage('assets/images/doctor2.png'),
-                                fit: BoxFit.cover,
-                                alignment: Alignment.topCenter,
+                          GestureDetector(
+                            onTap: onAvatarTap,
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.2),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+                                image: DecorationImage(
+                                  image: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                                      ? (ApiClient.getImageProvider(profileImageUrl) ??
+                                          const AssetImage('assets/images/default_avatar_3d.png'))
+                                      : const AssetImage('assets/images/default_avatar_3d.png'),
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.topCenter,
+                                ),
                               ),
                             ),
                           ),
