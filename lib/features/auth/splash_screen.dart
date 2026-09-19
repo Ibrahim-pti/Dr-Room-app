@@ -18,44 +18,39 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _mainController;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+  late AnimationController _heartController;
   late Animation<double> _ecgAnimation;
-  late Animation<double> _floatAnimation;
+  late Animation<double> _heartScaleAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    // 1. Entrance & ECG Animation
+    // Main animation timeline
     _mainController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 2000),
     );
 
     _ecgAnimation = CurvedAnimation(
       parent: _mainController,
-      curve: const Interval(0.2, 0.85, curve: Curves.easeInOutCubic),
+      curve: const Interval(0.2, 0.9, curve: Curves.easeInOutCubic),
     );
 
-    // 2. Continuous ambient heartbeat & floating animation
-    _pulseController = AnimationController(
+    // Heart pulsing animation
+    _heartController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
-    _floatAnimation = Tween<double>(begin: -4.0, end: 4.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
+    _heartScaleAnimation = Tween<double>(begin: 0.95, end: 1.12).animate(
+      CurvedAnimation(parent: _heartController, curve: Curves.easeInOut),
     );
 
     _mainController.forward();
 
-    // 3. Complete splash transition and verify auth state
-    Future.delayed(const Duration(milliseconds: 2800), () async {
+    // Smooth transition to next screen
+    Future.delayed(const Duration(milliseconds: 2600), () async {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final role = prefs.getString('user_role') ?? 'patient';
@@ -74,293 +69,149 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _mainController.dispose();
-    _pulseController.dispose();
+    _heartController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
+    // Harmonious colors matching the app exactly (without heavy shadows)
+    final bgColor = isDark ? const Color(0xFF0F172A) : Colors.white;
+    final textColorDr = isDark ? Colors.white : const Color(0xFF1E293B);
+    const primaryBlue = Color(0xFF2E86DE);
+    final sloganColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final cardBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFF0F6FF);
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFDBEAFE);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF060B18),
-      body: Stack(
-        children: [
-          // ── Background Ambient Clinic Lighting & Gradient ──
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0, -0.18),
-                  radius: 0.85,
-                  colors: [
-                    Color(0xFF0E244D), // Soft medical blue back-glow
-                    Color(0xFF091329),
-                    Color(0xFF040814),
-                  ],
-                  stops: [0.0, 0.55, 1.0],
-                ),
-              ),
-            ),
-          ),
-
-          // ── Animated Pulsing Glow Rings behind Logo ──
-          Center(
-            child: AnimatedBuilder(
-              animation: _pulseAnimation,
-              builder: (context, _) {
-                return Transform.translate(
-                  offset: const Offset(0, -50),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Outer soft aura
-                      Container(
-                        width: 280 * _pulseAnimation.value,
-                        height: 280 * _pulseAnimation.value,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF0284C7).withValues(alpha: 0.08),
-                        ),
-                      ),
-                      // Inner intense aura
-                      Container(
-                        width: 200 * _pulseAnimation.value,
-                        height: 200 * _pulseAnimation.value,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF38BDF8).withValues(alpha: 0.12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF0284C7).withValues(alpha: 0.25),
-                              blurRadius: 40,
-                              spreadRadius: 8,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // ── Main Centered Content ──
-          Center(
-            child: SingleChildScrollView(
-              physics: const NeverScrollableScrollPhysics(),
+      backgroundColor: bgColor,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // ── Centered Main Content ──
+            Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // 1. Official 3D Clinic Emblem Badge
-                  AnimatedBuilder(
-                    animation: _floatAnimation,
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(0, _floatAnimation.value),
-                        child: child,
-                      );
-                    },
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            const Color(0xFF38BDF8).withValues(alpha: 0.6),
-                            const Color(0xFF0284C7).withValues(alpha: 0.3),
-                            const Color(0xFF1E293B).withValues(alpha: 0.8),
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF0284C7).withValues(alpha: 0.35),
-                            blurRadius: 28,
-                            offset: const Offset(0, 10),
-                            spreadRadius: 2,
-                          ),
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+                  // 1. Clean 3D DrRoom Emblem (No Heavy Shadows, Matches App)
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(26),
+                      border: Border.all(
+                        color: cardBorder,
+                        width: 1.5,
                       ),
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF0A1428),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Center(
-                          child: Image.asset(
-                            'assets/images/dr_room_icon_clean.png',
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, _, _) => Container(
-                              width: 90,
-                              height: 90,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFF0F172A),
-                              ),
-                              child: const Icon(
-                                Iconsax.hospital,
-                                size: 48,
-                                color: Color(0xFF38BDF8),
-                              ),
-                            ),
-                          ),
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/images/dr_room_icon_light.png',
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => const Icon(
+                          Iconsax.hospital,
+                          size: 42,
+                          color: primaryBlue,
                         ),
                       ),
                     ),
                   )
                       .animate()
                       .scale(
-                        duration: 900.ms,
-                        begin: const Offset(0.65, 0.65),
+                        duration: 650.ms,
+                        begin: const Offset(0.75, 0.75),
                         end: const Offset(1.0, 1.0),
-                        curve: Curves.elasticOut,
+                        curve: Curves.easeOutBack,
                       )
-                      .fadeIn(duration: 600.ms),
+                      .fadeIn(duration: 500.ms),
 
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 20),
 
-                  // 2. 3D Metallic Typography: "DrRoom"
+                  // 2. Clean Typography: "DrRoom" (Sharp & Flat, No Blurry Shadow)
                   Directionality(
                     textDirection: ui.TextDirection.ltr,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
                       children: [
-                        // "Dr" in Brilliant Medical Blue Gradient
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Color(0xFF60A5FA), // Light Blue
-                              Color(0xFF2563EB), // Deep Royal Blue
-                              Color(0xFF1D4ED8),
-                            ],
-                          ).createShader(bounds),
-                          child: const Text(
-                            'Dr',
-                            style: TextStyle(
-                              fontSize: 52,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -1.0,
-                              fontFamily: 'Rabar',
-                              height: 1,
-                              shadows: [
-                                Shadow(
-                                  color: Color(0xFF2563EB),
-                                  blurRadius: 18,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
+                        Text(
+                          'Dr',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w800,
+                            color: textColorDr,
+                            fontFamily: 'Rabar',
+                            letterSpacing: -1.0,
+                            height: 1,
                           ),
                         ),
-
                         const SizedBox(width: 4),
-
-                        // "Room" in Chrome Silver / Metallic Titanium Gradient
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Color(0xFFFFFFFF), // Pure White Shine
-                              Color(0xFFE2E8F0),
-                              Color(0xFFCBD5E1),
-                              Color(0xFF94A3B8), // Metallic Chrome Dark
-                            ],
-                            stops: [0.0, 0.35, 0.7, 1.0],
-                          ).createShader(bounds),
-                          child: const Text(
-                            'Room',
-                            style: TextStyle(
-                              fontSize: 52,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -1.0,
-                              fontFamily: 'Rabar',
-                              height: 1,
-                              shadows: [
-                                Shadow(
-                                  color: Color(0xFF64748B),
-                                  blurRadius: 14,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
-                            ),
+                        Text(
+                          'Room',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w800,
+                            color: primaryBlue,
+                            fontFamily: 'Rabar',
+                            letterSpacing: -1.0,
+                            height: 1,
                           ),
                         ),
                       ],
                     ),
                   )
-                      .animate(delay: 300.ms)
-                      .fadeIn(duration: 700.ms)
-                      .slideY(begin: 0.25, end: 0, curve: Curves.easeOutCubic),
+                      .animate(delay: 200.ms)
+                      .fadeIn(duration: 600.ms)
+                      .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
 
-                  // 3. Glowing Heartbeat ECG Line with Center Heart
+                  // 3. Heartbeat Pulse Line with Center Heart (Clean Vector)
                   SizedBox(
-                    width: min(size.width * 0.78, 300),
-                    height: 38,
+                    width: min(size.width * 0.72, 270),
+                    height: 36,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        // Animated Pulse Line Custom Painter
+                        // Animated Pulse Line
                         AnimatedBuilder(
                           animation: _ecgAnimation,
                           builder: (context, _) {
                             return CustomPaint(
-                              size: Size(min(size.width * 0.78, 300), 38),
-                              painter: _HeartbeatPainter(
+                              size: Size(min(size.width * 0.72, 270), 36),
+                              painter: _CleanECGPainter(
                                 progress: _ecgAnimation.value,
+                                color: primaryBlue,
                               ),
                             );
                           },
                         ),
 
-                        // Center Pulsing Heart
+                        // Center Pulsing Heart (Clean Flat Border, No Shadow)
                         AnimatedBuilder(
-                          animation: _pulseAnimation,
+                          animation: _heartScaleAnimation,
                           builder: (context, _) {
                             return Transform.scale(
-                              scale: _pulseAnimation.value,
+                              scale: _heartScaleAnimation.value,
                               child: Container(
                                 padding: const EdgeInsets.all(5),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0B1426),
+                                  color: bgColor,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: const Color(0xFF38BDF8).withValues(alpha: 0.5),
-                                    width: 1.5,
+                                    color: primaryBlue.withValues(alpha: 0.35),
+                                    width: 1.2,
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF0284C7).withValues(alpha: 0.6),
-                                      blurRadius: 10,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
                                 ),
                                 child: const Icon(
                                   Icons.favorite_rounded,
-                                  color: Color(0xFF38BDF8),
-                                  size: 14,
+                                  color: primaryBlue,
+                                  size: 13,
                                 ),
                               ),
                             );
@@ -369,12 +220,12 @@ class _SplashScreenState extends State<SplashScreen>
                       ],
                     ),
                   )
-                      .animate(delay: 500.ms)
-                      .fadeIn(duration: 600.ms),
+                      .animate(delay: 400.ms)
+                      .fadeIn(duration: 500.ms),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
 
-                  // 4. Official Brand Slogan in Kurdish
+                  // 4. Official Slogan: "پەیوەندی بە نێوان دکتۆر و نەخۆشەوە"
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
@@ -382,101 +233,84 @@ class _SplashScreenState extends State<SplashScreen>
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Rabar',
-                        fontSize: 14.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF94A3B8),
-                        letterSpacing: 0.3,
+                        color: sloganColor,
+                        letterSpacing: 0.2,
                         height: 1.4,
-                        shadows: [
-                          Shadow(
-                            color: const Color(0xFF0284C7).withValues(alpha: 0.5),
-                            blurRadius: 10,
-                          ),
-                        ],
                       ),
                     ),
                   )
-                      .animate(delay: 700.ms)
-                      .fadeIn(duration: 700.ms)
-                      .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
+                      .animate(delay: 550.ms)
+                      .fadeIn(duration: 600.ms)
+                      .slideY(begin: 0.15, end: 0, curve: Curves.easeOutCubic),
                 ],
               ),
             ),
-          ),
 
-          // ── Bottom Progress Indicator & Branding ──
-          Positioned(
-            bottom: 36,
-            left: 24,
-            right: 24,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Glowing Slim Progress Bar
-                Container(
-                  width: 120,
-                  height: 3.5,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: AnimatedBuilder(
-                    animation: _mainController,
-                    builder: (context, _) {
-                      return FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: _mainController.value.clamp(0.0, 1.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF0284C7),
-                                Color(0xFF38BDF8),
-                                Color(0xFF93C5FD),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF38BDF8).withValues(alpha: 0.8),
-                                blurRadius: 6,
+            // ── Bottom Loading Line (Clean Minimal Design) ──
+            Positioned(
+              bottom: 30,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 90,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: AnimatedBuilder(
+                        animation: _mainController,
+                        builder: (context, _) {
+                          return FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: _mainController.value.clamp(0.0, 1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: primaryBlue,
+                                borderRadius: BorderRadius.circular(3),
                               ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'DrRoom Medical Platform',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 11,
+                        color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
-
-                const SizedBox(height: 14),
-
-                // Discreet Platform Label
-                Text(
-                  'DrRoom Medical Platform',
-                  style: TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF64748B).withValues(alpha: 0.8),
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ],
-            ).animate(delay: 900.ms).fadeIn(duration: 600.ms),
-          ),
-        ],
+              ).animate(delay: 750.ms).fadeIn(duration: 500.ms),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Custom Heartbeat ECG Line Painter matching the official DrRoom logo design
-class _HeartbeatPainter extends CustomPainter {
+/// Clean, sharp ECG pulse line painter without blurry shadows
+class _CleanECGPainter extends CustomPainter {
   final double progress;
+  final Color color;
 
-  _HeartbeatPainter({required this.progress});
+  _CleanECGPainter({
+    required this.progress,
+    required this.color,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -486,82 +320,62 @@ class _HeartbeatPainter extends CustomPainter {
 
     final path = Path()..moveTo(0, midY);
 
-    // Generate heartbeat pattern with left and right spike clusters
     for (double x = 0; x <= currentW; x += 1.0) {
       final r = x / totalW;
       double y = midY;
 
       // Left heartbeat spike (before center heart)
       if (r > 0.22 && r < 0.26) {
-        y = midY - sin((r - 0.22) / 0.04 * pi) * 6;
-      } else if (r > 0.28 && r < 0.35) {
-        y = midY - sin((r - 0.28) / 0.07 * pi) * 14;
+        y = midY - sin((r - 0.22) / 0.04 * pi) * 5;
+      } else if (r > 0.27 && r < 0.35) {
+        y = midY - sin((r - 0.27) / 0.08 * pi) * 12;
       } else if (r > 0.35 && r < 0.40) {
-        y = midY + sin((r - 0.35) / 0.05 * pi) * 8;
+        y = midY + sin((r - 0.35) / 0.05 * pi) * 7;
       }
       // Space between 0.40 and 0.60 is reserved for the heart badge
 
       // Right heartbeat spike (after center heart)
       else if (r > 0.60 && r < 0.65) {
-        y = midY + sin((r - 0.60) / 0.05 * pi) * 8;
-      } else if (r > 0.65 && r < 0.72) {
-        y = midY - sin((r - 0.65) / 0.07 * pi) * 14;
+        y = midY + sin((r - 0.60) / 0.05 * pi) * 7;
+      } else if (r > 0.65 && r < 0.73) {
+        y = midY - sin((r - 0.65) / 0.08 * pi) * 12;
       } else if (r > 0.74 && r < 0.78) {
-        y = midY - sin((r - 0.74) / 0.04 * pi) * 6;
+        y = midY - sin((r - 0.74) / 0.04 * pi) * 5;
       }
 
       path.lineTo(x, y);
     }
 
-    // Glow line (background blur)
+    // Crisp Clean Stroke (No Blurry Mask Filter)
     canvas.drawPath(
       path,
       Paint()
-        ..color = const Color(0xFF0284C7).withValues(alpha: 0.4)
-        ..strokeWidth = 4.0
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
-    );
-
-    // Crisp neon core line
-    canvas.drawPath(
-      path,
-      Paint()
-        ..shader = const LinearGradient(
-          colors: [
-            Color(0xFF0284C7),
-            Color(0xFF38BDF8),
-            Color(0xFF93C5FD),
-          ],
-        ).createShader(Rect.fromLTWH(0, 0, totalW, size.height))
+        ..color = color
         ..strokeWidth = 2.2
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round,
     );
 
-    // Glowing tip spark
+    // Tip dot
     if (progress > 0.05 && progress < 0.98) {
-      final sparkX = currentW;
-      final r = sparkX / totalW;
-      double sparkY = midY;
-      if (r > 0.28 && r < 0.35) {
-        sparkY = midY - sin((r - 0.28) / 0.07 * pi) * 14;
-      } else if (r > 0.65 && r < 0.72) {
-        sparkY = midY - sin((r - 0.65) / 0.07 * pi) * 14;
+      final dotX = currentW;
+      final r = dotX / totalW;
+      double dotY = midY;
+      if (r > 0.27 && r < 0.35) {
+        dotY = midY - sin((r - 0.27) / 0.08 * pi) * 12;
+      } else if (r > 0.65 && r < 0.73) {
+        dotY = midY - sin((r - 0.65) / 0.08 * pi) * 12;
       }
 
       canvas.drawCircle(
-        Offset(sparkX, sparkY),
-        4.5,
-        Paint()
-          ..color = const Color(0xFFE0F2FE)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 3),
+        Offset(dotX, dotY),
+        3.5,
+        Paint()..color = color,
       );
     }
   }
 
   @override
-  bool shouldRepaint(_HeartbeatPainter oldDelegate) =>
-      oldDelegate.progress != progress;
+  bool shouldRepaint(_CleanECGPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.color != color;
 }

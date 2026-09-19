@@ -183,34 +183,20 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               const SizedBox(height: 20),
                               Container(
-                                width: 72,
-                                height: 72,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF0A1428),
+                                width: 70,
+                                height: 70,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
                                   shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: const Color(0xFF38BDF8).withValues(alpha: 0.4),
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF0284C7).withValues(alpha: 0.35),
-                                      blurRadius: 18,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ],
                                 ),
-                                clipBehavior: Clip.antiAlias,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Image.asset(
-                                    'assets/images/dr_room_icon_clean.png',
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, _, _) => const Icon(
-                                      Icons.local_hospital_rounded,
-                                      color: Color(0xFF38BDF8),
-                                      size: 36,
-                                    ),
+                                padding: const EdgeInsets.all(10),
+                                child: Image.asset(
+                                  'assets/images/dr_room_icon_light.png',
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, _, _) => const Icon(
+                                    Icons.local_hospital_rounded,
+                                    color: Color(0xFF2563EB),
+                                    size: 34,
                                   ),
                                 ),
                               ).animate().scale(
