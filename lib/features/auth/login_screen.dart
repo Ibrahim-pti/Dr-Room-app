@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
 
@@ -81,9 +82,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() {
       _phoneError = !isPhoneValid
-          ? 'تکایە ژمارە مۆبایلێکی عێراقی دروست بنووسە'
+          ? 'phone_invalid'.tr()
           : null;
-      _passwordError = password.isEmpty ? 'تکایە وشەی نهێنی بنووسە' : null;
+      _passwordError = password.isEmpty ? 'password_required'.tr() : null;
       _formError = null;
     });
 
@@ -101,12 +102,12 @@ class _LoginScreenState extends State<LoginScreen> {
         widget.onOtpSent(normalizedPhone);
       } else {
         final err = jsonDecode(response.body);
-        final msg = err['message'] ?? 'ژمارە مۆبایل یان وشەی نهێنی هەڵەیە';
+        final msg = err['message'] ?? 'invalid_phone_or_password'.tr();
         if (mounted) setState(() => _formError = msg);
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _formError = 'کێشە لە پەیوەندی بە سێرڤەر هەیە: $e');
+        setState(() => _formError = '${'server_connection_error'.tr()}: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -183,20 +184,29 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               const SizedBox(height: 20),
                               Container(
-                                width: 70,
-                                height: 70,
-                                decoration: const BoxDecoration(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
                                   color: Colors.white,
-                                  shape: BoxShape.circle,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.15),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
                                 ),
-                                padding: const EdgeInsets.all(10),
-                                child: Image.asset(
-                                  'assets/images/dr_room_icon_light.png',
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, _, _) => const Icon(
-                                    Icons.local_hospital_rounded,
-                                    color: Color(0xFF2563EB),
-                                    size: 34,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.asset(
+                                    'assets/images/app_icon.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => const Icon(
+                                      Icons.local_hospital_rounded,
+                                      color: Color(0xFF2563EB),
+                                      size: 34,
+                                    ),
                                   ),
                                 ),
                               ).animate().scale(
@@ -204,9 +214,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 curve: Curves.easeOutBack,
                               ),
                               const SizedBox(height: 14),
-                              const Text(
-                                'چوونەژوورەوە',
-                                style: TextStyle(
+                              Text(
+                                'log_in'.tr(),
+                                style: const TextStyle(
                                   fontFamily: 'Rabar',
                                   fontSize: 23,
                                   fontWeight: FontWeight.bold,
@@ -214,9 +224,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ).animate().fadeIn().slideY(begin: 0.2, end: 0),
                               const SizedBox(height: 6),
-                              const Text(
-                                    'بەخێربێیتەوە بۆ ئەپڵیکەیشنی دکتۆر ڕووم',
-                                    style: TextStyle(
+                              Text(
+                                    'welcome_back_app'.tr(),
+                                    style: const TextStyle(
                                       fontFamily: 'Rabar',
                                       fontSize: 13.5,
                                       color: Colors.white70,
@@ -296,11 +306,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ).animate().shake(),
 
-                      // ── Login Mode Selector ──
                       // Phone Label
-                      const Text(
-                        'ژمارەی مۆبایل',
-                        style: TextStyle(
+                      Text(
+                        'phone_number'.tr(),
+                        style: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
@@ -406,9 +415,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 18),
 
                       // Password Label
-                      const Text(
-                        'وشەی نهێنی',
-                        style: TextStyle(
+                      Text(
+                        'password'.tr(),
+                        style: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
@@ -490,12 +499,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: TextButton(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'تکایە پەیوەندی بە بەشی پشتگیرییەوە بکە بۆ گۆڕینی وشەی نهێنی',
-                                  style: TextStyle(fontFamily: 'Rabar'),
+                                  'forgot_password_contact_support'.tr(),
+                                  style: const TextStyle(fontFamily: 'Rabar'),
                                 ),
-                                backgroundColor: Color(0xFF2563EB),
+                                backgroundColor: const Color(0xFF2563EB),
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
@@ -505,9 +514,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             minimumSize: const Size(0, 30),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text(
-                            'وشەی نهێنیت لەبیرچووە؟',
-                            style: TextStyle(
+                          child: Text(
+                            'forgot_password'.tr(),
+                            style: const TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
@@ -552,12 +561,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               : Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
-                                  children: const [
-                                    Icon(Iconsax.login_1, size: 20),
-                                    SizedBox(width: 8),
+                                  children: [
+                                    const Icon(Iconsax.login_1, size: 20),
+                                    const SizedBox(width: 8),
                                     Text(
-                                      'چوونەژوورەوە',
-                                      style: TextStyle(
+                                      'log_in'.tr(),
+                                      style: const TextStyle(
                                         fontFamily: 'Rabar',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -578,9 +587,9 @@ class _LoginScreenState extends State<LoginScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  'هێشتا هەژمارت نییە؟',
-                  style: TextStyle(
+                Text(
+                  'dont_have_account_question'.tr(),
+                  style: const TextStyle(
                     fontFamily: 'Rabar',
                     color: Color(0xFF64748B),
                     fontSize: 13.5,
@@ -589,9 +598,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(width: 6),
                 GestureDetector(
                   onTap: widget.onSignUp,
-                  child: const Text(
-                    'دروستکردنی هەژمار',
-                    style: TextStyle(
+                  child: Text(
+                    'sign_up'.tr(),
+                    style: const TextStyle(
                       fontFamily: 'Rabar',
                       color: Color(0xFF2563EB),
                       fontSize: 14,

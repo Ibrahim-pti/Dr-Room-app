@@ -19,7 +19,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

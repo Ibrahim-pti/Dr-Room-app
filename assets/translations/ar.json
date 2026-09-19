@@ -154,7 +154,6 @@
   "health_data_sync": "مزامنة البيانات الصحية",
   "address": "العنوان",
   "language": "اللغة",
-  "privacy_policy": "سياسة الخصوصية",
   "rate_app_store": "تقييم التطبيق في المتجر",
   "help_support": "المساعدة والدعم",
   "invite_friends": "دعوة الأصدقاء",
@@ -859,5 +858,18 @@
   "nursing_verified_nurse": "ممرض مرخص ومعتمد",
   "nursing_general_nurse": "تمريض عام منزلي",
   "nursing_added_to_cart": "تمت الإضافة إلى السلة",
-  "nursing_removed_from_cart": "تم الحذف من السلة"
+  "nursing_removed_from_cart": "تم الحذف من السلة",
+  "welcome_back_app": "مرحباً بك مجدداً في تطبيق دكتور روم",
+  "create_new_account": "إنشاء حساب جديد",
+  "enter_info_to_register": "يرجى إدخال معلوماتك للتسجيل",
+  "invalid_phone_or_password": "رقم الهاتف أو كلمة المرور غير صحيحة",
+  "forgot_password_contact_support": "يرجى التواصل مع الدعم الفني لاستعادة كلمة المرور",
+  "dont_have_account_question": "أليس لديك حساب حتى الآن؟",
+  "already_have_account_question": "هل قمت بإنشاء حساب مسبقاً؟",
+  "didnt_receive_code_choose_channel": "لم يصلك الرمز؟ اختر وسيلة للإعادة:",
+  "wait_for_timer_to_resend": "يرجى الانتظار حتى انتهاء الوقت لإعادة الإرسال",
+  "agree_to_terms_prefix": "أوافق على ",
+  "and_word": " و ",
+  "terms_and_conditions": "شروط وأحكام الاستخدام",
+  "privacy_protection": "حماية الخصوصية"
 }

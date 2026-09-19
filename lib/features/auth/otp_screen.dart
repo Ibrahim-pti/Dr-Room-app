@@ -362,9 +362,9 @@ class _OtpScreenState extends State<OtpScreen> {
 
               // ── Dual Resend Options (WhatsApp & SMS) ──
               if (_canResend) ...[
-                const Text(
-                  'کۆدەکەت پێنەگەیشت؟ شێوازێک هەڵبژێرە:',
-                  style: TextStyle(
+                Text(
+                  'didnt_receive_code_choose_channel'.tr(),
+                  style: const TextStyle(
                     fontFamily: 'Rabar',
                     fontSize: 12.5,
                     color: Color(0xFF64748B),
@@ -448,7 +448,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
               ] else ...[
                 Text(
-                  'تکایە چاوەڕێ بکە تا کۆتایی کاتەکە بۆ دووبارە ناردنەوە',
+                  'wait_for_timer_to_resend'.tr(),
                   style: TextStyle(
                     fontFamily: 'Rabar',
                     fontSize: 12,

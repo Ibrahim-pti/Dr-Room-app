@@ -105,6 +105,8 @@ class _MainShellState extends State<MainShell> {
         ? const Color(0xFF334155)
         : const Color(0xFFE2E8F0);
 
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+
     return Scaffold(
       backgroundColor: isDark
           ? const Color(0xFF0F172A)
@@ -119,10 +121,10 @@ class _MainShellState extends State<MainShell> {
           PositionedDirectional(
             start: 14,
             end: 14,
-            bottom: 18,
+            bottom: bottomInset > 0 ? (bottomInset + 8) : 16,
             child: Container(
-              height: 68,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              height: 70,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               decoration: BoxDecoration(
                 color: navBg,
                 borderRadius: BorderRadius.circular(26),

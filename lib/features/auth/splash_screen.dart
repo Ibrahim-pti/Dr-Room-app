@@ -102,18 +102,19 @@ class _SplashScreenState extends State<SplashScreen>
                     height: 96,
                     decoration: BoxDecoration(
                       color: cardBg,
-                      borderRadius: BorderRadius.circular(26),
+                      borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: cardBorder,
                         width: 1.5,
                       ),
                     ),
-                    child: Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22.5),
                       child: Image.asset(
-                        'assets/images/dr_room_icon_light.png',
-                        width: 72,
-                        height: 72,
-                        fit: BoxFit.contain,
+                        'assets/images/app_icon.png',
+                        width: 96,
+                        height: 96,
+                        fit: BoxFit.cover,
                         errorBuilder: (_, _, _) => const Icon(
                           Iconsax.hospital,
                           size: 42,
@@ -250,48 +251,33 @@ class _SplashScreenState extends State<SplashScreen>
 
             // ── Bottom Loading Line (Clean Minimal Design) ──
             Positioned(
-              bottom: 30,
+              bottom: 34,
               left: 0,
               right: 0,
               child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 90,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: AnimatedBuilder(
-                        animation: _mainController,
-                        builder: (context, _) {
-                          return FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: _mainController.value.clamp(0.0, 1.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: primaryBlue,
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'DrRoom Medical Platform',
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 11,
-                        color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
+                child: Container(
+                  width: 90,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: AnimatedBuilder(
+                    animation: _mainController,
+                    builder: (context, _) {
+                      return FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: _mainController.value.clamp(0.0, 1.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: primaryBlue,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ).animate(delay: 750.ms).fadeIn(duration: 500.ms),
             ),

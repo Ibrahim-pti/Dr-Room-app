@@ -154,7 +154,6 @@
   "health_data_sync": "Health Data Sync",
   "address": "Address",
   "language": "Language",
-  "privacy_policy": "Privacy Policy",
   "rate_app_store": "Rate App on Store",
   "help_support": "Help & Support",
   "invite_friends": "Invite Friends",
@@ -859,5 +858,18 @@
   "nursing_verified_nurse": "Certified Nurse",
   "nursing_general_nurse": "General Home Nurse",
   "nursing_added_to_cart": "added to cart",
-  "nursing_removed_from_cart": "removed from cart"
+  "nursing_removed_from_cart": "removed from cart",
+  "welcome_back_app": "Welcome back to DrRoom App",
+  "create_new_account": "Create New Account",
+  "enter_info_to_register": "Please enter your details to sign up",
+  "invalid_phone_or_password": "Invalid phone number or password",
+  "forgot_password_contact_support": "Please contact customer support to reset your password",
+  "dont_have_account_question": "Don't have an account yet?",
+  "already_have_account_question": "Already have an account?",
+  "didnt_receive_code_choose_channel": "Didn't receive code? Choose an option:",
+  "wait_for_timer_to_resend": "Please wait for the timer to finish before resending",
+  "agree_to_terms_prefix": "I agree to ",
+  "and_word": " and ",
+  "terms_and_conditions": "Terms & Conditions",
+  "privacy_protection": "Privacy Policy"
 }

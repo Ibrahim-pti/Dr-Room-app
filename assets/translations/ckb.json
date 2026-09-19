@@ -153,7 +153,6 @@
   "health_data_sync": "بەستنەوەی زانیاری تەندروستی",
   "address": "ناونیشان",
   "language": "زمان",
-  "privacy_policy": "سیاسەتی تایبەتمەندی",
   "rate_app_store": "هەڵسەنگاندنی ئەپ لە ستۆر",
   "help_support": "یارمەتی و پشتیوانی",
   "invite_friends": "بانگهێشتکردنی هاوڕێکان",
@@ -859,5 +858,18 @@
   "nursing_verified_nurse": "پەرستاری ڕێگەپێدراو",
   "nursing_general_nurse": "پەرستاری گشتی لە ماڵەوە",
   "nursing_added_to_cart": "زیادکرا بۆ سەبەتە",
-  "nursing_removed_from_cart": "لە سەبەتە لابرا"
+  "nursing_removed_from_cart": "لە سەبەتە لابرا",
+  "welcome_back_app": "بەخێربێیتەوە بۆ ئەپڵیکەیشنی دکتۆر ڕووم",
+  "create_new_account": "دروستکردنی هەژماری نوێ",
+  "enter_info_to_register": "تکایە زانیارییەکانت بنووسە بۆ تۆمارکردن",
+  "invalid_phone_or_password": "ژمارە مۆبایل یان وشەی نهێنی هەڵەیە",
+  "forgot_password_contact_support": "تکایە پەیوەندی بە بەشی پشتگیرییەوە بکە بۆ گۆڕینی وشەی نهێنی",
+  "dont_have_account_question": "هێشتا هەژمارت نییە؟",
+  "already_have_account_question": "پێشتر هەژمارت دروستکردووە؟",
+  "didnt_receive_code_choose_channel": "کۆدەکەت پێنەگەیشت؟ شێوازێک هەڵبژێرە:",
+  "wait_for_timer_to_resend": "تکایە چاوەڕێ بکە تا کۆتایی کاتەکە بۆ دووبارە ناردنەوە",
+  "agree_to_terms_prefix": "ڕازیم بە ",
+  "and_word": " و ",
+  "terms_and_conditions": "مەرج و ڕێساکانی بەکارهێنان",
+  "privacy_protection": "پاراستنی نهێنی"
 }

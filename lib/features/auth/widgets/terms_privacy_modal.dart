@@ -62,7 +62,7 @@ class _TermsPrivacyModalState extends State<TermsPrivacyModal>
     return Container(
       height: size.height * 0.88,
       decoration: BoxDecoration(
-        color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
+        color: (isDark ? const Color(0xFF1E293B) : Colors.white),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(

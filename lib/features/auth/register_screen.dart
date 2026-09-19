@@ -491,9 +491,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 curve: Curves.easeOutBack,
                               ),
                               const SizedBox(height: 10),
-                              const Text(
-                                'دروستکردنی هەژماری نوێ',
-                                style: TextStyle(
+                              Text(
+                                'create_new_account'.tr(),
+                                style: const TextStyle(
                                   fontFamily: 'Rabar',
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -501,9 +501,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ).animate().fadeIn().slideY(begin: 0.2, end: 0),
                               const SizedBox(height: 3),
-                              const Text(
-                                    'تکایە زانیارییەکانت بنووسە بۆ تۆمارکردن',
-                                    style: TextStyle(
+                              Text(
+                                    'enter_info_to_register'.tr(),
+                                    style: const TextStyle(
                                       fontFamily: 'Rabar',
                                       fontSize: 12.5,
                                       color: Colors.white70,
@@ -583,9 +583,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ).animate().shake(),
 
                       // Name Label
-                      const Text(
-                        'ناوی تەواو',
-                        style: TextStyle(
+                      Text(
+                        'full_name'.tr(),
+                        style: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
@@ -652,9 +652,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 16),
 
                       // Phone Label
-                      const Text(
-                        'ژمارەی مۆبایل',
-                        style: TextStyle(
+                      Text(
+                        'phone_number'.tr(),
+                        style: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
@@ -759,9 +759,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 16),
 
                       // Password Label
-                      const Text(
-                        'وشەی نهێنی',
-                        style: TextStyle(
+                      Text(
+                        'password'.tr(),
+                        style: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
@@ -840,9 +840,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 16),
 
                       // Confirm Password Label
-                      const Text(
-                        'دووبارەکردنەوەی وشەی نهێنی',
-                        style: TextStyle(
+                      Text(
+                        'confirm_password'.tr(),
+                        style: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
@@ -948,18 +948,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   color: Color(0xFF64748B),
                                 ),
                                 children: [
-                                  const TextSpan(text: 'ڕازیم بە '),
+                                  TextSpan(text: 'agree_to_terms_prefix'.tr()),
                                   TextSpan(
-                                    text: 'مەرج و ڕێساکانی بەکارهێنان',
+                                    text: 'terms_and_conditions'.tr(),
                                     recognizer: _termsRecognizer,
                                     style: const TextStyle(
                                       color: Color(0xFF2563EB),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const TextSpan(text: ' و '),
+                                  TextSpan(text: 'and_word'.tr()),
                                   TextSpan(
-                                    text: 'پاراستنی نهێنی',
+                                    text: 'privacy_protection'.tr(),
                                     recognizer: _privacyRecognizer,
                                     style: const TextStyle(
                                       color: Color(0xFF2563EB),
@@ -1008,12 +1008,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               : Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
-                                  children: const [
-                                    Icon(Iconsax.user_add, size: 20),
-                                    SizedBox(width: 8),
+                                  children: [
+                                    const Icon(Iconsax.user_add, size: 20),
+                                    const SizedBox(width: 8),
                                     Text(
-                                      'دروستکردنی هەژمار',
-                                      style: TextStyle(
+                                      'sign_up'.tr(),
+                                      style: const TextStyle(
                                         fontFamily: 'Rabar',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -1036,27 +1036,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'پێشتر هەژمارت دروستکردووە؟',
-                    style: TextStyle(
+                Text(
+                  'already_have_account_question'.tr(),
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    color: Color(0xFF64748B),
+                    fontSize: 13.5,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: widget.onLogin,
+                  child: Text(
+                    'log_in'.tr(),
+                    style: const TextStyle(
                       fontFamily: 'Rabar',
-                      color: Color(0xFF64748B),
-                      fontSize: 13.5,
+                      color: Color(0xFF2563EB),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: widget.onLogin,
-                    child: const Text(
-                      'چوونەژوورەوە',
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        color: Color(0xFF2563EB),
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                ),
                 ],
               ),
             ),

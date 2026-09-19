@@ -151,7 +151,7 @@ class HomeScreenState extends State<HomeScreen> {
                         const TopLabsSection(),
 
                         // ── Bottom Padding for Floating MainShell Bar ──
-                        const SizedBox(height: 90),
+                        SizedBox(height: 95 + MediaQuery.viewPaddingOf(context).bottom),
                       ],
                     ),
                   ),
