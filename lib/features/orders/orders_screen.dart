@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../core/utils/currency.dart';
 import '../../core/providers/order_provider.dart';
 import '../../core/widgets/shimmer_loading_list.dart';
 import 'order_details_screen.dart';
@@ -25,13 +26,10 @@ class OrdersScreenState extends State<OrdersScreen> {
     OrderStatus.cancelled,
   ];
 
-  static const Map<OrderStatus?, String> _filterLabels = {
-    null: 'هەمووی',
-    OrderStatus.pending: 'چاوەڕوان',
-    OrderStatus.processing: 'لە جێبەجێکردندایە',
-    OrderStatus.completed: 'تەواوکراو',
-    OrderStatus.cancelled: 'هەڵوەشێنراوە',
-  };
+  String _getFilterLabel(OrderStatus? status) {
+    if (status == null) return 'all'.tr();
+    return status.label;
+  }
 
   OrderStatus? _selectedStatus;
 
@@ -99,7 +97,7 @@ class OrdersScreenState extends State<OrdersScreen> {
               )
             : null,
         title: Text(
-          'داواکارییەکانم',
+          'my_orders'.tr(),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 18,
@@ -206,7 +204,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                         ],
                 ),
                 child: Text(
-                  _filterLabels[status]!,
+                  _getFilterLabel(status),
                   style: _kStyle(
                     color: isSelected
                         ? Colors.white
@@ -306,7 +304,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            _filterLabels[order.status] ?? 'چاوەڕوان',
+                            order.statusLabel,
                             style: _kStyle(
                               color: order.statusColor,
                               fontSize: 11,
@@ -335,7 +333,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${NumberFormat('#,###').format(order.price)} د.ع',
+                    Currency.format(order.price),
                     style: _kStyle(
                       color: const Color(0xFF2563EB),
                       fontSize: 14.5,
@@ -388,7 +386,7 @@ class OrdersScreenState extends State<OrdersScreen> {
             ),
             const SizedBox(height: 18),
             Text(
-              isFiltered ? 'هیچ داواکارییەک نەدۆزرایەوە' : 'هیچ داواکارییەکت نییە',
+              isFiltered ? 'no_orders_in_filter'.tr() : 'no_orders'.tr(),
               style: _kStyle(
                 color: isDark ? Colors.white : const Color(0xFF0F172A),
                 fontSize: 17,
@@ -398,8 +396,8 @@ class OrdersScreenState extends State<OrdersScreen> {
             const SizedBox(height: 6),
             Text(
               isFiltered
-                  ? 'لە ژێر ئەم بەشەدا هیچ داواکارییەک بەردەست نییە.'
-                  : 'دەتوانیت لە ڕێگەی بەشەکانی ئەپەکەوە داواکاری نوێ تۆمار بکەیت.',
+                  ? 'no_orders_in_filter'.tr()
+                  : 'no_orders_hint'.tr(),
               textAlign: TextAlign.center,
               style: _kStyle(
                 color: const Color(0xFF94A3B8),
@@ -423,7 +421,7 @@ class OrdersScreenState extends State<OrdersScreen> {
             const Icon(Iconsax.warning_2, size: 48, color: Color(0xFFEF4444)),
             const SizedBox(height: 16),
             Text(
-              'کێشەیەک ڕوویدا لە بارکردنی داواکارییەکان',
+              'orders_load_failed'.tr(),
               style: _kStyle(
                 color: isDark ? Colors.white : const Color(0xFF0F172A),
                 fontSize: 16,
@@ -437,7 +435,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                 backgroundColor: const Color(0xFF3B82F6),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text('دووبارە هەوڵبدەرەوە', style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: Text('retry'.tr(), style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),

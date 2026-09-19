@@ -531,10 +531,10 @@ class _NurseListScreenState extends State<NurseListScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: RefreshIndicator(
         color: const Color(0xFF0D9488),
-        backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
         displacement: 40,
         onRefresh: _fetchNurses,
         child: CustomScrollView(

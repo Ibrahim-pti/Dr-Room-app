@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../appointments/all_schedules_screen.dart';
 import '../orders/orders_screen.dart';
 
@@ -85,7 +86,7 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
               )
             : null,
         title: Text(
-          'داواکارییەکانم',
+          'my_orders'.tr(),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 18,
@@ -120,8 +121,8 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
       ),
       child: Row(
         children: [
-          _buildSectionButton(0, 'خزمەتگوزارییەکان', Iconsax.hospital, isDark),
-          _buildSectionButton(1, 'چاوپێکەوتنەکان', Iconsax.calendar_1, isDark),
+          _buildSectionButton(0, 'orders_tab'.tr(), Iconsax.hospital, isDark),
+          _buildSectionButton(1, 'my_appointments'.tr(), Iconsax.calendar_1, isDark),
         ],
       ),
     );
