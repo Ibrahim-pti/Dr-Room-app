@@ -59,17 +59,20 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+            final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
             return Container(
               decoration: BoxDecoration(
                 color: AppColors.getSurface(context),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               ),
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                bottom: keyboardInset + bottomInset + 20,
                 left: 24,
                 right: 24,
                 top: 24,

@@ -371,7 +371,7 @@ class AdminUi {
                 borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.viewPaddingOf(context).bottom + 20,
                 left: 20,
                 right: 20,
                 top: 12,
