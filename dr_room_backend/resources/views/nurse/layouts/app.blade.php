@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - داشبۆردی پەرستار</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/css/kurdish-font.css">
     <style>
@@ -106,8 +108,8 @@
 
         <aside class="dr-sidebar" id="sidebar">
             <div class="logo-area">
-                <div class="logo-icon">
-                    <svg fill="none" stroke="#0d9488" viewBox="0 0 24 24" width="24" height="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                <div class="logo-icon" style="background: transparent;">
+                    <img src="{{ asset('images/logo.png') }}" alt="DrRoom" style="width: 40px; height: 40px; border-radius: 12px; object-fit: contain;">
                 </div>
                 <span class="logo-text">DrRoom</span>
             </div>

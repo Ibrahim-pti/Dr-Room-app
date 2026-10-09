@@ -11,6 +11,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - داشبۆردی پزیشک</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/css/kurdish-font.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -246,8 +248,8 @@
         <!-- Sidebar -->
         <aside class="dr-sidebar" id="sidebar">
             <div class="logo-area">
-                <div class="logo-icon">
-                    <svg fill="none" stroke="#4f46e5" viewBox="0 0 24 24" width="24" height="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <div class="logo-icon" style="background: transparent;">
+                    <img src="{{ asset('images/logo.png') }}" alt="DrRoom" style="width: 40px; height: 40px; border-radius: 12px; object-fit: contain;">
                 </div>
                 <span class="logo-text">DrRoom</span>
             </div>
