@@ -31,6 +31,12 @@ class HealthProfileService {
   static const String _bloodTypeKey = 'user_health_blood_type';
   static const String _ageKey = 'user_health_age';
 
+  /// Onboarding fills the health profile before the user has an account, so
+  /// hitting the API there would 401 and bounce them straight to the login
+  /// screen via [ApiClient.onUnauthorized].
+  static bool _isSignedIn(SharedPreferences prefs) =>
+      (prefs.getString('auth_token') ?? '').isNotEmpty;
+
   static Future<HealthProfile> loadHealthProfile() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -45,6 +51,8 @@ class HealthProfileService {
         age: localAge,
       );
     }
+
+    if (!_isSignedIn(prefs)) return HealthProfile();
 
     try {
       final response = await ApiClient.get('/user');
@@ -72,6 +80,8 @@ class HealthProfileService {
     if (profile.age != null) {
       await prefs.setInt(_ageKey, profile.age!);
     }
+
+    if (!_isSignedIn(prefs)) return;
 
     try {
       final body = <String, dynamic>{};
