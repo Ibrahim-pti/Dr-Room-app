@@ -871,5 +871,22 @@
   "agree_to_terms_prefix": "أوافق على ",
   "and_word": " و ",
   "terms_and_conditions": "شروط وأحكام الاستخدام",
-  "privacy_protection": "حماية الخصوصية"
+  "privacy_protection": "حماية الخصوصية",
+  "change_password_title": "تغيير كلمة المرور",
+  "set_new_password_title": "تعيين كلمة مرور جديدة",
+  "forgot_password_subtitle": "حدد طريقة الإرسال ورقم هاتفك لاستلام الرمز",
+  "enter_code_and_new_password": "أدخل الرمز المكون من 4 أرقام مع كلمة المرور الجديدة",
+  "channel_sms": "رسالة نصية",
+  "channel_whatsapp": "واتساب",
+  "send_code_via_whatsapp": "إرسال الرمز عبر واتساب",
+  "send_code_via_sms": "إرسال الرمز عبر رسالة نصية",
+  "code_sent_to": "تم إرسال الرمز إلى",
+  "btn_change": "تغيير",
+  "new_password_hint": "كلمة المرور الجديدة (6 أحرف على الأقل)",
+  "confirm_new_password_hint": "تأكيد كلمة المرور",
+  "save_new_password": "حفظ كلمة المرور الجديدة",
+  "err_enter_4_digit_code": "يرجى إدخال الرمز المكون من 4 أرقام",
+  "err_password_min_6": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+  "err_passwords_do_not_match": "كلمتا المرور غير متطابقتين",
+  "password_reset_success": "تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول."
 }

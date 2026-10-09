@@ -871,5 +871,22 @@
   "agree_to_terms_prefix": "ڕازیم بە ",
   "and_word": " و ",
   "terms_and_conditions": "مەرج و ڕێساکانی بەکارهێنان",
-  "privacy_protection": "پاراستنی نهێنی"
+  "privacy_protection": "پاراستنی نهێنی",
+  "change_password_title": "گۆڕینی وشەی نهێنی",
+  "set_new_password_title": "وشەی نهێنی نوێ دابنێ",
+  "forgot_password_subtitle": "شێوازی ناردن و ژمارەکەت دیاری بکە بۆ وەرگرتنی کۆد",
+  "enter_code_and_new_password": "کۆدی ٤ ژمارەیی بنووسە لەگەڵ وشەی نهێنی نوێ",
+  "channel_sms": "کورتەنامە",
+  "channel_whatsapp": "واتسئاپ",
+  "send_code_via_whatsapp": "ناردنی کۆد بە واتسئاپ",
+  "send_code_via_sms": "ناردنی کۆد بە کورتەنامە",
+  "code_sent_to": "کۆد نێردرا بۆ",
+  "btn_change": "گۆڕین",
+  "new_password_hint": "وشەی نهێنی نوێ (لایەنی کەم ٦ پیت)",
+  "confirm_new_password_hint": "دووبارەکردنەوەی وشەی نهێنی",
+  "save_new_password": "تۆمارکردنی وشەی نهێنی نوێ",
+  "err_enter_4_digit_code": "تکایە کۆدی ٤ ژمارەیی بنووسە",
+  "err_password_min_6": "وشەی نهێنی دەبێت لانیکەم ٦ پیت بێت",
+  "err_passwords_do_not_match": "وشەی نهێنی لەگەڵ دووبارەکردنەوەکەی یەک ناگرێتەوە",
+  "password_reset_success": "وشەی نهێنی بە سەرکەوتوویی نوێکرایەوە. دەتوانیت ئێستا بچیتە ژوورەوە."
 }

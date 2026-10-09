@@ -871,5 +871,22 @@
   "agree_to_terms_prefix": "I agree to ",
   "and_word": " and ",
   "terms_and_conditions": "Terms & Conditions",
-  "privacy_protection": "Privacy Policy"
+  "privacy_protection": "Privacy Policy",
+  "change_password_title": "Reset Password",
+  "set_new_password_title": "Set New Password",
+  "forgot_password_subtitle": "Select delivery method and enter your phone number",
+  "enter_code_and_new_password": "Enter the 4-digit code and your new password",
+  "channel_sms": "SMS",
+  "channel_whatsapp": "WhatsApp",
+  "send_code_via_whatsapp": "Send code via WhatsApp",
+  "send_code_via_sms": "Send code via SMS",
+  "code_sent_to": "Code sent to",
+  "btn_change": "Change",
+  "new_password_hint": "New password (at least 6 characters)",
+  "confirm_new_password_hint": "Confirm new password",
+  "save_new_password": "Save New Password",
+  "err_enter_4_digit_code": "Please enter the 4-digit code",
+  "err_password_min_6": "Password must be at least 6 characters",
+  "err_passwords_do_not_match": "Passwords do not match",
+  "password_reset_success": "Password updated successfully. You can now log in."
 }
