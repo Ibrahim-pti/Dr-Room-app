@@ -5,6 +5,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
+import 'widgets/otp_channel_sheet.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function(String phone) onOtpSent;
@@ -90,12 +91,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (_phoneError != null || _passwordError != null) return;
 
+    // Same choice the registration flow offers, so signing in can also receive
+    // the code over WhatsApp instead of SMS.
+    final provider = await showOtpChannelSheet(context);
+    if (provider == null || !mounted) return;
+
+    await _submitLogin(normalizedPhone, password, provider);
+  }
+
+  Future<void> _submitLogin(
+    String normalizedPhone,
+    String password,
+    String provider,
+  ) async {
     setState(() => _isLoading = true);
 
     try {
       final response = await ApiClient.post(
         '/login',
-        body: {'phone': normalizedPhone, 'password': password},
+        body: {
+          'phone': normalizedPhone,
+          'password': password,
+          'provider': provider,
+        },
       );
 
       if (response.statusCode == 200) {
