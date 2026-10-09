@@ -475,7 +475,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   ),
                                   child: Center(
                                     child: Text(
-                                      isLastPage ? 'دەستپێبکە' : 'دواتر',
+                                      isLastPage ? 'get_started_btn'.tr() : 'next_btn'.tr(),
                                       style: const TextStyle(
                                         fontFamily: 'Rabar',
                                         fontSize: 16,

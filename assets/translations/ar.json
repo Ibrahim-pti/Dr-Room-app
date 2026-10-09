@@ -905,10 +905,5 @@
   "onboarding_page3_title": "مختبر وفحوصات طبية منزلية",
   "onboarding_page3_subtitle": "إجراء الفحوصات المخبرية في المنزل بأعلى دقة واستلام النتائج رقمياً.",
   "next_btn": "التالي",
-  "get_started_btn": "ابدأ الآن",
-  "step_1_of_3": "الخطوة ١ من ٣",
-  "skip": "تخطي",
-  "select_language": "اختر اللغة",
-  "select_language_desc": "رجاءً اختر لغتك المفضلة للتطبيق",
-  "continue_btn": "متابعة"
+  "get_started_btn": "ابدأ الآن"
 }
