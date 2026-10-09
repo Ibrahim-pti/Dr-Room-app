@@ -61,10 +61,15 @@ class AuthController extends Controller
 
         $apiKey = config('services.otpiq.key') ?: env('OTPIQ_API_KEY');
 
+        $validProviders = ['auto', 'sms', 'whatsapp', 'telegram'];
+        $chosenProvider = in_array(strtolower($provider), $validProviders)
+            ? strtolower($provider)
+            : (config('services.otpiq.provider') ?: 'sms');
+
         $payload = [
             'phoneNumber' => $this->toIraqPhone($user->phone),
             'smsType' => 'verification',
-            'provider' => 'sms',
+            'provider' => $chosenProvider,
             'verificationCode' => (string) $otp,
             'customMessage' => 'فەرموون ئەوەش کۆدی ئۆتیپی ' . $otp,
         ];
@@ -80,7 +85,7 @@ class AuthController extends Controller
                     'status' => $response->status(),
                     'response' => $response->json() ?? $response->body(),
                     'phone' => $this->toIraqPhone($user->phone),
-                    'provider' => 'sms',
+                    'provider' => $chosenProvider,
                 ]);
 
                 if (is_string($rawError) && stripos($rawError, 'trial mode') !== false) {
@@ -93,7 +98,7 @@ class AuthController extends Controller
 
             Log::info('OTPIQ OTP sent successfully', [
                 'phone' => $this->toIraqPhone($user->phone),
-                'provider' => 'sms',
+                'provider' => $chosenProvider,
                 'response' => $response->json(),
             ]);
 
@@ -101,7 +106,7 @@ class AuthController extends Controller
         } catch (\Throwable $e) {
             Log::error('OTPIQ request exception: ' . $e->getMessage(), [
                 'phone' => $this->toIraqPhone($user->phone),
-                'provider' => 'sms',
+                'provider' => $chosenProvider,
             ]);
             $errorMessage = 'نەتوانرا پەیوەندی بە سێرڤەری ناردنی کۆد (OTPIQ) بکرێت.';
             return false;
@@ -599,8 +604,9 @@ class AuthController extends Controller
             ]);
         }
 
+        $provider = $request->input('provider', $request->input('channel', 'sms'));
         $otpError = null;
-        if (!$this->sendOtp($user, 'sms', $otpError)) {
+        if (!$this->sendOtp($user, $provider, $otpError)) {
             return response()->json([
                 'message' => $otpError ?: 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە'
             ], 502);
@@ -609,6 +615,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
             'phone' => $user->phone,
+            'provider' => $provider,
         ]);
     }
 
