@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ __('landing.app_name') }} - {{ __('landing.subtitle') }}</title>
     
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
+    
     <!-- Alpine.js for interactivity -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
@@ -103,13 +107,7 @@
                 
                 <!-- Brand Logo (Compact & Modern) -->
                 <a href="/" class="flex-shrink-0 flex items-center gap-3 group">
-                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform duration-200">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            <line x1="12" y1="9" x2="12" y2="15"></line>
-                            <line x1="9" y1="12" x2="15" y2="12"></line>
-                        </svg>
-                    </div>
+                    <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform duration-200 object-contain">
                     <div class="flex flex-col">
                         <span class="text-xl font-black text-slate-900 tracking-tight leading-none">Dr<span class="text-blue-600">Room</span></span>
                         <span class="text-[10px] text-slate-400 font-semibold mt-1 leading-none hidden sm:block">{{ __('landing.subtitle') }}</span>
