@@ -905,5 +905,10 @@
   "onboarding_page3_title": "Lab & Home Medical Tests",
   "onboarding_page3_subtitle": "Perform medical lab tests at home with top quality and receive digital results instantly.",
   "next_btn": "Next",
-  "get_started_btn": "Get Started"
+  "get_started_btn": "Get Started",
+  "step_1_of_3": "Step 1 of 3",
+  "skip": "Skip",
+  "select_language": "Select Language",
+  "select_language_desc": "Please select your preferred language for the app",
+  "continue_btn": "Continue"
 }
