@@ -104,7 +104,7 @@
   "phone_invalid": "Please enter a valid phone number",
   "phone_required": "Please enter your phone number",
   "phone_already_exists": "This phone number is already registered, please log in",
-  "password_required": "Set a password",
+  "password_required": "Enter your password",
   "confirm_password_required": "Please confirm your password",
   "login_failed": "Login failed",
   "server_connection_error": "Server connection error",

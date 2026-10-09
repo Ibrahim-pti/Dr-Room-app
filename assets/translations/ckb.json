@@ -104,7 +104,7 @@
   "phone_invalid": "تکایە ژمارەی مۆبایلەکەت بنووسە",
   "phone_required": "تکایە ژمارەی مۆبایلەکەت بنووسە",
   "phone_already_exists": "ئەم ژمارە مۆبایلە پێشتر تۆمار کراوە، تکایە بچۆ ژوورەوە",
-  "password_required": "پاسۆردێک دابنێ",
+  "password_required": "پاسۆردەکەت دابنێ",
   "confirm_password_required": "تکایە دووبارە وشەی نهێنی بنووسە",
   "login_failed": "هەڵە ڕوویدا لە چوونەژوورەوە",
   "server_connection_error": "هەڵە لە پەیوەندیکردن بە سێرڤەر",

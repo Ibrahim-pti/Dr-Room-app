@@ -104,7 +104,7 @@
   "phone_invalid": "يرجى إدخال رقم هاتفك بشكل صحيح",
   "phone_required": "يرجى إدخال رقم هاتفك",
   "phone_already_exists": "رقم الهاتف هذا مسجل بالفعل، يرجى تسجيل الدخول",
-  "password_required": "ضع كلمة مرور",
+  "password_required": "يرجى إدخال كلمة المرور",
   "confirm_password_required": "يرجى تأكيد كلمة المرور",
   "login_failed": "حدث خطأ أثناء تسجيل الدخول",
   "server_connection_error": "خطأ في الاتصال بالخادم",

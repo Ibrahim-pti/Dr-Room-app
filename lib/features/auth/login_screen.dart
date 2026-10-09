@@ -119,9 +119,22 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         widget.onOtpSent(normalizedPhone);
       } else {
-        final err = jsonDecode(response.body);
-        final msg = err['message'] ?? 'invalid_phone_or_password'.tr();
+        String msg;
+        try {
+          final err = jsonDecode(response.body);
+          msg = (err is Map ? err['message'] : null) ??
+              'invalid_phone_or_password'.tr();
+        } catch (_) {
+          // A non-JSON body (an HTML error page) must not swallow the failure.
+          msg = response.statusCode == 401
+              ? 'invalid_phone_or_password'.tr()
+              : 'server_connection_error'.tr();
+        }
         if (mounted) setState(() => _formError = msg);
+      }
+    } on UnauthorizedException {
+      if (mounted) {
+        setState(() => _formError = 'invalid_phone_or_password'.tr());
       }
     } catch (e) {
       if (mounted) {

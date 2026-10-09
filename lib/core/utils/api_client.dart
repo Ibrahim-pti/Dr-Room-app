@@ -84,12 +84,35 @@ class ApiClient {
   }
 
 
+  /// Endpoints where a 401 means "wrong credentials", not "session expired".
+  ///
+  /// Signing in with a wrong password answers 401 as well, and routing that
+  /// through [onUnauthorized] would reset the whole app back to a blank login
+  /// screen instead of letting the screen show the server's message.
+  static const Set<String> _publicAuthEndpoints = {
+    '/login',
+    '/login-otp',
+    '/register',
+    '/verify-otp',
+    '/resend-otp',
+    '/forgot-password',
+    '/reset-password',
+  };
+
+  static bool _isPublicAuthEndpoint(String endpoint) {
+    final path = endpoint.split('?').first;
+    return _publicAuthEndpoints.contains(path);
+  }
+
   /// Runs [request], enforcing the shared timeout and handling token expiry.
   ///
   /// On 401 the stored credentials are cleared and [onUnauthorized] fires
   /// before the exception propagates, so a stale token can't leave the app in
-  /// a state where every subsequent call silently fails.
+  /// a state where every subsequent call silently fails. [_publicAuthEndpoints]
+  /// are exempt — there a 401 is handed back to the caller as an ordinary
+  /// response.
   static Future<http.Response> _send(
+    String endpoint,
     Future<http.Response> Function(Map<String, String> headers) request,
   ) async {
     final headers = await _getHeaders();
@@ -101,7 +124,7 @@ class ApiClient {
       ),
     );
 
-    if (response.statusCode == 401) {
+    if (response.statusCode == 401 && !_isPublicAuthEndpoint(endpoint)) {
       await _clearSession();
       onUnauthorized?.call();
       throw const UnauthorizedException();
@@ -119,13 +142,13 @@ class ApiClient {
   static Uri _uri(String endpoint) => Uri.parse('$baseUrl$endpoint');
 
   static Future<http.Response> get(String endpoint) =>
-      _send((headers) => http.get(_uri(endpoint), headers: headers));
+      _send(endpoint, (headers) => http.get(_uri(endpoint), headers: headers));
 
   static Future<http.Response> post(
     String endpoint, {
     Map<String, dynamic>? body,
   }) =>
-      _send((headers) => http.post(
+      _send(endpoint, (headers) => http.post(
             _uri(endpoint),
             headers: headers,
             body: body != null ? jsonEncode(body) : null,
@@ -135,7 +158,7 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? body,
   }) =>
-      _send((headers) => http.put(
+      _send(endpoint, (headers) => http.put(
             _uri(endpoint),
             headers: headers,
             body: body != null ? jsonEncode(body) : null,
@@ -145,14 +168,14 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? body,
   }) =>
-      _send((headers) => http.patch(
+      _send(endpoint, (headers) => http.patch(
             _uri(endpoint),
             headers: headers,
             body: body != null ? jsonEncode(body) : null,
           ));
 
   static Future<http.Response> delete(String endpoint) =>
-      _send((headers) => http.delete(_uri(endpoint), headers: headers));
+      _send(endpoint, (headers) => http.delete(_uri(endpoint), headers: headers));
 
   static Future<http.Response> uploadMultipart(
     String endpoint, {
@@ -189,7 +212,7 @@ class ApiClient {
     );
     final response = await http.Response.fromStream(streamedResponse);
 
-    if (response.statusCode == 401) {
+    if (response.statusCode == 401 && !_isPublicAuthEndpoint(endpoint)) {
       await _clearSession();
       onUnauthorized?.call();
       throw const UnauthorizedException();
