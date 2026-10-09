@@ -698,7 +698,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   Text('🇮🇶', style: TextStyle(fontSize: 16)),
                                   SizedBox(width: 6),
                                   Text(
-                                    '+964',
+                                    '\u200E+964',
                                     style: TextStyle(
                                       fontFamily: 'Rabar',
                                       fontSize: 13,
@@ -728,7 +728,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       : const Color(0xFF0F172A),
                                 ),
                                 decoration: const InputDecoration(
-                                  hintText: '0000 000 0750',
+                                  hintText: '\u200E0750 000 0000',
                                   hintStyle: TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 14,
