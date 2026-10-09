@@ -18,7 +18,9 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _mainController;
+  late AnimationController _heartController;
   late Animation<double> _ecgAnimation;
+  late Animation<double> _heartScaleAnimation;
 
   @override
   void initState() {
@@ -33,6 +35,15 @@ class _SplashScreenState extends State<SplashScreen>
     _ecgAnimation = CurvedAnimation(
       parent: _mainController,
       curve: const Interval(0.2, 0.9, curve: Curves.easeInOutCubic),
+    );
+
+    _heartController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+
+    _heartScaleAnimation = Tween<double>(begin: 0.95, end: 1.12).animate(
+      CurvedAnimation(parent: _heartController, curve: Curves.easeInOut),
     );
 
     _mainController.forward();
@@ -57,6 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _mainController.dispose();
+    _heartController.dispose();
     super.dispose();
   }
 
@@ -163,30 +175,56 @@ class _SplashScreenState extends State<SplashScreen>
                   .fadeIn(duration: 600.ms)
                   .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
 
-              // 3. Hairline rule that draws itself open under the wordmark
-              AnimatedBuilder(
-                animation: _ecgAnimation,
-                builder: (context, _) {
-                  return Container(
-                    width: min(size.width * 0.5, 190) * _ecgAnimation.value,
-                    height: 2,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(2),
-                      gradient: LinearGradient(
-                        colors: [
-                          primaryBlue.withValues(alpha: 0),
-                          primaryBlue.withValues(alpha: 0.55),
-                          primaryBlue.withValues(alpha: 0),
-                        ],
-                      ),
+              // 3. Heartbeat pulse line with the pulsing heart at its centre
+              SizedBox(
+                width: min(size.width * 0.72, 270),
+                height: 36,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    AnimatedBuilder(
+                      animation: _ecgAnimation,
+                      builder: (context, _) {
+                        return CustomPaint(
+                          size: Size(min(size.width * 0.72, 270), 36),
+                          painter: _CleanECGPainter(
+                            progress: _ecgAnimation.value,
+                            color: primaryBlue,
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
+                    AnimatedBuilder(
+                      animation: _heartScaleAnimation,
+                      builder: (context, _) {
+                        return Transform.scale(
+                          scale: _heartScaleAnimation.value,
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: primaryBlue.withValues(alpha: 0.35),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.favorite_rounded,
+                              color: primaryBlue,
+                              size: 13,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ).animate(delay: 400.ms).fadeIn(duration: 500.ms),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
 
               // 4. Slogan
               Padding(
@@ -213,4 +251,70 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
+}
+
+/// Draws the heartbeat trace, leaving a gap in the middle for the heart badge.
+class _CleanECGPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  _CleanECGPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final midY = size.height / 2;
+    final totalW = size.width;
+    final currentW = totalW * progress;
+
+    final path = Path()..moveTo(0, midY);
+
+    for (double x = 0; x <= currentW; x += 1.0) {
+      final r = x / totalW;
+      double y = midY;
+
+      if (r > 0.22 && r < 0.26) {
+        y = midY - sin((r - 0.22) / 0.04 * pi) * 5;
+      } else if (r > 0.27 && r < 0.35) {
+        y = midY - sin((r - 0.27) / 0.08 * pi) * 12;
+      } else if (r > 0.35 && r < 0.40) {
+        y = midY + sin((r - 0.35) / 0.05 * pi) * 7;
+      }
+      // 0.40–0.60 stays flat: that stretch sits behind the heart badge
+      else if (r > 0.60 && r < 0.65) {
+        y = midY + sin((r - 0.60) / 0.05 * pi) * 7;
+      } else if (r > 0.65 && r < 0.73) {
+        y = midY - sin((r - 0.65) / 0.08 * pi) * 12;
+      } else if (r > 0.74 && r < 0.78) {
+        y = midY - sin((r - 0.74) / 0.04 * pi) * 5;
+      }
+
+      path.lineTo(x, y);
+    }
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..strokeWidth = 2.2
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round,
+    );
+
+    if (progress > 0.05 && progress < 0.98) {
+      final dotX = currentW;
+      final r = dotX / totalW;
+      double dotY = midY;
+      if (r > 0.27 && r < 0.35) {
+        dotY = midY - sin((r - 0.27) / 0.08 * pi) * 12;
+      } else if (r > 0.65 && r < 0.73) {
+        dotY = midY - sin((r - 0.65) / 0.08 * pi) * 12;
+      }
+
+      canvas.drawCircle(Offset(dotX, dotY), 3.5, Paint()..color = color);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CleanECGPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.color != color;
 }
