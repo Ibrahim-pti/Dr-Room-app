@@ -41,6 +41,27 @@ class _OtpScreenState extends State<OtpScreen> {
   void initState() {
     super.initState();
     _startTimer();
+    _pinController.addListener(_onPinChanged);
+  }
+
+  void _onPinChanged() {
+    // The verify button reads the pin length during build, so the screen has to
+    // rebuild on every keystroke for it to enable once 4 digits are entered.
+    if (!mounted) return;
+    setState(() {
+      if (_errorMessage != null && _pinController.text.isNotEmpty) {
+        _errorMessage = null;
+      }
+    });
+  }
+
+  /// `+964` plus the national number, whatever shape the caller passed in
+  /// (`07512596050`, `7512596050`, `9647512596050` or `+964 751 259 6050`).
+  String get _displayPhone {
+    var digits = widget.phoneNumber.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('964')) digits = digits.substring(3);
+    digits = digits.replaceFirst(RegExp(r'^0+'), '');
+    return '+964 $digits';
   }
 
   void _startTimer() {
@@ -60,6 +81,7 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _pinController.removeListener(_onPinChanged);
     _pinController.dispose();
     super.dispose();
   }
@@ -250,33 +272,35 @@ class _OtpScreenState extends State<OtpScreen> {
               // ── Title ──
               Text(
                 'verify_phone'.tr().replaceAll('\n', ' '),
+                textAlign: TextAlign.center,
                 style: AppTypography.headingLg.copyWith(
-                  color: AppColors.textDark,
+                  color: AppColors.getTextTitle(context),
                 ),
               ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
 
               const SizedBox(height: 8),
 
-              Directionality(
-                textDirection: ui.TextDirection.ltr,
-                child: Text.rich(
-                  TextSpan(
-                    text: '${'code_sent_to'.tr()} ',
-                    style: AppTypography.bodyMd.copyWith(
-                      color: AppColors.getTextSubtitle(context),
-                      height: 1.5,
-                      fontSize: 15,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: '+964 ${widget.phoneNumber.substring(1)}',
-                        style: AppTypography.labelMd.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
+              Text.rich(
+                TextSpan(
+                  text: '${'code_sent_to'.tr()} ',
+                  style: AppTypography.bodyMd.copyWith(
+                    color: AppColors.getTextSubtitle(context),
+                    height: 1.5,
+                    fontSize: 15,
                   ),
+                  children: [
+                    TextSpan(
+                      // Wrapped in an LTR isolate: without it the bidi algorithm
+                      // splits '+964 7512596050' at the space inside an RTL
+                      // sentence and renders it back to front.
+                      text: '\u2066$_displayPhone\u2069',
+                      style: AppTypography.labelMd.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
                 ),
+                textAlign: TextAlign.center,
               ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
 
               const SizedBox(height: 44),
@@ -364,6 +388,7 @@ class _OtpScreenState extends State<OtpScreen> {
               if (_canResend) ...[
                 Text(
                   'didnt_receive_code_choose_channel'.tr(),
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontFamily: 'Rabar',
                     fontSize: 12.5,
@@ -372,8 +397,10 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 10,
+                  runSpacing: 10,
                   children: [
                     // Resend via WhatsApp
                     OutlinedButton.icon(
@@ -409,7 +436,6 @@ class _OtpScreenState extends State<OtpScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       ),
                     ),
-                    const SizedBox(width: 10),
                     // Resend via SMS
                     OutlinedButton.icon(
                       onPressed: !_isResending ? () => _resendCode('sms') : null,
@@ -449,6 +475,7 @@ class _OtpScreenState extends State<OtpScreen> {
               ] else ...[
                 Text(
                   'wait_for_timer_to_resend'.tr(),
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Rabar',
                     fontSize: 12,
