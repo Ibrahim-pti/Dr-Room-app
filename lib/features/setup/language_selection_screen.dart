@@ -254,13 +254,17 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                         _buildLangCard(
                           title: 'English',
                           localeCode: 'en',
-                          flag: Container(
-                            width: 44,
-                            height: 30,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              '🇬🇧',
-                              style: TextStyle(fontSize: 36),
+                          flag: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              'https://flagcdn.com/w80/gb.png',
+                              width: 44,
+                              height: 30,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Text(
+                                '🇬🇧',
+                                style: TextStyle(fontSize: 28),
+                              ),
                             ),
                           ),
                           delay: 400,
@@ -274,13 +278,17 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                         _buildLangCard(
                           title: 'العربية',
                           localeCode: 'ar',
-                          flag: Container(
-                            width: 44,
-                            height: 30,
-                            alignment: Alignment.center,
-                            child: const Text(
-                              '🇮🇶',
-                              style: TextStyle(fontSize: 36),
+                          flag: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              'https://flagcdn.com/w80/iq.png',
+                              width: 44,
+                              height: 30,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Text(
+                                '🇮🇶',
+                                style: TextStyle(fontSize: 28),
+                              ),
                             ),
                           ),
                           delay: 500,
