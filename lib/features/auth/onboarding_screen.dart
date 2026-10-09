@@ -27,7 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'primaryColor': const Color(0xFF2563EB),
       'secondaryColor': const Color(0xFF3B82F6),
       'gradient': const [Color(0xFF1D4ED8), Color(0xFF3B82F6)],
-      'chip': 'زیاتر لە ٥٠٠+ پزیشکی بە ئەزموون',
+      'chip': 'باشترین پزیشکانی پسپۆڕ و بە ئەزموون',
       'chipIcon': Iconsax.user_tag,
     },
     {
