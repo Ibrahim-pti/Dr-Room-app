@@ -157,13 +157,13 @@ class HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 14),
                         const ServicesCategoryGrid(),
 
-                        // ── Top Nurses Section ──
-                        const SizedBox(height: 16),
-                        TopNursesSection(topNurses: _topNurses),
-
                         // ── Top Laboratories Section ──
                         const SizedBox(height: 16),
                         const TopLabsSection(),
+
+                        // ── Top Nurses Section ──
+                        const SizedBox(height: 16),
+                        TopNursesSection(topNurses: _topNurses),
 
                         // ── Bottom Padding for Floating MainShell Bar ──
                         SizedBox(height: 95 + MediaQuery.viewPaddingOf(context).bottom),
