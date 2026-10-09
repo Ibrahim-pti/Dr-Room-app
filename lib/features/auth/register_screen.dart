@@ -1151,28 +1151,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.verified_user_outlined,
-                              size: 14,
-                              color: Color(0xFF10B981),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'secure_encryption_notice'.tr(),
-                              style: const TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 11.5,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),

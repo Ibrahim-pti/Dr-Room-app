@@ -109,7 +109,6 @@
   "password_strength_weak": "ضعيفة (٦ أحرف على الأقل)",
   "password_strength_medium": "متوسطة",
   "password_strength_strong": "قوية وآمنة ✓",
-  "secure_encryption_notice": "محمي بتشفير كامل (256-bit SSL)",
   "login_failed": "حدث خطأ أثناء تسجيل الدخول",
   "server_connection_error": "خطأ في الاتصال بالخادم",
   "name_required": "يرجى إدخال الاسم الكامل",

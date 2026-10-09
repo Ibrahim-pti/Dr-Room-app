@@ -109,7 +109,6 @@
   "password_strength_weak": "بێهێز (لایەنی کەم ٦ پیت)",
   "password_strength_medium": "مامناوەند",
   "password_strength_strong": "بەهێز و پارێزراو ✓",
-  "secure_encryption_notice": "پارێزراوە بە تەواوی کۆدکردن (256-bit SSL)",
   "login_failed": "هەڵە ڕوویدا لە چوونەژوورەوە",
   "server_connection_error": "هەڵە لە پەیوەندیکردن بە سێرڤەر",
   "name_required": "تکایە ناوی تەواو بنووسە",

@@ -109,7 +109,6 @@
   "password_strength_weak": "Weak (at least 6 characters)",
   "password_strength_medium": "Medium",
   "password_strength_strong": "Strong & Secure ✓",
-  "secure_encryption_notice": "Secured with 256-bit SSL encryption",
   "login_failed": "Login failed",
   "server_connection_error": "Server connection error",
   "name_required": "Please enter your full name",
