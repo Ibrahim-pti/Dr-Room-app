@@ -292,24 +292,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         width: 38,
                         height: 38,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: activeGradient,
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(11),
                           boxShadow: [
                             BoxShadow(
-                              color: activeColor.withValues(alpha: 0.35),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                              color: activeColor.withValues(alpha: 0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.local_hospital_rounded,
-                          color: Colors.white,
-                          size: 20,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(11),
+                          child: Image.asset(
+                            'assets/images/app_icon.png',
+                            width: 38,
+                            height: 38,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 10),
