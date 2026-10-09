@@ -133,6 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
     bool obscureConfirm = true;
     String? sheetError;
     String targetPhone = '';
+    String chosenProvider = 'sms';
 
     showModalBottomSheet(
       context: context,
@@ -174,13 +175,37 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
+
+                      // Top Key Emblem
+                      Center(
+                        child: Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFEFF6FF),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: const Icon(
+                            Iconsax.key,
+                            color: Color(0xFF2563EB),
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
 
                       // Title & Subtitle
                       Text(
                         step == 1
                             ? 'گۆڕینی وشەی نهێنی'
-                            : 'پشتڕاستکردنەوە و وشەی نهێنی نوێ',
+                            : 'وشەی نهێنی نوێ دابنێ',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Rabar',
@@ -189,19 +214,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         step == 1
-                            ? 'ژمارەی مۆبایلەکەت بنووسە بۆ ناردنی کۆدی پشتڕاستکردنەوە (SMS).'
-                            : 'کۆدی ٤ ژمارەیی بنووسە کە بۆت هات، لەگەڵ وشەی نهێنی نوێ.',
+                            ? 'شێوازی ناردن و ژمارەکەت دیاری بکە بۆ وەرگرتنی کۆد'
+                            : 'کۆدی ٤ ژمارەیی بنووسە لەگەڵ وشەی نهێنی نوێ',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Rabar',
-                          fontSize: 13,
+                          fontSize: 12.5,
                           color: isDark ? Colors.white60 : const Color(0xFF64748B),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 18),
 
                       if (sheetError != null) ...[
                         Container(
@@ -228,36 +253,200 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
 
                       if (step == 1) ...[
-                        // Phone input
+                        // Channel selection (SMS vs WhatsApp)
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF334155).withValues(alpha: 0.5)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => setSheetState(() => chosenProvider = 'sms'),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: chosenProvider == 'sms'
+                                          ? (isDark ? const Color(0xFF1E293B) : Colors.white)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: chosenProvider == 'sms'
+                                          ? [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(alpha: 0.06),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.sms_rounded,
+                                          size: 17,
+                                          color: chosenProvider == 'sms'
+                                              ? const Color(0xFF2563EB)
+                                              : const Color(0xFF64748B),
+                                        ),
+                                        const SizedBox(width: 7),
+                                        Text(
+                                          'کورتەنامە (SMS)',
+                                          style: TextStyle(
+                                            fontFamily: 'Rabar',
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: chosenProvider == 'sms'
+                                                ? const Color(0xFF2563EB)
+                                                : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => setSheetState(() => chosenProvider = 'whatsapp'),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: chosenProvider == 'whatsapp'
+                                          ? (isDark ? const Color(0xFF1E293B) : Colors.white)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: chosenProvider == 'whatsapp'
+                                          ? [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(alpha: 0.06),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.chat_bubble_outline_rounded,
+                                          size: 17,
+                                          color: chosenProvider == 'whatsapp'
+                                              ? const Color(0xFF16A34A)
+                                              : const Color(0xFF64748B),
+                                        ),
+                                        const SizedBox(width: 7),
+                                        Text(
+                                          'واتسئاپ (WhatsApp)',
+                                          style: TextStyle(
+                                            fontFamily: 'Rabar',
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: chosenProvider == 'whatsapp'
+                                                ? const Color(0xFF16A34A)
+                                                : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Phone Field with +964 flag pill matching login
                         Container(
                           decoration: BoxDecoration(
                             color: inputBg,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: borderColor),
                           ),
-                          child: TextField(
-                            controller: resetPhoneController,
-                            keyboardType: TextInputType.phone,
-                            textDirection: TextDirection.ltr,
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 15,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                            ),
-                            decoration: const InputDecoration(
-                              hintText: '0750 000 0000',
-                              hintStyle: TextStyle(color: Color(0xFF94A3B8)),
-                              prefixIcon: Icon(Icons.phone_android_rounded, color: Color(0xFF2563EB)),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                            ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFEFF6FF),
+                                  borderRadius:
+                                      const BorderRadiusDirectional.horizontal(
+                                        start: Radius.circular(15),
+                                      ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Text('🇮🇶', style: TextStyle(fontSize: 16)),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      '\u200E+964',
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2563EB),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: resetPhoneController,
+                                  keyboardType: TextInputType.phone,
+                                  textDirection: TextDirection.ltr,
+                                  textAlign: TextAlign.right,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(11),
+                                  ],
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                  decoration: const InputDecoration(
+                                    hintText: '\u200E0750 000 0000',
+                                    hintStyle: TextStyle(
+                                      color: Color(0xFF94A3B8),
+                                      fontSize: 14,
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                    ),
+                                    border: InputBorder.none,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 20),
 
                         // Send OTP Button
                         SizedBox(
-                          height: 50,
+                          height: 52,
                           child: ElevatedButton(
                             onPressed: isSubmitting
                                 ? null
@@ -276,7 +465,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     try {
                                       final res = await ApiClient.post(
                                         '/forgot-password',
-                                        body: {'phone': norm},
+                                        body: {
+                                          'phone': norm,
+                                          'provider': chosenProvider,
+                                        },
                                       );
                                       if (res.statusCode == 200) {
                                         targetPhone = norm;
@@ -300,9 +492,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2563EB),
+                              backgroundColor: chosenProvider == 'whatsapp'
+                                  ? const Color(0xFF16A34A)
+                                  : const Color(0xFF2563EB),
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               elevation: 0,
                             ),
                             child: isSubmitting
@@ -311,17 +505,95 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 22,
                                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                                   )
-                                : const Text(
-                                    'ناردنی کۆدی پشتڕاستکردنەوە',
-                                    style: TextStyle(
-                                      fontFamily: 'Rabar',
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        chosenProvider == 'whatsapp'
+                                            ? Icons.chat_bubble_outline_rounded
+                                            : Icons.send_rounded,
+                                        size: 19,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        chosenProvider == 'whatsapp'
+                                            ? 'ناردنی کۆد بە واتسئاپ'
+                                            : 'ناردنی کۆدی دڵنیابوونەوە (SMS)',
+                                        style: const TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                           ),
                         ),
                       ] else ...[
+                        // Step 2: Target Phone Info Bar + Change Button
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF334155).withValues(alpha: 0.4)
+                                : const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF475569)
+                                  : const Color(0xFFBFDBFE),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                chosenProvider == 'whatsapp'
+                                    ? Icons.chat_bubble_outline_rounded
+                                    : Icons.sms_outlined,
+                                size: 18,
+                                color: chosenProvider == 'whatsapp'
+                                    ? const Color(0xFF16A34A)
+                                    : const Color(0xFF2563EB),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'کۆد نێردرا بۆ: $targetPhone (${chosenProvider == 'whatsapp' ? 'واتسئاپ' : 'SMS'})',
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : const Color(0xFF1E40AF),
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: isSubmitting
+                                    ? null
+                                    : () => setSheetState(() {
+                                          step = 1;
+                                          sheetError = null;
+                                        }),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
+                                  'گۆڕین',
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
                         // Step 2: OTP, New Password, Confirm Password
                         Container(
                           decoration: BoxDecoration(
@@ -420,7 +692,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Submit Reset Button
                         SizedBox(
-                          height: 50,
+                          height: 52,
                           child: ElevatedButton(
                             onPressed: isSubmitting
                                 ? null
