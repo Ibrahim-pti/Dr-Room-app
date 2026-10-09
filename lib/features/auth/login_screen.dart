@@ -594,30 +594,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const SizedBox(height: 20),
-                              Container(
-                                width: 72,
-                                height: 72,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.15),
-                                      blurRadius: 16,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.asset(
-                                    'assets/images/app_icon.png',
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) => const Icon(
-                                      Icons.local_hospital_rounded,
-                                      color: Color(0xFF2563EB),
-                                      size: 34,
-                                    ),
+                              SizedBox(
+                                width: 80,
+                                height: 80,
+                                child: Image.asset(
+                                  'assets/images/app_icon.png',
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, _, _) => const Icon(
+                                    Icons.local_hospital_rounded,
+                                    color: Colors.white,
+                                    size: 40,
                                   ),
                                 ),
                               ).animate().scale(

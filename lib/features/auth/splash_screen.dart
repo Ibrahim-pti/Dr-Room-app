@@ -97,29 +97,18 @@ class _SplashScreenState extends State<SplashScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // 1. Clean 3D DrRoom Emblem (No Heavy Shadows, Matches App)
-                  Container(
+                  SizedBox(
                     width: 96,
                     height: 96,
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: cardBorder,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(22.5),
-                      child: Image.asset(
-                        'assets/images/app_icon.png',
-                        width: 96,
-                        height: 96,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => const Icon(
-                          Iconsax.hospital,
-                          size: 42,
-                          color: primaryBlue,
-                        ),
+                    child: Image.asset(
+                      'assets/images/app_icon.png',
+                      width: 96,
+                      height: 96,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Iconsax.hospital,
+                        size: 42,
+                        color: primaryBlue,
                       ),
                     ),
                   )
