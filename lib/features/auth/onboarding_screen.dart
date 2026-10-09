@@ -481,26 +481,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                       borderRadius: BorderRadius.circular(18),
                                     ),
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        isLastPage ? 'دەستپێبکە' : 'دواتر',
-                                        style: const TextStyle(
-                                          fontFamily: 'Rabar',
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          height: 1.2,
-                                        ),
+                                  child: Center(
+                                    child: Text(
+                                      isLastPage ? 'دەستپێبکە' : 'دواتر',
+                                      style: const TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        height: 1.2,
                                       ),
-                                      const SizedBox(width: 8),
-                                      Icon(
-                                        isLastPage
-                                            ? Icons.check_circle_rounded
-                                            : Icons.arrow_forward_rounded,
-                                        size: 20,
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
