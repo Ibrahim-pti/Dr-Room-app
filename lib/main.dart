@@ -188,7 +188,7 @@ class AppFlowState extends State<AppFlow> {
       case _FlowState.health_profile:
         return HealthProfileScreen(
           key: const ValueKey('health_profile'),
-          onFinished: () => _goTo(_FlowState.medical_history),
+          onFinished: () => _goTo(_FlowState.login),
         );
 
       case _FlowState.medical_history:

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/health_profile_service.dart';
 
 class HealthProfileScreen extends StatefulWidget {
@@ -85,13 +86,20 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
     );
 
     await HealthProfileService.saveHealthProfile(profile);
+    await _markSetupComplete();
 
     if (mounted) {
       widget.onFinished();
     }
   }
 
+  Future<void> _markSetupComplete() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_completed_setup', true);
+  }
+
   Future<void> _skipSetup() async {
+    await _markSetupComplete();
     if (mounted) {
       widget.onFinished();
     }
