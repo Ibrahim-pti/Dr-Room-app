@@ -26,7 +26,6 @@ import 'features/home/main_shell.dart';
 import 'features/admin/admin_dashboard_shell.dart';
 import 'features/setup/language_selection_screen.dart';
 import 'features/setup/health_profile_screen.dart';
-import 'features/setup/medical_history_screen.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/services/connectivity_service.dart';
 import 'core/widgets/no_internet_widget.dart';
@@ -191,12 +190,6 @@ class AppFlowState extends State<AppFlow> {
           onFinished: () => _goTo(_FlowState.login),
         );
 
-      case _FlowState.medical_history:
-        return MedicalHistoryScreen(
-          key: const ValueKey('medical_history'),
-          onFinished: () => _goTo(_FlowState.login),
-        );
-
       case _FlowState.onboarding:
         return OnboardingScreen(
           key: const ValueKey('onboarding'),
@@ -250,7 +243,6 @@ enum _FlowState {
   splash,
   setup,
   health_profile,
-  medical_history,
   onboarding,
   login,
   register,
