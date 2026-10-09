@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - سەکۆی ستافی تەندروستی</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Kufi Arabic', sans-serif; }
@@ -206,11 +208,7 @@
     <!-- NAVBAR -->
     <header class="navbar">
         <a href="#home" class="nav-brand">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                <line x1="12" y1="9" x2="12" y2="15"></line>
-                <line x1="9" y1="12" x2="15" y2="12"></line>
-            </svg>
+            <img src="{{ asset('images/logo.png') }}" alt="DrRoom" style="width: 38px; height: 38px; border-radius: 10px; object-fit: contain;">
             <h2>DrRoom</h2>
         </a>
 
@@ -238,11 +236,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="nav-brand">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    <line x1="12" y1="9" x2="12" y2="15"></line>
-                    <line x1="9" y1="12" x2="15" y2="12"></line>
-                </svg>
+                <img src="{{ asset('images/logo.png') }}" alt="DrRoom" style="width: 34px; height: 34px; border-radius: 10px; object-fit: contain;">
                 <h2>DrRoom</h2>
             </div>
             <button class="btn-close" id="closeSidebarBtn">
