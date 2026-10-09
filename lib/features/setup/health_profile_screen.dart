@@ -353,8 +353,6 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded, size: 20),
                           ],
                         ),
 
