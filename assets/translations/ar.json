@@ -887,6 +887,7 @@
   "save_new_password": "حفظ كلمة المرور الجديدة",
   "err_enter_4_digit_code": "يرجى إدخال الرمز المكون من 4 أرقام",
   "err_password_min_6": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
-  "err_passwords_do_not_match": "كلمتا المرور غير متطابقتين",
-  "password_reset_success": "تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول."
+  "password_reset_success": "تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.",
+  "err_failed_to_send_code": "تعذر إرسال الرمز",
+  "err_reset_password_failed": "حدث خطأ أثناء تحديث كلمة المرور"
 }

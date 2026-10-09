@@ -481,7 +481,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         final b = jsonDecode(res.body);
                                         setSheetState(() {
                                           isSubmitting = false;
-                                          sheetError = b['message'] ?? 'نەتوانرا کۆدەکە بنێردرێت';
+                                          sheetError = b['message'] ?? 'err_failed_to_send_code'.tr();
                                         });
                                       }
                                     } catch (e) {
@@ -640,7 +640,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: isDark ? Colors.white : const Color(0xFF0F172A),
                             ),
                             decoration: InputDecoration(
-                              hintText: 'وشەی نهێنی نوێ (لایەنی کەم ٦ پیت)',
+                              hintText: 'new_password_hint'.tr(),
                               hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
                               prefixIcon: const Icon(Iconsax.lock, color: Color(0xFF2563EB)),
                               suffixIcon: IconButton(
@@ -673,7 +673,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: isDark ? Colors.white : const Color(0xFF0F172A),
                             ),
                             decoration: InputDecoration(
-                              hintText: 'دووبارەکردنەوەی وشەی نهێنی',
+                              hintText: 'confirm_new_password_hint'.tr(),
                               hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
                               prefixIcon: const Icon(Iconsax.lock, color: Color(0xFF2563EB)),
                               suffixIcon: IconButton(
@@ -702,15 +702,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     final conf = confirmPassController.text;
 
                                     if (otp.length != 4) {
-                                      setSheetState(() => sheetError = 'تکایە کۆدی ٤ ژمارەیی بنووسە');
+                                      setSheetState(() => sheetError = 'err_enter_4_digit_code'.tr());
                                       return;
                                     }
                                     if (pass.length < 6) {
-                                      setSheetState(() => sheetError = 'وشەی نهێنی دەبێت لانیکەم ٦ پیت بێت');
+                                      setSheetState(() => sheetError = 'err_password_min_6'.tr());
                                       return;
                                     }
                                     if (pass != conf) {
-                                      setSheetState(() => sheetError = 'وشەی نهێنی لەگەڵ دووبارەکردنەوەکەی یەک ناگرێتەوە');
+                                      setSheetState(() => sheetError = 'err_passwords_do_not_match'.tr());
                                       return;
                                     }
 
@@ -739,12 +739,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                         _phoneController.text = targetPhone;
                                         _passwordController.text = pass;
                                         messenger.showSnackBar(
-                                          const SnackBar(
+                                          SnackBar(
                                             content: Text(
-                                              'وشەی نهێنی بە سەرکەوتوویی نوێکرایەوە. دەتوانیت ئێستا بچیتە ژوورەوە.',
-                                              style: TextStyle(fontFamily: 'Rabar'),
+                                              'password_reset_success'.tr(),
+                                              style: const TextStyle(fontFamily: 'Rabar'),
                                             ),
-                                            backgroundColor: Color(0xFF10B981),
+                                            backgroundColor: const Color(0xFF10B981),
                                             behavior: SnackBarBehavior.floating,
                                           ),
                                         );
@@ -752,7 +752,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         final b = jsonDecode(res.body);
                                         setSheetState(() {
                                           isSubmitting = false;
-                                          sheetError = b['message'] ?? 'هەڵەیەک ڕوویدا لە نوێکردنەوەی وشەی نهێنی';
+                                          sheetError = b['message'] ?? 'err_reset_password_failed'.tr();
                                         });
                                       }
                                     } catch (e) {
@@ -774,9 +774,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 22,
                                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                                   )
-                                : const Text(
-                                    'نوێکردنەوەی وشەی نهێنی',
-                                    style: TextStyle(
+                                : Text(
+                                    'save_new_password'.tr(),
+                                    style: const TextStyle(
                                       fontFamily: 'Rabar',
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,

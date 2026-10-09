@@ -887,6 +887,7 @@
   "save_new_password": "Save New Password",
   "err_enter_4_digit_code": "Please enter the 4-digit code",
   "err_password_min_6": "Password must be at least 6 characters",
-  "err_passwords_do_not_match": "Passwords do not match",
-  "password_reset_success": "Password updated successfully. You can now log in."
+  "password_reset_success": "Password updated successfully. You can now log in.",
+  "err_failed_to_send_code": "Failed to send code",
+  "err_reset_password_failed": "An error occurred while resetting the password"
 }
