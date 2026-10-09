@@ -115,6 +115,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return clean;
   }
 
+  int _getPasswordStrength(String password) {
+    if (password.isEmpty) return 0;
+    if (password.length < 6) return 1;
+    int score = 1;
+    if (password.length >= 8) score++;
+    if (RegExp(r'[0-9]').hasMatch(password) && RegExp(r'[a-zA-Z\u0600-\u06FF]').hasMatch(password)) score++;
+    if (RegExp(r'[!@#\$%^&*(),.?":{}|<>_\-]').hasMatch(password)) score++;
+    if (score >= 3) return 3;
+    if (score == 2) return 2;
+    return 1;
+  }
+
   void _handleRegister() {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
@@ -126,9 +138,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() {
       _nameError = name.isEmpty ? 'name_required'.tr() : null;
-      _phoneError = !isPhoneValid ? 'phone_invalid'.tr() : null;
-      _passwordError = password.length < 6 ? 'password_too_short'.tr() : null;
-      _confirmPasswordError = password != confirmPassword ? 'passwords_do_not_match'.tr() : null;
+      _phoneError = phone.isEmpty
+          ? 'phone_required'.tr()
+          : (!isPhoneValid ? 'phone_invalid'.tr() : null);
+      _passwordError = password.isEmpty
+          ? 'password_required'.tr()
+          : (password.length < 6 ? 'password_too_short'.tr() : null);
+      _confirmPasswordError = confirmPassword.isEmpty
+          ? 'confirm_password_required'.tr()
+          : (password != confirmPassword ? 'passwords_do_not_match'.tr() : null);
       _formError = !_agreeToTerms ? 'must_agree_terms'.tr() : null;
     });
 
@@ -609,6 +627,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         child: TextField(
                           controller: _nameController,
+                          onChanged: (_) {
+                            if (_nameError != null) {
+                              setState(() => _nameError = null);
+                            }
+                          },
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 14.5,
@@ -715,6 +738,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 keyboardType: TextInputType.phone,
                                 textDirection: TextDirection.ltr,
                                 textAlign: TextAlign.right,
+                                onChanged: (_) {
+                                  if (_phoneError != null) {
+                                    setState(() => _phoneError = null);
+                                  }
+                                },
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
                                   LengthLimitingTextInputFormatter(11),
@@ -786,6 +814,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
+                          onChanged: (_) {
+                            setState(() {
+                              if (_passwordError != null) _passwordError = null;
+                            });
+                          },
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 15,
@@ -824,6 +857,95 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                       ),
+                      if (_passwordController.text.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Builder(
+                          builder: (context) {
+                            final strength = _getPasswordStrength(_passwordController.text);
+                            final color = strength == 1
+                                ? const Color(0xFFEF4444)
+                                : (strength == 2
+                                    ? const Color(0xFFF59E0B)
+                                    : const Color(0xFF10B981));
+                            final label = strength == 1
+                                ? 'password_strength_weak'.tr()
+                                : (strength == 2
+                                    ? 'password_strength_medium'.tr()
+                                    : 'password_strength_strong'.tr());
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: color,
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Container(
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: strength >= 2
+                                              ? color
+                                              : (isDark
+                                                  ? const Color(0xFF334155)
+                                                  : const Color(0xFFE2E8F0)),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Container(
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: strength >= 3
+                                              ? color
+                                              : (isDark
+                                                  ? const Color(0xFF334155)
+                                                  : const Color(0xFFE2E8F0)),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      strength == 3
+                                          ? Icons.check_circle_rounded
+                                          : (strength == 2
+                                              ? Icons.shield_rounded
+                                              : Icons.info_outline_rounded),
+                                      size: 13,
+                                      color: color,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      label,
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: color,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
                       if (_passwordError != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4, right: 6),
@@ -867,6 +989,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: TextField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirmPassword,
+                          onChanged: (_) {
+                            if (_confirmPasswordError != null) {
+                              setState(() => _confirmPasswordError = null);
+                            }
+                          },
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 15,
@@ -1022,6 +1149,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     ),
                                   ],
                                 ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.verified_user_outlined,
+                              size: 14,
+                              color: Color(0xFF10B981),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'secure_encryption_notice'.tr(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 11.5,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

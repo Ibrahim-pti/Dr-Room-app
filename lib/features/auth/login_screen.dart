@@ -81,9 +81,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final normalizedPhone = _normalizeIraqiPhone(phone);
 
     setState(() {
-      _phoneError = !isPhoneValid
-          ? 'phone_invalid'.tr()
-          : null;
+      _phoneError = phone.isEmpty
+          ? 'phone_required'.tr()
+          : (!isPhoneValid ? 'phone_invalid'.tr() : null);
       _passwordError = password.isEmpty ? 'password_required'.tr() : null;
       _formError = null;
     });
@@ -452,6 +452,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? null
                                 : () async {
                                     final raw = resetPhoneController.text.trim();
+                                    if (raw.isEmpty) {
+                                      setSheetState(() => sheetError = 'phone_required'.tr());
+                                      return;
+                                    }
                                     if (!_isValidIraqiPhone(raw)) {
                                       setSheetState(() => sheetError = 'phone_invalid'.tr());
                                       return;
