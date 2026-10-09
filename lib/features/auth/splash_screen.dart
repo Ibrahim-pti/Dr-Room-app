@@ -180,15 +180,17 @@ class _SplashScreenState extends State<SplashScreen>
               // 3. Heartbeat pulse line with the pulsing heart at its centre
               SizedBox(
                 width: min(size.width * 0.72, 270),
-                height: 36,
+                height: 40,
                 child: Stack(
-                  alignment: Alignment.center,
+                  // Sits on the trace's baseline, which the painter keeps below
+                  // centre so the tall R spike has room.
+                  alignment: const Alignment(0, 0.24),
                   children: [
                     AnimatedBuilder(
                       animation: _ecgAnimation,
                       builder: (context, _) {
                         return CustomPaint(
-                          size: Size(min(size.width * 0.72, 270), 36),
+                          size: Size(min(size.width * 0.72, 270), 40),
                           painter: _CleanECGPainter(
                             progress: _ecgAnimation.value,
                             color: primaryBlue,
@@ -253,42 +255,58 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-/// Draws the heartbeat trace, leaving a gap in the middle for the heart badge.
+/// Draws a real ECG strip — P wave, sharp QRS spike, T wave — once on each
+/// side of the heart badge, with a flat stretch in the middle where the badge
+/// sits.
 class _CleanECGPainter extends CustomPainter {
   final double progress;
   final Color color;
 
   _CleanECGPainter({required this.progress, required this.color});
 
+  // Where each complex sits along the trace. 0.42–0.58 stays flat: that
+  // stretch runs behind the heart badge.
+  static const double _leftStart = 0.02;
+  static const double _leftEnd = 0.42;
+  static const double _rightStart = 0.58;
+  static const double _rightEnd = 0.98;
+
+  /// One cardiac complex as an amplitude in -1..1 (positive points upward),
+  /// for [t] running across the complex.
+  static double _beat(double t) {
+    if (t < 0.12 || t > 0.86) return 0; // isoelectric baseline
+    if (t < 0.24) return 0.16 * sin((t - 0.12) / 0.12 * pi); // P wave
+    if (t < 0.34) return 0; // PR segment
+    if (t < 0.38) return -0.22 * (t - 0.34) / 0.04; // Q
+    if (t < 0.44) return -0.22 + 1.22 * (t - 0.38) / 0.06; // R upstroke
+    if (t < 0.50) return 1.0 - 1.42 * (t - 0.44) / 0.06; // R downstroke
+    if (t < 0.55) return -0.42 + 0.42 * (t - 0.50) / 0.05; // S recovery
+    if (t < 0.68) return 0; // ST segment
+    return 0.34 * sin((t - 0.68) / 0.18 * pi); // T wave
+  }
+
+  static double _amplitudeAt(double r) {
+    if (r >= _leftStart && r <= _leftEnd) {
+      return _beat((r - _leftStart) / (_leftEnd - _leftStart));
+    }
+    if (r >= _rightStart && r <= _rightEnd) {
+      return _beat((r - _rightStart) / (_rightEnd - _rightStart));
+    }
+    return 0;
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
-    final midY = size.height / 2;
+    final midY = size.height * 0.62; // baseline, matching the badge alignment
+    final amp = midY - 3; // keeps the R spike inside the box
     final totalW = size.width;
     final currentW = totalW * progress;
 
+    double yAt(double x) => midY - _amplitudeAt(x / totalW) * amp;
+
     final path = Path()..moveTo(0, midY);
-
-    for (double x = 0; x <= currentW; x += 1.0) {
-      final r = x / totalW;
-      double y = midY;
-
-      if (r > 0.22 && r < 0.26) {
-        y = midY - sin((r - 0.22) / 0.04 * pi) * 5;
-      } else if (r > 0.27 && r < 0.35) {
-        y = midY - sin((r - 0.27) / 0.08 * pi) * 12;
-      } else if (r > 0.35 && r < 0.40) {
-        y = midY + sin((r - 0.35) / 0.05 * pi) * 7;
-      }
-      // 0.40–0.60 stays flat: that stretch sits behind the heart badge
-      else if (r > 0.60 && r < 0.65) {
-        y = midY + sin((r - 0.60) / 0.05 * pi) * 7;
-      } else if (r > 0.65 && r < 0.73) {
-        y = midY - sin((r - 0.65) / 0.08 * pi) * 12;
-      } else if (r > 0.74 && r < 0.78) {
-        y = midY - sin((r - 0.74) / 0.04 * pi) * 5;
-      }
-
-      path.lineTo(x, y);
+    for (double x = 0; x <= currentW; x += 0.5) {
+      path.lineTo(x, yAt(x));
     }
 
     canvas.drawPath(
@@ -297,20 +315,16 @@ class _CleanECGPainter extends CustomPainter {
         ..color = color
         ..strokeWidth = 2.2
         ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round,
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
     );
 
     if (progress > 0.05 && progress < 0.98) {
-      final dotX = currentW;
-      final r = dotX / totalW;
-      double dotY = midY;
-      if (r > 0.27 && r < 0.35) {
-        dotY = midY - sin((r - 0.27) / 0.08 * pi) * 12;
-      } else if (r > 0.65 && r < 0.73) {
-        dotY = midY - sin((r - 0.65) / 0.08 * pi) * 12;
-      }
-
-      canvas.drawCircle(Offset(dotX, dotY), 3.5, Paint()..color = color);
+      canvas.drawCircle(
+        Offset(currentW, yAt(currentW)),
+        3.5,
+        Paint()..color = color,
+      );
     }
   }
 

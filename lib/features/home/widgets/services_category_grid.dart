@@ -219,7 +219,7 @@ class ServicesCategoryGrid extends StatelessWidget {
               Text(
                 titleKey.tr(),
                 textAlign: TextAlign.center,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontFamily: 'Rabar',

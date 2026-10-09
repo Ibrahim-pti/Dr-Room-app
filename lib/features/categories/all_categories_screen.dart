@@ -39,7 +39,7 @@ class AllCategoriesScreen extends StatelessWidget {
         crossAxisCount: 4,
         mainAxisSpacing: 16,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.82,
+        childAspectRatio: 0.70,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         children: [
           _buildGridCard(
@@ -181,17 +181,19 @@ class AllCategoriesScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                titleKey.tr(),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  color: isActive
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFF64748B),
-                  fontSize: 11,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              Flexible(
+                child: Text(
+                  titleKey.tr(),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    color: isActive
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFF64748B),
+                    fontSize: 11,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  ),
                 ),
               ),
             ],
