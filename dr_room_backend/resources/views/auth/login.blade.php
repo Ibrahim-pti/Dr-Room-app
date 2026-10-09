@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrRoom - چوونەژوورەوەی ستاف</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
     <link rel="stylesheet" href="/css/kurdish-font.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -159,12 +161,8 @@
         <div class="left-side">
             <div class="left-content">
                 <div class="logo-wrapper">
-                    <div class="logo-icon">
-                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            <line x1="12" y1="9" x2="12" y2="15"></line>
-                            <line x1="9" y1="12" x2="15" y2="12"></line>
-                        </svg>
+                    <div class="logo-icon" style="background: transparent; box-shadow: none;">
+                        <img src="{{ asset('images/logo.png') }}" alt="DrRoom" style="width: 48px; height: 48px; border-radius: 14px; object-fit: contain; box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);">
                     </div>
                     <div class="logo-text">
                         <h2>DrRoom</h2>

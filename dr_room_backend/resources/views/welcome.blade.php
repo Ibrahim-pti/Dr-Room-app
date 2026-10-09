@@ -833,13 +833,7 @@
                 <!-- Brand Info -->
                 <div class="lg:col-span-2">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25">
-                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                <line x1="12" y1="9" x2="12" y2="15"></line>
-                                <line x1="9" y1="12" x2="15" y2="12"></line>
-                            </svg>
-                        </div>
+                        <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-12 h-12 rounded-2xl shadow-md shadow-blue-500/25 object-contain">
                         <div>
                             <div class="text-xl font-black text-slate-900 leading-none">DrRoom</div>
                             <p class="text-[11px] font-semibold text-slate-400 mt-1 leading-none">{{ __('landing.subtitle') }}</p>
