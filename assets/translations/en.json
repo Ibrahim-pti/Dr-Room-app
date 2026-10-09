@@ -894,5 +894,16 @@
   "err_password_min_6": "Password must be at least 6 characters",
   "password_reset_success": "Password updated successfully. You can now log in.",
   "err_failed_to_send_code": "Failed to send code",
-  "err_reset_password_failed": "An error occurred while resetting the password"
+  "err_reset_password_failed": "An error occurred while resetting the password",
+  "onboarding_page1_chip": "Top specialized and experienced doctors",
+  "onboarding_page1_title": "Specialized & Trusted Doctors",
+  "onboarding_page1_subtitle": "Easy appointment booking and fast consultation with Kurdistan's best doctors anytime, anywhere.",
+  "onboarding_page2_chip": "Delivery in under 45 minutes",
+  "onboarding_page2_title": "Pharmacy & Fast Delivery",
+  "onboarding_page2_subtitle": "Order medication and health supplies from the nearest pharmacy quickly right to your doorstep.",
+  "onboarding_page3_chip": "Lab results directly in the app",
+  "onboarding_page3_title": "Lab & Home Medical Tests",
+  "onboarding_page3_subtitle": "Perform medical lab tests at home with top quality and receive digital results instantly.",
+  "next_btn": "Next",
+  "get_started_btn": "Get Started"
 }

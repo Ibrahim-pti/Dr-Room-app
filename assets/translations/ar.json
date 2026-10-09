@@ -894,5 +894,16 @@
   "err_password_min_6": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
   "password_reset_success": "تم تحديث كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.",
   "err_failed_to_send_code": "تعذر إرسال الرمز",
-  "err_reset_password_failed": "حدث خطأ أثناء تحديث كلمة المرور"
+  "err_reset_password_failed": "حدث خطأ أثناء تحديث كلمة المرور",
+  "onboarding_page1_chip": "أفضل الأطباء المتخصصين وذوي الخبرة",
+  "onboarding_page1_title": "أطباء متخصصون وموثوقون",
+  "onboarding_page1_subtitle": "حجز سهل واستشارة سريعة مع نخبة من أفضل أطباء كوردستان في أي وقت وأينما كنت.",
+  "onboarding_page2_chip": "توصيل خلال أقل من ٤٥ دقيقة",
+  "onboarding_page2_title": "صيدلية وتوصيل فوري",
+  "onboarding_page2_subtitle": "اطلب أدويتك ومستلزماتك الصحية من أقرب صيدلية بأسرع وقت حتى باب منزلك.",
+  "onboarding_page3_chip": "نتائج الفحوصات مباشرة في التطبيق",
+  "onboarding_page3_title": "مختبر وفحوصات طبية منزلية",
+  "onboarding_page3_subtitle": "إجراء الفحوصات المخبرية في المنزل بأعلى دقة واستلام النتائج رقمياً.",
+  "next_btn": "التالي",
+  "get_started_btn": "ابدأ الآن"
 }

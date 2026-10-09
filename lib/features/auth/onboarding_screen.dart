@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onFinished;
@@ -18,42 +19,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, dynamic>> _pages = [
     {
-      'title': 'پزیشکانی پسپۆڕ و باوەڕپێکراو',
-      'subtitle':
-          'نۆرەگرتنی ئاسان و ڕاوێژی خێرا لە باشترین دکتۆرەکانی کوردستان لە هەر کات و شوێنێک بیت.',
+      'titleKey': 'onboarding_page1_title',
+      'subtitleKey': 'onboarding_page1_subtitle',
       'image': 'assets/images/onboarding_doctor.png',
-      'badgeIcon': Iconsax.verify,
-      'badgeText': 'پزیشکانی پسپۆڕ',
       'primaryColor': const Color(0xFF2563EB),
       'secondaryColor': const Color(0xFF3B82F6),
       'gradient': const [Color(0xFF1D4ED8), Color(0xFF3B82F6)],
-      'chip': 'باشترین پزیشکانی پسپۆڕ و بە ئەزموون',
+      'chipKey': 'onboarding_page1_chip',
       'chipIcon': Iconsax.user_tag,
     },
     {
-      'title': 'دەرمانخانە و گەیاندنی دەستبەجێ',
-      'subtitle':
-          'داواکردنی دەرمان و پێداویستییە تەندروستییەکان لە نزیکترین دەرمانخانە بە خێراترین کات بۆ بەردەم ماڵەکەت.',
+      'titleKey': 'onboarding_page2_title',
+      'subtitleKey': 'onboarding_page2_subtitle',
       'image': 'assets/images/onboarding_pharmacy.png',
-      'badgeIcon': Iconsax.truck_fast,
-      'badgeText': 'گەیاندنی خێرا',
       'primaryColor': const Color(0xFF059669),
       'secondaryColor': const Color(0xFF10B981),
       'gradient': const [Color(0xFF047857), Color(0xFF10B981)],
-      'chip': 'گەیاندن لە ماوەی کەمتر لە ٤٥ خولەک',
+      'chipKey': 'onboarding_page2_chip',
       'chipIcon': Iconsax.clock,
     },
     {
-      'title': 'تاقیگە و پشکنینی پزیشکی لە ماڵەوە',
-      'subtitle':
-          'ئەنجامدانی پشکنینە پزیشکییەکان لە ماڵەوە بە بەرزترین کوالێتی و وەرگرتنەوەی ئەنجام بە شێوەی دیجیتاڵی.',
+      'titleKey': 'onboarding_page3_title',
+      'subtitleKey': 'onboarding_page3_subtitle',
       'image': 'assets/images/onboarding_lab.png',
-      'badgeIcon': Iconsax.health,
-      'badgeText': 'ڕاپۆرتی سەرهێڵ',
       'primaryColor': const Color(0xFF6366F1),
       'secondaryColor': const Color(0xFF8B5CF6),
       'gradient': const [Color(0xFF4F46E5), Color(0xFF8B5CF6)],
-      'chip': 'ئەنجامی پشکنین بە شێوەی ڕاستەوخۆ لە ئەپدا',
+      'chipKey': 'onboarding_page3_chip',
       'chipIcon': Iconsax.document_text,
     },
   ];
@@ -216,7 +208,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  item['chip'] as String,
+                                  (item['chipKey'] as String).tr(),
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12.5,
@@ -232,7 +224,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                           // Big Bold Title
                           Text(
-                            item['title'] as String,
+                            (item['titleKey'] as String).tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Rabar',
@@ -252,7 +244,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                           // Subtitle
                           Text(
-                            item['subtitle'] as String,
+                            (item['subtitleKey'] as String).tr(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Rabar',
@@ -313,7 +305,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        'دکتۆر ڕووم',
+                        'app_name'.tr(),
                         style: TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 17,
@@ -345,9 +337,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                       ),
-                      child: const Text(
-                        'تێپەڕاندن',
-                        style: TextStyle(
+                      child: Text(
+                        'skip'.tr(),
+                        style: const TextStyle(
                           fontFamily: 'Rabar',
                           color: Color(0xFF64748B),
                           fontSize: 13,
