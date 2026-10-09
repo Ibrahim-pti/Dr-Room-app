@@ -83,8 +83,6 @@ class _SplashScreenState extends State<SplashScreen>
     final textColorDr = isDark ? Colors.white : const Color(0xFF1E293B);
     const primaryBlue = Color(0xFF2E86DE);
     final sloganColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final cardBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFF0F6FF);
-    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFDBEAFE);
 
     return Scaffold(
       backgroundColor: bgColor,
