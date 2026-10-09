@@ -204,8 +204,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Title & Subtitle
                       Text(
                         step == 1
-                            ? 'گۆڕینی وشەی نهێنی'
-                            : 'وشەی نهێنی نوێ دابنێ',
+                            ? 'change_password_title'.tr()
+                            : 'set_new_password_title'.tr(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Rabar',
@@ -217,8 +217,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 6),
                       Text(
                         step == 1
-                            ? 'شێوازی ناردن و ژمارەکەت دیاری بکە بۆ وەرگرتنی کۆد'
-                            : 'کۆدی ٤ ژمارەیی بنووسە لەگەڵ وشەی نهێنی نوێ',
+                            ? 'forgot_password_subtitle'.tr()
+                            : 'enter_code_and_new_password'.tr(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Rabar',
@@ -298,10 +298,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                         const SizedBox(width: 7),
                                         Text(
-                                          'کورتەنامە (SMS)',
+                                          'channel_sms'.tr(),
                                           style: TextStyle(
                                             fontFamily: 'Rabar',
-                                            fontSize: 12.5,
+                                            fontSize: 13,
                                             fontWeight: FontWeight.bold,
                                             color: chosenProvider == 'sms'
                                                 ? const Color(0xFF2563EB)
@@ -348,10 +348,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                         const SizedBox(width: 7),
                                         Text(
-                                          'واتسئاپ (WhatsApp)',
+                                          'channel_whatsapp'.tr(),
                                           style: TextStyle(
                                             fontFamily: 'Rabar',
-                                            fontSize: 12.5,
+                                            fontSize: 13,
                                             fontWeight: FontWeight.bold,
                                             color: chosenProvider == 'whatsapp'
                                                 ? const Color(0xFF16A34A)
