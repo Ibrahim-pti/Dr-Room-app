@@ -517,8 +517,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       const SizedBox(width: 8),
                                       Text(
                                         chosenProvider == 'whatsapp'
-                                            ? 'ناردنی کۆد بە واتسئاپ'
-                                            : 'ناردنی کۆدی دڵنیابوونەوە (SMS)',
+                                            ? 'send_code_via_whatsapp'.tr()
+                                            : 'send_code_via_sms'.tr(),
                                         style: const TextStyle(
                                           fontFamily: 'Rabar',
                                           fontSize: 14.5,
@@ -558,7 +558,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'کۆد نێردرا بۆ: $targetPhone (${chosenProvider == 'whatsapp' ? 'واتسئاپ' : 'SMS'})',
+                                  '${'code_sent_to'.tr()}: $targetPhone (${chosenProvider == 'whatsapp' ? 'channel_whatsapp'.tr() : 'channel_sms'.tr()})',
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12.5,
@@ -579,9 +579,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   minimumSize: Size.zero,
                                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                child: const Text(
-                                  'گۆڕین',
-                                  style: TextStyle(
+                                child: Text(
+                                  'btn_change'.tr(),
+                                  style: const TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
