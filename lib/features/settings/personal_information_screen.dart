@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/services/health_profile_service.dart';
 
 class PersonalInformationScreen extends StatefulWidget {
   const PersonalInformationScreen({super.key});
@@ -34,10 +35,12 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
 
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
+    final healthProfile = await HealthProfileService.loadHealthProfile();
+
     setState(() {
       _nameController.text = prefs.getString('user_name') ?? '';
       _phoneController.text = prefs.getString('user_phone') ?? '';
-      _selectedGender = prefs.getString('guest_gender') ?? 'Female';
+      _selectedGender = healthProfile.gender ?? 'Female';
       _dobController.text = prefs.getString('user_dob') ?? '';
       _profileImageUrl = prefs.getString('user_profile_image');
     });
@@ -131,18 +134,37 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_name', name);
       await prefs.setString('user_dob', dob);
-      await prefs.setString('guest_gender', _selectedGender);
+
+      final existingProfile = await HealthProfileService.loadHealthProfile();
+      final healthProfile = HealthProfile(
+        gender: _selectedGender,
+        bloodType: existingProfile.bloodType,
+        age: existingProfile.age,
+      );
+      await HealthProfileService.saveHealthProfile(healthProfile);
+
+      final apiBodyMultipart = <String, String>{
+        'name': name,
+        'dob': dob,
+        'gender': _selectedGender,
+        if (existingProfile.bloodType != null) 'blood_type': existingProfile.bloodType!,
+        if (existingProfile.age != null) 'age': existingProfile.age!.toString(),
+      };
+
+      final apiBodyJson = {
+        'name': name,
+        'dob': dob,
+        'gender': _selectedGender,
+        if (existingProfile.bloodType != null) 'blood_type': existingProfile.bloodType,
+        if (existingProfile.age != null) 'age': existingProfile.age,
+      };
 
       if (_selectedImage != null) {
         await prefs.setString('user_profile_image', _selectedImage!.path);
         try {
           final response = await ApiClient.uploadMultipart(
             '/user',
-            fields: {
-              'name': name,
-              'dob': dob,
-              'gender': _selectedGender,
-            },
+            fields: apiBodyMultipart,
             fileField: 'profile_image',
             filePath: _selectedImage!.path,
           );
@@ -158,11 +180,7 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
         }
       } else {
         try {
-          await ApiClient.put('/user', body: {
-            'name': name,
-            'dob': dob,
-            'gender': _selectedGender,
-          });
+          await ApiClient.put('/user', body: apiBodyJson);
         } catch (e) {
           debugPrint('Update profile error: $e');
         }

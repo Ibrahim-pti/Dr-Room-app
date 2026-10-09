@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/health_profile_service.dart';
 
 class HealthProfileScreen extends StatefulWidget {
   final VoidCallback onFinished;
@@ -37,6 +37,21 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
   void initState() {
     super.initState();
     _ageController.text = _selectedAge.toString();
+    _loadExistingProfile();
+  }
+
+  Future<void> _loadExistingProfile() async {
+    final profile = await HealthProfileService.loadHealthProfile();
+    if (mounted) {
+      setState(() {
+        if (profile.gender != null) _selectedGender = profile.gender;
+        if (profile.bloodType != null) _selectedBloodType = profile.bloodType;
+        if (profile.age != null) {
+          _selectedAge = profile.age!;
+          _ageController.text = _selectedAge.toString();
+        }
+      });
+    }
   }
 
   Future<void> _completeSetup() async {
@@ -60,18 +75,16 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('has_completed_setup', true);
+    final age = int.tryParse(_ageController.text);
+    if (age == null) return;
 
-    if (_selectedGender != null) {
-      await prefs.setString('guest_gender', _selectedGender!);
-    }
-    if (_selectedBloodType != null) {
-      await prefs.setString('guest_blood_type', _selectedBloodType!);
-    }
-    if (_ageController.text.isNotEmpty) {
-      await prefs.setString('guest_age', _ageController.text);
-    }
+    final profile = HealthProfile(
+      gender: _selectedGender,
+      bloodType: _selectedBloodType,
+      age: age,
+    );
+
+    await HealthProfileService.saveHealthProfile(profile);
 
     if (mounted) {
       widget.onFinished();
@@ -79,8 +92,6 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
   }
 
   Future<void> _skipSetup() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('has_completed_setup', true);
     if (mounted) {
       widget.onFinished();
     }
