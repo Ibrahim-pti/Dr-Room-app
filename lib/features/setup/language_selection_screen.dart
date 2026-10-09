@@ -233,14 +233,13 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                         // ── Language Cards ──
                         _buildLangCard(
                           title: 'کوردی',
-                          subtitle: 'Kurdish (سۆرانی)',
                           localeCode: 'ckb',
                           flag: ClipRRect(
                             borderRadius: BorderRadius.circular(6),
                             child: SvgPicture.asset(
                               'assets/images/kurdistan_flag.svg',
-                              width: 38,
-                              height: 26,
+                              width: 44,
+                              height: 30,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -254,15 +253,14 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
                         _buildLangCard(
                           title: 'English',
-                          subtitle: 'ئینگلیزی',
                           localeCode: 'en',
                           flag: Container(
-                            width: 38,
-                            height: 26,
+                            width: 44,
+                            height: 30,
                             alignment: Alignment.center,
                             child: const Text(
                               '🇬🇧',
-                              style: TextStyle(fontSize: 28),
+                              style: TextStyle(fontSize: 36),
                             ),
                           ),
                           delay: 400,
@@ -275,15 +273,14 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
                         _buildLangCard(
                           title: 'العربية',
-                          subtitle: 'عەرەبی',
                           localeCode: 'ar',
                           flag: Container(
-                            width: 38,
-                            height: 26,
+                            width: 44,
+                            height: 30,
                             alignment: Alignment.center,
                             child: const Text(
                               '🇮🇶',
-                              style: TextStyle(fontSize: 28),
+                              style: TextStyle(fontSize: 36),
                             ),
                           ),
                           delay: 500,
@@ -358,7 +355,6 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
   Widget _buildLangCard({
     required String title,
-    required String subtitle,
     required String localeCode,
     required Widget flag,
     required int delay,
@@ -411,32 +407,16 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
             ),
             const SizedBox(width: 16),
 
-            // Language Title & Subtitle
+            // Language Title only
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 16.5,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? primaryColor : textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 12.5,
-                      color: isSelected
-                          ? primaryColor.withValues(alpha: 0.8)
-                          : const Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 16.5,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? primaryColor : textColor,
+                ),
               ),
             ),
 
