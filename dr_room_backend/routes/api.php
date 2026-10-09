@@ -26,6 +26,8 @@ Route::post('/login-otp', [AuthController::class, 'loginWithOtp']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/translate', [\App\Http\Controllers\Api\TranslateController::class, 'translate']);
 
 // App Version & Force Update Config

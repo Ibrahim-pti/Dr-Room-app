@@ -114,6 +114,417 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _showForgotPasswordBottomSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final inputBg = isDark
+        ? const Color(0xFF334155).withValues(alpha: 0.5)
+        : const Color(0xFFF8FAFC);
+
+    final resetPhoneController = TextEditingController(text: _phoneController.text.trim());
+    final otpController = TextEditingController();
+    final newPassController = TextEditingController();
+    final confirmPassController = TextEditingController();
+
+    int step = 1; // 1: Enter Phone, 2: Enter OTP & New Password
+    bool isSubmitting = false;
+    bool obscureNew = true;
+    bool obscureConfirm = true;
+    String? sheetError;
+    String targetPhone = '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Drag Handle
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+
+                      // Title & Subtitle
+                      Text(
+                        step == 1
+                            ? 'گۆڕینی وشەی نهێنی'
+                            : 'پشتڕاستکردنەوە و وشەی نهێنی نوێ',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        step == 1
+                            ? 'ژمارەی مۆبایلەکەت بنووسە بۆ ناردنی کۆدی پشتڕاستکردنەوە (SMS).'
+                            : 'کۆدی ٤ ژمارەیی بنووسە کە بۆت هات، لەگەڵ وشەی نهێنی نوێ.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 13,
+                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      if (sheetError != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            sheetError!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 12.5,
+                              color: Color(0xFFEF4444),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      if (step == 1) ...[
+                        // Phone input
+                        Container(
+                          decoration: BoxDecoration(
+                            color: inputBg,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: TextField(
+                            controller: resetPhoneController,
+                            keyboardType: TextInputType.phone,
+                            textDirection: TextDirection.ltr,
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 15,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                            decoration: const InputDecoration(
+                              hintText: '0750 000 0000',
+                              hintStyle: TextStyle(color: Color(0xFF94A3B8)),
+                              prefixIcon: Icon(Icons.phone_android_rounded, color: Color(0xFF2563EB)),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Send OTP Button
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: isSubmitting
+                                ? null
+                                : () async {
+                                    final raw = resetPhoneController.text.trim();
+                                    if (!_isValidIraqiPhone(raw)) {
+                                      setSheetState(() => sheetError = 'phone_invalid'.tr());
+                                      return;
+                                    }
+                                    final norm = _normalizeIraqiPhone(raw);
+                                    setSheetState(() {
+                                      isSubmitting = true;
+                                      sheetError = null;
+                                    });
+
+                                    try {
+                                      final res = await ApiClient.post(
+                                        '/forgot-password',
+                                        body: {'phone': norm},
+                                      );
+                                      if (res.statusCode == 200) {
+                                        targetPhone = norm;
+                                        setSheetState(() {
+                                          step = 2;
+                                          isSubmitting = false;
+                                          sheetError = null;
+                                        });
+                                      } else {
+                                        final b = jsonDecode(res.body);
+                                        setSheetState(() {
+                                          isSubmitting = false;
+                                          sheetError = b['message'] ?? 'نەتوانرا کۆدەکە بنێردرێت';
+                                        });
+                                      }
+                                    } catch (e) {
+                                      setSheetState(() {
+                                        isSubmitting = false;
+                                        sheetError = '${'server_connection_error'.tr()}: $e';
+                                      });
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              elevation: 0,
+                            ),
+                            child: isSubmitting
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                  )
+                                : const Text(
+                                    'ناردنی کۆدی پشتڕاستکردنەوە',
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ] else ...[
+                        // Step 2: OTP, New Password, Confirm Password
+                        Container(
+                          decoration: BoxDecoration(
+                            color: inputBg,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: TextField(
+                            controller: otpController,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            maxLength: 4,
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 12,
+                              color: Color(0xFF2563EB),
+                            ),
+                            decoration: const InputDecoration(
+                              counterText: '',
+                              hintText: '----',
+                              hintStyle: TextStyle(color: Color(0xFF94A3B8), letterSpacing: 8),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // New Password
+                        Container(
+                          decoration: BoxDecoration(
+                            color: inputBg,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: TextField(
+                            controller: newPassController,
+                            obscureText: obscureNew,
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 15,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'وشەی نهێنی نوێ (لایەنی کەم ٦ پیت)',
+                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                              prefixIcon: const Icon(Iconsax.lock, color: Color(0xFF2563EB)),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  obscureNew ? Iconsax.eye_slash : Iconsax.eye,
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                                onPressed: () => setSheetState(() => obscureNew = !obscureNew),
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Confirm Password
+                        Container(
+                          decoration: BoxDecoration(
+                            color: inputBg,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: TextField(
+                            controller: confirmPassController,
+                            obscureText: obscureConfirm,
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 15,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'دووبارەکردنەوەی وشەی نهێنی',
+                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                              prefixIcon: const Icon(Iconsax.lock, color: Color(0xFF2563EB)),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  obscureConfirm ? Iconsax.eye_slash : Iconsax.eye,
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                                onPressed: () => setSheetState(() => obscureConfirm = !obscureConfirm),
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Submit Reset Button
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: isSubmitting
+                                ? null
+                                : () async {
+                                    final otp = otpController.text.trim();
+                                    final pass = newPassController.text;
+                                    final conf = confirmPassController.text;
+
+                                    if (otp.length != 4) {
+                                      setSheetState(() => sheetError = 'تکایە کۆدی ٤ ژمارەیی بنووسە');
+                                      return;
+                                    }
+                                    if (pass.length < 6) {
+                                      setSheetState(() => sheetError = 'وشەی نهێنی دەبێت لانیکەم ٦ پیت بێت');
+                                      return;
+                                    }
+                                    if (pass != conf) {
+                                      setSheetState(() => sheetError = 'وشەی نهێنی لەگەڵ دووبارەکردنەوەکەی یەک ناگرێتەوە');
+                                      return;
+                                    }
+
+                                    setSheetState(() {
+                                      isSubmitting = true;
+                                      sheetError = null;
+                                    });
+
+                                    final messenger = ScaffoldMessenger.of(context);
+
+                                    try {
+                                      final res = await ApiClient.post(
+                                        '/reset-password',
+                                        body: {
+                                          'phone': targetPhone,
+                                          'otp_code': otp,
+                                          'password': pass,
+                                        },
+                                      );
+
+                                      if (res.statusCode == 200) {
+                                        if (ctx.mounted) {
+                                          Navigator.pop(ctx);
+                                        }
+                                        if (!mounted) return;
+                                        _phoneController.text = targetPhone;
+                                        _passwordController.text = pass;
+                                        messenger.showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'وشەی نهێنی بە سەرکەوتوویی نوێکرایەوە. دەتوانیت ئێستا بچیتە ژوورەوە.',
+                                              style: TextStyle(fontFamily: 'Rabar'),
+                                            ),
+                                            backgroundColor: Color(0xFF10B981),
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+                                      } else {
+                                        final b = jsonDecode(res.body);
+                                        setSheetState(() {
+                                          isSubmitting = false;
+                                          sheetError = b['message'] ?? 'هەڵەیەک ڕوویدا لە نوێکردنەوەی وشەی نهێنی';
+                                        });
+                                      }
+                                    } catch (e) {
+                                      setSheetState(() {
+                                        isSubmitting = false;
+                                        sheetError = '${'server_connection_error'.tr()}: $e';
+                                      });
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              elevation: 0,
+                            ),
+                            child: isSubmitting
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                  )
+                                : const Text(
+                                    'نوێکردنەوەی وشەی نهێنی',
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -497,18 +908,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'forgot_password_contact_support'.tr(),
-                                  style: const TextStyle(fontFamily: 'Rabar'),
-                                ),
-                                backgroundColor: const Color(0xFF2563EB),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
+                          onPressed: () => _showForgotPasswordBottomSheet(context),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             minimumSize: const Size(0, 30),

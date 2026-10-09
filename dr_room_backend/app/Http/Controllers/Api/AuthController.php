@@ -19,27 +19,27 @@ class AuthController extends Controller
      */
     private function toIraqPhone(string $localPhone): string
     {
-        return '964' . substr($localPhone, 1);
+        $clean = preg_replace('/[^0-9]/', '', $localPhone);
+        if (str_starts_with($clean, '964')) {
+            return $clean;
+        }
+        if (str_starts_with($clean, '0')) {
+            return '964' . substr($clean, 1);
+        }
+        if (str_starts_with($clean, '7')) {
+            return '964' . $clean;
+        }
+        return $clean;
     }
 
     /**
-     * Generates a 4-digit OTP, stores it on the user, and sends it as a real
-     * SMS via otpiq.com. Returns false (without failing the request) if the
-     * SMS provider rejects the send, so the caller can surface that to the
-     * client instead of leaving them waiting on a code that never arrives.
-     *
-     * When OTP_MANUAL_CODE is set the provider is skipped entirely and that
-     * fixed code is stored instead — the temporary mode used until the SMS
-     * credit is paid for.
-     */
-    /**
-     * Generates a 4-digit OTP, stores it on the user, and sends it via otpiq.com
-     * (supporting WhatsApp, SMS, or auto routing).
+     * Generates a 4-digit OTP, stores it on the user, and sends it via otpiq.com SMS.
+     * Uses customMessage: "فەرموون ئەوەش کۆدی ئۆتیپی {code}"
      *
      * When OTP_MANUAL_CODE is set the provider is skipped entirely and that
      * fixed code is stored instead.
      */
-    private function sendOtp(User $user, string $provider = 'auto', ?string &$errorMessage = null): bool
+    private function sendOtp(User $user, string $provider = 'sms', ?string &$errorMessage = null): bool
     {
         $configuredCode = config('services.otpiq.manual_code');
         $isProduction = app()->environment('production');
@@ -59,20 +59,18 @@ class AuthController extends Controller
             return true;
         }
 
-        $validProviders = ['auto', 'sms', 'whatsapp', 'telegram'];
-        $chosenProvider = in_array(strtolower($provider), $validProviders)
-            ? strtolower($provider)
-            : (config('services.otpiq.provider') ?: 'auto');
+        $apiKey = config('services.otpiq.key') ?: env('OTPIQ_API_KEY');
 
         $payload = [
             'phoneNumber' => $this->toIraqPhone($user->phone),
             'smsType' => 'verification',
-            'provider' => $chosenProvider,
-            'verificationCode' => $otp,
+            'provider' => 'sms',
+            'verificationCode' => (string) $otp,
+            'customMessage' => 'فەرموون ئەوەش کۆدی ئۆتیپی ' . $otp,
         ];
 
         try {
-            $response = Http::withToken(config('services.otpiq.key'))
+            $response = Http::withToken($apiKey)
                 ->timeout(15)
                 ->post('https://api.otpiq.com/api/sms', $payload);
 
@@ -82,7 +80,7 @@ class AuthController extends Controller
                     'status' => $response->status(),
                     'response' => $response->json() ?? $response->body(),
                     'phone' => $this->toIraqPhone($user->phone),
-                    'provider' => $chosenProvider,
+                    'provider' => 'sms',
                 ]);
 
                 if (is_string($rawError) && stripos($rawError, 'trial mode') !== false) {
@@ -95,7 +93,7 @@ class AuthController extends Controller
 
             Log::info('OTPIQ OTP sent successfully', [
                 'phone' => $this->toIraqPhone($user->phone),
-                'provider' => $chosenProvider,
+                'provider' => 'sms',
                 'response' => $response->json(),
             ]);
 
@@ -103,7 +101,7 @@ class AuthController extends Controller
         } catch (\Throwable $e) {
             Log::error('OTPIQ request exception: ' . $e->getMessage(), [
                 'phone' => $this->toIraqPhone($user->phone),
-                'provider' => $chosenProvider,
+                'provider' => 'sms',
             ]);
             $errorMessage = 'نەتوانرا پەیوەندی بە سێرڤەری ناردنی کۆد (OTPIQ) بکرێت.';
             return false;
@@ -562,5 +560,98 @@ class AuthController extends Controller
             return response()->json(['message' => 'هەژمارەکەت بە سەرکەوتوویی سڕایەوە']);
         }
         return response()->json(['message' => 'بەکارهێنەر نەدۆزرایەوە'], 404);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+        ]);
+
+        $phone = $request->phone;
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+        $user = User::where('phone', $phone)
+            ->orWhere('phone', $cleanPhone)
+            ->orWhere('phone', ltrim($cleanPhone, '0'))
+            ->orWhere('phone', '0' . ltrim($cleanPhone, '0'))
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'هیچ هەژمارێک بەم ژمارە مۆبایلە نەدۆزرایەوە'
+            ], 404);
+        }
+
+        if ($user->status === 'blocked') {
+            return response()->json([
+                'message' => 'هەژمارەکەت بلۆک کراوە'
+            ], 403);
+        }
+
+        // Special test accounts
+        if (in_array($user->phone, ['07500000000', '07501112222'])) {
+            $user->otp_code = '1234';
+            $user->otp_expires_at = now()->addYears(1);
+            $user->save();
+            return response()->json([
+                'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
+                'phone' => $user->phone,
+            ]);
+        }
+
+        $otpError = null;
+        if (!$this->sendOtp($user, 'sms', $otpError)) {
+            return response()->json([
+                'message' => $otpError ?: 'نەکرا کۆدەکە بنێردرێت، تکایە دووبارە هەوڵبدەرەوە'
+            ], 502);
+        }
+
+        return response()->json([
+            'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
+            'phone' => $user->phone,
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'otp_code' => 'required|string',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $phone = $request->phone;
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+        $user = User::where('phone', $phone)
+            ->orWhere('phone', $cleanPhone)
+            ->orWhere('phone', ltrim($cleanPhone, '0'))
+            ->orWhere('phone', '0' . ltrim($cleanPhone, '0'))
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'بەکارهێنەر نەدۆزرایەوە'
+            ], 404);
+        }
+
+        // Special test accounts
+        $isTest = in_array($user->phone, ['07500000000', '07501112222']) && $request->otp_code === '1234';
+
+        if (!$isTest) {
+            if (!$user->otp_code || $user->otp_code !== $request->otp_code || now()->gt($user->otp_expires_at)) {
+                return response()->json([
+                    'message' => 'کۆدەکە هەڵەیە یان بەسەرچووە'
+                ], 400);
+            }
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->otp_code = null;
+        $user->otp_expires_at = null;
+        $user->save();
+
+        return response()->json([
+            'message' => 'وشەی نهێنی بە سەرکەوتوویی نوێکرایەوە'
+        ]);
     }
 }
