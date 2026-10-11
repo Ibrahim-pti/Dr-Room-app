@@ -85,7 +85,11 @@ class _LoginScreenState extends State<LoginScreen> {
       _phoneError = phone.isEmpty
           ? 'phone_required'.tr()
           : (!isPhoneValid ? 'phone_invalid'.tr() : null);
-      _passwordError = password.isEmpty ? 'password_required'.tr() : null;
+      _passwordError = password.isEmpty
+          ? 'password_required'.tr()
+          : (RegExp(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]').hasMatch(password)
+              ? 'تکایە وشەی نهێنی تەنها بە پیتی ئینگلیزی بنووسە'
+              : null);
       _formError = null;
     });
 
@@ -669,6 +673,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: TextField(
                             controller: newPassController,
                             obscureText: obscureNew,
+                            keyboardType: TextInputType.visiblePassword,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[a-zA-Z0-9!@#\$%^&*()_+\-=\[\]{};:"|,.<>\/?~`\\ ]'),
+                              ),
+                            ],
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 15,
@@ -702,6 +714,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: TextField(
                             controller: confirmPassController,
                             obscureText: obscureConfirm,
+                            keyboardType: TextInputType.visiblePassword,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[a-zA-Z0-9!@#\$%^&*()_+\-=\[\]{};:"|,.<>\/?~`\\ ]'),
+                              ),
+                            ],
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 15,
@@ -1146,6 +1166,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
+                          keyboardType: TextInputType.visiblePassword,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z0-9!@#\$%^&*()_+\-=\[\]{};:"|,.<>\/?~`\\ ]'),
+                            ),
+                          ],
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 15,

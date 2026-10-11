@@ -130,7 +130,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _phoneError = phone.isEmpty
           ? 'phone_required'.tr()
           : (!isPhoneValid ? 'phone_invalid'.tr() : null);
-      _passwordError = password.isEmpty ? 'password_required'.tr() : null;
+      _passwordError = password.isEmpty
+          ? 'password_required'.tr()
+          : (RegExp(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]').hasMatch(password)
+              ? 'تکایە وشەی نهێنی تەنها بە پیتی ئینگلیزی بنووسە'
+              : null);
       _confirmPasswordError = confirmPassword.isEmpty
           ? 'confirm_password_required'.tr()
           : (password != confirmPassword ? 'passwords_do_not_match'.tr() : null);
@@ -598,6 +602,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
+                          keyboardType: TextInputType.visiblePassword,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z0-9!@#\$%^&*()_+\-=\[\]{};:"|,.<>\/?~`\\ ]'),
+                            ),
+                          ],
                           onChanged: (_) {
                             setState(() {
                               if (_passwordError != null) _passwordError = null;
@@ -684,6 +696,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: TextField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirmPassword,
+                          keyboardType: TextInputType.visiblePassword,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z0-9!@#\$%^&*()_+\-=\[\]{};:"|,.<>\/?~`\\ ]'),
+                            ),
+                          ],
                           onChanged: (_) {
                             if (_confirmPasswordError != null) {
                               setState(() => _confirmPasswordError = null);
