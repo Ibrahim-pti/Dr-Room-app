@@ -57,7 +57,7 @@ class RasediCheckoutScreen extends StatefulWidget {
 class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
   final RasediPaymentService _service = RasediPaymentService.instance;
 
-  WebViewController? _webViewController;
+  late final WebViewController _controller;
   String? _referenceCode;
   String? _redirectUrl;
   bool _isInitializing = true;
@@ -69,6 +69,45 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.white)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            if (mounted) setState(() => _isLoadingPage = true);
+            _handleUrlInterception(url);
+          },
+          onPageFinished: (String url) {
+            if (mounted) setState(() => _isLoadingPage = false);
+            _handleUrlInterception(url);
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            final url = request.url;
+
+            // Don't treat internal webview URLs or about:blank as external apps!
+            if (url.startsWith('about:') || url.startsWith('javascript:')) {
+              return NavigationDecision.navigate;
+            }
+
+            // Handle external banking apps (e.g. fib://, fastpay://, intent://)
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+              _launchExternalUrl(url);
+              return NavigationDecision.prevent;
+            }
+
+            if (_handleUrlInterception(url)) {
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },
+          onWebResourceError: (WebResourceError error) {
+            debugPrint('WebView Error: ${error.description}');
+          },
+        ),
+      );
+
     _createSession();
   }
 
@@ -140,132 +179,12 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
       );
 
       _referenceCode = responseBody.referenceCode;
-      var targetUrl = responseBody.redirectUrl;
+      _redirectUrl = responseBody.redirectUrl;
 
-      // Localize Rasedi checkout url according to app language
-      if (mounted) {
-        final langCode =
-            Localizations.localeOf(context).languageCode.toLowerCase();
-        final rasediLang =
-            (langCode == 'ar') ? 'ar' : (langCode == 'en' ? 'en' : 'ku');
-        if (targetUrl.contains('checkout.rasedi.com/pay/')) {
-          targetUrl = targetUrl.replaceFirst(
-            'checkout.rasedi.com/pay/',
-            'checkout.rasedi.com/$rasediLang/pay/',
-          );
-        }
-      }
-      _redirectUrl = targetUrl;
-
-      final cleanPhone =
-          widget.customerPhone?.replaceAll(RegExp(r'[^0-9]'), '') ?? '';
-      final phoneForInput = cleanPhone.startsWith('964')
-          ? cleanPhone.substring(3)
-          : (cleanPhone.startsWith('0') ? cleanPhone.substring(1) : cleanPhone);
-
-      final controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setBackgroundColor(Colors.white)
-        ..setNavigationDelegate(
-          NavigationDelegate(
-            onHttpAuthRequest: (HttpAuthRequest request) {
-              // Proceed with authentication to prevent WKNavigationDelegate assertions
-              request.onProceed(const WebViewCredential(user: '', password: ''));
-            },
-            onPageStarted: (String url) {
-              if (mounted) setState(() => _isLoadingPage = true);
-              _handleUrlInterception(url);
-            },
-            onPageFinished: (String url) {
-              if (mounted) setState(() => _isLoadingPage = false);
-              _handleUrlInterception(url);
-
-              // Inject clean style to hide clutter and auto-fill phone number
-              _webViewController?.runJavaScript('''
-                (function() {
-                  function cleanCheckoutUI() {
-                    // 1. Hide theme and language icons
-                    document.querySelectorAll('button[aria-label="Toggle theme"], button[aria-label="Change language"], button[title="Toggle theme"], button[title="Change language"]').forEach(el => el.style.display = 'none');
-
-                    // 2. Hide promo code buttons
-                    document.querySelectorAll('button, div').forEach(el => {
-                      const text = el.innerText || '';
-                      if (text.includes('promotion code') || text.includes('کۆدی داشکاندن') || text.includes('پڕۆمۆ') || text.includes('Promo')) {
-                        el.style.display = 'none';
-                      }
-                    });
-
-                    // 3. Hide redundant merchant card
-                    document.querySelectorAll('div').forEach(el => {
-                      const text = el.innerText || '';
-                      if (text.includes('DrRoom') && (text.includes('nursing') || text.includes('دانانی کانیۆلا') || text.includes('پشکنین') || text.includes('دەرمان'))) {
-                        el.style.display = 'none';
-                      }
-                    });
-
-                    // 4. Hide service fee text
-                    document.querySelectorAll('div, p, span').forEach(el => {
-                      const text = el.innerText || '';
-                      if (text.includes('Service fee will be paid') || text.includes('کرێی خزمەتگوزاری')) {
-                        el.style.display = 'none';
-                      }
-                    });
-
-                    // 5. Hide footer
-                    document.querySelectorAll('footer, div, p').forEach(el => {
-                      const text = el.innerText || '';
-                      if (text.includes('Powered by') || text.includes('Terms and Conditions') || text.includes('پشتگیریکراو لەلایەن')) {
-                        el.style.display = 'none';
-                      }
-                    });
-
-                    // 6. Pre-fill phone number if available
-                    if ('$phoneForInput'.length >= 7) {
-                      const input = document.querySelector('input[type="tel"]') || document.querySelector('input[placeholder*="9988574"]') || document.querySelector('input[name*="phone"]');
-                      if (input && !input.value) {
-                        input.value = '$phoneForInput';
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                        input.dispatchEvent(new Event('change', { bubbles: true }));
-                      }
-                    }
-                  }
-
-                  cleanCheckoutUI();
-                  const obs = new MutationObserver(cleanCheckoutUI);
-                  obs.observe(document.body, { childList: true, subtree: true });
-                })();
-              ''');
-            },
-            onNavigationRequest: (NavigationRequest request) {
-              final url = request.url;
-
-              // Don't treat internal webview URLs or about:blank as external apps!
-              if (url.startsWith('about:') || url.startsWith('javascript:')) {
-                return NavigationDecision.navigate;
-              }
-
-              // Handle external banking apps (e.g. fib://, fastpay://, intent://)
-              if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                _launchExternalUrl(url);
-                return NavigationDecision.prevent;
-              }
-
-              if (_handleUrlInterception(url)) {
-                return NavigationDecision.prevent;
-              }
-
-              return NavigationDecision.navigate;
-            },
-            onWebResourceError: (WebResourceError error) {
-              debugPrint('WebView Error: ${error.description}');
-            },
-          ),
-        )
-        ..loadRequest(Uri.parse(_redirectUrl!));
+      await _controller.loadRequest(Uri.parse(_redirectUrl!));
 
       if (mounted) {
         setState(() {
-          _webViewController = controller;
           _isInitializing = false;
         });
       }
@@ -585,10 +504,6 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
       );
     }
 
-    if (_webViewController != null) {
-      return WebViewWidget(controller: _webViewController!);
-    }
-
-    return const SizedBox.shrink();
+    return WebViewWidget(controller: _controller);
   }
 }
