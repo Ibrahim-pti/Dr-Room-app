@@ -900,5 +900,14 @@
   "onboarding_page3_title": "مختبر وفحوصات طبية منزلية",
   "onboarding_page3_subtitle": "إجراء الفحوصات المخبرية في المنزل بأعلى دقة واستلام النتائج رقمياً.",
   "next_btn": "التالي",
-  "get_started_btn": "ابدأ الآن"
+  "get_started_btn": "ابدأ الآن",
+  "payment_cash": "نقداً",
+  "payment_fib": "FIB",
+  "payment_fastpay": "FastPay",
+  "payment_zaincash": "ZainCash",
+  "payment_qicard": "Qi Card",
+  "select_payment_method": "اختر طريقة الدفع",
+  "select_payment_method_desc": "يرجى اختيار إحدى الطرق لإتمام طلبك",
+  "trusted_payment_methods": "طرق الدفع المعتمدة",
+  "continue_btn": "متابعة"
 }

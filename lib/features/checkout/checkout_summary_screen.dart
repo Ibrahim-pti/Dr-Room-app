@@ -3,6 +3,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'order_success_screen.dart';
 import '../../core/providers/order_provider.dart';
 import '../../core/providers/checkout_provider.dart';
@@ -284,7 +285,11 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                   Consumer<CheckoutProvider>(
                     builder: (context, checkoutProvider, child) {
                       final method = checkoutProvider.selectedPaymentMethod;
-                      final bool isCash = method == 'Cash on Delivery' || method == 'کاش لەکاتی وەرگرتن' || method == 'کاش لەکاتی وەرگرتندا';
+                      final bool isCash = method == 'Cash on Delivery' ||
+                          method == 'کاش لەکاتی وەرگرتن' ||
+                          method == 'کاش لەکاتی وەرگرتندا' ||
+                          method == 'کاش' ||
+                          method.toLowerCase().contains('cash');
 
                       return Container(
                         padding: const EdgeInsets.all(16),
@@ -314,7 +319,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isCash ? 'کاش لەکاتی وەرگرتن' : method,
+                                    isCash ? 'payment_cash'.tr() : method,
                                     style: _kStyle(
                                       color: isDark ? Colors.white : const Color(0xFF0F172A),
                                       fontSize: 14.5,

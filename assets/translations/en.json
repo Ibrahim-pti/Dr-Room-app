@@ -900,5 +900,14 @@
   "onboarding_page3_title": "Lab & Home Medical Tests",
   "onboarding_page3_subtitle": "Perform medical lab tests at home with top quality and receive digital results instantly.",
   "next_btn": "Next",
-  "get_started_btn": "Get Started"
+  "get_started_btn": "Get Started",
+  "payment_cash": "Cash",
+  "payment_fib": "FIB",
+  "payment_fastpay": "FastPay",
+  "payment_zaincash": "ZainCash",
+  "payment_qicard": "Qi Card",
+  "select_payment_method": "Select Payment Method",
+  "select_payment_method_desc": "Please select one of these methods to complete your order",
+  "trusted_payment_methods": "Trusted Payment Methods",
+  "continue_btn": "Continue"
 }

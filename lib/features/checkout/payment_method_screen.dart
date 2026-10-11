@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/providers/checkout_provider.dart';
 import 'checkout_summary_screen.dart';
 
@@ -65,7 +66,7 @@ class PaymentMethodScreen extends StatelessWidget {
           ),
         ),
         title: Text(
-          'شێوازی پارەدان',
+          'payment_method'.tr(),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 17,
@@ -102,14 +103,14 @@ class PaymentMethodScreen extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
+                            const Icon(
                               Iconsax.card_tick,
                               color: Color(0xFF3B82F6),
                               size: 14,
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'شێوازە باوەڕپێکراوەکانی پارەدان',
+                              'trusted_payment_methods'.tr(),
                               style: _kStyle(
                                 color: const Color(0xFF2563EB),
                                 fontSize: 11.5,
@@ -122,7 +123,7 @@ class PaymentMethodScreen extends StatelessWidget {
                       const SizedBox(height: 10),
 
                       Text(
-                        'شێوازی پارەدان دیاری بکە',
+                        'select_payment_method'.tr(),
                         style: _kStyle(
                           color: isDark
                               ? Colors.white
@@ -133,32 +134,30 @@ class PaymentMethodScreen extends StatelessWidget {
                       ).animate().fadeIn(delay: 50.ms),
                       const SizedBox(height: 4),
                       Text(
-                        'تکایە یەکێک لەم شێوازانە هەڵبژێرە بۆ تەواوکردنی داواکارییەکەت',
+                        'select_payment_method_desc'.tr(),
                         style: _kStyle(
-                          color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                          color: (Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B)),
                           fontSize: 13,
                         ),
                       ).animate().fadeIn(delay: 100.ms),
                       const SizedBox(height: 20),
 
-                      // ── Option 1: Cash on Delivery ──
+                      // ── Option 1: Cash ──
                       _buildPaymentOption(
                         context: context,
                         cardBg: cardBg,
                         borderColor: borderColor,
                         isDark: isDark,
-                        title: 'کاش لەکاتی وەرگرتندا',
-                        subtitle: 'پارەدان بە کاش لە کاتی ئەنجامدانی پشکنین',
-                        badgeText: 'پارەدانی دەستی',
-                        badgeColor: const Color(0xFF10B981),
-                        icon: Iconsax.wallet_2,
-                        iconBgGradient: const [
-                          Color(0xFF10B981),
-                          Color(0xFF059669),
-                        ],
+                        title: 'payment_cash'.tr(),
+                        imageAsset: 'assets/images/cash_logo.png',
+                        fallbackIcon: Iconsax.wallet_2,
                         isSelected:
                             selectedMethod == 'Cash on Delivery' ||
-                            selectedMethod == 'کاش لەکاتی وەرگرتندا',
+                            selectedMethod == 'کاش لەکاتی وەرگرتندا' ||
+                            selectedMethod == 'کاش' ||
+                            selectedMethod.toLowerCase().contains('cash'),
                         onTap: () => checkoutProvider.selectPaymentMethod(
                           'Cash on Delivery',
                         ),
@@ -171,21 +170,14 @@ class PaymentMethodScreen extends StatelessWidget {
                         cardBg: cardBg,
                         borderColor: borderColor,
                         isDark: isDark,
-                        title: 'فایب بانک (FIB)',
-                        subtitle:
-                            'پارەدانی ڕاستەوخۆ بە هەژماری First Iraqi Bank',
-                        badgeText: 'خێرا و ئۆنلاین',
-                        badgeColor: const Color(0xFF2563EB),
-                        icon: Iconsax.bank,
-                        iconBgGradient: const [
-                          Color(0xFF3B82F6),
-                          Color(0xFF1D4ED8),
-                        ],
+                        title: 'payment_fib'.tr(),
+                        imageAsset: 'assets/images/fib_logo.png',
+                        fallbackIcon: Iconsax.bank,
                         isSelected:
                             selectedMethod == 'FIB (First Iraqi Bank)' ||
                             selectedMethod == 'FIB',
                         onTap: () => checkoutProvider.selectPaymentMethod(
-                          'FIB (First Iraqi Bank)',
+                          'FIB',
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -196,15 +188,9 @@ class PaymentMethodScreen extends StatelessWidget {
                         cardBg: cardBg,
                         borderColor: borderColor,
                         isDark: isDark,
-                        title: 'فاستپەی (FastPay)',
-                        subtitle: 'پارەدانی پارێزراو لە ڕێگەی جزدانی فاستپەی',
-                        badgeText: 'ئەلیكترۆنی',
-                        badgeColor: const Color(0xFFEC4899),
-                        icon: Iconsax.scan_barcode,
-                        iconBgGradient: const [
-                          Color(0xFFEC4899),
-                          Color(0xFFDB2777),
-                        ],
+                        title: 'payment_fastpay'.tr(),
+                        imageAsset: 'assets/images/fastpay_icon.png',
+                        fallbackIcon: Iconsax.scan_barcode,
                         isSelected: selectedMethod == 'FastPay',
                         onTap: () =>
                             checkoutProvider.selectPaymentMethod('FastPay'),
@@ -217,37 +203,24 @@ class PaymentMethodScreen extends StatelessWidget {
                         cardBg: cardBg,
                         borderColor: borderColor,
                         isDark: isDark,
-                        title: 'زەین کاش (ZainCash)',
-                        subtitle:
-                            'پارەدان لە ڕێگەی ژمارە مۆبایل و ئەپی ZainCash',
-                        badgeText: 'ئەلیكترۆنی',
-                        badgeColor: const Color(0xFF8B5CF6),
-                        icon: Iconsax.mobile,
-                        iconBgGradient: const [
-                          Color(0xFF8B5CF6),
-                          Color(0xFF7C3AED),
-                        ],
+                        title: 'payment_zaincash'.tr(),
+                        imageAsset: 'assets/images/zaincash_icon.png',
+                        fallbackIcon: Iconsax.mobile,
                         isSelected: selectedMethod == 'ZainCash',
                         onTap: () =>
                             checkoutProvider.selectPaymentMethod('ZainCash'),
                       ),
                       const SizedBox(height: 12),
 
-                      // ── Option 5: Qi Card / Credit Card ──
+                      // ── Option 5: Qi Card ──
                       _buildPaymentOption(
                         context: context,
                         cardBg: cardBg,
                         borderColor: borderColor,
                         isDark: isDark,
-                        title: 'کی کارد و ماستەرکارت / ڤیزا (Qi Card)',
-                        subtitle: 'پارەدانی ڕاستەوخۆ بە کی کارد یان کارتی بانکی',
-                        badgeText: 'کی کارد',
-                        badgeColor: const Color(0xFFF59E0B),
-                        icon: Iconsax.card,
-                        iconBgGradient: const [
-                          Color(0xFFF59E0B),
-                          Color(0xFFD97706),
-                        ],
+                        title: 'payment_qicard'.tr(),
+                        imageAsset: 'assets/images/qicard_logo.png',
+                        fallbackIcon: Iconsax.card,
                         isSelected:
                             selectedMethod == 'Qi Card' ||
                             selectedMethod == 'Qi Card (کی کارد)' ||
@@ -304,7 +277,7 @@ class PaymentMethodScreen extends StatelessWidget {
                       ),
                       child: Center(
                         child: Text(
-                          'بەردەوامبوون',
+                          'continue_btn'.tr(),
                           textAlign: TextAlign.center,
                           style: _kStyle(
                             fontSize: 16,
@@ -330,11 +303,8 @@ class PaymentMethodScreen extends StatelessWidget {
     required Color borderColor,
     required bool isDark,
     required String title,
-    required String subtitle,
-    required String badgeText,
-    required Color badgeColor,
-    required IconData icon,
-    required List<Color> iconBgGradient,
+    required String imageAsset,
+    required IconData fallbackIcon,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
@@ -342,13 +312,15 @@ class PaymentMethodScreen extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEFF6FF) : cardBg,
+          color: isSelected
+              ? (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.25) : const Color(0xFFEFF6FF))
+              : cardBg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? const Color(0xFF3B82F6) : borderColor,
-            width: isSelected ? 1.5 : 1,
+            width: isSelected ? 1.8 : 1,
           ),
           boxShadow: [
             BoxShadow(
@@ -362,78 +334,58 @@ class PaymentMethodScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Icon with Gradient
+            // Official Icon / Logo Container
             Container(
-              width: 46,
-              height: 46,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: iconBgGradient,
-                ),
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                  width: 0.8,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: iconBgGradient.first.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: Icon(icon, color: Colors.white, size: 22),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(13),
+                child: Image.asset(
+                  imageAsset,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                    child: Icon(
+                      fallbackIcon,
+                      color: const Color(0xFF3B82F6),
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(width: 14),
 
-            // Title & Subtitle
+            // Short Main Title
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          title,
-                          style: _kStyle(
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: badgeColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          badgeText,
-                          style: _kStyle(
-                            color: badgeColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    style: _kStyle(
-                      color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                      fontSize: 11.5,
-                    ),
-                  ),
-                ],
+              child: Text(
+                title,
+                style: _kStyle(
+                  color: isDark
+                      ? Colors.white
+                      : const Color(0xFF0F172A),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
 
