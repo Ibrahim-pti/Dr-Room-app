@@ -655,6 +655,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       return 'FIB بانکی یەکەمی عێراق';
     } else if (lower.contains('zain')) {
       return 'Zain Cash';
+    } else if (lower.contains('qi') || lower.contains('card') || lower.contains('stripe')) {
+      return 'کی کارد / کارتی بانکی';
     }
     return raw;
   }

@@ -38,6 +38,33 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
     final cartState = ref.read(cartProvider);
     if (cartState.items.isEmpty || cartState.pharmacy == null) return;
 
+    final gateway = RasediPaymentService.mapMethodToGateway(_selectedPaymentMethod);
+    String? transactionRef;
+
+    if (gateway != null) {
+      final result = await RasediCheckoutScreen.startPayment(
+        context,
+        amount: cartState.total,
+        title: 'DrRoom - داواکاری دەرمانخانە',
+        description: cartState.items.map((item) => item.medication.name).join('، '),
+        gateway: gateway,
+        customerPhone: widget.phone,
+      );
+
+      if (result == null || !result.isSuccess) {
+        if (mounted && result?.isCancelled != true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result?.errorMessage ?? 'پرۆسەی پارەدان تەواو نەکرا'),
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+          );
+        }
+        return;
+      }
+      transactionRef = result.referenceCode;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -49,6 +76,8 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
         'extra_fee': cartState.pharmacy!.deliveryFee,
         'total_price': cartState.total,
         'payment_method': _selectedPaymentMethod,
+        'transaction_reference': transactionRef,
+        'payment_status': transactionRef != null ? 'paid' : 'pending',
         'assigned_pharmacy_id': cartState.pharmacy!.id,
         'pharmacy_id': cartState.pharmacy!.id,
         'patient_details': {
@@ -194,7 +223,6 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cartState = ref.watch(cartProvider);
 
     return Scaffold(
@@ -263,13 +291,14 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Select Payment Method', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF111827))),
+                  Text('شێوازی پارەدان هەڵبژێرە', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF111827))),
                   const SizedBox(height: 12),
                   
-                  _buildPaymentOption('cash', 'Cash on Delivery', Iconsax.wallet_3_copy, 'Pay when you receive your order'),
-                  _buildPaymentOption('card', 'Credit / Debit Card', Iconsax.card_copy, 'Visa, Mastercard & more'),
-                  _buildPaymentOption('wallet', 'Digital Wallet', Iconsax.wallet_2_copy, 'Fast and secure payment'),
-                  _buildPaymentOption('bank', 'Bank Transfer', Iconsax.bank_copy, 'Transfer directly from your bank'),
+                  _buildPaymentOption('cash', 'کاش لەکاتی وەرگرتن (Cash)', Iconsax.wallet_3_copy, 'پارەدان بە دەست لەکاتی گەیشتنی دەرمانەکان'),
+                  _buildPaymentOption('fib', 'فایب بانک (FIB)', Iconsax.bank_copy, 'پارەدانی ڕاستەوخۆ لە ڕێگەی First Iraqi Bank'),
+                  _buildPaymentOption('fastpay', 'فاستپەی (FastPay)', Iconsax.wallet_2_copy, 'پارەدانی پارێزراو لە ڕێگەی جزدانی FastPay'),
+                  _buildPaymentOption('zaincash', 'زەین کاش (ZainCash)', Iconsax.mobile, 'پارەدان لە ڕێگەی ئەپ و جزدانی ZainCash'),
+                  _buildPaymentOption('qi_card', 'کی کارد و ماستەرکارت / ڤیزا (Qi Card)', Iconsax.card_copy, 'پارەدانی ڕاستەوخۆ بە کی کارد یان کارتی بانکی'),
                   
                   const SizedBox(height: 24),
                   Text('Payment Summary', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF111827))),

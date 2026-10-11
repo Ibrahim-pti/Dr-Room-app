@@ -429,7 +429,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                   id: orderId,
                                   serviceType: serviceName,
                                   customTitle: itemsStr.isEmpty ? null : itemsStr,
-                                  status: transactionRef != null ? OrderStatus.confirmed : OrderStatus.pending,
+                                  status: transactionRef != null ? OrderStatus.processing : OrderStatus.pending,
                                   price: cartProvider.total,
                                   date: DateTime.now(),
                                 ));
