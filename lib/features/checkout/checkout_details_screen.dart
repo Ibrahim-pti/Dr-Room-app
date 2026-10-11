@@ -34,7 +34,8 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   bool _hasSubmitted = false;
 
   bool _isLoadingLocation = false;
-  String _locationDetails = 'هەولێر، شەقامی ٦٠ مەتری';
+  bool _isLoadingAddress = false;
+  String _locationDetails = 'دیاریکردنی شوێن...';
 
   GoogleMapController? _mapController;
   LatLng? _currentLatLng;
@@ -122,32 +123,15 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         );
       }
 
-      try {
-        final geo.Geocoding geocoder = geo.Geocoding();
-        List<geo.Placemark> placemarks = await geocoder
-            .placemarkFromCoordinates(position.latitude, position.longitude)
-            .timeout(const Duration(seconds: 10));
-
-        if (placemarks.isNotEmpty) {
-          geo.Placemark place = placemarks[0];
-          if (mounted) {
-            final formatted = _formatAddress(place);
-            setState(() {
-              _locationDetails = formatted;
-              _addressController.text = formatted;
-            });
-          }
-        }
-      } catch (e) {
-        if (mounted) {
+      await _updateAddressFromLatLng(LatLng(position.latitude, position.longitude));
+    } catch (e) {
+      if (mounted) {
+        if (_locationDetails == 'دیاریکردنی شوێن...') {
           setState(() {
-            _locationDetails = 'هەولێر، شەقامی ٦٠ مەتری';
+            _locationDetails = 'هەولێر';
             _addressController.text = _locationDetails;
           });
         }
-      }
-    } catch (e) {
-      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -172,6 +156,12 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   }
 
   Future<void> _updateAddressFromLatLng(LatLng point) async {
+    if (mounted) {
+      setState(() {
+        _isLoadingAddress = true;
+      });
+    }
+
     try {
       final geo.Geocoding geocoder = geo.Geocoding();
       List<geo.Placemark> placemarks = await geocoder
@@ -181,35 +171,39 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
       if (placemarks.isNotEmpty) {
         geo.Placemark place = placemarks[0];
         if (mounted) {
-          final formatted = _formatAddress(place);
+          final formatted = _formatAddress(place, point);
           setState(() {
             _locationDetails = formatted;
             _addressController.text = formatted;
           });
         }
+      } else {
+        if (mounted) {
+          final fallback = 'شوێنی دیاریکراو (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})';
+          setState(() {
+            _locationDetails = fallback;
+            _addressController.text = fallback;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
+        final fallback = 'شوێنی دیاریکراو (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})';
         setState(() {
-          _locationDetails = 'هەولێر، شەقامی ٦٠ مەتری';
-          _addressController.text = _locationDetails;
+          _locationDetails = fallback;
+          _addressController.text = fallback;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingAddress = false;
         });
       }
     }
   }
 
-  String _formatAddress(geo.Placemark place) {
-    final country = place.country ?? '';
-    final locality = place.locality ?? '';
-    final adminArea = place.administrativeArea ?? '';
-
-    // Emulator / US fallback
-    if (country.toLowerCase().contains('united states') ||
-        locality.toLowerCase().contains('mountain view') ||
-        adminArea.toLowerCase().contains('california')) {
-      return 'هەولێر، شەقامی ٦٠ مەتری، نزیک فلان';
-    }
-
+  String _formatAddress(geo.Placemark place, [LatLng? point]) {
     final Map<String, String> translationMap = {
       'erbil': 'هەولێر',
       'hawler': 'هەولێر',
@@ -227,47 +221,74 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
       'ave': 'شەقام',
       'avenue': 'شەقام',
       'st': 'شەقام',
+      'district': 'گەڕەک',
+      'city': 'شار',
     };
 
-    List<String> parts = [];
-    if (place.street != null &&
-        place.street!.isNotEmpty &&
-        !place.street!.contains('+') &&
-        !place.street!.toLowerCase().contains('unnamed')) {
-      String st = place.street!;
+    String translate(String input) {
+      String result = input;
       for (final entry in translationMap.entries) {
-        st = st.replaceAll(
-          RegExp(entry.key, caseSensitive: false),
+        result = result.replaceAll(
+          RegExp(r'\b' + entry.key + r'\b', caseSensitive: false),
           entry.value,
         );
       }
-      parts.add(st);
-    }
-    if (place.subLocality != null && place.subLocality!.isNotEmpty) {
-      String sub = place.subLocality!;
-      for (final entry in translationMap.entries) {
-        sub = sub.replaceAll(
-          RegExp(entry.key, caseSensitive: false),
-          entry.value,
-        );
-      }
-      parts.add(sub);
-    }
-    if (place.locality != null && place.locality!.isNotEmpty) {
-      String loc = place.locality!;
-      for (final entry in translationMap.entries) {
-        loc = loc.replaceAll(
-          RegExp(entry.key, caseSensitive: false),
-          entry.value,
-        );
-      }
-      parts.add(loc);
+      return result;
     }
 
-    if (parts.isEmpty) {
-      return 'هەولێر، شەقامی ٦٠ مەتری';
+    List<String> parts = [];
+
+    // Street or place name
+    if (place.street != null &&
+        place.street!.trim().isNotEmpty &&
+        !place.street!.contains('+') &&
+        !place.street!.toLowerCase().contains('unnamed')) {
+      parts.add(translate(place.street!.trim()));
+    } else if (place.name != null &&
+        place.name!.trim().isNotEmpty &&
+        !place.name!.contains('+') &&
+        !place.name!.toLowerCase().contains('unnamed')) {
+      parts.add(translate(place.name!.trim()));
     }
-    return parts.toSet().toList().join('، ');
+
+    // Sublocality (neighborhood / quarter)
+    if (place.subLocality != null &&
+        place.subLocality!.trim().isNotEmpty &&
+        !parts.contains(place.subLocality!.trim())) {
+      parts.add(translate(place.subLocality!.trim()));
+    }
+
+    // Locality (city)
+    if (place.locality != null &&
+        place.locality!.trim().isNotEmpty &&
+        !parts.contains(place.locality!.trim())) {
+      parts.add(translate(place.locality!.trim()));
+    }
+
+    // Administrative Area
+    if (place.administrativeArea != null &&
+        place.administrativeArea!.trim().isNotEmpty &&
+        !parts.contains(place.administrativeArea!.trim())) {
+      parts.add(translate(place.administrativeArea!.trim()));
+    }
+
+    // Country
+    if (place.country != null &&
+        place.country!.trim().isNotEmpty &&
+        !parts.contains(place.country!.trim())) {
+      parts.add(translate(place.country!.trim()));
+    }
+
+    final uniqueParts = parts.where((p) => p.isNotEmpty).toSet().toList();
+
+    if (uniqueParts.isEmpty) {
+      if (point != null) {
+        return 'شوێنی دیاریکراو (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})';
+      }
+      return 'شوێنی دیاریکراو';
+    }
+
+    return uniqueParts.join('، ');
   }
 
   void _submitForm() {
@@ -582,15 +603,42 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
-                                _locationDetails,
-                                style: _kStyle(
-                                  fontSize: 12.5,
-                                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                              child: _isLoadingAddress
+                                  ? Row(
+                                      children: [
+                                        const SizedBox(
+                                          width: 12,
+                                          height: 12,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                              Color(0xFF3B82F6),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'دیاریکردنی ناونیشان...',
+                                          style: _kStyle(
+                                            fontSize: 12.5,
+                                            color: const Color(0xFF3B82F6),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Text(
+                                      _locationDetails,
+                                      style: _kStyle(
+                                        fontSize: 12.5,
+                                        color: (Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? const Color(0xFFCBD5E1)
+                                            : const Color(0xFF475569)),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                             ),
                           ],
                         ),
@@ -633,6 +681,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                   setState(() {
                                     _currentLatLng = location;
                                   });
+                                  _mapController?.animateCamera(
+                                    CameraUpdate.newLatLng(location),
+                                  );
                                   _updateAddressFromLatLng(location);
                                 },
                                 markers: _currentLatLng != null
@@ -642,6 +693,13 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                             'selected_location',
                                           ),
                                           position: _currentLatLng!,
+                                          draggable: true,
+                                          onDragEnd: (LatLng newPosition) {
+                                            setState(() {
+                                              _currentLatLng = newPosition;
+                                            });
+                                            _updateAddressFromLatLng(newPosition);
+                                          },
                                           icon:
                                               BitmapDescriptor.defaultMarkerWithHue(
                                                 BitmapDescriptor.hueRed,

@@ -85,8 +85,6 @@ class _PharmacyCheckoutScreenState
     } catch (e) {
       if (mounted) {
         setState(() {
-          _addressText = 'هەولێر، شەقامی ٦٠ مەتری، نزیک فلان';
-          _addressController.text = _addressText;
           _isLoadingLocation = false;
         });
       }
@@ -108,25 +106,61 @@ class _PharmacyCheckoutScreenState
 
       if (placemarks.isNotEmpty) {
         geo.Placemark place = placemarks[0];
-        final country = place.country ?? '';
-        final locality = place.locality ?? '';
-        final adminArea = place.administrativeArea ?? '';
+        final Map<String, String> translationMap = {
+          'erbil': 'هەولێر',
+          'hawler': 'هەولێر',
+          'arbil': 'هەولێر',
+          'sulaymaniyah': 'سلێمانی',
+          'slemani': 'سلێمانی',
+          'duhok': 'دهۆک',
+          'dohuk': 'دهۆک',
+          'kirkuk': 'کەرکووک',
+          'baghdad': 'بەغدا',
+          'iraq': 'عێراق',
+          'kurdistan': 'کوردستان',
+          'street': 'شەقام',
+          'road': 'ڕێگا',
+          'ave': 'شەقام',
+          'avenue': 'شەقام',
+          'st': 'شەقام',
+          'district': 'گەڕەک',
+          'city': 'شار',
+        };
 
-        String formatted = 'هەولێر، شەقامی ٦٠ مەتری';
-        if (country.toLowerCase().contains('united states') ||
-            locality.toLowerCase().contains('mountain view') ||
-            adminArea.toLowerCase().contains('california')) {
-          formatted = 'هەولێر، شەقامی ٦٠ مەتری، نزیک فلان';
-        } else {
-          List<String> parts = [];
-          if (place.street != null && place.street!.isNotEmpty && !place.street!.contains('+')) {
-            parts.add(place.street!);
+        String translate(String input) {
+          String res = input;
+          for (final entry in translationMap.entries) {
+            res = res.replaceAll(
+              RegExp(r'\b' + entry.key + r'\b', caseSensitive: false),
+              entry.value,
+            );
           }
-          if (place.locality != null && place.locality!.isNotEmpty) {
-            parts.add(place.locality!);
-          }
-          if (parts.isNotEmpty) formatted = parts.join('، ');
+          return res;
         }
+
+        List<String> parts = [];
+        if (place.street != null && place.street!.trim().isNotEmpty && !place.street!.contains('+') && !place.street!.toLowerCase().contains('unnamed')) {
+          parts.add(translate(place.street!.trim()));
+        } else if (place.name != null && place.name!.trim().isNotEmpty && !place.name!.contains('+') && !place.name!.toLowerCase().contains('unnamed')) {
+          parts.add(translate(place.name!.trim()));
+        }
+        if (place.subLocality != null && place.subLocality!.trim().isNotEmpty && !parts.contains(place.subLocality!.trim())) {
+          parts.add(translate(place.subLocality!.trim()));
+        }
+        if (place.locality != null && place.locality!.trim().isNotEmpty && !parts.contains(place.locality!.trim())) {
+          parts.add(translate(place.locality!.trim()));
+        }
+        if (place.administrativeArea != null && place.administrativeArea!.trim().isNotEmpty && !parts.contains(place.administrativeArea!.trim())) {
+          parts.add(translate(place.administrativeArea!.trim()));
+        }
+        if (place.country != null && place.country!.trim().isNotEmpty && !parts.contains(place.country!.trim())) {
+          parts.add(translate(place.country!.trim()));
+        }
+
+        final unique = parts.where((p) => p.isNotEmpty).toSet().toList();
+        final formatted = unique.isNotEmpty
+            ? unique.join('، ')
+            : 'شوێنی دیاریکراو (${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)})';
 
         if (mounted) {
           setState(() {
@@ -135,12 +169,22 @@ class _PharmacyCheckoutScreenState
             _isLoadingLocation = false;
           });
         }
+      } else {
+        if (mounted) {
+          final fallback = 'شوێنی دیاریکراو (${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)})';
+          setState(() {
+            _addressText = fallback;
+            _addressController.text = fallback;
+            _isLoadingLocation = false;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
+        final fallback = 'شوێنی دیاریکراو (${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)})';
         setState(() {
-          _addressText = 'هەولێر، شەقامی ٦٠ مەتری';
-          _addressController.text = _addressText;
+          _addressText = fallback;
+          _addressController.text = fallback;
           _isLoadingLocation = false;
         });
       }
