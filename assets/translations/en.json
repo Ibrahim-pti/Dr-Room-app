@@ -909,5 +909,16 @@
   "select_payment_method": "Select Payment Method",
   "select_payment_method_desc": "Please select one of these methods to complete your order",
   "trusted_payment_methods": "Trusted Payment Methods",
-  "continue_btn": "Continue"
+  "continue_btn": "Continue",
+  "order_summary_title": "Order & Payment Summary",
+  "order_review_desc": "Please review your details before completing the order",
+  "service_type": "Service Type",
+  "applicant_name": "Applicant Name",
+  "selected_specialist": "Selected Specialist",
+  "tests_count": "Tests",
+  "tests_price": "Tests Price",
+  "home_visit_fee": "Home Visit Fee",
+  "selected_payment_method_label": "Selected Payment Method",
+  "cash_delivery_desc": "Cash payment upon visit or sample collection",
+  "online_payment_desc": "Complete payment online"
 }

@@ -36,14 +36,102 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
   String _getServiceTitle(String? type) {
     switch (type) {
       case 'lab':
-        return 'پشکنینی تاقیگە';
+        return 'lab_service'.tr();
       case 'pharmacy':
-        return 'دەرمانخانە';
+        return 'pharmacy'.tr();
       case 'nursing':
-        return 'خزمەتگوزاری پەرستاری';
+        return 'nursing_services'.tr();
       default:
-        return 'خزمەتگوزاری پزیشکی';
+        return 'general_service'.tr();
     }
+  }
+
+  String _formatDisplayAddress(String? rawAddress) {
+    if (rawAddress == null || rawAddress.trim().isEmpty) {
+      return 'address'.tr();
+    }
+    if (rawAddress == 'سەردانی تاقیگە' || rawAddress == 'visit_lab'.tr()) {
+      return 'visit_lab'.tr();
+    }
+
+    final Map<String, String> translationMap = {
+      // Kurdistan & Iraq
+      'erbil': 'هەولێر',
+      'hawler': 'هەولێر',
+      'arbil': 'هەولێر',
+      'sulaymaniyah': 'سلێمانی',
+      'slemani': 'سلێمانی',
+      'duhok': 'دهۆک',
+      'dohuk': 'دهۆک',
+      'kirkuk': 'کەرکووک',
+      'baghdad': 'بەغدا',
+      'basra': 'بەسرە',
+      'halabja': 'هەڵەبجە',
+      'zakho': 'زاخۆ',
+      'soran': 'سۆران',
+      'koya': 'کۆیە',
+      'rania': 'ڕانیە',
+      'kalar': 'کەلار',
+      'chamchamal': 'چەمچەماڵ',
+      'shaqlawa': 'شەقڵاوە',
+      'ankawa': 'عەنکاوە',
+      'bakhtiyari': 'بەختیاری',
+      'waziran': 'وەزیران',
+      'shorsh': 'شۆڕش',
+      'ashti': 'ئاشتی',
+      'havalan': 'هەڤاڵان',
+      'kurdistan': 'کوردستان',
+      'iraq': 'عێراق',
+      // Simulator / International
+      'san francisco': 'سان فرانسیسکۆ',
+      'california': 'کالیفۆرنیا',
+      'ca': 'کالیفۆرنیا',
+      'united states': 'ئەمریکا',
+      'usa': 'ئەمریکا',
+      'union square': 'یۆنیۆن سکوێر',
+      'yerba buena': 'یێربا بوێنا',
+      'yerba': 'یێربا',
+      'buena': 'بوێنا',
+      'cupertino': 'کووپەرتینۆ',
+      // Terms
+      'street': 'شەقام',
+      'st': 'شەقام',
+      'road': 'ڕێگا',
+      'rd': 'ڕێگا',
+      'avenue': 'شەقام',
+      'ave': 'شەقام',
+      'boulevard': 'شەقام',
+      'district': 'گەڕەک',
+      'neighborhood': 'گەڕەک',
+      'quarter': 'گەڕەک',
+      'center': 'سەنتەر',
+      'square': 'مەیدان',
+    };
+
+    String clean = rawAddress;
+    for (final entry in translationMap.entries) {
+      clean = clean.replaceAll(
+        RegExp(r'\b' + RegExp.escape(entry.key) + r'\b', caseSensitive: false),
+        entry.value,
+      );
+    }
+
+    List<String> parts = clean
+        .split(RegExp(r'[,،]'))
+        .map((p) => p.replaceAll(RegExp(r'^\d+[-\d]*\s*'), '').replaceAll(RegExp(r'\s*\d+[-\d]*$'), '').trim())
+        .where((p) => p.isNotEmpty && !p.toLowerCase().contains('unnamed') && !p.contains('+'))
+        .toSet()
+        .toList();
+
+    if (parts.length > 2) {
+      parts.removeWhere((p) => p == 'ئەمریکا' || p == 'کالیفۆرنیا' || p == 'CA' || p == 'USA');
+    }
+
+    if (parts.isEmpty) {
+      return rawAddress;
+    }
+
+    return parts.take(2).join('، ');
   }
 
   @override
@@ -84,7 +172,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
           ),
         ),
         title: Text(
-          'پوختەی داواکاری و پارەدان',
+          'order_summary_title'.tr(),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 17,
@@ -114,7 +202,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'وردەکاریی داواکارییەکەت',
+                        'order_details_title'.tr(),
                         style: _kStyle(
                           color: isDark ? Colors.white : const Color(0xFF0F172A),
                           fontSize: 18,
@@ -138,7 +226,6 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                       final nonStaffItems = cartProvider.items.where(
                         (e) => e.extraData?['type'] != 'staff' && !e.id.startsWith('staff_')
                       ).toList();
-                      final itemsString = nonStaffItems.map((e) => e.name).join('، ');
                       final patient = cartProvider.patientDetails;
                       final String? location = patient?['location'];
                       final String? patientName = patient?['name'];
@@ -177,7 +264,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                   children: [
                                     _buildSummaryRow(
                                       Iconsax.health,
-                                      'جۆری خزمەتگوزاری',
+                                      'service_type'.tr(),
                                       _getServiceTitle(cartProvider.serviceType),
                                       false,
                                     ),
@@ -185,7 +272,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                       const SizedBox(height: 14),
                                       _buildSummaryRow(
                                         Iconsax.user,
-                                        'ناوی داواکار',
+                                        'applicant_name'.tr(),
                                         patientName,
                                         false,
                                       ),
@@ -194,35 +281,30 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                       const SizedBox(height: 14),
                                       _buildSummaryRow(
                                         Iconsax.profile_circle,
-                                        'پسپۆڕی دیاریکراو',
+                                        'selected_specialist'.tr(),
                                         staffTitle != null && staffTitle.isNotEmpty
                                             ? '$staffName ($staffTitle)'
                                             : staffName,
                                         false,
                                       ),
                                     ],
-                                    if (itemsString.isNotEmpty) ...[
+                                    if (nonStaffItems.isNotEmpty) ...[
                                       const SizedBox(height: 14),
-                                      _buildSummaryRow(
-                                        Iconsax.box,
-                                        'پشکنینەکان (${nonStaffItems.length})',
-                                        itemsString,
-                                        false,
-                                      ),
+                                      _buildItemsSection(nonStaffItems, isDark, borderColor),
                                     ],
                                     if (location != null && location.isNotEmpty) ...[
                                       const SizedBox(height: 14),
                                       _buildSummaryRow(
                                         Iconsax.location,
-                                        'ناونیشان',
-                                        location,
+                                        'address'.tr(),
+                                        _formatDisplayAddress(location),
                                         false,
                                       ),
                                     ],
                                     const SizedBox(height: 14),
                                     _buildSummaryRow(
                                       Iconsax.wallet_3,
-                                      'نرخی پشکنینەکان',
+                                      'tests_price'.tr(),
                                       '${NumberFormat('#,###').format(cartProvider.subtotal)} د.ع',
                                       false,
                                     ),
@@ -230,7 +312,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                       const SizedBox(height: 14),
                                       _buildSummaryRow(
                                         Iconsax.car,
-                                        'کرێی سەردانی ماڵەوە',
+                                        'home_visit_fee'.tr(),
                                         '${NumberFormat('#,###').format(cartProvider.extraFee)} د.ع',
                                         false,
                                       ),
@@ -241,7 +323,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                     ),
                                     _buildSummaryRow(
                                       Iconsax.ticket_discount,
-                                      'کۆی گشتی',
+                                      'total'.tr(),
                                       '${NumberFormat('#,###').format(cartProvider.total)} د.ع',
                                       true,
                                     ),
@@ -270,7 +352,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        'شێوازی پارەدانی هەڵبژێردراو',
+                        'selected_payment_method_label'.tr(),
                         style: _kStyle(
                           color: isDark ? Colors.white : const Color(0xFF0F172A),
                           fontSize: 16,
@@ -328,8 +410,8 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     isCash
-                                        ? 'پارەدان بە دەست لە کاتی سەردان یان وەرگرتنی نموونە'
-                                        : 'تەواوکردنی پارەدان لە ڕێگەی ئۆنلاین',
+                                        ? 'cash_delivery_desc'.tr()
+                                        : 'online_payment_desc'.tr(),
                                     style: _kStyle(
                                       color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                       fontSize: 11.5,
@@ -477,7 +559,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                         const Icon(Iconsax.tick_circle, color: Colors.white, size: 20),
                                         const SizedBox(width: 8),
                                         Text(
-                                          'تەواوکردنی داواکاری',
+                                          'complete_order'.tr(),
                                           style: _kStyle(
                                             fontSize: 15.5,
                                             fontWeight: FontWeight.bold,
@@ -565,6 +647,116 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemsSection(
+    List<CartItem> items,
+    bool isDark,
+    Color borderColor,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Iconsax.box,
+              size: 17,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'tests_count'.tr(),
+              style: _kStyle(
+                color: const Color(0xFF64748B),
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${items.length}',
+                style: const TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2563EB),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF0F172A).withValues(alpha: 0.5)
+                : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFF334155).withValues(alpha: 0.6)
+                  : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Column(
+            children: items.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final item = entry.value;
+              final isLast = idx == items.length - 1;
+
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF3B82F6),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: _kStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                    if (item.price > 0) ...[
+                      const SizedBox(width: 10),
+                      Text(
+                        '${NumberFormat('#,###').format(item.price)} د.ع',
+                        style: _kStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF10B981),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
         ),
       ],
     );

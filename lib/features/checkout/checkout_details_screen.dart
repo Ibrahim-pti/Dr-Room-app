@@ -204,6 +204,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
 
   String _formatAddress(geo.Placemark place, [LatLng? point]) {
     final Map<String, String> translationMap = {
+      // Kurdistan & Iraq
       'erbil': 'هەولێر',
       'hawler': 'هەولێر',
       'arbil': 'هەولێر',
@@ -213,81 +214,93 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
       'dohuk': 'دهۆک',
       'kirkuk': 'کەرکووک',
       'baghdad': 'بەغدا',
-      'iraq': 'عێراق',
+      'basra': 'بەسرە',
+      'halabja': 'هەڵەبجە',
+      'zakho': 'زاخۆ',
+      'soran': 'سۆران',
+      'koya': 'کۆیە',
+      'rania': 'ڕانیە',
+      'kalar': 'کەلار',
+      'chamchamal': 'چەمچەماڵ',
+      'shaqlawa': 'شەقڵاوە',
+      'ankawa': 'عەنکاوە',
+      'bakhtiyari': 'بەختیاری',
+      'waziran': 'وەزیران',
+      'shorsh': 'شۆڕش',
+      'ashti': 'ئاشتی',
+      'havalan': 'هەڤاڵان',
       'kurdistan': 'کوردستان',
+      'iraq': 'عێراق',
+      // Simulator / International
+      'san francisco': 'سان فرانسیسکۆ',
+      'california': 'کالیفۆرنیا',
+      'ca': 'کالیفۆرنیا',
+      'united states': 'ئەمریکا',
+      'usa': 'ئەمریکا',
+      'union square': 'یۆنیۆن سکوێر',
+      'yerba buena': 'یێربا بوێنا',
+      'yerba': 'یێربا',
+      'buena': 'بوێنا',
+      'cupertino': 'کووپەرتینۆ',
+      // Terms
       'street': 'شەقام',
-      'road': 'ڕێگا',
-      'ave': 'شەقام',
-      'avenue': 'شەقام',
       'st': 'شەقام',
+      'road': 'ڕێگا',
+      'rd': 'ڕێگا',
+      'avenue': 'شەقام',
+      'ave': 'شەقام',
+      'boulevard': 'شەقام',
       'district': 'گەڕەک',
-      'city': 'شار',
+      'neighborhood': 'گەڕەک',
+      'quarter': 'گەڕەک',
+      'center': 'سەنتەر',
+      'square': 'مەیدان',
     };
 
-    String translate(String input) {
-      String result = input;
+    String cleanPart(String? raw) {
+      if (raw == null) return '';
+      String s = raw.trim();
+      if (s.isEmpty || s.contains('+') || s.toLowerCase().contains('unnamed')) return '';
+      s = s.replaceAll(RegExp(r'^\d+[-\d]*\s*'), '').replaceAll(RegExp(r'\s*\d+[-\d]*$'), '').trim();
       for (final entry in translationMap.entries) {
-        result = result.replaceAll(
-          RegExp(r'\b' + entry.key + r'\b', caseSensitive: false),
+        s = s.replaceAll(
+          RegExp(r'\b' + RegExp.escape(entry.key) + r'\b', caseSensitive: false),
           entry.value,
         );
       }
-      return result;
+      return s.trim();
     }
 
-    List<String> parts = [];
+    final subLoc = cleanPart(place.subLocality);
+    final street = cleanPart(place.street ?? place.name);
+    final locality = cleanPart(place.locality);
+    final adminArea = cleanPart(place.administrativeArea);
+    final country = cleanPart(place.country);
 
-    // Street or place name
-    if (place.street != null &&
-        place.street!.trim().isNotEmpty &&
-        !place.street!.contains('+') &&
-        !place.street!.toLowerCase().contains('unnamed')) {
-      parts.add(translate(place.street!.trim()));
-    } else if (place.name != null &&
-        place.name!.trim().isNotEmpty &&
-        !place.name!.contains('+') &&
-        !place.name!.toLowerCase().contains('unnamed')) {
-      parts.add(translate(place.name!.trim()));
+    List<String> chosen = [];
+    if (subLoc.isNotEmpty) {
+      chosen.add(subLoc);
+    } else if (street.isNotEmpty) {
+      chosen.add(street);
     }
 
-    // Sublocality (neighborhood / quarter)
-    if (place.subLocality != null &&
-        place.subLocality!.trim().isNotEmpty &&
-        !parts.contains(place.subLocality!.trim())) {
-      parts.add(translate(place.subLocality!.trim()));
+    if (locality.isNotEmpty && !chosen.contains(locality)) {
+      chosen.add(locality);
+    } else if (adminArea.isNotEmpty && !chosen.contains(adminArea)) {
+      chosen.add(adminArea);
+    } else if (country.isNotEmpty && chosen.isEmpty) {
+      chosen.add(country);
     }
 
-    // Locality (city)
-    if (place.locality != null &&
-        place.locality!.trim().isNotEmpty &&
-        !parts.contains(place.locality!.trim())) {
-      parts.add(translate(place.locality!.trim()));
-    }
-
-    // Administrative Area
-    if (place.administrativeArea != null &&
-        place.administrativeArea!.trim().isNotEmpty &&
-        !parts.contains(place.administrativeArea!.trim())) {
-      parts.add(translate(place.administrativeArea!.trim()));
-    }
-
-    // Country
-    if (place.country != null &&
-        place.country!.trim().isNotEmpty &&
-        !parts.contains(place.country!.trim())) {
-      parts.add(translate(place.country!.trim()));
-    }
-
-    final uniqueParts = parts.where((p) => p.isNotEmpty).toSet().toList();
-
-    if (uniqueParts.isEmpty) {
+    final unique = chosen.where((p) => p.isNotEmpty).toSet().toList();
+    if (unique.isEmpty) {
       if (point != null) {
         return 'شوێنی دیاریکراو (${point.latitude.toStringAsFixed(4)}, ${point.longitude.toStringAsFixed(4)})';
       }
       return 'شوێنی دیاریکراو';
     }
 
-    return uniqueParts.join('، ');
+    return unique.take(2).join('، ');
   }
 
   void _submitForm() {

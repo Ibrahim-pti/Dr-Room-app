@@ -909,5 +909,16 @@
   "select_payment_method": "شێوازی پارەدان دیاری بکە",
   "select_payment_method_desc": "تکایە یەکێک لەم شێوازانە هەڵبژێرە بۆ تەواوکردنی داواکارییەکەت",
   "trusted_payment_methods": "شێوازە باوەڕپێکراوەکانی پارەدان",
-  "continue_btn": "بەردەوامبوون"
+  "continue_btn": "بەردەوامبوون",
+  "order_summary_title": "پوختەی داواکاری و پارەدان",
+  "order_review_desc": "تکایە پێداچوونەوە بە زانیارییەکاندا بکە پێش تەواوکردنی داواکاری",
+  "service_type": "جۆری خزمەتگوزاری",
+  "applicant_name": "ناوی داواکار",
+  "selected_specialist": "پسپۆڕی دیاریکراو",
+  "tests_count": "پشکنینەکان",
+  "tests_price": "نرخی پشکنینەکان",
+  "home_visit_fee": "کرێی سەردانی ماڵەوە",
+  "selected_payment_method_label": "شێوازی پارەدانی هەڵبژێردراو",
+  "cash_delivery_desc": "پارەدان بە دەست لە کاتی سەردان یان وەرگرتنی نموونە",
+  "online_payment_desc": "تەواوکردنی پارەدان لە ڕێگەی ئۆنلاین"
 }

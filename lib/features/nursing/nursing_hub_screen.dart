@@ -1710,7 +1710,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                             MaterialPageRoute(builder: (_) => const CheckoutDetailsScreen()),
                           );
                         },
-                        icon: const Icon(Iconsax.arrow_right_3, size: 16, color: Colors.white),
+                        icon: const Icon(Iconsax.arrow_left_3, size: 16, color: Colors.white),
                         label: Text(
                           'nursing_checkout_action'.tr(),
                           style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),

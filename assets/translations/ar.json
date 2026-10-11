@@ -909,5 +909,16 @@
   "select_payment_method": "اختر طريقة الدفع",
   "select_payment_method_desc": "يرجى اختيار إحدى الطرق لإتمام طلبك",
   "trusted_payment_methods": "طرق الدفع المعتمدة",
-  "continue_btn": "متابعة"
+  "continue_btn": "متابعة",
+  "order_summary_title": "ملخص الطلب والدفع",
+  "order_review_desc": "يرجى مراجعة البيانات قبل إتمام الطلب",
+  "service_type": "نوع الخدمة",
+  "applicant_name": "اسم مقدم الطلب",
+  "selected_specialist": "الأخصائي المحدد",
+  "tests_count": "الفحوصات",
+  "tests_price": "سعر الفحوصات",
+  "home_visit_fee": "أجور الزيارة المنزلية",
+  "selected_payment_method_label": "طريقة الدفع المحددة",
+  "cash_delivery_desc": "الدفع نقداً عند الزيارة أو أخذ العينات",
+  "online_payment_desc": "إتمام الدفع عبر الإنترنت"
 }
