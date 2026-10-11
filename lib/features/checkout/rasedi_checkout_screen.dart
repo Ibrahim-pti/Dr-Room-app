@@ -140,7 +140,21 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
       );
 
       _referenceCode = responseBody.referenceCode;
-      _redirectUrl = responseBody.redirectUrl;
+      var targetUrl = responseBody.redirectUrl;
+
+      if (mounted) {
+        final langCode =
+            Localizations.localeOf(context).languageCode.toLowerCase();
+        final rasediLang =
+            (langCode == 'ar') ? 'ar' : (langCode == 'en' ? 'en' : 'ku');
+        if (targetUrl.contains('checkout.rasedi.com/pay/')) {
+          targetUrl = targetUrl.replaceFirst(
+            'checkout.rasedi.com/pay/',
+            'checkout.rasedi.com/$rasediLang/pay/',
+          );
+        }
+      }
+      _redirectUrl = targetUrl;
 
       final controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -154,6 +168,21 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
             onPageFinished: (String url) {
               if (mounted) setState(() => _isLoadingPage = false);
               _handleUrlInterception(url);
+              // Clean up redundant website controls (moon & globe icons)
+              _webViewController?.runJavaScript('''
+                (function() {
+                  const style = document.createElement('style');
+                  style.innerHTML = `
+                    button[aria-label="Toggle theme"],
+                    button[aria-label="Change language"],
+                    button[title="Toggle theme"],
+                    button[title="Change language"] {
+                      display: none !important;
+                    }
+                  `;
+                  document.head.appendChild(style);
+                })();
+              ''');
             },
             onNavigationRequest: (NavigationRequest request) {
               final url = request.url;
@@ -196,8 +225,9 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
   Future<void> _launchExternalUrl(String url) async {
     try {
       final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        debugPrint('Could not launch external URL: $url');
       }
     } catch (e) {
       debugPrint('Failed to launch external app URL: $e');

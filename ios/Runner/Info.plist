@@ -58,6 +58,9 @@
 
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>fib</string>
+		<string>fastpay</string>
+		<string>zaincash</string>
 		<string>tel</string>
 		<string>mailto</string>
 		<string>sms</string>
