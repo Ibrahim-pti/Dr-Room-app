@@ -168,6 +168,10 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
         ..setBackgroundColor(Colors.white)
         ..setNavigationDelegate(
           NavigationDelegate(
+            onHttpAuthRequest: (HttpAuthRequest request) {
+              // Proceed with authentication to prevent WKNavigationDelegate assertions
+              request.onProceed(const WebViewCredential(user: '', password: ''));
+            },
             onPageStarted: (String url) {
               if (mounted) setState(() => _isLoadingPage = true);
               _handleUrlInterception(url);
@@ -180,10 +184,10 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
               _webViewController?.runJavaScript('''
                 (function() {
                   function cleanCheckoutUI() {
-                    // Hide theme and language icons
+                    // 1. Hide theme and language icons
                     document.querySelectorAll('button[aria-label="Toggle theme"], button[aria-label="Change language"], button[title="Toggle theme"], button[title="Change language"]').forEach(el => el.style.display = 'none');
 
-                    // Hide promo code button
+                    // 2. Hide promo code buttons
                     document.querySelectorAll('button, div').forEach(el => {
                       const text = el.innerText || '';
                       if (text.includes('promotion code') || text.includes('کۆدی داشکاندن') || text.includes('پڕۆمۆ') || text.includes('Promo')) {
@@ -191,7 +195,7 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
                       }
                     });
 
-                    // Hide duplicate merchant card
+                    // 3. Hide redundant merchant card
                     document.querySelectorAll('div').forEach(el => {
                       const text = el.innerText || '';
                       if (text.includes('DrRoom') && (text.includes('nursing') || text.includes('دانانی کانیۆلا') || text.includes('پشکنین') || text.includes('دەرمان'))) {
@@ -199,7 +203,7 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
                       }
                     });
 
-                    // Hide service fee text
+                    // 4. Hide service fee text
                     document.querySelectorAll('div, p, span').forEach(el => {
                       const text = el.innerText || '';
                       if (text.includes('Service fee will be paid') || text.includes('کرێی خزمەتگوزاری')) {
@@ -207,7 +211,7 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
                       }
                     });
 
-                    // Hide footer
+                    // 5. Hide footer
                     document.querySelectorAll('footer, div, p').forEach(el => {
                       const text = el.innerText || '';
                       if (text.includes('Powered by') || text.includes('Terms and Conditions') || text.includes('پشتگیریکراو لەلایەن')) {
@@ -215,7 +219,7 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
                       }
                     });
 
-                    // Pre-fill phone number
+                    // 6. Pre-fill phone number if available
                     if ('$phoneForInput'.length >= 7) {
                       const input = document.querySelector('input[type="tel"]') || document.querySelector('input[placeholder*="9988574"]') || document.querySelector('input[name*="phone"]');
                       if (input && !input.value) {
