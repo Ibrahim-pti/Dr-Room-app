@@ -111,6 +111,25 @@ class OrderController extends Controller
                 ]);
             }
 
+            if ($request->filled('transaction_reference')) {
+                \App\Models\Transaction::create([
+                    'reference'   => $request->transaction_reference,
+                    'user_id'     => Auth::id(),
+                    'amount'      => (float)$order->total_price,
+                    'currency'    => 'IQD',
+                    'status'      => 'completed',
+                    'method'      => $request->payment_method,
+                    'description' => ucfirst($order->service_type) . ' Order #' . $order->id . ' (Rasedi)',
+                    'payable_type' => \App\Models\Order::class,
+                    'payable_id'   => $order->id,
+                    'paid_at'     => now(),
+                    'meta'        => [
+                        'gateway' => $request->payment_method,
+                        'rasedi_reference' => $request->transaction_reference,
+                    ],
+                ]);
+            }
+
             DB::commit();
 
             return response()->json([

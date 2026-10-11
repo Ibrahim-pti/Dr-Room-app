@@ -43,6 +43,7 @@ dependencies:
   firebase_core: ^4.13.0
   firebase_messaging: ^16.5.0
   connectivity_plus: ^7.3.1
+  rasedi_flutter_sdk: ^1.0.3
 
 dev_dependencies:
   flutter_test:

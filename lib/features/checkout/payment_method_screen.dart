@@ -233,24 +233,27 @@ class PaymentMethodScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
 
-                      // ── Option 5: Credit Card (Stripe) ──
+                      // ── Option 5: Qi Card / Credit Card ──
                       _buildPaymentOption(
                         context: context,
                         cardBg: cardBg,
                         borderColor: borderColor,
                         isDark: isDark,
-                        title: 'ماستەرکارت و ڤیزا (Mastercard / Visa)',
-                        subtitle: 'پارەدانی نێودەوڵەتی بە کارتی بانکی',
-                        badgeText: 'کارت',
+                        title: 'کی کارد و ماستەرکارت / ڤیزا (Qi Card)',
+                        subtitle: 'پارەدانی ڕاستەوخۆ بە کی کارد یان کارتی بانکی',
+                        badgeText: 'کی کارد',
                         badgeColor: const Color(0xFFF59E0B),
                         icon: Iconsax.card,
                         iconBgGradient: const [
                           Color(0xFFF59E0B),
                           Color(0xFFD97706),
                         ],
-                        isSelected: selectedMethod == 'Credit Card (Stripe)',
+                        isSelected:
+                            selectedMethod == 'Qi Card' ||
+                            selectedMethod == 'Qi Card (کی کارد)' ||
+                            selectedMethod == 'Credit Card (Stripe)',
                         onTap: () => checkoutProvider.selectPaymentMethod(
-                          'Credit Card (Stripe)',
+                          'Qi Card',
                         ),
                       ),
                     ],

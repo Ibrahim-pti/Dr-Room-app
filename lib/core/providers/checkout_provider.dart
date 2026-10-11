@@ -15,7 +15,7 @@ class CheckoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> processPayment(CartProvider cart) async {
+  Future<String?> processPayment(CartProvider cart, {String? transactionReference}) async {
     _isProcessing = true;
     notifyListeners();
 
@@ -26,6 +26,8 @@ class CheckoutProvider extends ChangeNotifier {
         'extra_fee': cart.extraFee,
         'total_price': cart.total,
         'payment_method': _selectedPaymentMethod,
+        'transaction_reference': transactionReference,
+        'payment_status': transactionReference != null ? 'paid' : 'pending',
         'patient_details': cart.patientDetails ?? {},
         'items': cart.items.map((e) => e.toJson()).toList(),
       };

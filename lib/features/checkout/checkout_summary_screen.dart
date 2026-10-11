@@ -7,6 +7,8 @@ import 'order_success_screen.dart';
 import '../../core/providers/order_provider.dart';
 import '../../core/providers/checkout_provider.dart';
 import '../../core/providers/cart_provider.dart';
+import '../../core/services/rasedi_payment_service.dart';
+import 'rasedi_checkout_screen.dart';
 
 class CheckoutSummaryScreen extends StatefulWidget {
   const CheckoutSummaryScreen({super.key});
@@ -381,8 +383,43 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                 return;
                               }
 
-                              // Process Payment
-                              final orderId = await checkoutProvider.processPayment(cartProvider);
+                              // Check if selected payment method uses Rasedi Gateway
+                              final selectedMethod = checkoutProvider.selectedPaymentMethod;
+                              final gateway = RasediPaymentService.mapMethodToGateway(selectedMethod);
+                              String? transactionRef;
+
+                              if (gateway != null) {
+                                final result = await RasediCheckoutScreen.startPayment(
+                                  context,
+                                  amount: cartProvider.total,
+                                  title: 'DrRoom - ${cartProvider.serviceType ?? 'Medical'}',
+                                  description: cartProvider.items.map((e) => e.name).join('، '),
+                                  gateway: gateway,
+                                  customerPhone: cartProvider.patientDetails?['phone']?.toString(),
+                                );
+
+                                if (result == null || !result.isSuccess) {
+                                  if (context.mounted && result?.isCancelled != true) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          result?.errorMessage ?? 'پرۆسەی پارەدان تەواو نەکرا',
+                                          style: _kStyle(color: Colors.white),
+                                        ),
+                                        backgroundColor: const Color(0xFFEF4444),
+                                      ),
+                                    );
+                                  }
+                                  return;
+                                }
+                                transactionRef = result.referenceCode;
+                              }
+
+                              // Process Order & Record Transaction
+                              final orderId = await checkoutProvider.processPayment(
+                                cartProvider,
+                                transactionReference: transactionRef,
+                              );
 
                               if (orderId != null && context.mounted) {
                                 final serviceName = cartProvider.serviceType ?? 'lab';
@@ -392,7 +429,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                   id: orderId,
                                   serviceType: serviceName,
                                   customTitle: itemsStr.isEmpty ? null : itemsStr,
-                                  status: OrderStatus.pending,
+                                  status: transactionRef != null ? OrderStatus.confirmed : OrderStatus.pending,
                                   price: cartProvider.total,
                                   date: DateTime.now(),
                                 ));

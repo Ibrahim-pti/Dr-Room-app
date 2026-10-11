@@ -205,6 +205,12 @@ class PaymentController extends Controller
                     'title' => 'ZainCash',
                     'isDefault' => false,
                 ],
+                [
+                    'id' => 'pm_qicard',
+                    'type' => 'qi_card',
+                    'title' => 'Qi Card (کی کارد)',
+                    'isDefault' => false,
+                ],
             ]
         ]);
     }

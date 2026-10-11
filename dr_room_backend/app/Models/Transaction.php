@@ -27,6 +27,8 @@ class Transaction extends Model
         'wallet'  => 'جزدان',
         'fib'     => 'FIB',
         'fastpay' => 'FastPay',
+        'zaincash' => 'ZainCash',
+        'qi_card' => 'Qi Card',
     ];
 
     public function user()
