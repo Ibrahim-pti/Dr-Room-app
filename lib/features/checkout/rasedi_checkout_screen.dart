@@ -57,6 +57,7 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
   final RasediPaymentService _service = RasediPaymentService.instance;
 
   late final WebViewController _controller;
+  late final NavigationDelegate _navigationDelegate;
   String? _referenceCode;
   String? _redirectUrl;
   bool _isInitializing = true;
@@ -68,78 +69,107 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    _navigationDelegate = NavigationDelegate(
+      onPageStarted: (String url) {
+        if (mounted) setState(() => _isLoadingPage = true);
+        _handleUrlInterception(url);
+      },
+      onPageFinished: (String url) {
+        if (mounted) setState(() => _isLoadingPage = false);
+        _handleUrlInterception(url);
+
+        // Clean up requested UI elements: theme/lang icons, yellow warning, promo code, amount row
+        _controller.runJavaScript('''
+          (function() {
+            function applyCleanStyles() {
+              // 1. Hide theme (moon) and language (globe) icons
+              document.querySelectorAll('button[aria-label="Toggle theme"], button[aria-label="Change language"], button[title="Toggle theme"], button[title="Change language"]').forEach(el => el.style.display = 'none');
+
+              // 2. Hide yellow warning box ("No payment gateway has been selected...")
+              document.querySelectorAll('.bg-warning-bg-light').forEach(el => el.style.display = 'none');
+
+              // 3. Hide promo code buttons & containers (Kurdish: زیادکردنی پرۆمۆ کۆد, Arabic: إضافة رمز ترويجي, English: Promo code)
+              const promoTerms = [
+                'پرۆمۆ',
+                'پڕۆمۆ',
+                'پرۆمۆ کۆد',
+                'پڕۆمۆ کۆد',
+                'زیادکردنی پرۆمۆ',
+                'زیادکردنی پرۆمۆ کۆد',
+                'داشکاندن',
+                'کوپۆن',
+                'کۆپۆن',
+                'promo',
+                'promotion',
+                'coupon',
+                'discount',
+                'ترويجي',
+                'كود الخصم',
+                'كوبون'
+              ];
+
+              document.querySelectorAll('button, a, div, span').forEach(el => {
+                const t = (el.innerText || '').trim();
+                if (!t || t.length > 70) return;
+                const lower = t.toLowerCase();
+                for (const term of promoTerms) {
+                  if (t.includes(term) || lower.includes(term.toLowerCase())) {
+                    if (!t.includes('DrRoom') && !t.includes('nursing')) {
+                      const target = el.closest('button') || el.closest('.relative') || el;
+                      target.style.display = 'none';
+                      break;
+                    }
+                  }
+                }
+              });
+
+              // 4. Hide "Amount :" row
+              document.querySelectorAll('div').forEach(el => {
+                const t = el.innerText || '';
+                if ((t.startsWith('Amount :') || t.startsWith('بڕی پارە :') || t.startsWith('المبلغ :')) && el.children.length <= 3) {
+                  el.style.display = 'none';
+                }
+              });
+            }
+
+            applyCleanStyles();
+            const observer = new MutationObserver(applyCleanStyles);
+            observer.observe(document.body, { childList: true, subtree: true });
+          })();
+        ''');
+      },
+      onNavigationRequest: (NavigationRequest request) {
+        final url = request.url;
+
+        // Don't treat internal webview URLs or about:blank as external apps!
+        if (url.startsWith('about:') || url.startsWith('javascript:')) {
+          return NavigationDecision.navigate;
+        }
+
+        // Handle external banking apps (e.g. fib://, fastpay://, intent://)
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          _launchExternalUrl(url);
+          return NavigationDecision.prevent;
+        }
+
+        if (_handleUrlInterception(url)) {
+          return NavigationDecision.prevent;
+        }
+
+        return NavigationDecision.navigate;
+      },
+      onWebResourceError: (WebResourceError error) {
+        debugPrint('WebView Error: ${error.description}');
+      },
+      onHttpAuthRequest: (HttpAuthRequest request) {
+        request.onCancel();
+      },
+    );
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (String url) {
-            if (mounted) setState(() => _isLoadingPage = true);
-            _handleUrlInterception(url);
-          },
-          onPageFinished: (String url) {
-            if (mounted) setState(() => _isLoadingPage = false);
-            _handleUrlInterception(url);
-
-            // Clean up requested UI elements: theme/lang icons, yellow warning, promo code, amount row
-            _controller.runJavaScript('''
-              (function() {
-                function applyCleanStyles() {
-                  // 1. Hide theme (moon) and language (globe) icons
-                  document.querySelectorAll('button[aria-label="Toggle theme"], button[aria-label="Change language"], button[title="Toggle theme"], button[title="Change language"]').forEach(el => el.style.display = 'none');
-
-                  // 2. Hide yellow warning box ("No payment gateway has been selected...")
-                  document.querySelectorAll('.bg-warning-bg-light').forEach(el => el.style.display = 'none');
-
-                  // 3. Hide promo code buttons
-                  document.querySelectorAll('button').forEach(btn => {
-                    const t = btn.innerText || '';
-                    if (t.includes('promotion') || t.includes('داشکاندن') || t.includes('Promo')) {
-                      const p = btn.closest('.relative') || btn;
-                      p.style.display = 'none';
-                    }
-                  });
-
-                  // 4. Hide "Amount :" row
-                  document.querySelectorAll('div').forEach(el => {
-                    const t = el.innerText || '';
-                    if ((t.startsWith('Amount :') || t.startsWith('بڕی پارە :') || t.startsWith('المبلغ :')) && el.children.length <= 3) {
-                      el.style.display = 'none';
-                    }
-                  });
-                }
-
-                applyCleanStyles();
-                const observer = new MutationObserver(applyCleanStyles);
-                observer.observe(document.body, { childList: true, subtree: true });
-              })();
-            ''');
-          },
-          onNavigationRequest: (NavigationRequest request) {
-            final url = request.url;
-
-            // Don't treat internal webview URLs or about:blank as external apps!
-            if (url.startsWith('about:') || url.startsWith('javascript:')) {
-              return NavigationDecision.navigate;
-            }
-
-            // Handle external banking apps (e.g. fib://, fastpay://, intent://)
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-              _launchExternalUrl(url);
-              return NavigationDecision.prevent;
-            }
-
-            if (_handleUrlInterception(url)) {
-              return NavigationDecision.prevent;
-            }
-
-            return NavigationDecision.navigate;
-          },
-          onWebResourceError: (WebResourceError error) {
-            debugPrint('WebView Error: ${error.description}');
-          },
-        ),
-      );
+      ..setNavigationDelegate(_navigationDelegate);
 
     _createSession();
   }
@@ -147,6 +177,9 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
   @override
   void dispose() {
     _statusPollingTimer?.cancel();
+    try {
+      _controller.loadRequest(Uri.parse('about:blank'));
+    } catch (_) {}
     super.dispose();
   }
 
