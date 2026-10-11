@@ -29,7 +29,6 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   final TextEditingController _addressController = TextEditingController();
 
   String? _selectedGender;
-  String? _selectedNurseGender;
   String _sampleCollectionMethod = 'home'; // 'home' or 'lab'
   bool _hasSubmitted = false;
 
@@ -298,11 +297,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
 
     final isLab = context.read<CartProvider>().serviceType == 'lab';
 
-    if (_formKey.currentState!.validate() &&
-        _selectedGender != null &&
-        (isLab || _selectedNurseGender != null)) {
+    if (_formKey.currentState!.validate() && _selectedGender != null) {
       String finalLocation = 'سەردانی تاقیگە';
-      if (_sampleCollectionMethod == 'home') {
+      if (!isLab || _sampleCollectionMethod == 'home') {
         final customAddr = _addressController.text.trim();
         finalLocation = customAddr.isNotEmpty ? customAddr : _locationDetails;
       }
@@ -322,7 +319,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         'age': _ageController.text.trim(),
         'phone': _phoneController.text.trim(),
         'patient_gender': _selectedGender,
-        'nurse_gender': isLab ? null : _selectedNurseGender,
+        'nurse_gender': null,
         'collection_method': isLab ? _sampleCollectionMethod : null,
         'staff_id': staffItem?.extraData?['staff_id'],
         'staff_name': staffItem?.extraData?['staff_name'],
