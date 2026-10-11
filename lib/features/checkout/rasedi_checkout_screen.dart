@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:rasedi_flutter_sdk/rasedi_flutter_sdk.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -81,6 +80,40 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
           onPageFinished: (String url) {
             if (mounted) setState(() => _isLoadingPage = false);
             _handleUrlInterception(url);
+
+            // Clean up requested UI elements: theme/lang icons, yellow warning, promo code, amount row
+            _controller.runJavaScript('''
+              (function() {
+                function applyCleanStyles() {
+                  // 1. Hide theme (moon) and language (globe) icons
+                  document.querySelectorAll('button[aria-label="Toggle theme"], button[aria-label="Change language"], button[title="Toggle theme"], button[title="Change language"]').forEach(el => el.style.display = 'none');
+
+                  // 2. Hide yellow warning box ("No payment gateway has been selected...")
+                  document.querySelectorAll('.bg-warning-bg-light').forEach(el => el.style.display = 'none');
+
+                  // 3. Hide promo code buttons
+                  document.querySelectorAll('button').forEach(btn => {
+                    const t = btn.innerText || '';
+                    if (t.includes('promotion') || t.includes('داشکاندن') || t.includes('Promo')) {
+                      const p = btn.closest('.relative') || btn;
+                      p.style.display = 'none';
+                    }
+                  });
+
+                  // 4. Hide "Amount :" row
+                  document.querySelectorAll('div').forEach(el => {
+                    const t = el.innerText || '';
+                    if ((t.startsWith('Amount :') || t.startsWith('بڕی پارە :') || t.startsWith('المبلغ :')) && el.children.length <= 3) {
+                      el.style.display = 'none';
+                    }
+                  });
+                }
+
+                applyCleanStyles();
+                const observer = new MutationObserver(applyCleanStyles);
+                observer.observe(document.body, { childList: true, subtree: true });
+              })();
+            ''');
           },
           onNavigationRequest: (NavigationRequest request) {
             final url = request.url;
@@ -179,7 +212,22 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
       );
 
       _referenceCode = responseBody.referenceCode;
-      _redirectUrl = responseBody.redirectUrl;
+      var targetUrl = responseBody.redirectUrl;
+
+      // Localize Rasedi checkout url according to app language (e.g. /ku/)
+      if (mounted) {
+        final langCode =
+            Localizations.localeOf(context).languageCode.toLowerCase();
+        final rasediLang =
+            (langCode == 'ar') ? 'ar' : (langCode == 'en' ? 'en' : 'ku');
+        if (targetUrl.contains('checkout.rasedi.com/pay/')) {
+          targetUrl = targetUrl.replaceFirst(
+            'checkout.rasedi.com/pay/',
+            'checkout.rasedi.com/$rasediLang/pay/',
+          );
+        }
+      }
+      _redirectUrl = targetUrl;
 
       await _controller.loadRequest(Uri.parse(_redirectUrl!));
 
@@ -341,54 +389,16 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
             ),
             onPressed: _onWillPop,
           ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _gatewayKurdishTitle,
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              Row(
-                children: [
-                  const Icon(Icons.lock, size: 11, color: Color(0xFF10B981)),
-                  const SizedBox(width: 4),
-                  Text(
-                    'پارەدانی پارێزراو بە Rasedi',
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 11,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            Container(
-              margin: const EdgeInsets.only(right: 14),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: _gatewayColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: _gatewayColor.withValues(alpha: 0.3)),
-              ),
-              child: Text(
-                '${NumberFormat('#,###').format(widget.amount)} د.ع',
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: _gatewayColor,
-                ),
-              ),
+          title: Text(
+            _gatewayKurdishTitle,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
-          ],
+          ),
+          actions: const [],
         ),
         body: Column(
           children: [
