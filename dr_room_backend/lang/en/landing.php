@@ -124,20 +124,6 @@ return [
     'app_showcase_title_2' => 'Effortless Healthcare',
     'app_showcase_desc' => 'DrRoom is crafted with an intuitive, ultra-fast interface designed to provide seamless healthcare access to users of all ages.',
     
-    'screen_home_tab' => 'Home & SOS',
-    'screen_home_title' => 'Main Hub & Emergency SOS Dispatch',
-    'screen_home_desc' => 'Instant access to all home healthcare services, ongoing offers, and a dedicated 1-tap Emergency SOS trigger connecting directly to 122 ambulance and emergency hospitals.',
-    'screen_home_f1' => 'Instant booking for home nursing and mobile laboratory tests',
-    'screen_home_f2' => 'Dedicated Emergency SOS button for immediate medical assistance',
-    'screen_home_f3' => 'Voice & text smart search for doctors and clinics',
-
-    'screen_ai_tab' => 'AI Medicine Scanner',
-    'screen_ai_title' => 'AI-Powered Medicine & Prescription Recognition',
-    'screen_ai_desc' => 'Simply aim your camera at any medicine packaging or handwritten doctor prescription. DrRoom\'s AI scans with 99.4% precision and delivers instant dosage instructions.',
-    'screen_ai_f1' => 'Instant camera and gallery scan with high-speed OCR',
-    'screen_ai_f2' => 'Clear medicine guidance and usage instructions',
-    'screen_ai_f3' => 'Comprehensive history archive of all previous scans',
-
     'screen_labs_tab' => 'Medical Laboratories',
     'screen_labs_title' => 'Extensive Accredited Laboratory Network',
     'screen_labs_desc' => 'Browse verified laboratories across Erbil, Sulaymaniyah, Duhok, and Kirkuk with ratings, real-time operating hours, and exclusive discounts.',
@@ -145,7 +131,14 @@ return [
     'screen_labs_f2' => 'Exclusive discounts up to 25% on home sample collection',
     'screen_labs_f3' => 'Certified mobile lab phlebotomists dispatched to your door',
 
-    'screen_firstaid_tab' => 'First Aid & CPR',
+    'screen_nursing_tab' => 'Nursing Care',
+    'screen_nursing_title' => 'Professional Home Nursing & Medical Care',
+    'screen_nursing_desc' => 'Book licensed and verified healthcare nurses right to your door for injections, IV cannulas, wound dressing, post-op care, and elderly assistance.',
+    'screen_nursing_f1' => 'Certified and licensed nurses available on demand',
+    'screen_nursing_f2' => 'Injections, IV cannulas, wound dressing, and fast care',
+    'screen_nursing_f3' => 'Seamless booking with integrated Emergency SOS button',
+
+    'screen_firstaid_tab' => 'First Aid Guide',
     'screen_firstaid_title' => 'Life-Saving Emergency & First Aid Guidelines',
     'screen_firstaid_desc' => 'Step-by-step certified emergency protocols for choking, burns, cardiac arrest (CPR), and trauma care before the ambulance arrives.',
     'screen_firstaid_f1' => 'Cardiac pulmonary resuscitation (CPR) & Heimlich maneuver protocols',

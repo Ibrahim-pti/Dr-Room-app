@@ -297,7 +297,7 @@
     </section>
 
     <!-- NEW INTERACTIVE SECTION: App Screens Showcase -->
-    <section id="app-screens" class="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 relative border-t border-slate-100 overflow-hidden" x-data="{ activeTab: 'home' }">
+    <section id="app-screens" class="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 relative border-t border-slate-100 overflow-hidden" x-data="{ activeTab: 'labs' }">
         <div class="absolute end-0 top-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute start-0 bottom-1/4 w-96 h-96 bg-purple-100/40 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -320,25 +320,19 @@
 
             <!-- Tab Switcher Navigation -->
             <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mb-16">
-                <!-- Tab 1: Home & SOS -->
-                <button @click="activeTab = 'home'" :class="activeTab === 'home' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/80'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center gap-2">
-                    <span>🏠</span>
-                    <span>{{ __('landing.screen_home_tab') }}</span>
-                </button>
-
-                <!-- Tab 2: AI Scanner -->
-                <button @click="activeTab = 'ai'" :class="activeTab === 'ai' ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30 scale-105' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/80'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center gap-2">
-                    <span>🤖</span>
-                    <span>{{ __('landing.screen_ai_tab') }}</span>
-                </button>
-
-                <!-- Tab 3: Labs -->
+                <!-- Tab 1: Medical Laboratories (First on Right in RTL) -->
                 <button @click="activeTab = 'labs'" :class="activeTab === 'labs' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 scale-105' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/80'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center gap-2">
                     <span>🧪</span>
                     <span>{{ __('landing.screen_labs_tab') }}</span>
                 </button>
 
-                <!-- Tab 4: First Aid -->
+                <!-- Tab 2: Nursing -->
+                <button @click="activeTab = 'nursing'" :class="activeTab === 'nursing' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/80'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center gap-2">
+                    <span>👩‍⚕️</span>
+                    <span>{{ __('landing.screen_nursing_tab') }}</span>
+                </button>
+
+                <!-- Tab 3: First Aid -->
                 <button @click="activeTab = 'firstaid'" :class="activeTab === 'firstaid' ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/30 scale-105' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200/80'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center gap-2">
                     <span>🚑</span>
                     <span>{{ __('landing.screen_firstaid_tab') }}</span>
@@ -348,78 +342,8 @@
             <!-- Tab Content Presentation -->
             <div class="bg-white rounded-[2.5rem] p-6 sm:p-10 lg:p-14 border border-slate-100 shadow-xl shadow-slate-200/50">
                 
-                <!-- CONTENT 1: Home & SOS Screen -->
-                <div x-show="activeTab === 'home'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
-                    <div class="w-full lg:w-1/2 flex justify-center">
-                        <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] rounded-[3.2rem] phone-frame border-[8px] border-slate-950 bg-slate-950 overflow-hidden relative group">
-                            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-950 rounded-full z-20"></div>
-                            <img src="{{ asset('images/app_home.png') }}" alt="DrRoom App Home" class="w-full h-full object-cover rounded-[2.5rem] group-hover:scale-105 transition-transform duration-300">
-                        </div>
-                    </div>
-                    <div class="w-full lg:w-1/2">
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-black mb-4">
-                            <span>🏠</span> {{ __('landing.screen_home_tab') }}
-                        </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
-                            {{ __('landing.screen_home_title') }}
-                        </h3>
-                        <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
-                            {{ __('landing.screen_home_desc') }}
-                        </p>
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
-                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_home_f1') }}</span>
-                            </div>
-                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-rose-50 border border-rose-100">
-                                <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold flex-shrink-0">🚨</div>
-                                <span class="text-sm font-bold text-rose-900">{{ __('landing.screen_home_f2') }}</span>
-                            </div>
-                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
-                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_home_f3') }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CONTENT 2: AI Medicine Scanner Screen -->
-                <div x-show="activeTab === 'ai'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16" style="display: none;">
-                    <div class="w-full lg:w-1/2 flex justify-center">
-                        <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] rounded-[3.2rem] phone-frame border-[8px] border-purple-950 bg-purple-950 overflow-hidden relative group">
-                            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-purple-950 rounded-full z-20"></div>
-                            <img src="{{ asset('images/app_ai_scanner.png') }}" alt="DrRoom AI Scanner" class="w-full h-full object-cover rounded-[2.5rem] group-hover:scale-105 transition-transform duration-300">
-                        </div>
-                    </div>
-                    <div class="w-full lg:w-1/2">
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-50 text-purple-700 text-xs font-black mb-4">
-                            <span>🤖</span> {{ __('landing.screen_ai_tab') }}
-                        </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
-                            {{ __('landing.screen_ai_title') }}
-                        </h3>
-                        <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
-                            {{ __('landing.screen_ai_desc') }}
-                        </p>
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-purple-50/70 border border-purple-100">
-                                <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold flex-shrink-0">📷</div>
-                                <span class="text-sm font-bold text-purple-950">{{ __('landing.screen_ai_f1') }}</span>
-                            </div>
-                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
-                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_ai_f2') }}</span>
-                            </div>
-                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
-                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_ai_f3') }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CONTENT 3: Medical Laboratories Screen -->
-                <div x-show="activeTab === 'labs'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16" style="display: none;">
+                <!-- CONTENT 1: Medical Laboratories Screen -->
+                <div x-show="activeTab === 'labs'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
                     <div class="w-full lg:w-1/2 flex justify-center">
                         <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] rounded-[3.2rem] phone-frame border-[8px] border-emerald-950 bg-emerald-950 overflow-hidden relative group">
                             <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-emerald-950 rounded-full z-20"></div>
@@ -453,7 +377,42 @@
                     </div>
                 </div>
 
-                <!-- CONTENT 4: First Aid Screen -->
+                <!-- CONTENT 2: Nursing Screen -->
+                <div x-show="activeTab === 'nursing'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16" style="display: none;">
+                    <div class="w-full lg:w-1/2 flex justify-center">
+                        <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] rounded-[3.2rem] phone-frame border-[8px] border-blue-950 bg-blue-950 overflow-hidden relative group">
+                            <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-blue-950 rounded-full z-20"></div>
+                            <img src="{{ asset('images/app_home.png') }}" alt="DrRoom Nursing" class="w-full h-full object-cover rounded-[2.5rem] group-hover:scale-105 transition-transform duration-300">
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-1/2">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-black mb-4">
+                            <span>👩‍⚕️</span> {{ __('landing.screen_nursing_tab') }}
+                        </div>
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
+                            {{ __('landing.screen_nursing_title') }}
+                        </h3>
+                        <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
+                            {{ __('landing.screen_nursing_desc') }}
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-blue-50 border border-blue-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_nursing_f1') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold flex-shrink-0">🏥</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_nursing_f2') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">⚡</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_nursing_f3') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTENT 3: First Aid Screen -->
                 <div x-show="activeTab === 'firstaid'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16" style="display: none;">
                     <div class="w-full lg:w-1/2 flex justify-center">
                         <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[590px] rounded-[3.2rem] phone-frame border-[8px] border-rose-950 bg-rose-950 overflow-hidden relative group">
@@ -535,18 +494,18 @@
                     </div>
                 </div>
                 
-                <!-- Service 3: AI Prescription Scanner -->
+                <!-- Service 3: Doctor Consultation & Appointments -->
                 <div class="bg-slate-50/70 hover:bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-100 flex flex-col justify-between group">
                     <div>
-                        <div class="w-16 h-16 rounded-2xl bg-purple-100/70 text-purple-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
-                            🤖
+                        <div class="w-16 h-16 rounded-2xl bg-indigo-100/70 text-indigo-600 flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                            👨‍⚕️
                         </div>
-                        <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.screen_ai_tab') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.screen_ai_desc') }}</p>
+                        <h3 class="text-xl font-black text-slate-900 mb-3">{{ __('landing.doctor') }}</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.doctor_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-200/60 flex items-center justify-between">
-                        <span class="bg-purple-50 text-purple-700 text-xs font-extrabold px-3 py-1 rounded-lg">AI شیکاری بە دەستبەجێ</span>
-                        <span class="text-xs font-bold text-purple-500">٩٩.٤٪ ڕێژەی دروستی</span>
+                        <span class="bg-indigo-50 text-indigo-700 text-xs font-extrabold px-3 py-1 rounded-lg">{{ __('landing.fast_booking') }}</span>
+                        <span class="text-xs font-bold text-slate-400">کلینیک و ئۆنلاین</span>
                     </div>
                 </div>
                 
@@ -870,7 +829,7 @@
                     <ul class="space-y-3 text-sm text-slate-600 font-medium">
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.lab_tests') }}</a></li>
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.nursing') }}</a></li>
-                        <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.screen_ai_tab') }}</a></li>
+                        <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.doctor') }}</a></li>
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.pharmacy') }}</a></li>
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.screen_firstaid_tab') }}</a></li>
                     </ul>
