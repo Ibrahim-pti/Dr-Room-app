@@ -168,7 +168,6 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.white)
       ..setNavigationDelegate(_navigationDelegate);
 
     _createSession();
