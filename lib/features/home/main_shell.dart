@@ -14,7 +14,6 @@ import '../settings/settings_screen.dart';
 import '../surgery/surgery_timeline_screen.dart';
 import '../prescriptions/pill_reminder_screen.dart';
 import '../checkout/payment_history_screen.dart';
-import '../first_aid/first_aid_screen.dart';
 import '../../core/utils/api_client.dart';
 import '../settings/personal_information_screen.dart';
 
@@ -26,9 +25,9 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  static const int _aiTabIndex = 2;
-  static const int _recordsTabIndex = 3;
-  static const int _requestsTabIndex = 4;
+  static const int _aiTabIndex = 1;
+  static const int _recordsTabIndex = 2;
+  static const int _requestsTabIndex = 3;
 
   String _userName = '';
   String _userPhone = '';
@@ -75,7 +74,6 @@ class _MainShellState extends State<MainShell> {
 
   late final List<Widget> _screens = [
     HomeScreen(key: _homeKey),
-    const FirstAidScreen(),
     const AiSymptomCheckerScreen(),
     const MedicalRecordsScreen(),
     MyRequestsScreen(key: _requestsKey),
@@ -84,7 +82,6 @@ class _MainShellState extends State<MainShell> {
 
   static const List<Map<String, dynamic>> _navItems = [
     {'title': 'nav_home', 'icon': Iconsax.home_2},
-    {'title': 'nav_emergency', 'icon': Icons.medical_services_outlined},
     {'title': 'nav_ai_consultant', 'icon': Icons.document_scanner_rounded, 'isAi': true},
     {'title': 'nav_records', 'icon': Iconsax.folder_2},
     {'title': 'nav_orders', 'icon': Iconsax.box},
