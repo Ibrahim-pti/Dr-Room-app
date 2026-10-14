@@ -233,7 +233,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             // ── Recent Scans History ──
             _buildRecentScansSection(isDark),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 110),
           ],
         ),
       ),
@@ -575,8 +575,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
   // ── 3. Diagnostic Clinical Analysis Result Details ──
   Widget _buildResultDetails(bool isDark) {
     final res = _scanResult!;
-    final isLab = res['mode'] == 'lab';
-    final primaryColor = isLab ? const Color(0xFF2563EB) : const Color(0xFF0D9488);
+    const primaryColor = Color(0xFF2563EB);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,10 +584,8 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: isLab
-                  ? [const Color(0xFF2563EB), const Color(0xFF1D4ED8)]
-                  : [const Color(0xFF0D9488), const Color(0xFF0F766E)],
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
               begin: AlignmentDirectional.topStart,
               end: AlignmentDirectional.bottomEnd,
             ),
@@ -792,25 +789,39 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         const SizedBox(height: 18),
 
         // Primary Action: Scan another medicine
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 0,
-            ),
-            onPressed: _resetScanner,
-            icon: const Icon(Iconsax.refresh, color: Colors.white, size: 20),
-            label: const Text(
-              'سکانکردنی دەرمانێکی تر',
-              style: TextStyle(
-                fontFamily: 'Rabar',
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+        GestureDetector(
+          onTap: _resetScanner,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
               ),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Iconsax.refresh, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Text(
+                  'سکانکردنی دەرمانێکی تر',
+                  style: _kStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    height: 1.25,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
