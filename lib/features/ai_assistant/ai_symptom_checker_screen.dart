@@ -5,8 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import '../lab/lab_hub_screen.dart';
-import '../nursing/nursing_hub_screen.dart';
+import 'services/ai_clinical_service.dart';
 
 class AiSymptomCheckerScreen extends StatefulWidget {
   final String? initialMode; // 'lab' or 'nursing'
@@ -29,41 +28,42 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
   final List<Map<String, dynamic>> _recentScans = [
     {
-      'mode': 'lab',
-      'title': 'Complete Blood Count (CBC)',
-      'category': 'پشکنینی گشتی خوێن • تاقیگە',
+      'mode': 'medicine',
+      'title': 'Amoxicillin (ئامۆکسیسیلین 500mg)',
+      'category': 'دژەهەوکردن • ئەنتی بایۆتیک',
       'date': 'ئەمڕۆ ١٠:٣٠ بەیانی',
       'confidence': '99.4%',
-      'summary': 'ئاستی خڕۆکە سپییەکان و هیمۆگلۆبین لە سنووری ئاساییدایە.',
+      'summary': 'ئەم دەرمانە ئەنتی بایۆتیکە و بەکاردێت بۆ چارەسەری هەوکردنی بەکتریایی وەک هەوکردنی قوڕگ، سنگ، میزەڕۆ و برین.',
       'markers': [
-        {'name': 'WBC (خڕۆکەی سپی)', 'value': '7.2 x10^3/µL', 'status': 'ئاسایی', 'isNormal': true},
-        {'name': 'Hemoglobin (خوێن)', 'value': '14.1 g/dL', 'status': 'ئاسایی', 'isNormal': true},
-        {'name': 'Platelets (پەڕەکان)', 'value': '245 x10^3/µL', 'status': 'ئاسایی', 'isNormal': true},
+        {'name': 'پێکهاتەی چالاک', 'value': 'Amoxicillin 500mg', 'status': 'چالاک', 'isNormal': true},
+        {'name': 'شێوەی دەرمان', 'value': 'کەپسول (Capsule)', 'status': 'ئاسایی', 'isNormal': true},
+        {'name': 'ژەم و کات', 'value': 'ڕۆژی ٣ جار (هەر ٨ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
+        {'name': 'شێوازی خواردن', 'value': 'دوای نان لەگەڵ ئاو', 'status': 'گرنگ', 'isNormal': true},
       ],
-      'recommendations': 'پێویست بە هیچ دەرمانێک ناکات، تەندروستیت زۆر باشە. ساڵانە پشکنین دووبارە بکەرەوە.',
-      'warnings': 'دڵنیابەرەوە لە خواردنی خواردەمەنی دەوڵەمەند بە ئاسن بۆ پاراستنی هیمۆگلۆبین.',
+      'recommendations': 'کۆرسەکە تا کۆتایی تەواو بکە تەنانەت ئەگەر هەستت بە باشبوونیش کرد بۆ ئەوەی بەکتریاکە سەرهەڵنەداتەوە.',
+      'warnings': 'ئەگەر هەستیاریت (حەساسییەت) بە پەنسلین هەیە هەرگیز نابێت ئەم دەرمانە بخۆیت.',
     },
     {
-      'mode': 'nursing',
-      'title': 'ڕێنمایی پەرستاری بۆ برینی نەشتەرگەری',
-      'category': 'چاودێری برین و پانسمان • پەرستاری',
+      'mode': 'medicine',
+      'title': 'Panadol Extra (پانادۆڵ ئێکسسترا)',
+      'category': 'ئازارشکێن و دابەزێنەری تا',
       'date': 'دوێنێ ٠٤:١٥ ئێوارە',
-      'confidence': '98.8%',
-      'summary': 'برینەکە پاکە و هیچ نیشانەیەکی هەوکردن نییە، پێویستی بە گۆڕینی ڕۆژانەی پانسمان هەیە.',
+      'confidence': '99.1%',
+      'summary': 'بەکاردێت بۆ هێورکردنەوەی ئازاری سەرئێشە، شەقیقە، ددان، پشت و ماسولکە و دابەزاندنی تا.',
       'markers': [
-        {'name': 'پاککردنەوە', 'value': 'رۆژانە بە Normal Saline', 'status': 'پێویست', 'isNormal': true},
-        {'name': 'کانیۆلا', 'value': 'پشکنینی هەموو ٤٨ کاتژمێر', 'status': 'چالاک', 'isNormal': true},
-        {'name': 'پلەی گەرمی', 'value': '٣٦.٨°C (ئاسایی)', 'status': 'ئاسایی', 'isNormal': true},
+        {'name': 'پێکهاتەی چالاک', 'value': 'Paracetamol + Caffeine', 'status': 'چالاک', 'isNormal': true},
+        {'name': 'شێوەی دەرمان', 'value': 'حەب (Tablet)', 'status': 'ئاسایی', 'isNormal': true},
+        {'name': 'ژەم و کات', 'value': '١-٢ حەب لە کاتی پێویست (هەر ٦ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
       ],
-      'recommendations': 'ڕۆژانە یەک جار لەلایەن پەرستاری باوەڕپێکراوەوە پانسمانەکە بگۆڕدرێت بە شێوازی تەواو ستەریل.',
-      'warnings': 'لە کاتی سووربوونەوە، ئاوسان یان دەردانی کێم، دەستبەجێ داوای سەردانی پەرستار یان پزیشک بکە.',
+      'recommendations': 'ڕۆژانە زیاتر لە ٨ حەب مەخۆ تاوەکو زیان بە جگەر نەگات.',
+      'warnings': 'لەگەڵ دەرمانی تری پاراسیتامۆڵ تێکەڵی مەکە، و پێش خەوتن لەبەر کافایین نەیخۆیت چاکترە.',
     },
   ];
 
   @override
   void initState() {
     super.initState();
-    _currentMode = widget.initialMode ?? 'lab';
+    _currentMode = 'medicine';
   }
 
   TextStyle _kStyle({
@@ -91,67 +91,42 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
       );
 
       if (picked != null) {
+        final imageFile = File(picked.path);
         setState(() {
-          _scannedImage = File(picked.path);
+          _scannedImage = imageFile;
           _isAnalyzing = true;
           _analysisStep = 1;
           _scanResult = null;
         });
 
-        // Step 1: Text & OCR
-        await Future.delayed(const Duration(milliseconds: 900));
-        if (mounted) setState(() => _analysisStep = 2);
+        // Visual step progression while Gemini AI analyzes the image
+        Future.delayed(const Duration(milliseconds: 1200), () {
+          if (mounted && _isAnalyzing) setState(() => _analysisStep = 2);
+        });
 
-        // Step 2: Clinical Identification
-        await Future.delayed(const Duration(milliseconds: 1000));
-        if (mounted) setState(() => _analysisStep = 3);
+        Future.delayed(const Duration(milliseconds: 2600), () {
+          if (mounted && _isAnalyzing) setState(() => _analysisStep = 3);
+        });
 
-        // Step 3: Synthesis & Guideline Compilation
-        await Future.delayed(const Duration(milliseconds: 1000));
+        // Call the real Gemini AI Clinical Vision Service
+        final realResult = await AiClinicalVisionService.instance.analyzeMedicalImage(
+          imageFile: imageFile,
+          mode: _currentMode,
+        );
 
         if (mounted) {
-          final isLab = _currentMode == 'lab';
-          final Map<String, dynamic> newResult = isLab
-              ? {
-                  'mode': 'lab',
-                  'title': 'پشکنینی پزیشکی (CBC & Sugar Panel)',
-                  'category': 'پشکنینی خوێن و شەکرە • تاقیگە',
-                  'date': DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now()),
-                  'confidence': '99.5%',
-                  'summary': 'شیکاریی ڕاپۆرتی تاقیگەکەت دەریخست کە شەکری بەیانیت 96 mg/dL (ئاسایی) و هیمۆگلۆبین 13.9 g/dL (زۆر باشە).',
-                  'markers': [
-                    {'name': 'Fasting Blood Sugar (شەکرە)', 'value': '96 mg/dL', 'status': 'ئاسایی (Normal)', 'isNormal': true},
-                    {'name': 'WBC (خڕۆکەی سپی)', 'value': '6.8 x10^3/µL', 'status': 'ئاسایی', 'isNormal': true},
-                    {'name': 'Hemoglobin (خوێن)', 'value': '13.9 g/dL', 'status': 'ئاسایی', 'isNormal': true},
-                    {'name': 'Platelets (پەڕەکان)', 'value': '280 x10^3/µL', 'status': 'ئاسایی', 'isNormal': true},
-                  ],
-                  'recommendations': 'ئەنجامەکانت زۆر دڵخۆشکەرن و هیچ کێشەیەکی نائاسایی لە ڕێژەکاندا نییە. بۆ بەدواداچوونی زیاتر دەتوانیت لە بەشی تاقیگە داواکاری بکەیت.',
-                  'warnings': 'ئەم ئەنجامە بۆ ڕێنماییە؛ هەمووکات ڕای پزیشکی پسپۆڕ بنەمای سەرەکی چارەسەرە.',
-                }
-              : {
-                  'mode': 'nursing',
-                  'title': 'ڕێنمایی پەرستاری و چاودێری نەخۆش',
-                  'category': 'چاودێری ماڵەوە • پەرستاری',
-                  'date': DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now()),
-                  'confidence': '99.1%',
-                  'summary': 'شیکاریی پێداویستی چاودێری: نەخۆش پێویستی بە لێدانی دەرزی ئەنتی بایۆتیک و گۆڕینی کانیۆلای دەمار هەیە.',
-                  'markers': [
-                    {'name': 'دەرزی ئەنتی بایۆتیک', 'value': 'هەموو ١٢ کاتژمێر جارێک', 'status': 'ڕێکخراو', 'isNormal': true},
-                    {'name': 'کانیۆلا', 'value': 'دانانی نوێ لە ڕێگەی دەمار', 'status': 'پێویست', 'isNormal': true},
-                    {'name': 'پێوانی پەستانی خوێن', 'value': 'ڕۆژانە ٢ جار (بەیانی/ئێوارە)', 'status': 'چاودێری', 'isNormal': true},
-                  ],
-                  'recommendations': 'پێشنیاز دەکەین پەرستاری ڕێگەپێدراو بانگهێشتی ماڵەوە بکەیت بۆ لێدانی دەرمان بە شێوازی دروست لە ڕێگەی دەمارەوە.',
-                  'warnings': 'هەرگیز خۆت هەوڵی دانانی کانیۆلا مەدە تا ڕێگری لە شینبوونەوە و پچڕانی دەمار بکرێت.',
-                };
+          realResult['date'] = DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now());
 
           setState(() {
+            _analysisStep = 3;
             _isAnalyzing = false;
-            _scanResult = newResult;
-            _recentScans.insert(0, newResult);
+            _scanResult = realResult;
+            _recentScans.insert(0, realResult);
           });
         }
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Scan error: $e');
       if (mounted) {
         setState(() => _isAnalyzing = false);
       }
@@ -184,24 +159,21 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: _currentMode == 'lab'
-                      ? [const Color(0xFF2563EB), const Color(0xFF3B82F6)]
-                      : [const Color(0xFF0D9488), const Color(0xFF10B981)],
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
                 ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: (_currentMode == 'lab' ? const Color(0xFF2563EB) : const Color(0xFF0D9488))
-                        .withValues(alpha: 0.35),
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.35),
                     blurRadius: 8,
                   ),
                 ],
               ),
               child: const Icon(
-                Icons.auto_awesome_rounded,
+                Icons.medication_rounded,
                 color: Colors.white,
-                size: 16,
+                size: 18,
               ),
             ),
             const SizedBox(width: 8),
@@ -210,7 +182,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'ai_clinical_scanner_title'.tr(),
+                  'سکانەری دەرمان بە AI',
                   style: _kStyle(
                     color: isDark ? Colors.white : const Color(0xFF0F172A),
                     fontSize: 15.5,
@@ -218,9 +190,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   ),
                 ),
                 Text(
-                  _currentMode == 'lab' ? 'شیکاریی تاقیگە و پشکنینەکان' : 'ڕێنمایی و چاودێری پەرستاری',
+                  'شیکاریی حەب، کەپسول و پاکەتی دەرمان',
                   style: _kStyle(
-                    color: _currentMode == 'lab' ? const Color(0xFF2563EB) : const Color(0xFF0D9488),
+                    color: const Color(0xFF2563EB),
                     fontSize: 10.5,
                     fontWeight: FontWeight.bold,
                   ),
@@ -248,11 +220,6 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Segmented Mode Selector: Lab vs Nursing ──
-            if (!_isAnalyzing && _scanResult == null) _buildModeSelector(isDark),
-
-            const SizedBox(height: 14),
-
             // ── Main Scanner Viewport / Status ──
             if (_isAnalyzing)
               _buildScanningState(isDark)
@@ -269,118 +236,6 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             const SizedBox(height: 30),
           ],
         ),
-      ),
-    );
-  }
-
-  // ── Mode Selector: Lab vs Nursing ──
-  Widget _buildModeSelector(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Lab Tab
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _currentMode = 'lab'),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: _currentMode == 'lab' ? const Color(0xFF2563EB) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: _currentMode == 'lab'
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF2563EB).withValues(alpha: 0.35),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Iconsax.health,
-                      size: 17,
-                      color: _currentMode == 'lab' ? Colors.white : const Color(0xFF64748B),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'ai_tab_lab'.tr(),
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: _currentMode == 'lab' ? Colors.white : const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Nursing Tab
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _currentMode = 'nursing'),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: _currentMode == 'nursing' ? const Color(0xFF0D9488) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: _currentMode == 'nursing'
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF0D9488).withValues(alpha: 0.35),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Iconsax.activity,
-                      size: 17,
-                      color: _currentMode == 'nursing' ? Colors.white : const Color(0xFF64748B),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'ai_tab_nursing'.tr(),
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: _currentMode == 'nursing' ? Colors.white : const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -440,18 +295,18 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                       border: Border.all(color: primaryColor.withValues(alpha: 0.4), width: 2),
                     ),
                     child: Icon(
-                      isLab ? Iconsax.health : Iconsax.shield_tick,
+                      Icons.medication_rounded,
                       color: primaryColor,
-                      size: 34,
+                      size: 36,
                     ),
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    isLab ? 'سکانکردنی ڕاپۆرتی پشکنینی تاقیگە' : 'سکانکردنی پێداویستی چاودێری پەرستاری',
+                    'سکانکردنی وێنەی دەرمان',
                     textAlign: TextAlign.center,
                     style: _kStyle(
                       color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      fontSize: 15,
+                      fontSize: 15.5,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -459,7 +314,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
-                      isLab ? 'ai_lab_scanner_desc'.tr() : 'ai_nursing_scanner_desc'.tr(),
+                      'وێنەی پاکەت، شریت، حەب یان کەپسولەکە بگرە، زیرەکی دەستکرد ناوی دەرمانەکە، بەکارهێنان، ژەم و هۆشدارییەکانت بۆ شیدەکاتەوە',
                       textAlign: TextAlign.center,
                       style: _kStyle(
                         color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -642,7 +497,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           // Step Progress Indicators
           _buildAnalysisStepItem(
             stepNumber: 1,
-            title: 'خوێندنەوەی دەستوخەت و دەقی پزیشکی (OCR)...',
+            title: 'خوێندنەوەی دەق و ناوی دەرمانەکە (OCR)...',
             isActive: _analysisStep >= 1,
             isDone: _analysisStep > 1,
             isDark: isDark,
@@ -650,9 +505,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           const SizedBox(height: 10),
           _buildAnalysisStepItem(
             stepNumber: 2,
-            title: _currentMode == 'lab'
-                ? 'دەرهێنانی ئەنجام و هێڵە سورەکانی پشکنین...'
-                : 'شیکردنەوەی پێداویستی و هەنگاوەکانی چاودێری پەرستاری...',
+            title: 'دەستنیشانکردنی پێکهاتە، شێوە و بەکارهێنان...',
             isActive: _analysisStep >= 2,
             isDone: _analysisStep > 2,
             isDark: isDark,
@@ -660,7 +513,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           const SizedBox(height: 10),
           _buildAnalysisStepItem(
             stepNumber: 3,
-            title: 'ئامادەکردنی ڕاپۆرتی ورد بە کوردی سادە...',
+            title: 'ئامادەکردنی ڕێنمایی و ژەمەکان بە کوردی سادە...',
             isActive: _analysisStep >= 3,
             isDone: false,
             isDark: isDark,
@@ -768,7 +621,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(isLab ? Iconsax.health : Iconsax.shield_tick, color: Colors.white, size: 30),
+                  child: const Icon(Icons.medication_rounded, color: Colors.white, size: 30),
                 ),
               const SizedBox(width: 14),
               Expanded(
@@ -782,7 +635,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '${res['confidence']} • شیکاریی سەلمێنراوی کلینیکی',
+                        '${res['confidence']} • شیکاریی سەلمێنراوی دەرمان',
                         style: _kStyle(
                           color: Colors.white,
                           fontSize: 10.5,
@@ -817,9 +670,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
         // Summary Card
         _buildMedicalInfoCard(
-          title: 'پوختەی شیکاری کلینیکی AI',
+          title: 'پوختەی شیکاری دەرمان AI',
           content: res['summary'],
-          icon: Icons.analytics_rounded,
+          icon: Icons.medication_rounded,
           iconColor: const Color(0xFF10B981),
           isDark: isDark,
         ),
@@ -842,10 +695,10 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               children: [
                 Row(
                   children: [
-                    Icon(isLab ? Iconsax.status : Iconsax.task_square, color: primaryColor, size: 20),
+                    Icon(Icons.format_list_bulleted_rounded, color: primaryColor, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      isLab ? 'ئاست و ڕێژەی پشکنینەکان' : 'هەنگاو و ڕێکارە پەرستارییەکان',
+                      'وردەکاری پێکهاتە، شێوە و ژەمی دەرمان',
                       style: TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: 14,
@@ -938,7 +791,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
         const SizedBox(height: 18),
 
-        // Primary Action Button: Book in Lab or Call Nurse
+        // Primary Action: Scan another medicine
         SizedBox(
           width: double.infinity,
           height: 50,
@@ -948,39 +801,17 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 0,
             ),
-            onPressed: () {
-              if (isLab) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LabHubScreen()),
-                );
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const NursingHubScreen()),
-                );
-              }
-            },
-            icon: Icon(isLab ? Iconsax.health : Iconsax.people, color: Colors.white, size: 20),
-            label: Text(
-              isLab ? 'داواکردنی پشکنین لە بەشی تاقیگە' : 'داواکردنی پەرستار لە بەشی پەرستاری',
-              style: const TextStyle(
+            onPressed: _resetScanner,
+            icon: const Icon(Iconsax.refresh, color: Colors.white, size: 20),
+            label: const Text(
+              'سکانکردنی دەرمانێکی تر',
+              style: TextStyle(
                 fontFamily: 'Rabar',
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
-          ),
-        ),
-
-        const SizedBox(height: 10),
-
-        Center(
-          child: TextButton.icon(
-            onPressed: _resetScanner,
-            icon: const Icon(Iconsax.refresh, size: 16),
-            label: const Text('سکانکردنی بەڵگەنامەیەکی تر', style: TextStyle(fontFamily: 'Rabar')),
           ),
         ),
       ],
@@ -1087,7 +918,6 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           separatorBuilder: (_, _) => const SizedBox(height: 10),
           itemBuilder: (context, idx) {
             final item = _recentScans[idx];
-            final isItemLab = item['mode'] == 'lab';
 
             return Container(
               padding: const EdgeInsets.all(14),
@@ -1111,12 +941,12 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: (isItemLab ? const Color(0xFF2563EB) : const Color(0xFF0D9488)).withValues(alpha: 0.12),
+                        color: const Color(0xFF2563EB).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(
-                        isItemLab ? Iconsax.health : Iconsax.shield_tick,
-                        color: isItemLab ? const Color(0xFF2563EB) : const Color(0xFF0D9488),
+                      child: const Icon(
+                        Icons.medication_rounded,
+                        color: Color(0xFF2563EB),
                         size: 22,
                       ),
                     ),
