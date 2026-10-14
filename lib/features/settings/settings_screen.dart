@@ -971,9 +971,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               _buildLanguageOption(
                 bottomSheetContext,
-                'کوردی',
+                'کوردی (سۆرانی)',
                 'kurdish',
                 const Locale('ckb'),
+              ),
+              const SizedBox(height: 12),
+              _buildLanguageOption(
+                bottomSheetContext,
+                'کوردی (بادینی)',
+                'kurdish',
+                const Locale('kmr'),
               ),
               const SizedBox(height: 12),
               _buildLanguageOption(

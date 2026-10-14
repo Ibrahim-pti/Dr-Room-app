@@ -55,7 +55,7 @@ class MedicineInfoController extends Controller
     {
         $validated = $request->validate([
             'query' => 'required|string|min:2|max:100',
-            'lang' => 'nullable|string|in:en,ckb,ar',
+            'lang' => 'nullable|string|in:en,ckb,kmr,ar',
         ]);
 
         $query = trim($validated['query']);
@@ -128,7 +128,8 @@ class MedicineInfoController extends Controller
 
         try {
             $translator = new GoogleTranslate();
-            $translator->setSource('en')->setTarget($lang);
+            $targetLang = ($lang === 'kmr') ? 'ku' : $lang;
+            $translator->setSource('en')->setTarget($targetLang);
 
             $joined = implode("\n\n", array_map(
                 fn (string $field) => $result[$field],

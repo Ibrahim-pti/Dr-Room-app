@@ -64,10 +64,15 @@ void main() async {
   runApp(
     ProviderScope(
       child: EasyLocalization(
-        supportedLocales: const [Locale('en'), Locale('ar'), Locale('ckb')],
+        supportedLocales: const [
+          Locale('en'),
+          Locale('ar'),
+          Locale('ckb'),
+          Locale('kmr'),
+        ],
         path: 'assets/translations',
         fallbackLocale: const Locale('en'),
-        startLocale: const Locale('ckb'),
+        startLocale: const Locale('en'),
         child: const DrRoomApp(),
       ),
     ),

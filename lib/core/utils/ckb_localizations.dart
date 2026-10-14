@@ -6,7 +6,8 @@ class CkbMaterialLocalizations extends LocalizationsDelegate<MaterialLocalizatio
   const CkbMaterialLocalizations();
 
   @override
-  bool isSupported(Locale locale) => locale.languageCode == 'ckb';
+  bool isSupported(Locale locale) =>
+      locale.languageCode == 'ckb' || locale.languageCode == 'kmr';
 
   @override
   Future<MaterialLocalizations> load(Locale locale) async {
@@ -21,7 +22,8 @@ class CkbWidgetLocalizations extends LocalizationsDelegate<WidgetsLocalizations>
   const CkbWidgetLocalizations();
 
   @override
-  bool isSupported(Locale locale) => locale.languageCode == 'ckb';
+  bool isSupported(Locale locale) =>
+      locale.languageCode == 'ckb' || locale.languageCode == 'kmr';
 
   @override
   Future<WidgetsLocalizations> load(Locale locale) async {
@@ -36,7 +38,8 @@ class CkbCupertinoLocalizations extends LocalizationsDelegate<CupertinoLocalizat
   const CkbCupertinoLocalizations();
 
   @override
-  bool isSupported(Locale locale) => locale.languageCode == 'ckb';
+  bool isSupported(Locale locale) =>
+      locale.languageCode == 'ckb' || locale.languageCode == 'kmr';
 
   @override
   Future<CupertinoLocalizations> load(Locale locale) async {

@@ -21,8 +21,8 @@ class SetLocale
 
         if ($locale) {
             $primary = strtolower(trim(explode('-', explode(',', $locale)[0])[0]));
-            if (in_array($primary, ['ckb', 'ku', 'ar', 'en'])) {
-                app()->setLocale($primary === 'ku' ? 'ckb' : $primary);
+            if (in_array($primary, ['ckb', 'kmr', 'bdn', 'ku', 'ar', 'en'])) {
+                app()->setLocale($primary === 'ku' ? 'ckb' : ($primary === 'bdn' ? 'kmr' : $primary));
             }
         }
 

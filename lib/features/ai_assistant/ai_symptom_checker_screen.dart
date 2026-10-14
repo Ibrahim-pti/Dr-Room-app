@@ -98,7 +98,43 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
       ];
     }
 
-    // Kurdish (ckb)
+    if (lang == 'kmr') {
+      return [
+        {
+          'mode': 'medicine',
+          'title': 'Amoxicillin (ئامۆکسیسیلین 500mg)',
+          'category': 'دژی هەوکرنێ • ئەنتی بایۆتیک',
+          'date': 'ئەڤرۆ ١٠:٣٠ سپێدێ',
+          'confidence': '99.4%',
+          'summary': 'ئەڤ دەرمانە ئەنتی بایۆتیکە و دهێتە بکارئینان بۆ چارەسەرکرنا هەوکرنا بەکتریایی وەک قورگ، سنگ، ڕێکا میزێ و برینان.',
+          'markers': [
+            {'name': 'پێکهاتەیا چالاک', 'value': 'Amoxicillin 500mg', 'status': 'چالاک', 'isNormal': true},
+            {'name': 'شێوازێ دەرمانی', 'value': 'کەپسول (Capsule)', 'status': 'نۆرمال', 'isNormal': true},
+            {'name': 'ژەم و دەم', 'value': 'ڕۆژێ ٣ جاران (هەر ٨ دەمژمێران)', 'status': 'شیرەت', 'isNormal': true},
+            {'name': 'شێوازێ خوارنێ', 'value': 'پشتی خوارنێ دگەل ئاڤێ', 'status': 'گرنگ', 'isNormal': true},
+          ],
+          'recommendations': 'کۆرسێ دەرمانی هەتا دووماهییێ تمام بکە خۆ ئەگەر هەست ب باشبوونێ ژی بکەی دا بەکتریا سەرنەهەڵدەتەڤە.',
+          'warnings': 'ئەگەر حەساسییەت ب پەنسلینێ هەبیت نابیت چ جاران ئەڤی دەرمانی بکاربینی.',
+        },
+        {
+          'mode': 'medicine',
+          'title': 'Panadol Extra (پانادۆڵ ئێکسسترا)',
+          'category': 'ئێش شکێن و دابەزینەرا تایێ',
+          'date': 'دوهی ٠٤:١٥ ئێڤاری',
+          'confidence': '99.1%',
+          'summary': 'دهێتە بکارئینان بۆ هێورکرنا ئێشانا سەرێ، شەقیقێ، ددانان، پشتا و ماسوولکان و دابەزاندنا تایێ.',
+          'markers': [
+            {'name': 'پێکهاتەیا چالاک', 'value': 'Paracetamol + Caffeine', 'status': 'چالاک', 'isNormal': true},
+            {'name': 'شێوازێ دەرمانی', 'value': 'حەب (Tablet)', 'status': 'نۆرمال', 'isNormal': true},
+            {'name': 'ژەم و دەم', 'value': '١-٢ حەب دەمێ پێدڤی (هەر ٦ دەمژمێران)', 'status': 'شیرەت', 'isNormal': true},
+          ],
+          'recommendations': 'ڕۆژانە پتر ژ ٨ حەبان مەخۆ دا کو زیان نەگەهیتە جگەرێ.',
+          'warnings': 'دگەل دەرمانێن دی یێن پاراسیتامۆڵێ تێکەل نەکە، و بەری نڤستنێ ژبەر کافایینێ نەخۆی چێترە.',
+        },
+      ];
+    }
+
+    // Kurdish Sorani (ckb)
     return [
       {
         'mode': 'medicine',

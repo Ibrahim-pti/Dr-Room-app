@@ -264,6 +264,69 @@ Critical Rules:
 - Always write in fluent, professional English.
 - Always ensure "isNormal" is boolean true/false.
 ''';
+    } else if (language == 'kmr') {
+      return '''
+You are the Dr-Room AI Medicine & Pharmaceutical Specialist (تایبەتمەندێ ژیرییا دەستکرد بۆ دەرمان و حەبان ل دکتۆر ڕۆم).
+Carefully inspect and analyze the attached photo of a medicine, pill, tablet, blister strip, syrup, capsule, injection, medicine packaging, or medical prescription.
+
+Identify and explain the medicine in authentic Badini Kurdish (کوردییا بادینی ب ئەلفوبێیا کوردی-عەرەبی):
+1. Identify the exact medicine name (Commercial / Brand name and Generic / Scientific name in Badini and English, e.g. Panadol Extra / Paracetamol).
+2. Category / Therapeutic class (e.g. ئێش شکێن، ئەنتی بایۆتیک، دژی ترشاتیێ، دژی حەساسییەتێ).
+3. Primary uses (بۆ چ دهێتە بکارئینان و چارەسەریا چ دکەت).
+4. Dosage, timing & instructions (چەوانیا بکارئینانێ و ژەم: کەنگی و چەند دهێتە خوارن، بەری نانی یان پشتی نانی).
+5. Active ingredients & strength (پێکهاتەیا چالاک و هێزا وێ بۆ نموونە 500mg).
+6. Warnings, precautions & contraindications (هۆشدارییێن گرنگ، بۆ کێ نابیت، دگەل چ ناهێتە خوارن).
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "title": "ناڤێ بازرگانی و زانستی یێ دەرمانی (بۆ نموونە: Amoxicillin • ئامۆکسیسیلین 500mg)",
+  "category": "گرووپێ دەرمانی (بۆ نموونە: دژی هەوکرنێ • Antibiotic)",
+  "confidence": "99.0%",
+  "summary": "پوختەیەکا زۆرا ڕوون و ب ساناهی ب زمانێ کوردییێ بادینی کا ئەڤ دەرمانە چییە و بۆ چ باشە و کارتێکرنا وی چییە",
+  "markers": [
+    {
+      "name": "پێکهاتەیا چالاک",
+      "value": "ناڤێ پێکهاتەیێ دگەل دۆزێ (بۆ نموونە: Paracetamol 500mg)",
+      "status": "چالاک",
+      "isNormal": true
+    },
+    {
+      "name": "شێوازێ دەرمانی",
+      "value": "کەپسول / حەب / شلەمەنی / شریت",
+      "status": "نۆرمال",
+      "isNormal": true
+    },
+    {
+      "name": "شێوازێ خوارنێ",
+      "value": "بۆ نموونە: ڕۆژێ ٣ جاران (هەر ٨ دەمژمێران)",
+      "status": "شیرەت",
+      "isNormal": true
+    },
+    {
+      "name": "دەمێ بکارئینانێ",
+      "value": "پشتی خوارنێ دگەل ئاڤەکا زۆر",
+      "status": "گرنگ",
+      "isNormal": true
+    }
+  ],
+  "recommendations": "شیرەتێن بکارئینانێ و چەوانیا پاراستنا دەرمانی ل ماڵ ب بادینی",
+  "warnings": "هۆشدارییێن گرنگ دەربارەی حەساسییەتێ، ژەما زێدە، یان ژنێن دووگیان ب بادینی"
+}
+
+Critical Rules:
+- If the image does NOT contain a medicine, pill, blister pack, syrup, medical box, or prescription:
+  Set "title" to "وێنە نە دەرمانە",
+  "category": "شرۆڤەکرنا نەدیار",
+  "confidence": "0%",
+  "summary": "ئەڤ وێنەیە پاکێت یان حەبا دەرمانی نینە. هیڤیدارین بتنێ وێنەیێ پاکێتێ دەرمانی، حەب یان نڤیسا نوژداری بگری دا کو پێزانینێن دروست بدەینە تە.",
+  "markers": [
+    {"name": "ڕەوشا وێنەیی", "value": "نە دەرمانە", "status": "پێداچوون", "isNormal": false}
+  ],
+  "recommendations": "تکایە کامێرا خۆ ڕاگرە بەرامبەر پاکێت یان شریتێ دەرمانی و وێنەیەکێ ڕوون بگرە.",
+  "warnings": "ئەڤ سکێنەرە تایبەتە ب نیاسین و شرۆڤەکرنا دەرمان و حەبان."
+- Always write in fluent, natural Badini Kurdish (کوردییا بادینی).
+- Always ensure "isNormal" is boolean true/false.
+''';
     }
 
     // Kurdish (Central Kurdish / Sorani)
@@ -334,13 +397,14 @@ Critical Rules:
   void _normalizeResult(Map<String, dynamic> result, String mode, {String language = 'ckb'}) {
     final isAr = language == 'ar';
     final isEn = language == 'en';
+    final isKmr = language == 'kmr';
 
-    result['title'] = (result['title'] ?? (isAr ? 'تحليل الدواء' : (isEn ? 'Medicine Analysis' : 'شیکاریی دەرمان'))).toString();
-    result['category'] = (result['category'] ?? (isAr ? 'الأدوية والحبوب' : (isEn ? 'Medication & Pills' : 'دەرمان و حەب'))).toString();
+    result['title'] = (result['title'] ?? (isAr ? 'تحليل الدواء' : (isEn ? 'Medicine Analysis' : (isKmr ? 'شرۆڤەکرنا دەرمانی' : 'شیکاریی دەرمان')))).toString();
+    result['category'] = (result['category'] ?? (isAr ? 'الأدوية والحبوب' : (isEn ? 'Medication & Pills' : (isKmr ? 'دەرمان و حەب' : 'دەرمان و حەب')))).toString();
     result['confidence'] = (result['confidence'] ?? '99.0%').toString();
-    result['summary'] = (result['summary'] ?? (isAr ? 'تم تحليل الدواء بواسطة الذكاء الاصطناعي.' : (isEn ? 'Medication analyzed by AI.' : 'شیکاریی دەرمانەکە لەلایەن ژیری دەستکردەوە ئەنجامدرا.'))).toString();
-    result['recommendations'] = (result['recommendations'] ?? (isAr ? 'يرجى الالتزام بتعليمات الطبيب أو الصيدلي.' : (isEn ? 'Please follow the advice of your doctor or pharmacist.' : 'تکایە بەپێی ڕێنمایی پزیشک یان دەرمانساز بەکاریبهێنە.'))).toString();
-    result['warnings'] = (result['warnings'] ?? (isAr ? 'احفظ الأدوية بعيداً عن متناول الأطفال وفق الإرشادات الطبية.' : (isEn ? 'Keep medications away from children according to medical advice.' : 'هەر دەرمانێک پێویستە بەپێی ڕێنمایی پزیشک و دوور لە دەستی منداڵان دابنرێت.'))).toString();
+    result['summary'] = (result['summary'] ?? (isAr ? 'تم تحليل الدواء بواسطة الذكاء الاصطناعي.' : (isEn ? 'Medication analyzed by AI.' : (isKmr ? 'دەرمان ژ لایێ ژیرییا دەستکرد ڤە هاتە شرۆڤەکرن.' : 'شیکاریی دەرمانەکە لەلایەن ژیری دەستکردەوە ئەنجامدرا.')))).toString();
+    result['recommendations'] = (result['recommendations'] ?? (isAr ? 'يرجى الالتزام بتعليمات الطبيب أو الصيدلي.' : (isEn ? 'Please follow the advice of your doctor or pharmacist.' : (isKmr ? 'هیڤیە ل دیف شیرەتێن نوژداری یان دەرمانسازی بکاربینی.' : 'تکایە بەپێی ڕێنمایی پزیشک یان دەرمانساز بەکاریبهێنە.')))).toString();
+    result['warnings'] = (result['warnings'] ?? (isAr ? 'احفظ الأدوية بعيداً عن متناول الأطفال وفق الإرشادات الطبية.' : (isEn ? 'Keep medications away from children according to medical advice.' : (isKmr ? 'هەر دەرمانەکی پێدڤیە ل دیف شیرەتێن نوژداری و دوور ژ دەستێ زارۆکان بهێتە پاراستن.' : 'هەر دەرمانێک پێویستە بەپێی ڕێنمایی پزیشک و دوور لە دەستی منداڵان دابنرێت.')))).toString();
 
     final rawMarkers = result['markers'];
     final List<Map<String, dynamic>> normalizedMarkers = [];
@@ -350,18 +414,19 @@ Critical Rules:
           normalizedMarkers.add({
             'name': (item['name'] ?? item['test'] ?? item['marker'] ?? (isAr ? 'فحص' : (isEn ? 'Marker' : 'پشکنین'))).toString(),
             'value': (item['value'] ?? item['result'] ?? '').toString(),
-            'status': (item['status'] ?? (isAr ? 'عادي' : (isEn ? 'Normal' : 'ئاسایی'))).toString(),
+            'status': (item['status'] ?? (isAr ? 'عادي' : (isEn ? 'Normal' : (isKmr ? 'نۆرمال' : 'ئاسایی')))).toString(),
             'isNormal': item['isNormal'] == true ||
                 item['is_normal'] == true ||
                 (item['status']?.toString().contains('ئاسایی') ?? true) ||
                 (item['status']?.toString().contains('عادي') ?? true) ||
+                (item['status']?.toString().contains('نۆرمال') ?? true) ||
                 (item['status']?.toString().toLowerCase().contains('normal') ?? true),
           });
         } else if (item != null) {
           normalizedMarkers.add({
             'name': item.toString(),
-            'value': isAr ? 'مكتمل' : (isEn ? 'Completed' : 'ئەنجامدراوە'),
-            'status': isAr ? 'عادي' : (isEn ? 'Normal' : 'ئاسایی'),
+            'value': isAr ? 'مكتمل' : (isEn ? 'Completed' : (isKmr ? 'هاتەکرن' : 'ئەنجامدراوە')),
+            'status': isAr ? 'عادي' : (isEn ? 'Normal' : (isKmr ? 'نۆرمال' : 'ئاسایی')),
             'isNormal': true,
           });
         }
@@ -369,9 +434,9 @@ Critical Rules:
     }
     if (normalizedMarkers.isEmpty) {
       normalizedMarkers.add({
-        'name': isAr ? 'المكون الأساسي' : (isEn ? 'Main Component' : 'پێکهاتەی سەرەکی'),
-        'value': isAr ? 'تم التحليل' : (isEn ? 'Analyzed' : 'شیکاریکرا'),
-        'status': isAr ? 'عادي' : (isEn ? 'Normal' : 'ئاسایی'),
+        'name': isAr ? 'المكون الأساسي' : (isEn ? 'Main Component' : (isKmr ? 'پێکهاتەیا سەرەکی' : 'پێکهاتەی سەرەکی')),
+        'value': isAr ? 'تم التحليل' : (isEn ? 'Analyzed' : (isKmr ? 'هاتە شرۆڤەکرن' : 'شیکاریکرا')),
+        'status': isAr ? 'عادي' : (isEn ? 'Normal' : (isKmr ? 'نۆرمال' : 'ئاسایی')),
         'isNormal': true,
       });
     }
@@ -408,27 +473,30 @@ Critical Rules:
   }) {
     final isAr = language == 'ar';
     final isEn = language == 'en';
+    final isKmr = language == 'kmr';
 
     String defaultErr;
     if (isAr) {
       defaultErr = 'تعذر الاتصال بخدمة الذكاء الاصطناعي. يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى.';
     } else if (isEn) {
       defaultErr = 'Could not connect to AI service. Please check your internet connection and try again.';
+    } else if (isKmr) {
+      defaultErr = 'نەهاتە گرێدان ب خزمەتگوزاریا ژیرییا دەستکرد ڤە. هیڤیە ژ هەبوونا هێلا ئینتەرنێتێ دڵنیا ببە و دووبارە بزاڤێ بکە.';
     } else {
       defaultErr = 'نەتوانرا پەیوەندی بە خزمەتگوزاری زیرەکی دەستکردەوە بکرێت. تکایە دڵنیابەرەوە لە هێڵی ئینتەرنێت و دووبارە هەوڵبدەرەوە.';
     }
 
     return {
       'mode': mode,
-      'title': isAr ? 'تعذر إتمام التحليل' : (isEn ? 'Analysis Incomplete' : 'سەرکەوتوو نەبوو لە شیکاری'),
-      'category': isAr ? 'خطأ في الاتصال' : (isEn ? 'Connection Error' : 'هەڵەی پەیوەندی'),
+      'title': isAr ? 'تعذر إتمام التحليل' : (isEn ? 'Analysis Incomplete' : (isKmr ? 'شرۆڤەکرن تمام نەبوو' : 'سەرکەوتوو نەبوو لە شیکاری')),
+      'category': isAr ? 'خطأ في الاتصال' : (isEn ? 'Connection Error' : (isKmr ? 'شاشییا گرێدانێ' : 'هەڵەی پەیوەندی')),
       'confidence': '0%',
       'summary': customError ?? defaultErr,
       'markers': [
         {
-          'name': isAr ? 'حالة الخدمة' : (isEn ? 'Service Status' : 'دۆخی سیستەم'),
-          'value': isAr ? 'غير متاح حالياً' : (isEn ? 'Currently Unavailable' : 'لەکارکەوتووە'),
-          'status': isAr ? 'خطأ' : (isEn ? 'Error' : 'هەڵە'),
+          'name': isAr ? 'حالة الخدمة' : (isEn ? 'Service Status' : (isKmr ? 'ڕەوشا سیستەمی' : 'دۆخی سیستەم')),
+          'value': isAr ? 'غير متاح حالياً' : (isEn ? 'Currently Unavailable' : (isKmr ? 'د دەستبەردەست دا نینە' : 'لەکارکەوتووە')),
+          'status': isAr ? 'خطأ' : (isEn ? 'Error' : (isKmr ? 'خەلەت' : 'هەڵە')),
           'isNormal': false,
         }
       ],
@@ -436,12 +504,16 @@ Critical Rules:
           ? 'يرجى التأكد من وضوح الصورة وتوفر إضاءة مناسبة، ثم المحاولة مرة أخرى.'
           : (isEn
               ? 'Please ensure good lighting and clear focus on the medicine, then try again.'
-              : 'تکایە دڵنیابەرەوە لە هەبوونی ڕووناکی گونجاو و تەرکیز لەسەر دەقەکە، پاشان دووبارە وێنەکە بگرەوە.'),
+              : (isKmr
+                  ? 'هیڤیە ژ هەبوونا ڕووناهییا گونجای و تەرکیزێ ل سەر وێنەیی دڵنیا ببە، پاشان دووبارە وێنەیی بگرە.'
+                  : 'تکایە دڵنیابەرەوە لە هەبوونی ڕووناکی گونجاو و تەرکیز لەسەر دەقەکە، پاشان دووبارە وێنەکە بگرەوە.')),
       'warnings': isAr
           ? 'إذا استمرت المشكلة، يرجى التحقق من اتصالك بالإنترنت.'
           : (isEn
               ? 'If the issue persists, please check your internet connection.'
-              : 'ئەگەر کێشەکە بەردەوام بوو، دڵنیابەرەوە لە بەستراوەیی ئینتەرنێتەکەت.'),
+              : (isKmr
+                  ? 'ئەگەر ئاریشە یا بەردەوام بوو، ژ بەستراویا ئینتەرنێتا خۆ پشتڕاست ببە.'
+                  : 'ئەگەر کێشەکە بەردەوام بوو، دڵنیابەرەوە لە بەستراوەیی ئینتەرنێتەکەت.')),
     };
   }
 }

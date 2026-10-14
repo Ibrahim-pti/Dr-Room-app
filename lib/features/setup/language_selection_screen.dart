@@ -14,7 +14,7 @@ class LanguageSelectionScreen extends StatefulWidget {
 }
 
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
-  String _selectedLocale = 'ckb';
+  String _selectedLocale = 'en';
 
   static const Color primaryColor = Color(0xFF2563EB);
   static const Color secondaryBlue = Color(0xFF3B82F6);
@@ -22,15 +22,12 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   @override
   void initState() {
     super.initState();
-    // Default to current locale or ckb
+    // Default to current locale or en
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() {
-          _selectedLocale = context.locale.languageCode == 'ar'
-              ? 'ar'
-              : context.locale.languageCode == 'en'
-                  ? 'en'
-                  : 'ckb';
+          final code = context.locale.languageCode;
+          _selectedLocale = ['ar', 'en', 'ckb', 'kmr'].contains(code) ? code : 'en';
         });
       }
     });
@@ -232,7 +229,31 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
                         // ── Language Cards ──
                         _buildLangCard(
-                          title: 'کوردی',
+                          title: 'English',
+                          localeCode: 'en',
+                          flag: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.network(
+                              'https://flagcdn.com/w80/gb.png',
+                              width: 44,
+                              height: 30,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Text(
+                                '🇬🇧',
+                                style: TextStyle(fontSize: 28),
+                              ),
+                            ),
+                          ),
+                          delay: 200,
+                          cardBg: cardBg,
+                          isDark: isDark,
+                          textColor: textColor,
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        _buildLangCard(
+                          title: 'کوردی (سۆرانی)',
                           localeCode: 'ckb',
                           flag: ClipRRect(
                             borderRadius: BorderRadius.circular(6),
@@ -249,22 +270,18 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           textColor: textColor,
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
 
                         _buildLangCard(
-                          title: 'English',
-                          localeCode: 'en',
+                          title: 'کوردی (بادینی)',
+                          localeCode: 'kmr',
                           flag: ClipRRect(
                             borderRadius: BorderRadius.circular(6),
-                            child: Image.network(
-                              'https://flagcdn.com/w80/gb.png',
+                            child: SvgPicture.asset(
+                              'assets/images/kurdistan_flag.svg',
                               width: 44,
                               height: 30,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Text(
-                                '🇬🇧',
-                                style: TextStyle(fontSize: 28),
-                              ),
                             ),
                           ),
                           delay: 400,
@@ -273,7 +290,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           textColor: textColor,
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
 
                         _buildLangCard(
                           title: 'العربية',

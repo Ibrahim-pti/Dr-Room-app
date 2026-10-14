@@ -15,11 +15,12 @@ class TranslateController extends Controller
             $results = [];
             $trEn = new GoogleTranslate('en');
             $trAr = new GoogleTranslate('ar');
+            $trKmr = new GoogleTranslate('ku');
 
             foreach ($request->fields as $key => $val) {
                 $val = trim((string)$val);
                 if (empty($val)) {
-                    $results[$key] = ['en' => '', 'ar' => '', 'ckb' => ''];
+                    $results[$key] = ['en' => '', 'ar' => '', 'ckb' => '', 'kmr' => ''];
                     continue;
                 }
 
@@ -47,10 +48,23 @@ class TranslateController extends Controller
                     }
                 }
 
+                try {
+                    $trKmr->setSource('ckb');
+                    $kmr = $trKmr->translate($val);
+                } catch (\Exception $e) {
+                    try {
+                        $trKmrFallback = new GoogleTranslate('ku');
+                        $kmr = $trKmrFallback->translate($val);
+                    } catch (\Exception $e2) {
+                        $kmr = $val;
+                    }
+                }
+
                 $results[$key] = [
                     'en' => $en,
                     'ar' => $ar,
                     'ckb' => $val,
+                    'kmr' => $kmr,
                 ];
             }
 
@@ -82,12 +96,17 @@ class TranslateController extends Controller
             $trAr->setSource('ckb');
             $ar = $trAr->translate($text);
 
+            $trKmr = new GoogleTranslate('ku');
+            $trKmr->setSource('ckb');
+            $kmr = $trKmr->translate($text);
+
             return response()->json([
                 'success' => true,
                 'translations' => [
                     'en' => $en,
                     'ar' => $ar,
                     'ckb' => $text,
+                    'kmr' => $kmr,
                 ]
             ]);
         } catch (\Exception $e) {
@@ -99,12 +118,16 @@ class TranslateController extends Controller
                 $trAr = new GoogleTranslate('ar');
                 $ar = $trAr->translate($text);
 
+                $trKmr = new GoogleTranslate('ku');
+                $kmr = $trKmr->translate($text);
+
                 return response()->json([
                     'success' => true,
                     'translations' => [
                         'en' => $en,
                         'ar' => $ar,
                         'ckb' => $text,
+                        'kmr' => $kmr,
                     ]
                 ]);
             } catch (\Exception $e2) {
