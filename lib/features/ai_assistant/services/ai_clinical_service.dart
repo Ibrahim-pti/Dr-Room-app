@@ -25,10 +25,11 @@ class AiClinicalVisionService {
     'gemini-3.7-flash',
   ];
 
-  /// Analyzes a medical image (Lab report or Nursing instructions) using Gemini Vision.
+  /// Analyzes a medical image (Medicine, Pill, Prescription) using Gemini Vision.
   Future<Map<String, dynamic>> analyzeMedicalImage({
     required File imageFile,
-    required String mode, // 'lab' or 'nursing'
+    required String mode,
+    String language = 'ckb',
   }) async {
     try {
       final bytes = await imageFile.readAsBytes();
@@ -43,7 +44,7 @@ class AiClinicalVisionService {
         mimeType = 'image/webp';
       }
 
-      final prompt = _buildPrompt(mode);
+      final prompt = _buildPrompt(mode, language: language);
 
       for (final model in _models) {
         try {
@@ -56,7 +57,7 @@ class AiClinicalVisionService {
 
           if (result != null) {
             result['mode'] = mode;
-            _normalizeResult(result, mode);
+            _normalizeResult(result, mode, language: language);
             return result;
           }
         } catch (e) {
@@ -68,13 +69,15 @@ class AiClinicalVisionService {
       // If all live models failed, return a user-friendly error response in the expected format
       return _buildFallbackErrorResult(
         mode,
-        'نەتوانرا پەیوەندی بە خزمەتگوزاری زیرەکی دەستکردەوە بکرێت. تکایە دڵنیابەرەوە لە هێڵی ئینتەرنێت و دووبارە هەوڵبدەرەوە.',
+        null,
+        language: language,
       );
     } catch (e) {
       debugPrint('AiClinicalVisionService exception: $e');
       return _buildFallbackErrorResult(
         mode,
-        'هەڵەیەک ڕوویدا لە کاتی شیکاریکردنی وێنەکە: ${e.toString()}',
+        e.toString(),
+        language: language,
       );
     }
   }
@@ -134,7 +137,136 @@ class AiClinicalVisionService {
     return null;
   }
 
-  String _buildPrompt(String mode) {
+  String _buildPrompt(String mode, {String language = 'ckb'}) {
+    if (language == 'ar') {
+      return '''
+You are the Dr-Room AI Medicine & Pharmaceutical Specialist (أخصائي الذكاء الاصطناعي للأدوية والصيدلة في دكتور روم).
+Carefully inspect and analyze the attached photo of a medicine, pill, tablet, blister strip, syrup, capsule, injection, medicine packaging, or medical prescription.
+
+Identify and explain the medicine in Arabic (اللغة العربية الفصحى المبسطة):
+1. Identify the exact medicine name (Commercial / Brand name and Generic / Scientific name in Arabic and English, e.g. Panadol Extra / Paracetamol).
+2. Category / Therapeutic class (e.g. مسكن ألم، مضاد حيوي، مضاد حموضة، مضاد حساسية).
+3. Primary uses (دواعي الاستعمال وما يعالجه الدواء).
+4. Dosage, timing & instructions (طريقة الاستخدام والجرعة: متى وكم يؤخذ، قبل الأكل أو بعده).
+5. Active ingredients & strength (المادة الفعالة والتركيز، مثلاً Paracetamol 500mg).
+6. Warnings, precautions & contraindications (التحذيرات وموانع الاستعمال الهامة).
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "title": "الاسم التجاري والعلمي للدواء (مثال: Amoxicillin • أموكسيسيلين 500mg)",
+  "category": "تصنيف الدواء (مثال: مضاد حيوي • Antibiotic)",
+  "confidence": "99.0%",
+  "summary": "ملخص واضح ومبسط باللغة العربية يشرح ما هو هذا الدواء وفائدته وتأثيره",
+  "markers": [
+    {
+      "name": "المادة الفعالة",
+      "value": "اسم المادة مع الجرعة (مثال: Paracetamol 500mg)",
+      "status": "فعال",
+      "isNormal": true
+    },
+    {
+      "name": "الشكل الصيدلاني",
+      "value": "كبسولات / أقراص / شراب / شريط",
+      "status": "عادي",
+      "isNormal": true
+    },
+    {
+      "name": "الجرعة والتوقيت",
+      "value": "مثال: 3 مرات يومياً (كل 8 ساعات)",
+      "status": "إرشادات",
+      "isNormal": true
+    },
+    {
+      "name": "طريقة الاستعمال",
+      "value": "بعد الأكل مع كوب ماء",
+      "status": "هام",
+      "isNormal": true
+    }
+  ],
+  "recommendations": "إرشادات الاستخدام وكيفية حفظ الدواء في المنزل بالعربية",
+  "warnings": "تحذيرات هامة حول الحساسية، الجرعات الزائدة، أو الحمل بالعربية"
+}
+
+Critical Rules:
+- If the image does NOT contain a medicine, pill, blister pack, syrup, medical box, or prescription (for example: flowers, food, cars, animals, random objects):
+  Set "title" to "الصورة ليست دواءً",
+  "category": "تحليل غير معروف",
+  "confidence": "0%",
+  "summary": "هذه الصورة لا تحتوي على علبة دواء أو حبوب أو وصفة طبية. يرجى التقاط صورة واضحة لعلبة دواء أو حبوب أو روشتة فقط.",
+  "markers": [
+    {"name": "حالة الصورة", "value": "ليست دواء", "status": "مراجعة", "isNormal": false}
+  ],
+  "recommendations": "يرجى توجيه الكاميرا نحو علبة أو شريط الدواء والتقاط صورة واضحة.",
+  "warnings": "هذا الماسح مخصص فقط للتعرف على الأدوية وتحليلها."
+- Always write in fluent, warm, accurate Arabic.
+- Always ensure "isNormal" is boolean true/false.
+''';
+    } else if (language == 'en') {
+      return '''
+You are the Dr-Room AI Medicine & Pharmaceutical Specialist.
+Carefully inspect and analyze the attached photo of a medicine, pill, tablet, blister strip, syrup, capsule, injection, medicine packaging, or medical prescription.
+
+Identify and explain the medicine in clear, accessible English:
+1. Identify the exact medicine name (Commercial / Brand name and Generic / Scientific name, e.g. Panadol Extra / Paracetamol).
+2. Category / Therapeutic class (e.g. Analgesic, Antibiotic, Antacid, Antihistamine).
+3. Primary uses (Indications and what it treats).
+4. Dosage, timing & instructions (How and when to take, before or after food).
+5. Active ingredients & strength (Active ingredient and dose, e.g. Paracetamol 500mg).
+6. Warnings, precautions & contraindications (Key warnings, who should avoid it, drug interactions).
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "title": "Commercial & Scientific name (e.g. Amoxicillin 500mg)",
+  "category": "Medication Class (e.g. Antibiotic • Anti-infective)",
+  "confidence": "99.0%",
+  "summary": "A clear, accessible summary explaining what this medicine is, what it does, and how it works",
+  "markers": [
+    {
+      "name": "Active Ingredient",
+      "value": "Ingredient name with strength (e.g. Paracetamol 500mg)",
+      "status": "Active",
+      "isNormal": true
+    },
+    {
+      "name": "Dosage Form",
+      "value": "Capsule / Tablet / Syrup / Blister pack",
+      "status": "Normal",
+      "isNormal": true
+    },
+    {
+      "name": "Dosage Schedule",
+      "value": "e.g. 3 times daily (every 8 hours)",
+      "status": "Guidance",
+      "isNormal": true
+    },
+    {
+      "name": "Administration",
+      "value": "After meals with water",
+      "status": "Important",
+      "isNormal": true
+    }
+  ],
+  "recommendations": "Usage advice and home storage instructions in English",
+  "warnings": "Important warnings regarding allergies, overdose, or pregnancy in English"
+}
+
+Critical Rules:
+- If the image does NOT contain a medicine, pill, blister pack, syrup, medical box, or prescription (for example: flowers, food, cars, animals, random objects):
+  Set "title" to "Image is not medication",
+  "category": "Unknown",
+  "confidence": "0%",
+  "summary": "This image does not appear to contain a medicine box, pill, or prescription. Please take a clear photo of your medicine or prescription.",
+  "markers": [
+    {"name": "Status", "value": "Not medicine", "status": "Review", "isNormal": false}
+  ],
+  "recommendations": "Please point the camera directly at the medicine packaging or blister pack and ensure good lighting.",
+  "warnings": "This scanner is specifically designed for analyzing medications and prescriptions."
+- Always write in fluent, professional English.
+- Always ensure "isNormal" is boolean true/false.
+''';
+    }
+
+    // Kurdish (Central Kurdish / Sorani)
     return '''
 You are the Dr-Room AI Medicine & Pharmaceutical Specialist (پسپۆڕی زیرەکی دەستکرد بۆ دەرمان و حەب لە دکتۆر رووم).
 Carefully inspect and analyze the attached photo of a medicine, pill, tablet, blister strip, syrup, capsule, injection, medicine packaging, or medical prescription.
@@ -155,19 +287,19 @@ Return ONLY valid JSON matching this exact structure:
   "summary": "پوختەیەکی زۆر ڕوون و تێگەیشتوو بە زمانی کوردی سادە کە ئەم دەرمانە چییە و بۆچی باشە و کاریگەرییەکەی چییە",
   "markers": [
     {
-      "name": "پێکهاتەی چالاک (Active Ingredient)",
+      "name": "پێکهاتەی چالاک",
       "value": "ناوی پێکهاتەکە لەگەڵ دۆز (بۆ نموونە: Paracetamol 500mg)",
       "status": "چالاک",
       "isNormal": true
     },
     {
-      "name": "شێوازی دەرمان (Form)",
+      "name": "شێوازی دەرمان",
       "value": "کەپسول / حەب / شلەمەنی / شریت",
       "status": "ئاسایی",
       "isNormal": true
     },
     {
-      "name": "شێوازی خواردن (ژەم)",
+      "name": "شێوازی خواردن",
       "value": "بۆ نموونە: ڕۆژی ٣ جار (هەر ٨ کاتژمێر جارێک)",
       "status": "ڕێنمایی",
       "isNormal": true
@@ -199,13 +331,16 @@ Critical Rules:
 ''';
   }
 
-  void _normalizeResult(Map<String, dynamic> result, String mode) {
-    result['title'] = (result['title'] ?? 'شیکاریی دەرمان').toString();
-    result['category'] = (result['category'] ?? 'دەرمان و حەب').toString();
+  void _normalizeResult(Map<String, dynamic> result, String mode, {String language = 'ckb'}) {
+    final isAr = language == 'ar';
+    final isEn = language == 'en';
+
+    result['title'] = (result['title'] ?? (isAr ? 'تحليل الدواء' : (isEn ? 'Medicine Analysis' : 'شیکاریی دەرمان'))).toString();
+    result['category'] = (result['category'] ?? (isAr ? 'الأدوية والحبوب' : (isEn ? 'Medication & Pills' : 'دەرمان و حەب'))).toString();
     result['confidence'] = (result['confidence'] ?? '99.0%').toString();
-    result['summary'] = (result['summary'] ?? 'شیکاریی دەرمانەکە لەلایەن ژیری دەستکردەوە ئەنجامدرا.').toString();
-    result['recommendations'] = (result['recommendations'] ?? 'تکایە بەپێی ڕێنمایی پزیشک یان دەرمانساز بەکاریبهێنە.').toString();
-    result['warnings'] = (result['warnings'] ?? 'هەر دەرمانێک پێویستە بەپێی ڕێنمایی پزیشک و دوور لە دەستی منداڵان دابنرێت.').toString();
+    result['summary'] = (result['summary'] ?? (isAr ? 'تم تحليل الدواء بواسطة الذكاء الاصطناعي.' : (isEn ? 'Medication analyzed by AI.' : 'شیکاریی دەرمانەکە لەلایەن ژیری دەستکردەوە ئەنجامدرا.'))).toString();
+    result['recommendations'] = (result['recommendations'] ?? (isAr ? 'يرجى الالتزام بتعليمات الطبيب أو الصيدلي.' : (isEn ? 'Please follow the advice of your doctor or pharmacist.' : 'تکایە بەپێی ڕێنمایی پزیشک یان دەرمانساز بەکاریبهێنە.'))).toString();
+    result['warnings'] = (result['warnings'] ?? (isAr ? 'احفظ الأدوية بعيداً عن متناول الأطفال وفق الإرشادات الطبية.' : (isEn ? 'Keep medications away from children according to medical advice.' : 'هەر دەرمانێک پێویستە بەپێی ڕێنمایی پزیشک و دوور لە دەستی منداڵان دابنرێت.'))).toString();
 
     final rawMarkers = result['markers'];
     final List<Map<String, dynamic>> normalizedMarkers = [];
@@ -213,18 +348,20 @@ Critical Rules:
       for (final item in rawMarkers) {
         if (item is Map) {
           normalizedMarkers.add({
-            'name': (item['name'] ?? item['test'] ?? item['marker'] ?? 'پشکنین').toString(),
+            'name': (item['name'] ?? item['test'] ?? item['marker'] ?? (isAr ? 'فحص' : (isEn ? 'Marker' : 'پشکنین'))).toString(),
             'value': (item['value'] ?? item['result'] ?? '').toString(),
-            'status': (item['status'] ?? 'ئاسایی').toString(),
+            'status': (item['status'] ?? (isAr ? 'عادي' : (isEn ? 'Normal' : 'ئاسایی'))).toString(),
             'isNormal': item['isNormal'] == true ||
                 item['is_normal'] == true ||
-                (item['status']?.toString().contains('ئاسایی') ?? true),
+                (item['status']?.toString().contains('ئاسایی') ?? true) ||
+                (item['status']?.toString().contains('عادي') ?? true) ||
+                (item['status']?.toString().toLowerCase().contains('normal') ?? true),
           });
         } else if (item != null) {
           normalizedMarkers.add({
             'name': item.toString(),
-            'value': 'ئەنجامدراوە',
-            'status': 'ئاسایی',
+            'value': isAr ? 'مكتمل' : (isEn ? 'Completed' : 'ئەنجامدراوە'),
+            'status': isAr ? 'عادي' : (isEn ? 'Normal' : 'ئاسایی'),
             'isNormal': true,
           });
         }
@@ -232,9 +369,9 @@ Critical Rules:
     }
     if (normalizedMarkers.isEmpty) {
       normalizedMarkers.add({
-        'name': 'پێکهاتەی سەرەکی',
-        'value': 'شیکاریکرا',
-        'status': 'ئاسایی',
+        'name': isAr ? 'المكون الأساسي' : (isEn ? 'Main Component' : 'پێکهاتەی سەرەکی'),
+        'value': isAr ? 'تم التحليل' : (isEn ? 'Analyzed' : 'شیکاریکرا'),
+        'status': isAr ? 'عادي' : (isEn ? 'Normal' : 'ئاسایی'),
         'isNormal': true,
       });
     }
@@ -264,25 +401,47 @@ Critical Rules:
     return null;
   }
 
-  Map<String, dynamic> _buildFallbackErrorResult(String mode, String message) {
-    final isLab = mode == 'lab';
+  Map<String, dynamic> _buildFallbackErrorResult(
+    String mode,
+    String? customError, {
+    String language = 'ckb',
+  }) {
+    final isAr = language == 'ar';
+    final isEn = language == 'en';
+
+    String defaultErr;
+    if (isAr) {
+      defaultErr = 'تعذر الاتصال بخدمة الذكاء الاصطناعي. يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى.';
+    } else if (isEn) {
+      defaultErr = 'Could not connect to AI service. Please check your internet connection and try again.';
+    } else {
+      defaultErr = 'نەتوانرا پەیوەندی بە خزمەتگوزاری زیرەکی دەستکردەوە بکرێت. تکایە دڵنیابەرەوە لە هێڵی ئینتەرنێت و دووبارە هەوڵبدەرەوە.';
+    }
+
     return {
       'mode': mode,
-      'title': 'سەرکەوتوو نەبوو لە شیکاری',
-      'category': isLab ? 'پشکنینی تاقیگە' : 'چاودێری پەرستاری',
+      'title': isAr ? 'تعذر إتمام التحليل' : (isEn ? 'Analysis Incomplete' : 'سەرکەوتوو نەبوو لە شیکاری'),
+      'category': isAr ? 'خطأ في الاتصال' : (isEn ? 'Connection Error' : 'هەڵەی پەیوەندی'),
       'confidence': '0%',
-      'summary': message,
+      'summary': customError ?? defaultErr,
       'markers': [
         {
-          'name': 'دۆخی وێنە',
-          'value': 'ناڕوون یان هەڵە',
-          'status': 'پێداچوونەوە',
+          'name': isAr ? 'حالة الخدمة' : (isEn ? 'Service Status' : 'دۆخی سیستەم'),
+          'value': isAr ? 'غير متاح حالياً' : (isEn ? 'Currently Unavailable' : 'لەکارکەوتووە'),
+          'status': isAr ? 'خطأ' : (isEn ? 'Error' : 'هەڵە'),
           'isNormal': false,
         }
       ],
-      'recommendations':
-          'تکایە دڵنیابەرەوە لە هەبوونی ڕووناکی گونجاو و تەرکیز لەسەر دەقەکە، پاشان دووبارە وێنەکە بگرەوە.',
-      'warnings': 'ئەگەر کێشەکە بەردەوام بوو، دڵنیابەرەوە لە بەستراوەیی ئینتەرنێتەکەت.',
+      'recommendations': isAr
+          ? 'يرجى التأكد من وضوح الصورة وتوفر إضاءة مناسبة، ثم المحاولة مرة أخرى.'
+          : (isEn
+              ? 'Please ensure good lighting and clear focus on the medicine, then try again.'
+              : 'تکایە دڵنیابەرەوە لە هەبوونی ڕووناکی گونجاو و تەرکیز لەسەر دەقەکە، پاشان دووبارە وێنەکە بگرەوە.'),
+      'warnings': isAr
+          ? 'إذا استمرت المشكلة، يرجى التحقق من اتصالك بالإنترنت.'
+          : (isEn
+              ? 'If the issue persists, please check your internet connection.'
+              : 'ئەگەر کێشەکە بەردەوام بوو، دڵنیابەرەوە لە بەستراوەیی ئینتەرنێتەکەت.'),
     };
   }
 }
