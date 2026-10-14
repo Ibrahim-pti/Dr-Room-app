@@ -142,14 +142,14 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         'category': 'دژەهەوکردن • ئەنتی بایۆتیک',
         'date': 'ئەمڕۆ ١٠:٣٠ بەیانی',
         'confidence': '99.4%',
-        'summary': 'ئەم دەرمانە ئەنتی بایۆتیکە و بەکاردێت بۆ چارەسەری هەوکردنی بەکتریایی وەک هەوکردنی قوڕگ، سنگ، میزەڕۆ و برین.',
+        'summary': 'ئەم دەرمانە ئەنتی بایۆتیکێکی کاریگەرە بۆ چارەسەری هەوکردنی بەکتریایی وەک هەوکردنی قوڕگ، سنگ، میزەڕۆ و برین.',
         'markers': [
           {'name': 'پێکهاتەی چالاک', 'value': 'Amoxicillin 500mg', 'status': 'چالاک', 'isNormal': true},
           {'name': 'شێوەی دەرمان', 'value': 'کەپسول (Capsule)', 'status': 'ئاسایی', 'isNormal': true},
           {'name': 'ژەم و کات', 'value': 'ڕۆژی ٣ جار (هەر ٨ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
           {'name': 'شێوازی خواردن', 'value': 'دوای نان لەگەڵ ئاو', 'status': 'گرنگ', 'isNormal': true},
         ],
-        'recommendations': 'کۆرسەکە تا کۆتایی تەواو بکە تەنانەت ئەگەر هەستت بە باشبوونیش کرد بۆ ئەوەی بەکتریاکە سەرهەڵنەداتەوە.',
+        'recommendations': 'کۆرسەکە تا کۆتایی تەواو بکە تەنانەت ئەگەر هەستت بە باشبوونیش کرد.',
         'warnings': 'ئەگەر هەستیاریت (حەساسییەت) بە پەنسلین هەیە هەرگیز نابێت ئەم دەرمانە بخۆیت.',
       },
       {
@@ -165,7 +165,37 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           {'name': 'ژەم و کات', 'value': '١-٢ حەب لە کاتی پێویست (هەر ٦ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
         ],
         'recommendations': 'ڕۆژانە زیاتر لە ٨ حەب مەخۆ تاوەکو زیان بە جگەر نەگات.',
-        'warnings': 'لەگەڵ دەرمانی تری پاراسیتامۆڵ تێکەڵی مەکە، و پێش خەوتن لەبەر کافایین نەیخۆیت چاکترە.',
+        'warnings': 'لەگەڵ دەرمانی تری پاراسیتامۆڵ تێکەڵی مەکە، و پێش خەوتن نەیخۆیت چاکترە.',
+      },
+      {
+        'mode': 'medicine',
+        'title': 'Augmentin (ئۆگمێنتین 1g)',
+        'category': 'دژەهەوکردنی بەهێز • دژە بەکتریا',
+        'date': 'پێش دوو ڕۆژ',
+        'confidence': '99.2%',
+        'summary': 'ئۆگمێنتین ئەنتی بایۆتیکێکی زۆر بەهێزە بۆ هەوکردنی توندی سییەکان، جیوب، گوێی ناوەڕاست و پێست.',
+        'markers': [
+          {'name': 'پێکهاتەی چالاک', 'value': 'Amoxicillin + Clavulanate', 'status': 'چالاک', 'isNormal': true},
+          {'name': 'شێوەی دەرمان', 'value': 'حەب (Tablet)', 'status': 'ئاسایی', 'isNormal': true},
+          {'name': 'ژەم و کات', 'value': 'ڕۆژی ٢ جار (هەر ١٢ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
+        ],
+        'recommendations': 'لەگەڵ خواردندا بیخۆ بۆ ئەوەی گەدەت پارێزراو بێت.',
+        'warnings': 'کۆرسەکە بە تەواوی وەربگرە و لە ژەم مەپەڕێنە.',
+      },
+      {
+        'mode': 'medicine',
+        'title': 'Omeprazole (ئۆمیپرازۆڵ 20mg)',
+        'category': 'دژە ترشەڵۆک • پارێزەری گەدە',
+        'date': 'پێش سێ ڕۆژ',
+        'confidence': '99.3%',
+        'summary': 'چارەسەری دڵەکزێ، کەمکردنەوەی ترشی گەدە و چاکبوونەوەی برینی گەدە و دوازدەگرێ دەکات.',
+        'markers': [
+          {'name': 'پێکهاتەی چالاک', 'value': 'Omeprazole 20mg', 'status': 'چالاک', 'isNormal': true},
+          {'name': 'شێوەی دەرمان', 'value': 'کەپسول (Capsule)', 'status': 'ئاسایی', 'isNormal': true},
+          {'name': 'ژەم و کات', 'value': 'ڕۆژی ١ جار بەیانیان بە گەدەی بەتاڵ', 'status': 'ڕێنمایی', 'isNormal': true},
+        ],
+        'recommendations': 'کەپسولەکە بە تەواوی بیلووشە و مەیجوو.',
+        'warnings': 'دوور بکەوەرەوە لە خواردنی توند، ترش و چەور لە کاتی چارەسەردا.',
       },
     ];
   }
@@ -259,6 +289,212 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
     });
   }
 
+  void _showMedicineSearchModal() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentLang = context.locale.languageCode;
+    final library = AiClinicalVisionService.instance.getMedicineLibrary(language: currentLang);
+    String query = '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filtered = library.where((m) {
+              if (query.trim().isEmpty) return true;
+              final q = query.toLowerCase().trim();
+              return m['title'].toString().toLowerCase().contains(q) ||
+                  m['category'].toString().toLowerCase().contains(q) ||
+                  m['summary'].toString().toLowerCase().contains(q);
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.82,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2563EB).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Iconsax.search_normal_1,
+                              color: Color(0xFF2563EB),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'گەڕان بۆ شیکاری دەرمان',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Search box
+                  Container(
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: TextField(
+                      onChanged: (v) => setModalState(() => query = v),
+                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
+                      decoration: const InputDecoration(
+                        hintText: 'ناوی دەرمان بنووسە (Panadol, Amox, Brufen...)',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 13,
+                          color: Color(0xFF94A3B8),
+                        ),
+                        prefixIcon: Icon(
+                          Iconsax.search_normal_1,
+                          size: 18,
+                          color: Color(0xFF94A3B8),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 11),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Expanded(
+                    child: filtered.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'هیچ دەرمانێک نەدۆزرایەوە',
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 13.5,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                          )
+                        : ListView.separated(
+                            itemCount: filtered.length,
+                            separatorBuilder: (_, _) => const SizedBox(height: 10),
+                            itemBuilder: (context, i) {
+                              final med = filtered[i];
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.pop(ctx);
+                                  setState(() {
+                                    _scannedImage = null;
+                                    _currentMode = 'medicine';
+                                    _scanResult = Map<String, dynamic>.from(med);
+                                    _scanResult!['date'] = DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now());
+                                    _userScans.insert(0, _scanResult!);
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: const Icon(
+                                          Icons.medication_rounded,
+                                          color: Color(0xFF2563EB),
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              med['title'],
+                                              style: TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 13.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              med['category'],
+                                              style: const TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 11,
+                                                color: Color(0xFF64748B),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.arrow_forward_ios_rounded,
+                                        size: 14,
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -270,6 +506,37 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
+        leadingWidth: 64,
+        leading: Navigator.canPop(context)
+            ? Padding(
+                padding: const EdgeInsetsDirectional.only(start: 16),
+                child: Center(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : null,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -534,6 +801,51 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+
+        // Search Medicine by Name Button
+        GestureDetector(
+          onTap: _showMedicineSearchModal,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.15 : 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Iconsax.search_normal_1,
+                  color: Color(0xFF2563EB),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'گەڕان و شیکاری بەپێی ناوی دەرمان',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
