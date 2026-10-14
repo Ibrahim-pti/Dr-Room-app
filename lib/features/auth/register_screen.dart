@@ -6,6 +6,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/utils/api_client.dart';
 import 'widgets/otp_channel_sheet.dart';
 import 'widgets/terms_privacy_modal.dart';
@@ -102,11 +103,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (clean.length == 12 && clean.startsWith('9647')) {
       return true;
     }
+    if (clean.length == 13 && clean.startsWith('96407')) {
+      return true;
+    }
     return false;
   }
 
   String _normalizeIraqiPhone(String raw) {
     final clean = raw.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
+    if (clean.startsWith('9640') && clean.length == 14) {
+      return '0${clean.substring(4)}';
+    }
+    if (clean.startsWith('96407') && clean.length == 13) {
+      return clean.substring(3);
+    }
     if (clean.startsWith('9647') && clean.length == 12) {
       return '0${clean.substring(3)}';
     }
@@ -189,6 +199,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('saved_login_phone', normalizedPhone);
+          await prefs.setString('user_phone', normalizedPhone);
+        } catch (_) {}
         widget.onOtpSent(normalizedPhone);
       } else {
         final err = jsonDecode(response.body);

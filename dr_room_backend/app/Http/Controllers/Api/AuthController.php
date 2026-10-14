@@ -33,6 +33,28 @@ class AuthController extends Controller
     }
 
     /**
+     * Converts any incoming Iraqi mobile number format (+9647..., 9647..., 7..., 07...)
+     * to the standard local 11-digit database format: 07xxxxxxxxx
+     */
+    private function toLocalPhone(string $phone): string
+    {
+        $clean = preg_replace('/[^0-9]/', '', $phone);
+        if (str_starts_with($clean, '9640') && strlen($clean) === 14) {
+            return substr($clean, 3);
+        }
+        if (str_starts_with($clean, '96407') && strlen($clean) === 13) {
+            return substr($clean, 3);
+        }
+        if (str_starts_with($clean, '9647') && strlen($clean) === 12) {
+            return '0' . substr($clean, 3);
+        }
+        if (str_starts_with($clean, '7') && strlen($clean) === 10) {
+            return '0' . $clean;
+        }
+        return $clean;
+    }
+
+    /**
      * Generates a 4-digit OTP, stores it on the user, and sends it via otpiq.com SMS.
      * Uses customMessage: "فەرموون ئەوەش کۆدی ئۆتیپی {code}"
      *
@@ -170,7 +192,10 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = User::where('phone', $request->phone)->first();
+        $normalizedPhone = $this->toLocalPhone($request->phone);
+        $user = User::where('phone', $normalizedPhone)
+            ->orWhere('phone', $request->phone)
+            ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
@@ -260,13 +285,16 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = User::where('phone', $phone)->first();
+        $normalizedPhone = $this->toLocalPhone($phone);
+        $user = User::where('phone', $normalizedPhone)
+            ->orWhere('phone', $phone)
+            ->first();
 
         // If user doesn't exist yet, automatically create patient account
         if (!$user) {
             $user = User::create([
-                'name' => 'User ' . substr($phone, -4),
-                'phone' => $phone,
+                'name' => 'User ' . substr($normalizedPhone, -4),
+                'phone' => $normalizedPhone,
                 'password' => Hash::make(\Illuminate\Support\Str::random(16)),
                 'role' => 'patient',
                 'status' => 'approved',
@@ -301,9 +329,12 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $normalizedPhone = $this->toLocalPhone($request->phone);
+        $request->merge(['phone' => $normalizedPhone]);
+
         $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'required|string|unique:users',
+            'phone' => 'required|string|unique:users,phone',
             'password' => 'required|string|min:6',
             'role' => 'nullable|string|in:patient,doctor,nurse,lab,pharmacy,admin',
             'provider' => 'nullable|string|in:auto,sms,whatsapp,telegram',
@@ -432,7 +463,10 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = User::where('phone', $request->phone)->first();
+        $normalizedPhone = $this->toLocalPhone($request->phone);
+        $user = User::where('phone', $normalizedPhone)
+            ->orWhere('phone', $request->phone)
+            ->first();
 
         if (!$user || $user->otp_code !== $request->otp_code || now()->gt($user->otp_expires_at)) {
             return response()->json([
@@ -482,7 +516,10 @@ class AuthController extends Controller
             'provider' => 'nullable|string|in:auto,sms,whatsapp,telegram',
         ]);
 
-        $user = User::where('phone', $request->phone)->first();
+        $normalizedPhone = $this->toLocalPhone($request->phone);
+        $user = User::where('phone', $normalizedPhone)
+            ->orWhere('phone', $request->phone)
+            ->first();
 
         if (!$user) {
             return response()->json([

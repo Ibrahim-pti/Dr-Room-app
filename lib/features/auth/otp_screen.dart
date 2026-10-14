@@ -111,6 +111,7 @@ class _OtpScreenState extends State<OtpScreen> {
         await prefs.setString('user_role', role);
         await prefs.setString('user_name', data['user']['name'] ?? '');
         await prefs.setString('user_phone', data['user']['phone'] ?? '');
+        await prefs.setString('saved_login_phone', widget.phoneNumber);
         await prefs.setBool('has_completed_setup', true);
 
         // Sync push notification token with authenticated user

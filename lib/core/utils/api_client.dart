@@ -116,6 +116,9 @@ class ApiClient {
     Future<http.Response> Function(Map<String, String> headers) request,
   ) async {
     final headers = await _getHeaders();
+    final hadAuth = headers.containsKey('Authorization') &&
+        (headers['Authorization'] ?? '').isNotEmpty;
+
     final response = await request(headers).timeout(
       AppConfig.requestTimeout,
       onTimeout: () => throw TimeoutException(
@@ -125,8 +128,18 @@ class ApiClient {
     );
 
     if (response.statusCode == 401 && !_isPublicAuthEndpoint(endpoint)) {
-      await _clearSession();
-      onUnauthorized?.call();
+      // Only clear session and kick user out if an actual token was sent and rejected.
+      // Unauthenticated requests (e.g. guest calls or startup races) must never bounce to login.
+      if (hadAuth) {
+        final prefs = await _getPrefs();
+        final currentToken = prefs.getString('auth_token');
+        if (currentToken != null &&
+            currentToken.isNotEmpty &&
+            headers['Authorization'] == 'Bearer $currentToken') {
+          await _clearSession();
+          onUnauthorized?.call();
+        }
+      }
       throw const UnauthorizedException();
     }
 

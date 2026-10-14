@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/utils/api_client.dart';
 import 'widgets/otp_channel_sheet.dart';
 
@@ -26,9 +27,34 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _rememberMe = true;
   String? _phoneError;
   String? _passwordError;
   String? _formError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedPhone();
+  }
+
+  Future<void> _loadSavedPhone() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedPhone = prefs.getString('saved_login_phone') ??
+          prefs.getString('user_phone') ??
+          '';
+      final remember = prefs.getBool('remember_me') ?? true;
+      if (mounted) {
+        setState(() {
+          _rememberMe = remember;
+          if (savedPhone.isNotEmpty) {
+            _phoneController.text = savedPhone;
+          }
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -60,11 +86,20 @@ class _LoginScreenState extends State<LoginScreen> {
     if (clean.length == 12 && clean.startsWith('9647')) {
       return true;
     }
+    if (clean.length == 13 && clean.startsWith('96407')) {
+      return true;
+    }
     return false;
   }
 
   String _normalizeIraqiPhone(String raw) {
     final clean = raw.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
+    if (clean.startsWith('9640') && clean.length == 14) {
+      return '0${clean.substring(4)}';
+    }
+    if (clean.startsWith('96407') && clean.length == 13) {
+      return clean.substring(3);
+    }
     if (clean.startsWith('9647') && clean.length == 12) {
       return '0${clean.substring(3)}';
     }
@@ -111,6 +146,15 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_rememberMe) {
+        await prefs.setString('saved_login_phone', normalizedPhone);
+        await prefs.setBool('remember_me', true);
+      } else {
+        await prefs.remove('saved_login_phone');
+        await prefs.setBool('remember_me', false);
+      }
+
       final response = await ApiClient.post(
         '/login',
         body: {
@@ -1225,26 +1269,65 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
 
-                      // Forgot Password Link
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton(
-                          onPressed: () => _showForgotPasswordBottomSheet(context),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            minimumSize: const Size(0, 30),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            'forgot_password'.tr(),
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF2563EB),
+                      // Remember Me & Forgot Password Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          InkWell(
+                            onTap: () => setState(() => _rememberMe = !_rememberMe),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: Checkbox(
+                                      value: _rememberMe,
+                                      activeColor: const Color(0xFF2563EB),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      onChanged: (val) {
+                                        setState(() => _rememberMe = val ?? true);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'remember_me'.tr(),
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 12.5,
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
+                          TextButton(
+                            onPressed: () => _showForgotPasswordBottomSheet(context),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              minimumSize: const Size(0, 30),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'forgot_password'.tr(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 20),
