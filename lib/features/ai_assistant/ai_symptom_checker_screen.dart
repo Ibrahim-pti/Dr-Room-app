@@ -25,40 +25,119 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
   int _analysisStep = 0;
   File? _scannedImage;
   Map<String, dynamic>? _scanResult;
+  final List<Map<String, dynamic>> _userScans = [];
 
-  final List<Map<String, dynamic>> _recentScans = [
-    {
-      'mode': 'medicine',
-      'title': 'Amoxicillin (ئامۆکسیسیلین 500mg)',
-      'category': 'دژەهەوکردن • ئەنتی بایۆتیک',
-      'date': 'ئەمڕۆ ١٠:٣٠ بەیانی',
-      'confidence': '99.4%',
-      'summary': 'ئەم دەرمانە ئەنتی بایۆتیکە و بەکاردێت بۆ چارەسەری هەوکردنی بەکتریایی وەک هەوکردنی قوڕگ، سنگ، میزەڕۆ و برین.',
-      'markers': [
-        {'name': 'پێکهاتەی چالاک', 'value': 'Amoxicillin 500mg', 'status': 'چالاک', 'isNormal': true},
-        {'name': 'شێوەی دەرمان', 'value': 'کەپسول (Capsule)', 'status': 'ئاسایی', 'isNormal': true},
-        {'name': 'ژەم و کات', 'value': 'ڕۆژی ٣ جار (هەر ٨ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
-        {'name': 'شێوازی خواردن', 'value': 'دوای نان لەگەڵ ئاو', 'status': 'گرنگ', 'isNormal': true},
-      ],
-      'recommendations': 'کۆرسەکە تا کۆتایی تەواو بکە تەنانەت ئەگەر هەستت بە باشبوونیش کرد بۆ ئەوەی بەکتریاکە سەرهەڵنەداتەوە.',
-      'warnings': 'ئەگەر هەستیاریت (حەساسییەت) بە پەنسلین هەیە هەرگیز نابێت ئەم دەرمانە بخۆیت.',
-    },
-    {
-      'mode': 'medicine',
-      'title': 'Panadol Extra (پانادۆڵ ئێکسسترا)',
-      'category': 'ئازارشکێن و دابەزێنەری تا',
-      'date': 'دوێنێ ٠٤:١٥ ئێوارە',
-      'confidence': '99.1%',
-      'summary': 'بەکاردێت بۆ هێورکردنەوەی ئازاری سەرئێشە، شەقیقە، ددان، پشت و ماسولکە و دابەزاندنی تا.',
-      'markers': [
-        {'name': 'پێکهاتەی چالاک', 'value': 'Paracetamol + Caffeine', 'status': 'چالاک', 'isNormal': true},
-        {'name': 'شێوەی دەرمان', 'value': 'حەب (Tablet)', 'status': 'ئاسایی', 'isNormal': true},
-        {'name': 'ژەم و کات', 'value': '١-٢ حەب لە کاتی پێویست (هەر ٦ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
-      ],
-      'recommendations': 'ڕۆژانە زیاتر لە ٨ حەب مەخۆ تاوەکو زیان بە جگەر نەگات.',
-      'warnings': 'لەگەڵ دەرمانی تری پاراسیتامۆڵ تێکەڵی مەکە، و پێش خەوتن لەبەر کافایین نەیخۆیت چاکترە.',
-    },
-  ];
+  List<Map<String, dynamic>> _getLocalizedDefaultScans(String lang) {
+    if (lang == 'ar') {
+      return [
+        {
+          'mode': 'medicine',
+          'title': 'Amoxicillin (أموكسيسيلين 500mg)',
+          'category': 'مضاد حيوي • مكافحة العدوى',
+          'date': 'اليوم 10:30 صباحاً',
+          'confidence': '99.4%',
+          'summary': 'مضاد حيوي واسع المجال يُستخدم لعلاج الالتهابات البكتيرية مثل التهاب الحلق، الصدر، والمسالك البولية.',
+          'markers': [
+            {'name': 'المادة الفعالة', 'value': 'Amoxicillin 500mg', 'status': 'فعال', 'isNormal': true},
+            {'name': 'الشكل الصيدلاني', 'value': 'كبسولات (Capsule)', 'status': 'عادي', 'isNormal': true},
+            {'name': 'الجرعة والتوقيت', 'value': '3 مرات يومياً (كل 8 ساعات)', 'status': 'إرشادات', 'isNormal': true},
+            {'name': 'طريقة الاستعمال', 'value': 'بعد الأكل مع كوب ماء', 'status': 'هام', 'isNormal': true},
+          ],
+          'recommendations': 'أكمل الجرعة العلاجية كاملة حتى لو شعرت بتحسن لمنع مقاومة البكتيريا.',
+          'warnings': 'لا تتناول هذا الدواء إذا كان لديك حساسية سابقة للبنسلين.',
+        },
+        {
+          'mode': 'medicine',
+          'title': 'Panadol Extra (بنادول إكسترا)',
+          'category': 'مسكن للألم وخافض للحرارة',
+          'date': 'أمس 04:15 مساءً',
+          'confidence': '99.1%',
+          'summary': 'يُستخدم لتسكين الصداع، آلام الأسنان، آلام العضلات، الشقيقة، وتخفيض درجات الحرارة.',
+          'markers': [
+            {'name': 'المادة الفعالة', 'value': 'Paracetamol + Caffeine', 'status': 'فعال', 'isNormal': true},
+            {'name': 'الشكل الصيدلاني', 'value': 'أقراص (Tablet)', 'status': 'عادي', 'isNormal': true},
+            {'name': 'الجرعة والتوقيت', 'value': '1-2 قرص عند الحاجة (كل 6 ساعات)', 'status': 'إرشادات', 'isNormal': true},
+          ],
+          'recommendations': 'لا تتجاوز 8 أقراص يومياً لحماية وظائف الكبد.',
+          'warnings': 'تجنب تناوله مع أدوية أخرى تحتوي على الباراسيتامول، ويفضل عدم تناوله قبل النوم لاحتوائه على الكافيين.',
+        },
+      ];
+    } else if (lang == 'en') {
+      return [
+        {
+          'mode': 'medicine',
+          'title': 'Amoxicillin 500mg',
+          'category': 'Antibiotic • Anti-infective',
+          'date': 'Today 10:30 AM',
+          'confidence': '99.4%',
+          'summary': 'Broad-spectrum antibiotic used to treat bacterial infections of the throat, chest, urinary tract, and skin.',
+          'markers': [
+            {'name': 'Active Ingredient', 'value': 'Amoxicillin 500mg', 'status': 'Active', 'isNormal': true},
+            {'name': 'Form', 'value': 'Capsule', 'status': 'Normal', 'isNormal': true},
+            {'name': 'Dosage & Schedule', 'value': '3 times daily (every 8 hours)', 'status': 'Guidance', 'isNormal': true},
+            {'name': 'Administration', 'value': 'After meals with water', 'status': 'Important', 'isNormal': true},
+          ],
+          'recommendations': 'Complete the full course even if you feel better to prevent antibiotic resistance.',
+          'warnings': 'Do not take if you have a known allergy to penicillin.',
+        },
+        {
+          'mode': 'medicine',
+          'title': 'Panadol Extra',
+          'category': 'Analgesic & Antipyretic',
+          'date': 'Yesterday 04:15 PM',
+          'confidence': '99.1%',
+          'summary': 'Used for effective relief of headache, migraine, toothache, muscle aches, and reducing fever.',
+          'markers': [
+            {'name': 'Active Ingredient', 'value': 'Paracetamol + Caffeine', 'status': 'Active', 'isNormal': true},
+            {'name': 'Form', 'value': 'Tablet', 'status': 'Normal', 'isNormal': true},
+            {'name': 'Dosage & Schedule', 'value': '1-2 tablets as needed (every 6 hours)', 'status': 'Guidance', 'isNormal': true},
+          ],
+          'recommendations': 'Do not exceed 8 tablets per day to avoid liver damage.',
+          'warnings': 'Do not take with other paracetamol-containing products. Avoid before bedtime due to caffeine.',
+        },
+      ];
+    }
+
+    // Kurdish (ckb)
+    return [
+      {
+        'mode': 'medicine',
+        'title': 'Amoxicillin (ئامۆکسیسیلین 500mg)',
+        'category': 'دژەهەوکردن • ئەنتی بایۆتیک',
+        'date': 'ئەمڕۆ ١٠:٣٠ بەیانی',
+        'confidence': '99.4%',
+        'summary': 'ئەم دەرمانە ئەنتی بایۆتیکە و بەکاردێت بۆ چارەسەری هەوکردنی بەکتریایی وەک هەوکردنی قوڕگ، سنگ، میزەڕۆ و برین.',
+        'markers': [
+          {'name': 'پێکهاتەی چالاک', 'value': 'Amoxicillin 500mg', 'status': 'چالاک', 'isNormal': true},
+          {'name': 'شێوەی دەرمان', 'value': 'کەپسول (Capsule)', 'status': 'ئاسایی', 'isNormal': true},
+          {'name': 'ژەم و کات', 'value': 'ڕۆژی ٣ جار (هەر ٨ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
+          {'name': 'شێوازی خواردن', 'value': 'دوای نان لەگەڵ ئاو', 'status': 'گرنگ', 'isNormal': true},
+        ],
+        'recommendations': 'کۆرسەکە تا کۆتایی تەواو بکە تەنانەت ئەگەر هەستت بە باشبوونیش کرد بۆ ئەوەی بەکتریاکە سەرهەڵنەداتەوە.',
+        'warnings': 'ئەگەر هەستیاریت (حەساسییەت) بە پەنسلین هەیە هەرگیز نابێت ئەم دەرمانە بخۆیت.',
+      },
+      {
+        'mode': 'medicine',
+        'title': 'Panadol Extra (پانادۆڵ ئێکسسترا)',
+        'category': 'ئازارشکێن و دابەزێنەری تا',
+        'date': 'دوێنێ ٠٤:١٥ ئێوارە',
+        'confidence': '99.1%',
+        'summary': 'بەکاردێت بۆ هێورکردنەوەی ئازاری سەرئێشە، شەقیقە، ددان، پشت و ماسولکە و دابەزاندنی تا.',
+        'markers': [
+          {'name': 'پێکهاتەی چالاک', 'value': 'Paracetamol + Caffeine', 'status': 'چالاک', 'isNormal': true},
+          {'name': 'شێوەی دەرمان', 'value': 'حەب (Tablet)', 'status': 'ئاسایی', 'isNormal': true},
+          {'name': 'ژەم و کات', 'value': '١-٢ حەب لە کاتی پێویست (هەر ٦ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
+        ],
+        'recommendations': 'ڕۆژانە زیاتر لە ٨ حەب مەخۆ تاوەکو زیان بە جگەر نەگات.',
+        'warnings': 'لەگەڵ دەرمانی تری پاراسیتامۆڵ تێکەڵی مەکە، و پێش خەوتن لەبەر کافایین نەیخۆیت چاکترە.',
+      },
+    ];
+  }
+
+  List<Map<String, dynamic>> _getAllRecentScans(BuildContext context) {
+    final lang = context.locale.languageCode;
+    return [..._userScans, ..._getLocalizedDefaultScans(lang)];
+  }
 
   @override
   void initState() {
@@ -108,10 +187,12 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           if (mounted && _isAnalyzing) setState(() => _analysisStep = 3);
         });
 
-        // Call the real Gemini AI Clinical Vision Service
+        // Call the real Gemini AI Clinical Vision Service with current locale
+        final currentLang = mounted ? context.locale.languageCode : 'ckb';
         final realResult = await AiClinicalVisionService.instance.analyzeMedicalImage(
           imageFile: imageFile,
           mode: _currentMode,
+          language: currentLang,
         );
 
         if (mounted) {
@@ -121,7 +202,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             _analysisStep = 3;
             _isAnalyzing = false;
             _scanResult = realResult;
-            _recentScans.insert(0, realResult);
+            _userScans.insert(0, realResult);
           });
         }
       }
@@ -182,7 +263,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'سکانەری دەرمان بە AI',
+                  'ai_scanner_title'.tr(),
                   style: _kStyle(
                     color: isDark ? Colors.white : const Color(0xFF0F172A),
                     fontSize: 15.5,
@@ -190,7 +271,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   ),
                 ),
                 Text(
-                  'شیکاریی حەب، کەپسول و پاکەتی دەرمان',
+                  'ai_scanner_subtitle'.tr(),
                   style: _kStyle(
                     color: const Color(0xFF2563EB),
                     fontSize: 10.5,
@@ -204,7 +285,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         actions: [
           if (_scanResult != null || _scannedImage != null)
             IconButton(
-              tooltip: 'سکانێکی تر',
+              tooltip: 'ai_scan_another'.tr(),
               icon: Icon(
                 Iconsax.refresh,
                 color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -302,7 +383,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    'سکانکردنی وێنەی دەرمان',
+                    'ai_scan_box_title'.tr(),
                     textAlign: TextAlign.center,
                     style: _kStyle(
                       color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -314,7 +395,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
-                      'وێنەی پاکەت، شریت، حەب یان کەپسولەکە بگرە، زیرەکی دەستکرد ناوی دەرمانەکە، بەکارهێنان، ژەم و هۆشدارییەکانت بۆ شیدەکاتەوە',
+                      'ai_scan_box_desc'.tr(),
                       textAlign: TextAlign.center,
                       style: _kStyle(
                         color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -357,11 +438,11 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.camera_alt_rounded, color: Colors.white, size: 20),
-                      SizedBox(width: 8),
+                    children: [
+                      const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
                       Text(
-                        'کامێرا',
+                        'ai_camera'.tr(),
                         style: TextStyle(
                           fontFamily: 'Rabar',
                           color: Colors.white,
@@ -403,7 +484,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                       Icon(Iconsax.gallery, color: primaryColor, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'گەلەری (وێنە)',
+                        'ai_gallery'.tr(),
                         style: TextStyle(
                           fontFamily: 'Rabar',
                           color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -497,7 +578,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           // Step Progress Indicators
           _buildAnalysisStepItem(
             stepNumber: 1,
-            title: 'خوێندنەوەی دەق و ناوی دەرمانەکە (OCR)...',
+            title: 'ai_scanning_step1'.tr(),
             isActive: _analysisStep >= 1,
             isDone: _analysisStep > 1,
             isDark: isDark,
@@ -505,7 +586,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           const SizedBox(height: 10),
           _buildAnalysisStepItem(
             stepNumber: 2,
-            title: 'دەستنیشانکردنی پێکهاتە، شێوە و بەکارهێنان...',
+            title: 'ai_scanning_step2'.tr(),
             isActive: _analysisStep >= 2,
             isDone: _analysisStep > 2,
             isDark: isDark,
@@ -513,7 +594,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           const SizedBox(height: 10),
           _buildAnalysisStepItem(
             stepNumber: 3,
-            title: 'ئامادەکردنی ڕێنمایی و ژەمەکان بە کوردی سادە...',
+            title: 'ai_scanning_step3'.tr(),
             isActive: _analysisStep >= 3,
             isDone: false,
             isDark: isDark,
@@ -632,7 +713,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '${res['confidence']} • شیکاریی سەلمێنراوی دەرمان',
+                        '${res['confidence']} • ${'ai_verified_analysis'.tr()}',
                         style: _kStyle(
                           color: Colors.white,
                           fontSize: 10.5,
@@ -667,7 +748,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
         // Summary Card
         _buildMedicalInfoCard(
-          title: 'پوختەی شیکاری دەرمان AI',
+          title: 'ai_summary_title'.tr(),
           content: res['summary'],
           icon: Icons.medication_rounded,
           iconColor: const Color(0xFF10B981),
@@ -695,7 +776,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     Icon(Icons.format_list_bulleted_rounded, color: primaryColor, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'وردەکاری پێکهاتە، شێوە و ژەمی دەرمان',
+                      'ai_details_title'.tr(),
                       style: TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: 14,
@@ -768,7 +849,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
         // Recommendations Card
         _buildMedicalInfoCard(
-          title: 'ڕاسپاردە و ڕێنماییەکان',
+          title: 'ai_recommendations_title'.tr(),
           content: res['recommendations'],
           icon: Iconsax.lamp_on,
           iconColor: const Color(0xFF3B82F6),
@@ -779,7 +860,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
         // Warnings Card
         _buildMedicalInfoCard(
-          title: 'هۆشداری و سەرنجی پزیشکی',
+          title: 'ai_warnings_title'.tr(),
           content: res['warnings'],
           icon: Icons.warning_amber_rounded,
           iconColor: const Color(0xFFF59E0B),
@@ -813,7 +894,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                 const Icon(Iconsax.refresh, color: Colors.white, size: 20),
                 const SizedBox(width: 10),
                 Text(
-                  'سکانکردنی دەرمانێکی تر',
+                  'ai_scan_another'.tr(),
                   style: _kStyle(
                     color: Colors.white,
                     fontSize: 15,
@@ -895,7 +976,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'سکانکراوەکانی پێشوو',
+              'ai_recent_scans'.tr(),
               style: TextStyle(
                 fontFamily: 'Rabar',
                 fontSize: 16,
@@ -909,9 +990,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                 color: const Color(0xFF10B981).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
-                'دروستی ٩٩.٥٪',
-                style: TextStyle(
+              child: Text(
+                'ai_accuracy_badge'.tr(),
+                style: const TextStyle(
                   fontFamily: 'Rabar',
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -922,13 +1003,16 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           ],
         ),
         const SizedBox(height: 12),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _recentScans.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 10),
-          itemBuilder: (context, idx) {
-            final item = _recentScans[idx];
+        Builder(
+          builder: (context) {
+            final recentList = _getAllRecentScans(context);
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: recentList.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              itemBuilder: (context, idx) {
+                final item = recentList[idx];
 
             return Container(
               padding: const EdgeInsets.all(14),
@@ -995,12 +1079,14 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   ],
                 ),
               ),
-            );
-          },
-        ),
-      ],
-    );
-  }
+              );
+            },
+          );
+        },
+      ),
+    ],
+  );
+}
 
   Widget _buildCornerBracket({required bool isTop, required bool isLeft, required Color color}) {
     return Container(
