@@ -802,51 +802,6 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             ),
           ],
         ),
-        const SizedBox(height: 12),
-
-        // Search Medicine by Name Button
-        GestureDetector(
-          onTap: _showMedicineSearchModal,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: const Color(0xFF2563EB).withValues(alpha: 0.35),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.15 : 0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Iconsax.search_normal_1,
-                  color: Color(0xFF2563EB),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'گەڕان و شیکاری بەپێی ناوی دەرمان',
-                  style: TextStyle(
-                    fontFamily: 'Rabar',
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }
