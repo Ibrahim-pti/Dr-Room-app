@@ -25,8 +25,8 @@ class LabApiController extends Controller
         $labs = $users->map(function($user) {
             $lab = $user->lab;
             $image = $lab && $lab->image_path ? $lab->image_path : ($user->profile_image ? 'storage/' . $user->profile_image : 'assets/images/laboratory.jpg');
-            $discount = $lab && $lab->discount !== null ? (int)$lab->discount : (($user->id == 12 || $user->id % 3 == 0) ? 25 : ($user->id % 4 == 0 ? 15 : null));
-            $isOpen = ($user->id % 2 != 0 || $user->id == 12);
+            $discount = $lab && $lab->discount !== null ? (int)$lab->discount : null;
+            $isOpen = $lab ? (bool)($lab->is_active ?? true) : true;
 
             return [
                 'id' => $user->id,
@@ -102,8 +102,8 @@ class LabApiController extends Controller
         }
 
         $image = $lab && $lab->image_path ? $lab->image_path : ($user->profile_image ? 'storage/' . $user->profile_image : 'assets/images/laboratory.jpg');
-        $discount = $lab && $lab->discount !== null ? (int)$lab->discount : (($user->id == 12 || $user->id % 3 == 0) ? 25 : ($user->id % 4 == 0 ? 15 : null));
-        $isOpen = ($user->id % 2 != 0 || $user->id == 12);
+        $discount = $lab && $lab->discount !== null ? (int)$lab->discount : null;
+        $isOpen = $lab ? (bool)($lab->is_active ?? true) : true;
         
         $packages = ($lab && $lab->packages && $lab->packages->isNotEmpty()) ? $lab->packages->where('is_active', true)->values()->map(function($p) {
             return [
@@ -119,26 +119,7 @@ class LabApiController extends Controller
                 'discount' => (int)($p->discount ?? 0),
                 'test_ids' => is_array($p->test_ids) ? array_values(array_map('intval', $p->test_ids)) : [],
             ];
-        }) : [
-            [
-                'id' => 101,
-                'name' => 'پاکێجی پشکنینی تەواوی جەستە (Full Body Checkup)',
-                'desc' => 'شاملی پشکنینی گشتی خوێن CBC، چەوری و کۆلیسترۆڵ، شەکرەی سێ مانگی، کاری جگەر و گورچیلە',
-                'original_price' => 85000,
-                'price' => 59000,
-                'discount' => 30,
-                'test_ids' => [1, 2, 3, 5, 6],
-            ],
-            [
-                'id' => 102,
-                'name' => 'پاکێجی ڤیتامین و ووزە (Vitamins & Energy)',
-                'desc' => 'پشکنینی وردی ڤیتامین D، ڤیتامین B12، ڕێژەی ئاسن و کانزاکانی جەستە',
-                'original_price' => 60000,
-                'price' => 42000,
-                'discount' => 30,
-                'test_ids' => [4],
-            ],
-        ];
+        }) : [];
 
         $data = [
             'id' => $user->id,
@@ -187,14 +168,7 @@ class LabApiController extends Controller
                     'type' => $t->type ?? 'General Test',
                     'desc' => $t->description ?? $t->desc ?? 'پشکنینی پزیشکی ورد',
                 ];
-            }) : [
-                ['id' => 1, 'name' => 'پشکنینی گشتی خوێن (CBC)', 'price' => 10000, 'original_price' => 14000, 'discount' => 28, 'type' => 'Blood Test', 'desc' => 'Complete Blood Count'],
-                ['id' => 2, 'name' => 'چەوری و کۆلیسترۆڵ (Lipid Profile)', 'price' => 15000, 'original_price' => 20000, 'discount' => 25, 'type' => 'Blood Test', 'desc' => 'Cholesterol & Triglycerides'],
-                ['id' => 3, 'name' => 'شەکرەی سێ مانگی (HbA1c)', 'price' => 15000, 'type' => 'Blood Test', 'desc' => 'Glycated Hemoglobin'],
-                ['id' => 4, 'name' => 'پشکنینی ڤیتامین دی (Vitamin D)', 'price' => 22000, 'original_price' => 30000, 'discount' => 27, 'type' => 'Vitamin Test', 'desc' => '25-OH Vitamin D'],
-                ['id' => 5, 'name' => 'کاری جگەر (Liver Panel)', 'price' => 18000, 'original_price' => 24000, 'discount' => 25, 'type' => 'Liver Function', 'desc' => 'ALT, AST, Bilirubin'],
-                ['id' => 6, 'name' => 'کاری گورچیلە (Kidney Panel)', 'price' => 12000, 'original_price' => 16000, 'discount' => 25, 'type' => 'Kidney Function', 'desc' => 'Urea & Creatinine'],
-            ],
+            }) : [],
         ];
 
         return response()->json([

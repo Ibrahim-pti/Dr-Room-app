@@ -54,37 +54,33 @@ class _LabHubScreenState extends State<LabHubScreen> {
       if (labsRes.statusCode == 200) {
         final decoded = jsonDecode(labsRes.body);
         final list = (decoded['data'] as List? ?? []);
-        if (list.isNotEmpty) {
-          _labsList = list.map((e) => Map<String, dynamic>.from(e)).toList();
-        }
+        _labsList = list.map((e) => Map<String, dynamic>.from(e)).toList();
       }
 
       // 2. Tests from API
       if (testsRes.statusCode == 200) {
         final decoded = jsonDecode(testsRes.body);
         final list = (decoded['data'] as List? ?? []);
-        if (list.isNotEmpty) {
-          _testsList = list.map((e) {
-            final t = Map<String, dynamic>.from(e);
-            return {
-              'id': t['id'].toString(),
-              'name': t['name'] ?? '',
-              'name_ku': t['name_ku'] ?? t['name'] ?? '',
-              'name_en': t['name_en'] ?? t['name'] ?? '',
-              'name_ar': t['name_ar'] ?? t['name'] ?? '',
-              'price': (t['price'] as num?)?.toDouble() ?? 15000.0,
-              'original_price': (t['original_price'] as num?)?.toDouble(),
-              'discount': t['discount'],
-              'category': t['category'] ?? t['type'] ?? 'گشتی',
-              'lab': t['lab'] ?? t['lab_name'] ?? 'تاقیگەی پزیشکی',
-              'lab_id': t['lab_id'] ?? t['lab_user_id'],
-              'lab_image': t['lab_image'],
-              'city': t['city'] ?? '',
-              'desc': t['desc'] ?? '',
-              'home_sample_collection': t['home_sample_collection'] ?? true,
-            };
-          }).toList();
-        }
+        _testsList = list.map((e) {
+          final t = Map<String, dynamic>.from(e);
+          return {
+            'id': t['id'].toString(),
+            'name': t['name'] ?? '',
+            'name_ku': t['name_ku'] ?? t['name'] ?? '',
+            'name_en': t['name_en'] ?? t['name'] ?? '',
+            'name_ar': t['name_ar'] ?? t['name'] ?? '',
+            'price': (t['price'] as num?)?.toDouble() ?? 15000.0,
+            'original_price': (t['original_price'] as num?)?.toDouble(),
+            'discount': t['discount'],
+            'category': t['category'] ?? t['type'] ?? 'گشتی',
+            'lab': t['lab'] ?? t['lab_name'] ?? 'تاقیگەی پزیشکی',
+            'lab_id': t['lab_id'] ?? t['lab_user_id'],
+            'lab_image': t['lab_image'],
+            'city': t['city'] ?? '',
+            'desc': t['desc'] ?? '',
+            'home_sample_collection': t['home_sample_collection'] ?? true,
+          };
+        }).toList();
       }
 
       // 3. Packages from API
@@ -99,31 +95,29 @@ class _LabHubScreenState extends State<LabHubScreen> {
       if (packagesRes.statusCode == 200) {
         final decoded = jsonDecode(packagesRes.body);
         final list = (decoded['data'] as List? ?? []);
-        if (list.isNotEmpty) {
-          _packagesList = list.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final p = Map<String, dynamic>.from(entry.value);
-            final testsStr = p['tests'] is List
-                ? (p['tests'] as List).join('، ')
-                : (p['desc'] ?? '');
-            return {
-              'id': p['id'].toString(),
-              'title': p['name'] ?? '',
-              'title_en': p['name_en'] ?? p['name'] ?? '',
-              'tests': testsStr,
-              'tests_count': p['tests_count'] ?? 5,
-              'original_price':
-                  (p['original_price'] as num?)?.toDouble() ??
-                  ((p['price'] as num?)?.toDouble() ?? 50000.0) * 1.3,
-              'discount_price': (p['price'] as num?)?.toDouble() ?? 50000.0,
-              'discount_percent': '${p['discount'] ?? 25}%',
-              'color': colors[idx % colors.length],
-              'popular': idx == 0,
-              'lab_id': p['lab_id'] ?? p['lab_user_id'],
-              'lab_name': p['lab_name'] ?? 'تاقیگەی پزیشکی',
-            };
-          }).toList();
-        }
+        _packagesList = list.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final p = Map<String, dynamic>.from(entry.value);
+          final testsStr = p['tests'] is List
+              ? (p['tests'] as List).join('، ')
+              : (p['desc'] ?? '');
+          return {
+            'id': p['id'].toString(),
+            'title': p['name'] ?? '',
+            'title_en': p['name_en'] ?? p['name'] ?? '',
+            'tests': testsStr,
+            'tests_count': p['tests_count'] ?? 5,
+            'original_price':
+                (p['original_price'] as num?)?.toDouble() ??
+                ((p['price'] as num?)?.toDouble() ?? 50000.0) * 1.3,
+            'discount_price': (p['price'] as num?)?.toDouble() ?? 50000.0,
+            'discount_percent': '${p['discount'] ?? 25}%',
+            'color': colors[idx % colors.length],
+            'popular': idx == 0,
+            'lab_id': p['lab_id'] ?? p['lab_user_id'],
+            'lab_name': p['lab_name'] ?? 'تاقیگەی پزیشکی',
+          };
+        }).toList();
       }
 
       // If backend /labs/packages is empty, fetch each lab's packages from API /labs/{id}
@@ -179,27 +173,25 @@ class _LabHubScreenState extends State<LabHubScreen> {
       if (staffRes.statusCode == 200) {
         final decoded = jsonDecode(staffRes.body);
         final list = (decoded['data'] as List? ?? []);
-        if (list.isNotEmpty) {
-          _staffList = list.map((e) {
-            final s = Map<String, dynamic>.from(e);
-            return {
-              'id': s['id'].toString(),
-              'name': s['name'] ?? '',
-              'title':
-                  s['title'] ?? s['specialty'] ?? 'پسپۆڕی شیکاری نەخۆشییەکان',
-              'lab': s['lab_name'] ?? 'تیمی پشکنینی دکتۆر ڕووم',
-              'lab_id': s['lab_id'] ?? s['lab_user_id'] ?? s['id'],
-              'rating': (s['rating'] as num?)?.toDouble() ?? 4.9,
-              'reviews': s['reviews_count'] ?? 50,
-              'city': s['city'] ?? 'هەولێر',
-              'experience': s['city'] != null && s['city'].toString().isNotEmpty
-                  ? s['city'].toString()
-                  : 'پسپۆڕی ڕێگەپێدراو',
-              'visit_fee': (s['fee'] as num?)?.toDouble() ?? 10000.0,
-              'image': s['image'],
-            };
-          }).toList();
-        }
+        _staffList = list.map((e) {
+          final s = Map<String, dynamic>.from(e);
+          return {
+            'id': s['id'].toString(),
+            'name': s['name'] ?? '',
+            'title':
+                s['title'] ?? s['specialty'] ?? 'پسپۆڕی شیکاری نەخۆشییەکان',
+            'lab': s['lab_name'] ?? 'تیمی پشکنینی دکتۆر ڕووم',
+            'lab_id': s['lab_id'] ?? s['lab_user_id'] ?? s['id'],
+            'rating': (s['rating'] as num?)?.toDouble() ?? 4.9,
+            'reviews': s['reviews_count'] ?? 50,
+            'city': s['city'] ?? 'هەولێر',
+            'experience': s['city'] != null && s['city'].toString().isNotEmpty
+                ? s['city'].toString()
+                : 'پسپۆڕی ڕێگەپێدراو',
+            'visit_fee': (s['fee'] as num?)?.toDouble() ?? 10000.0,
+            'image': s['image'],
+          };
+        }).toList();
       }
     } catch (e) {
       debugPrint('Error fetching dynamic lab data: $e');
@@ -351,250 +343,6 @@ class _LabHubScreenState extends State<LabHubScreen> {
     );
   }
 
-  void _showSelectTestsModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        String query = '';
-
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final filtered = _testsList.where((t) {
-              final q = query.toLowerCase();
-              return t['name'].toString().toLowerCase().contains(q) ||
-                  (t['name_ku'] ?? '').toString().contains(q);
-            }).toList();
-
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.82,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
-              ),
-              child: Column(
-                children: [
-                  // Handle
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 44,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'lab_item_2'.tr(),
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 4,
-                    ),
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: TextField(
-                        onChanged: (v) => setModalState(() => query = v),
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 13.5,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'گەڕان بۆ پشکنین (CBC, Sugar, Lipid)...',
-                          hintStyle: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 13,
-                            color: Color(0xFF94A3B8),
-                          ),
-                          prefixIcon: const Icon(
-                            Iconsax.search_normal_1,
-                            size: 18,
-                            color: Color(0xFF94A3B8),
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: _isLoading
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xFF2563EB),
-                            ),
-                          )
-                        : filtered.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'هیچ پشکنینێک نەدۆزرایەوە',
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 14,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                            itemCount: filtered.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 10),
-                            itemBuilder: (context, idx) {
-                              final t = filtered[idx];
-                              final cart = Provider.of<CartProvider>(context);
-                              final inCart = cart.items.any(
-                                (i) => i.id == t['id'],
-                              );
-
-                              return Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? const Color(0xFF0F172A)
-                                      : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: inCart
-                                        ? const Color(0xFF2563EB)
-                                        : (isDark
-                                              ? const Color(0xFF334155)
-                                              : const Color(0xFFE2E8F0)),
-                                    width: inCart ? 1.5 : 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 42,
-                                      height: 42,
-                                      decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFF2563EB,
-                                        ).withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Icon(
-                                        Iconsax.health,
-                                        color: Color(0xFF2563EB),
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            t['name_ku'] ?? t['name'],
-                                            style: TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: isDark
-                                                  ? Colors.white
-                                                  : const Color(0xFF0F172A),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 3),
-                                          Text(
-                                            '${t['name']} • ${t['lab']}',
-                                            style: const TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 11.5,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            Currency.format(t['price']),
-                                            style: const TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF10B981),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: inCart
-                                            ? const Color(0xFF10B981)
-                                            : const Color(0xFF2563EB),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 8,
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        _addTestToCart(t);
-                                        setModalState(() {});
-                                      },
-                                      child: Text(
-                                        inCart ? 'زیادکراوە' : 'زیادکردن',
-                                        style: const TextStyle(
-                                          fontFamily: 'Rabar',
-                                          fontSize: 12,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   void _showStaffSelectionModal() {
     showModalBottomSheet(
@@ -1664,26 +1412,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       },
                     ),
 
-                    // 2. هەڵبژاردنی پشکنینەکان
+                    // 2. هەڵبژاردنی ستاف
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       number: '٢',
-                      title: 'lab_item_2'.tr(),
-                      subtitle: 'lab_item_2_desc'.tr(),
-                      icon: Iconsax.health,
-                      color: const Color(0xFF0D9488),
-                      badgeText: _testsList.isNotEmpty
-                          ? '${_testsList.length} پشکنین'
-                          : null,
-                      onTap: _showSelectTestsModal,
-                    ),
-
-                    // 3. هەڵبژاردنی ستاف
-                    _buildFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      number: '٣',
                       title: 'lab_item_3'.tr(),
                       subtitle: 'lab_item_3_desc'.tr(),
                       icon: Iconsax.people,
@@ -1697,11 +1430,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       onTap: _showStaffSelectionModal,
                     ),
 
-                    // 4. نرخی پشکنینەکان لە تاقیگەکان
+                    // 3. نرخی پشکنینەکان لە تاقیگەکان
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٤',
+                      number: '٣',
                       title: 'lab_item_4'.tr(),
                       subtitle: 'lab_item_4_desc'.tr(),
                       icon: Iconsax.tag,
@@ -1710,11 +1443,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       onTap: _showTestPricesModal,
                     ),
 
-                    // 5. پاکێجی پشکنینەکان لە تاقیگەکان
+                    // 4. پاکێجی پشکنینەکان لە تاقیگەکان
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٥',
+                      number: '٤',
                       title: 'lab_item_5'.tr(),
                       subtitle: 'lab_item_5_desc'.tr(),
                       icon: Iconsax.box_1,
@@ -1725,11 +1458,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       onTap: _showPackagesModal,
                     ),
 
-                    // 6. ئەرشیفی داواکارییەکانم
+                    // 5. ئەرشیفی داواکارییەکانم
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٦',
+                      number: '٥',
                       title: 'lab_item_6'.tr(),
                       subtitle: 'lab_item_6_desc'.tr(),
                       icon: Iconsax.archive_book,
@@ -1744,11 +1477,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       },
                     ),
 
-                    // 7. شیکردنەوەی پشکنینەکانم بە AI
+                    // 6. شیکردنەوەی پشکنینەکانم بە AI
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٧',
+                      number: '٦',
                       title: 'lab_item_7'.tr(),
                       subtitle: 'lab_item_7_desc'.tr(),
                       icon: Icons.auto_awesome_rounded,
@@ -1766,11 +1499,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       },
                     ),
 
-                    // 8. پوختەی داواکاری و ناردن
+                    // 7. پوختەی داواکاری و ناردن
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٨',
+                      number: '٧',
                       title: 'lab_item_8'.tr(),
                       subtitle: 'lab_item_8_desc'.tr(),
                       icon: Iconsax.send_2,
@@ -1789,7 +1522,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                               ),
                             ),
                           );
-                          _showSelectTestsModal();
+                          _showTestPricesModal();
                         } else {
                           Navigator.push(
                             context,
