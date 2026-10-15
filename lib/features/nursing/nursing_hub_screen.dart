@@ -165,51 +165,52 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
     setState(() => _isLoading = true);
     try {
       final resList = await Future.wait([
-        ApiClient.get('/service-categories?scope=nursing'),
-        ApiClient.get('/labs/staff'),
+        ApiClient.get('/nursing/services'),
+        ApiClient.get('/nurses'),
+        ApiClient.get('/nursing/packages'),
       ]);
 
-      final categoriesRes = resList[0];
-      final staffRes = resList[1];
+      final servicesRes = resList[0];
+      final nursesRes = resList[1];
+      final packagesRes = resList[2];
 
-      // 1. Dynamic Nursing Categories / Procedures from Live API
-      if (categoriesRes.statusCode == 200) {
-        final decoded = jsonDecode(categoriesRes.body);
-        if (decoded is List && decoded.isNotEmpty) {
-          final icons = [
-            Iconsax.health,
-            Iconsax.activity,
-            Iconsax.drop,
-            Iconsax.shield_tick,
-            Iconsax.scissor,
-            Iconsax.blend,
-            Iconsax.heart,
-            Iconsax.firstline,
-          ];
-          final durations = ['١٥ خولەک', '٢٠ خولەک', '٣٠ خولەک', '٤٥ خولەک', '١ کاتژمێر'];
-          final durationsEn = ['15 min', '20 min', '30 min', '45 min', '1 hr'];
-          final durationsAr = ['١٥ دقيقة', '٢٠ دقيقة', '٣٠ دقيقة', '٤٥ دقيقة', 'ساعة'];
-          final prices = [10000.0, 15000.0, 20000.0, 25000.0, 30000.0, 12000.0, 18000.0];
+      // 1. Dynamic Nursing Services from API (/nursing/services)
+      if (servicesRes.statusCode == 200) {
+        final decoded = jsonDecode(servicesRes.body);
+        final list = (decoded is Map && decoded['services'] is List)
+            ? decoded['services'] as List
+            : ((decoded is Map && decoded['data'] is List)
+                ? decoded['data'] as List
+                : (decoded is List ? decoded : []));
 
+        if (list.isNotEmpty) {
           final List<Map<String, dynamic>> dynamicServices = [];
-          for (int i = 0; i < decoded.length; i++) {
-            final cat = decoded[i];
-            final id = 'cat_nurse_${cat['id']}';
-            final name = cat['name']?.toString() ?? '';
-            final nameEn = cat['name_en']?.toString() ?? name;
-            final nameAr = cat['name_ar']?.toString() ?? name;
+          for (final item in list) {
+            final s = Map<String, dynamic>.from(item);
+            final iconStr = (s['icon'] ?? '').toString().toLowerCase();
+            IconData icon = Iconsax.health;
+            if (iconStr.contains('activity') || iconStr.contains('cannula')) {
+              icon = Iconsax.activity;
+            } else if (iconStr.contains('drop') || iconStr.contains('serum') || iconStr.contains('fluid')) {
+              icon = Iconsax.drop;
+            } else if (iconStr.contains('shield') || iconStr.contains('dressing') || iconStr.contains('wound') || iconStr.contains('healing')) {
+              icon = Iconsax.shield_tick;
+            } else if (iconStr.contains('heart') || iconStr.contains('vitals') || iconStr.contains('checkup') || iconStr.contains('monitor')) {
+              icon = Iconsax.heart;
+            }
 
+            final price = (s['price'] as num?)?.toDouble() ?? 15000.0;
             dynamicServices.add({
-              'id': id,
-              'api_id': cat['id'],
-              'name': name,
-              'name_en': nameEn,
-              'name_ar': nameAr,
-              'price': prices[i % prices.length],
-              'duration': durations[i % durations.length],
-              'duration_en': durationsEn[i % durationsEn.length],
-              'duration_ar': durationsAr[i % durationsAr.length],
-              'icon': icons[i % icons.length],
+              'id': s['id']?.toString() ?? 'nurse_svc_${dynamicServices.length}',
+              'name': s['name'] ?? '',
+              'name_en': s['name_en'] ?? s['name'] ?? '',
+              'name_ar': s['name_ar'] ?? s['name'] ?? '',
+              'price': price,
+              'duration': s['duration'] ?? '٢٠ خولەک',
+              'duration_en': s['duration_en'] ?? '20 min',
+              'duration_ar': s['duration_ar'] ?? '٢٠ دقيقة',
+              'icon': icon,
+              'description': s['description'] ?? '',
             });
           }
           if (dynamicServices.isNotEmpty) {
@@ -218,32 +219,145 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
         }
       }
 
-      // 2. Dynamic Specialist Nurse Staff from Live API
-      if (staffRes.statusCode == 200) {
-        final decoded = jsonDecode(staffRes.body);
-        final list = (decoded['data'] as List? ?? []);
+      // Fallback check to /service-categories?scope=nursing if services list is empty
+      if (_nursingPriceList.isEmpty) {
+        final catRes = await ApiClient.get('/service-categories?scope=nursing');
+        if (catRes.statusCode == 200) {
+          final decoded = jsonDecode(catRes.body);
+          if (decoded is List && decoded.isNotEmpty) {
+            final icons = [
+              Iconsax.health,
+              Iconsax.activity,
+              Iconsax.drop,
+              Iconsax.shield_tick,
+              Iconsax.scissor,
+              Iconsax.blend,
+              Iconsax.heart,
+              Iconsax.firstline,
+            ];
+            final durations = ['١٥ خولەک', '٢٠ خولەک', '٣٠ خولەک', '٤٥ خولەک', '١ کاتژمێر'];
+            final durationsEn = ['15 min', '20 min', '30 min', '45 min', '1 hr'];
+            final durationsAr = ['١٥ دقيقة', '٢٠ دقيقة', '٣٠ دقيقة', '٤٥ دقيقة', 'ساعة'];
+            final prices = [10000.0, 15000.0, 20000.0, 25000.0, 30000.0, 12000.0, 18000.0];
+
+            final List<Map<String, dynamic>> dynamicServices = [];
+            for (int i = 0; i < decoded.length; i++) {
+              final cat = decoded[i];
+              final id = 'cat_nurse_${cat['id']}';
+              final name = cat['name']?.toString() ?? '';
+              final nameEn = cat['name_en']?.toString() ?? name;
+              final nameAr = cat['name_ar']?.toString() ?? name;
+
+              dynamicServices.add({
+                'id': id,
+                'api_id': cat['id'],
+                'name': name,
+                'name_en': nameEn,
+                'name_ar': nameAr,
+                'price': prices[i % prices.length],
+                'duration': durations[i % durations.length],
+                'duration_en': durationsEn[i % durationsEn.length],
+                'duration_ar': durationsAr[i % durationsAr.length],
+                'icon': icons[i % icons.length],
+              });
+            }
+            if (dynamicServices.isNotEmpty) {
+              _nursingPriceList = dynamicServices;
+            }
+          }
+        }
+      }
+
+      // 2. Dynamic Specialist Nurse Staff from API (/nurses or /labs/staff)
+      List<dynamic> rawStaff = [];
+      if (nursesRes.statusCode == 200) {
+        final decoded = jsonDecode(nursesRes.body);
+        if (decoded is Map && decoded['nurses'] is List && (decoded['nurses'] as List).isNotEmpty) {
+          rawStaff = decoded['nurses'] as List;
+        } else if (decoded is Map && decoded['data'] is List && (decoded['data'] as List).isNotEmpty) {
+          rawStaff = decoded['data'] as List;
+        }
+      }
+
+      // If /nurses is empty, fallback to /labs/staff
+      if (rawStaff.isEmpty) {
+        final staffRes = await ApiClient.get('/labs/staff');
+        if (staffRes.statusCode == 200) {
+          final decoded = jsonDecode(staffRes.body);
+          if (decoded is Map && decoded['data'] is List && (decoded['data'] as List).isNotEmpty) {
+            rawStaff = decoded['data'] as List;
+          }
+        }
+      }
+
+      if (rawStaff.isNotEmpty) {
+        _staffList = rawStaff.map((e) {
+          final s = Map<String, dynamic>.from(e);
+          final fee = (s['fee'] as num?)?.toDouble() ?? 15000.0;
+          return {
+            'id': s['id'].toString(),
+            'nurse_id': s['nurse_id']?.toString() ?? s['id'].toString(),
+            'name': s['name'] ?? '',
+            'name_en': s['name_en'] ?? s['name'] ?? '',
+            'name_ar': s['name_ar'] ?? s['name'] ?? '',
+            'title': s['title'] ?? s['specialty'] ?? 'nursing_verified_nurse'.tr(),
+            'title_en': s['title_en'] ?? s['specialty_en'] ?? 'Specialist Nurse',
+            'title_ar': s['title_ar'] ?? s['specialty_ar'] ?? 'ممرض معتمد',
+            'specialty': s['specialty'] ?? s['title'] ?? '',
+            'lab': s['lab_name'] ?? 'تیمی پەرستاری دکتۆر ڕووم',
+            'lab_id': s['lab_id'] ?? s['lab_user_id'] ?? s['id'],
+            'rating': (s['rating'] as num?)?.toDouble() ?? 5.0,
+            'reviews': (s['total_reviews'] ?? s['reviews_count'] ?? s['reviews'] as num?)?.toInt() ?? 0,
+            'city': s['city'] ?? '',
+            'city_en': s['city_en'] ?? s['city'] ?? '',
+            'city_ar': s['city_ar'] ?? s['city'] ?? '',
+            'visit_fee': fee,
+            'image': s['image'],
+          };
+        }).toList();
+      }
+
+      // 3. Dynamic Nursing Packages from API (/nursing/packages)
+      final colors = [
+        const Color(0xFF0D9488),
+        const Color(0xFF2563EB),
+        const Color(0xFF8B5CF6),
+        const Color(0xFFEC4899),
+        const Color(0xFFD97706),
+      ];
+
+      if (packagesRes.statusCode == 200) {
+        final decoded = jsonDecode(packagesRes.body);
+        final list = (decoded is Map && decoded['data'] is List)
+            ? decoded['data'] as List
+            : ((decoded is Map && decoded['packages'] is List)
+                ? decoded['packages'] as List
+                : (decoded is List ? decoded : []));
+
         if (list.isNotEmpty) {
-          _staffList = list.map((e) {
-            final s = Map<String, dynamic>.from(e);
+          _carePackages = list.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final p = Map<String, dynamic>.from(entry.value);
+            final origPrice = (p['original_price'] as num?)?.toDouble();
+            final discPrice = (p['discount_price'] ?? p['price'] as num?)?.toDouble() ?? 50000.0;
+            final discount = p['discount_percent']?.toString() ??
+                (p['discount'] != null ? '${p['discount']}%' : '25%');
+
             return {
-              'id': s['id'].toString(),
-              'nurse_id': s['nurse_id']?.toString() ?? s['id'].toString(),
-              'name': s['name'] ?? '',
-              'name_en': s['name_en'] ?? s['name'] ?? '',
-              'name_ar': s['name_ar'] ?? s['name'] ?? '',
-              'title': s['title'] ?? s['specialty'] ?? 'nursing_verified_nurse'.tr(),
-              'title_en': s['name_en'] != null ? 'Certified Specialist Nurse' : 'Specialist Nurse',
-              'title_ar': s['name_ar'] != null ? (s['title'] ?? 'ممرض مرخص ومعتمد') : 'ممرض معتمد',
-              'specialty': s['specialty'] ?? s['title'] ?? '',
-              'lab': s['lab_name'] ?? 'تیمی پەرستاری دکتۆر ڕووم',
-              'lab_id': s['lab_id'] ?? s['lab_user_id'] ?? s['id'],
-              'rating': (s['rating'] as num?)?.toDouble() ?? 4.9,
-              'reviews': s['reviews_count'] ?? 50,
-              'city': s['city'] ?? 'هەولێر',
-              'city_en': s['city'] == 'هەولێر' ? 'Erbil' : (s['city'] == 'سلێمانی' ? 'Sulaymaniyah' : (s['city'] ?? '')),
-              'city_ar': s['city'] == 'هەولێر' ? 'أربيل' : (s['city'] == 'سلێمانی' ? 'السليمانية' : (s['city'] ?? '')),
-              'visit_fee': (s['fee'] as num?)?.toDouble() ?? 15000.0,
-              'image': s['image'],
+              'id': p['id']?.toString() ?? 'nurse_pkg_$idx',
+              'title': p['title'] ?? p['name'] ?? '',
+              'title_en': p['title_en'] ?? p['name_en'] ?? p['title'] ?? '',
+              'title_ar': p['title_ar'] ?? p['name_ar'] ?? p['title'] ?? '',
+              'desc': p['desc'] ?? p['description'] ?? '',
+              'desc_en': p['desc_en'] ?? p['description_en'] ?? '',
+              'desc_ar': p['desc_ar'] ?? p['description_ar'] ?? '',
+              'visits': p['visits'] ?? '${p['services_count'] ?? 5} سەردانی ماڵەوە',
+              'visits_en': p['visits_en'] ?? '${p['services_count'] ?? 5} Home Visits',
+              'visits_ar': p['visits_ar'] ?? '${p['services_count'] ?? 5} زيارات منزلية',
+              'original_price': origPrice,
+              'discount_price': discPrice,
+              'discount_percent': discount,
+              'color': colors[idx % colors.length],
             };
           }).toList();
         }

@@ -174,39 +174,63 @@ class NurseApiController extends Controller
         $services = [
             [
                 'id' => 'injection',
-                'name' => 'دەرزی',
-                'name_en' => 'Injections',
-                'name_ar' => 'حقن',
+                'name' => 'لێدانی دەرزی (ماسولکە یان دەمار)',
+                'name_en' => 'Injections (IM / IV)',
+                'name_ar' => 'حقن (عضلي / وريدي)',
                 'description' => 'دەرزی ماسولکە، دەمار، یان ژێر پێست لە ماڵەوە',
-                'icon' => 'Icons.medical_services',
+                'icon' => 'health',
                 'price' => 15000,
+                'duration' => '١٥ خولەک',
+                'duration_en' => '15 min',
+                'duration_ar' => '١٥ دقيقة',
             ],
             [
                 'id' => 'cannula',
-                'name' => 'دانانی کانیۆلا',
-                'name_en' => 'Cannula Insertion',
-                'name_ar' => 'تركيب كانيولا',
+                'name' => 'دانانی کانیۆلا و دەرزی دەمار',
+                'name_en' => 'IV Cannula Insertion',
+                'name_ar' => 'تركيب كانيولا وريدية',
                 'description' => 'دانان و چاودێریکردنی کانیۆلای دەمار بە شێوەیەکی پڕۆفیشناڵ',
-                'icon' => 'Icons.vaccines',
+                'icon' => 'activity',
                 'price' => 20000,
+                'duration' => '٢٠ خولەک',
+                'duration_en' => '20 min',
+                'duration_ar' => '٢٠ دقيقة',
+            ],
+            [
+                'id' => 'serum',
+                'name' => 'بەستنی موغەزی (سیرۆم)',
+                'name_en' => 'IV Fluid Infusion (Serum)',
+                'name_ar' => 'إعطاء مغذي ومحاليل وريدية',
+                'description' => 'بەستنی سیرۆم و چاودێری ڤیتامین و دەرمان بە دەمار',
+                'icon' => 'drop',
+                'price' => 20000,
+                'duration' => '٤٥ خولەک',
+                'duration_en' => '45 min',
+                'duration_ar' => '٤٥ دقيقة',
             ],
             [
                 'id' => 'dressing',
-                'name' => 'پێچانەوەی برین (پانسیمان)',
-                'name_en' => 'Wound Dressing',
-                'name_ar' => 'تضميد الجروح',
+                'name' => 'پاککردنەوە و پانسمانی برین',
+                'name_en' => 'Wound Cleaning & Dressing',
+                'name_ar' => 'تنظيف وتضميد الجروح',
                 'description' => 'پاککردنەوە و پێچانەوەی برین و دوای نەشتەرگەری',
-                'icon' => 'Icons.healing',
+                'icon' => 'shield_tick',
                 'price' => 25000,
+                'duration' => '٣٠ خولەک',
+                'duration_en' => '30 min',
+                'duration_ar' => '٣٠ دقيقة',
             ],
             [
                 'id' => 'checkup',
-                'name' => 'چاودێری خێرا',
-                'name_en' => 'Quick Checkup',
-                'name_ar' => 'فحص سريع',
+                'name' => 'پێوانی پەستان، شەکرە و ئۆکسجین',
+                'name_en' => 'Vital Signs Monitoring Check',
+                'name_ar' => 'فحص الضغط والسكر والأكسجين',
                 'description' => 'پشکنینی سەرەتایی، پەستانی خوێن، و چاودێری نیشانە ژیانییەکان',
-                'icon' => 'Icons.monitor_heart',
+                'icon' => 'heart',
                 'price' => 10000,
+                'duration' => '١٥ خولەک',
+                'duration_en' => '15 min',
+                'duration_ar' => '١٥ دقيقة',
             ],
         ];
 
@@ -224,11 +248,14 @@ class NurseApiController extends Controller
                     $services[] = [
                         'id' => 'cat_' . $cat->id,
                         'name' => $cat->name,
-                        'name_en' => $cat->name_en,
-                        'name_ar' => $cat->name_ar,
-                        'description' => 'خزمەتگوزاری پەرستاری',
-                        'icon' => 'Icons.medical_services',
+                        'name_en' => $cat->name_en ?? $cat->name,
+                        'name_ar' => $cat->name_ar ?? $cat->name,
+                        'description' => 'خزمەتگوزاری پسپۆڕی پەرستاری لە ماڵەوە',
+                        'icon' => 'health',
                         'price' => 20000,
+                        'duration' => '٣٠ خولەک',
+                        'duration_en' => '30 min',
+                        'duration_ar' => '٣٠ دقيقة',
                     ];
                 }
             }
@@ -237,6 +264,72 @@ class NurseApiController extends Controller
         return response()->json([
             'success' => true,
             'services' => $services,
+            'data' => $services,
+            'total' => count($services),
+        ]);
+    }
+
+    /**
+     * Get the list of nursing care packages.
+     */
+    public function packages(Request $request)
+    {
+        $packages = [
+            [
+                'id' => 'pkg_post_op',
+                'title' => 'پاکێجی چاودێری پاش نەشتەرگەری',
+                'title_en' => 'Post-Operative Recovery Package',
+                'title_ar' => 'باقة الرعاية ما بعد الجراحة',
+                'desc' => 'چاودێری برین، لێدانی دەرمانی ئازارشکێن و دژەهەوکردن، پێوانی نیشانە سەرەکییەکان (٥ سەردان)',
+                'desc_en' => 'Wound dressing, IV meds, pain management and vitals check (5 visits)',
+                'desc_ar' => 'غيار الجروح، أدوية مسكنة، ومتابعة العلامات الحيوية (٥ زيارات)',
+                'visits' => '٥ سەردانی ماڵەوە',
+                'visits_en' => '5 Home Visits',
+                'visits_ar' => '٥ زيارات منزلية',
+                'original_price' => 125000.0,
+                'discount_price' => 89000.0,
+                'discount_percent' => '28%',
+                'services_count' => 5,
+            ],
+            [
+                'id' => 'pkg_elderly',
+                'title' => 'پاکێجی چاودێری بەساڵاچووان',
+                'title_en' => 'Elderly Routine Home Care',
+                'title_ar' => 'باقة رعاية كبار السن المنزلية',
+                'desc' => 'پێوانی ڕۆژانەی پەستان و شەکرە، دانان و بەڕێوەبردنی دەرمان، چاودێری تەندروستی (٧ ڕۆژ)',
+                'desc_en' => 'Daily vitals monitoring, medication schedule, and general home hygiene (7 days)',
+                'desc_ar' => 'متابعة السكر والضغط يومياً وتنظيم الأدوية والرعاية (٧ أيام)',
+                'visits' => '٧ سەردانی هەفتانە',
+                'visits_en' => '7 Weekly Visits',
+                'visits_ar' => '٧ زيارات أسبوعية',
+                'original_price' => 175000.0,
+                'discount_price' => 119000.0,
+                'discount_percent' => '32%',
+                'services_count' => 7,
+            ],
+            [
+                'id' => 'pkg_shift_12h',
+                'title' => 'پاکێجی مانەوەی پەرستار (١٢ کاتژمێری)',
+                'title_en' => '12-Hour Intensive Home Nursing Shift',
+                'title_ar' => 'باقة شفت تمريض منزلي (١٢ ساعة)',
+                'desc' => 'مانەوەی تەواوی پەرستاری پسپۆڕ بۆ ماوەی ١٢ کاتژمێر بۆ چاودێری وردی نەخۆشی تایبەت',
+                'desc_en' => 'Full shift 12 hours dedicated certified nursing care at home',
+                'desc_ar' => 'ممرض متخصص متواجد ١٢ ساعة متواصلة لرعاية الحالات الحرجة',
+                'visits' => 'شەفتی ١٢ کاتژمێری',
+                'visits_en' => '12-Hour Shift',
+                'visits_ar' => 'شفت ١٢ ساعة',
+                'original_price' => 90000.0,
+                'discount_price' => 65000.0,
+                'discount_percent' => '27%',
+                'services_count' => 12,
+            ],
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $packages,
+            'packages' => $packages,
+            'total' => count($packages),
         ]);
     }
 

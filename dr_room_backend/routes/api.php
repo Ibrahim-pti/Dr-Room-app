@@ -97,6 +97,7 @@ Route::get('/nurses', [\App\Http\Controllers\Api\NurseApiController::class, 'ind
 Route::get('/nurses/{id}', [\App\Http\Controllers\Api\NurseApiController::class, 'show']);
 Route::get('/nurses/{id}/reviews', [\App\Http\Controllers\Api\NurseReviewController::class, 'index']);
 Route::get('/nursing/services', [\App\Http\Controllers\Api\NurseApiController::class, 'getServices']);
+Route::get('/nursing/packages', [\App\Http\Controllers\Api\NurseApiController::class, 'packages']);
 
 // ─── Push notification device registration ────────────────────────────
 // Unauthenticated too: a guest device registers on first launch and the row
