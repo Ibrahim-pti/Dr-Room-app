@@ -44,8 +44,21 @@ jobs:
               git reset --hard origin/main
             fi
 
+            echo "💾 --- باکئەپی داتابەیس پێش دیپلۆی ---"
+            if [ -f "$DEPLOY_DIR/database/database.sqlite" ]; then
+              mkdir -p "$DEPLOY_DIR/storage/db_backups"
+              cp "$DEPLOY_DIR/database/database.sqlite" \
+                "$DEPLOY_DIR/storage/db_backups/database_$(date +%Y%m%d_%H%M%S).sqlite"
+              # تەنها ١٠ باکئەپی کۆتایی بهێڵەرەوە
+              ls -1t "$DEPLOY_DIR/storage/db_backups/"*.sqlite | tail -n +11 | xargs -r rm -f
+            fi
+
             echo "📦 --- sync کردنی بەشی dr_room_backend بۆ سەر سێرڤەر ---"
+            # گرنگ: database.sqlite لە git دا نییە (gitignore)، بۆیە بەبێ ئەم
+            # exclude ـە rsync --delete لە هەموو دیپلۆیەک دا داتابەیسەکە دەسڕێتەوە!
             rsync -av --delete \
+              --exclude='database/*.sqlite' \
+              --exclude='database/*.sqlite-*' \
               --exclude='.env' \
               --exclude='.user.ini' \
               --exclude='public/.user.ini' \
