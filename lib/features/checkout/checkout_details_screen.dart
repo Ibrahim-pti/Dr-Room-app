@@ -865,7 +865,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                 isSelected: _sampleCollectionMethod == 'home',
                 onTap: () {
                   setState(() => _sampleCollectionMethod = 'home');
-                  final fee = (staffItem?.price ?? 5000.0);
+                  final fee = (staffItem?.price ?? 0.0);
                   context.read<CartProvider>().setServiceType('lab', extraFee: fee);
                 },
               ),

@@ -212,15 +212,16 @@ class _LabHubScreenState extends State<LabHubScreen> {
           item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'),
     );
 
+    final staffFee = (staff['visit_fee'] as num?)?.toDouble() ?? 0.0;
     cart.setServiceType(
       'lab',
-      extraFee: (staff['visit_fee'] as num?)?.toDouble() ?? 5000.0,
+      extraFee: staffFee,
     );
     cart.addItem(
       CartItem(
         id: 'staff_${staff['id']}',
         name: 'وەرگرتنی نموونە لە ماڵەوە (${staff['name']})',
-        price: (staff['visit_fee'] as num?)?.toDouble() ?? 5000.0,
+        price: staffFee,
         quantity: 1,
         extraData: {
           'type': 'staff',
@@ -1460,7 +1461,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       color: const Color(0xFFEC4899),
                       badgeText: _packagesList.isNotEmpty
                           ? '${_packagesList.length} پاکێج'
-                          : 'داشکاندن',
+                          : null,
                       onTap: _showPackagesModal,
                     ),
 
