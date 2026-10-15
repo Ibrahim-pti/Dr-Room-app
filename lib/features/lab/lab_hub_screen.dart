@@ -69,11 +69,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
             'name_ku': t['name_ku'] ?? t['name'] ?? '',
             'name_en': t['name_en'] ?? t['name'] ?? '',
             'name_ar': t['name_ar'] ?? t['name'] ?? '',
-            'price': (t['price'] as num?)?.toDouble() ?? 15000.0,
+            'price': (t['price'] as num?)?.toDouble() ?? 0.0,
             'original_price': (t['original_price'] as num?)?.toDouble(),
             'discount': t['discount'],
-            'category': t['category'] ?? t['type'] ?? 'گشتی',
-            'lab': t['lab'] ?? t['lab_name'] ?? 'تاقیگەی پزیشکی',
+            'category': t['category'] ?? t['type'] ?? '',
+            'lab': t['lab'] ?? t['lab_name'] ?? '',
             'lab_id': t['lab_id'] ?? t['lab_user_id'],
             'lab_image': t['lab_image'],
             'city': t['city'] ?? '',
@@ -101,21 +101,23 @@ class _LabHubScreenState extends State<LabHubScreen> {
           final testsStr = p['tests'] is List
               ? (p['tests'] as List).join('، ')
               : (p['desc'] ?? '');
+          final price = (p['price'] as num?)?.toDouble() ?? 0.0;
+          final originalPrice = (p['original_price'] as num?)?.toDouble();
+          final discount = (p['discount'] as num?)?.toInt() ?? 0;
           return {
             'id': p['id'].toString(),
             'title': p['name'] ?? '',
             'title_en': p['name_en'] ?? p['name'] ?? '',
             'tests': testsStr,
-            'tests_count': p['tests_count'] ?? 5,
-            'original_price':
-                (p['original_price'] as num?)?.toDouble() ??
-                ((p['price'] as num?)?.toDouble() ?? 50000.0) * 1.3,
-            'discount_price': (p['price'] as num?)?.toDouble() ?? 50000.0,
-            'discount_percent': '${p['discount'] ?? 25}%',
+            'tests_count': p['tests_count'] ?? (p['tests'] is List ? (p['tests'] as List).length : 0),
+            'original_price': originalPrice,
+            'discount_price': price,
+            'discount': discount,
+            'discount_percent': discount > 0 ? '$discount%' : null,
             'color': colors[idx % colors.length],
             'popular': idx == 0,
             'lab_id': p['lab_id'] ?? p['lab_user_id'],
-            'lab_name': p['lab_name'] ?? 'تاقیگەی پزیشکی',
+            'lab_name': p['lab_name'] ?? '',
           };
         }).toList();
       }
@@ -134,10 +136,13 @@ class _LabHubScreenState extends State<LabHubScreen> {
             final data = decoded['data'];
             if (data != null && data['packages'] is List) {
               final pkgs = data['packages'] as List;
-              final labName = data['name'] ?? _labsList[i]['name'] ?? 'تاقیگە';
+              final labName = data['name'] ?? _labsList[i]['name'] ?? '';
               final labId = data['id'] ?? _labsList[i]['id'];
               for (final p in pkgs) {
                 final pMap = Map<String, dynamic>.from(p);
+                final price = (pMap['price'] as num?)?.toDouble() ?? 0.0;
+                final originalPrice = (pMap['original_price'] as num?)?.toDouble();
+                final discount = (pMap['discount'] as num?)?.toInt() ?? 0;
                 gatheredPackages.add({
                   'id': '${labId}_pkg_${pMap['id']}',
                   'title': pMap['name'] ?? '',
@@ -147,13 +152,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       (pMap['tests'] is List
                           ? (pMap['tests'] as List).join('، ')
                           : ''),
-                  'tests_count': (pMap['test_ids'] as List?)?.length ?? 5,
-                  'original_price':
-                      (pMap['original_price'] as num?)?.toDouble() ??
-                      ((pMap['price'] as num?)?.toDouble() ?? 50000.0) * 1.3,
-                  'discount_price':
-                      (pMap['price'] as num?)?.toDouble() ?? 50000.0,
-                  'discount_percent': '${pMap['discount'] ?? 25}%',
+                  'tests_count': (pMap['test_ids'] as List?)?.length ?? 0,
+                  'original_price': originalPrice,
+                  'discount_price': price,
+                  'discount': discount,
+                  'discount_percent': discount > 0 ? '$discount%' : null,
                   'color': colors[pkgIndex % colors.length],
                   'popular': pkgIndex == 0,
                   'lab_id': labId,
@@ -178,17 +181,16 @@ class _LabHubScreenState extends State<LabHubScreen> {
           return {
             'id': s['id'].toString(),
             'name': s['name'] ?? '',
-            'title':
-                s['title'] ?? s['specialty'] ?? 'پسپۆڕی شیکاری نەخۆشییەکان',
-            'lab': s['lab_name'] ?? 'تیمی پشکنینی دکتۆر ڕووم',
+            'title': s['title'] ?? s['specialty'] ?? '',
+            'lab': s['lab_name'] ?? '',
             'lab_id': s['lab_id'] ?? s['lab_user_id'] ?? s['id'],
-            'rating': (s['rating'] as num?)?.toDouble() ?? 4.9,
-            'reviews': s['reviews_count'] ?? 50,
-            'city': s['city'] ?? 'هەولێر',
+            'rating': (s['rating'] as num?)?.toDouble() ?? 5.0,
+            'reviews': (s['reviews_count'] as num?)?.toInt() ?? 0,
+            'city': s['city'] ?? '',
             'experience': s['city'] != null && s['city'].toString().isNotEmpty
                 ? s['city'].toString()
-                : 'پسپۆڕی ڕێگەپێدراو',
-            'visit_fee': (s['fee'] as num?)?.toDouble() ?? 10000.0,
+                : '',
+            'visit_fee': (s['fee'] as num?)?.toDouble() ?? 0.0,
             'image': s['image'],
           };
         }).toList();
@@ -1142,29 +1144,30 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                             ],
                                           ),
                                         ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(
-                                              0xFFEF4444,
-                                            ).withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
+                                        if (pkg['discount_percent'] != null)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(
+                                                0xFFEF4444,
+                                              ).withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(
+                                                8,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'داشکاندن ${pkg['discount_percent']}',
+                                              style: const TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 10.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFFEF4444),
+                                              ),
                                             ),
                                           ),
-                                          child: Text(
-                                            'داشکاندن ${pkg['discount_percent']}',
-                                            style: const TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 10.5,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFFEF4444),
-                                            ),
-                                          ),
-                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 10),
@@ -1186,18 +1189,21 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              Currency.format(
-                                                pkg['original_price'],
+                                            if (pkg['original_price'] != null &&
+                                                (pkg['original_price'] as num) >
+                                                    (pkg['discount_price'] as num))
+                                              Text(
+                                                Currency.format(
+                                                  pkg['original_price'],
+                                                ),
+                                                style: const TextStyle(
+                                                  fontFamily: 'Rabar',
+                                                  fontSize: 12,
+                                                  decoration:
+                                                      TextDecoration.lineThrough,
+                                                  color: Color(0xFF94A3B8),
+                                                ),
                                               ),
-                                              style: const TextStyle(
-                                                fontFamily: 'Rabar',
-                                                fontSize: 12,
-                                                decoration:
-                                                    TextDecoration.lineThrough,
-                                                color: Color(0xFF94A3B8),
-                                              ),
-                                            ),
                                             Text(
                                               Currency.format(
                                                 pkg['discount_price'],
