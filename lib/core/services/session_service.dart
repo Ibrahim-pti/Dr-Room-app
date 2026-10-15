@@ -26,6 +26,7 @@ class SessionService {
     'user_name',
     'user_phone',
     'is_admin',
+    'ai_medicine_scans',
   ];
 
   static Future<void> signOut(BuildContext context) async {

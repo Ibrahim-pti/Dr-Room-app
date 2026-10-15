@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
@@ -27,188 +29,45 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
   Map<String, dynamic>? _scanResult;
   final List<Map<String, dynamic>> _userScans = [];
 
-  List<Map<String, dynamic>> _getLocalizedDefaultScans(String lang) {
-    if (lang == 'ar') {
-      return [
-        {
-          'mode': 'medicine',
-          'title': 'Amoxicillin (أموكسيسيلين 500mg)',
-          'category': 'مضاد حيوي • مكافحة العدوى',
-          'date': 'اليوم 10:30 صباحاً',
-          'confidence': '99.4%',
-          'summary': 'مضاد حيوي واسع المجال يُستخدم لعلاج الالتهابات البكتيرية مثل التهاب الحلق، الصدر، والمسالك البولية.',
-          'markers': [
-            {'name': 'المادة الفعالة', 'value': 'Amoxicillin 500mg', 'status': 'فعال', 'isNormal': true},
-            {'name': 'الشكل الصيدلاني', 'value': 'كبسولات (Capsule)', 'status': 'عادي', 'isNormal': true},
-            {'name': 'الجرعة والتوقيت', 'value': '3 مرات يومياً (كل 8 ساعات)', 'status': 'إرشادات', 'isNormal': true},
-            {'name': 'طريقة الاستعمال', 'value': 'بعد الأكل مع كوب ماء', 'status': 'هام', 'isNormal': true},
-          ],
-          'recommendations': 'أكمل الجرعة العلاجية كاملة حتى لو شعرت بتحسن لمنع مقاومة البكتيريا.',
-          'warnings': 'لا تتناول هذا الدواء إذا كان لديك حساسية سابقة للبنسلين.',
-        },
-        {
-          'mode': 'medicine',
-          'title': 'Panadol Extra (بنادول إكسترا)',
-          'category': 'مسكن للألم وخافض للحرارة',
-          'date': 'أمس 04:15 مساءً',
-          'confidence': '99.1%',
-          'summary': 'يُستخدم لتسكين الصداع، آلام الأسنان، آلام العضلات، الشقيقة، وتخفيض درجات الحرارة.',
-          'markers': [
-            {'name': 'المادة الفعالة', 'value': 'Paracetamol + Caffeine', 'status': 'فعال', 'isNormal': true},
-            {'name': 'الشكل الصيدلاني', 'value': 'أقراص (Tablet)', 'status': 'عادي', 'isNormal': true},
-            {'name': 'الجرعة والتوقيت', 'value': '1-2 قرص عند الحاجة (كل 6 ساعات)', 'status': 'إرشادات', 'isNormal': true},
-          ],
-          'recommendations': 'لا تتجاوز 8 أقراص يومياً لحماية وظائف الكبد.',
-          'warnings': 'تجنب تناوله مع أدوية أخرى تحتوي على الباراسيتامول، ويفضل عدم تناوله قبل النوم لاحتوائه على الكافيين.',
-        },
-      ];
-    } else if (lang == 'en') {
-      return [
-        {
-          'mode': 'medicine',
-          'title': 'Amoxicillin 500mg',
-          'category': 'Antibiotic • Anti-infective',
-          'date': 'Today 10:30 AM',
-          'confidence': '99.4%',
-          'summary': 'Broad-spectrum antibiotic used to treat bacterial infections of the throat, chest, urinary tract, and skin.',
-          'markers': [
-            {'name': 'Active Ingredient', 'value': 'Amoxicillin 500mg', 'status': 'Active', 'isNormal': true},
-            {'name': 'Form', 'value': 'Capsule', 'status': 'Normal', 'isNormal': true},
-            {'name': 'Dosage & Schedule', 'value': '3 times daily (every 8 hours)', 'status': 'Guidance', 'isNormal': true},
-            {'name': 'Administration', 'value': 'After meals with water', 'status': 'Important', 'isNormal': true},
-          ],
-          'recommendations': 'Complete the full course even if you feel better to prevent antibiotic resistance.',
-          'warnings': 'Do not take if you have a known allergy to penicillin.',
-        },
-        {
-          'mode': 'medicine',
-          'title': 'Panadol Extra',
-          'category': 'Analgesic & Antipyretic',
-          'date': 'Yesterday 04:15 PM',
-          'confidence': '99.1%',
-          'summary': 'Used for effective relief of headache, migraine, toothache, muscle aches, and reducing fever.',
-          'markers': [
-            {'name': 'Active Ingredient', 'value': 'Paracetamol + Caffeine', 'status': 'Active', 'isNormal': true},
-            {'name': 'Form', 'value': 'Tablet', 'status': 'Normal', 'isNormal': true},
-            {'name': 'Dosage & Schedule', 'value': '1-2 tablets as needed (every 6 hours)', 'status': 'Guidance', 'isNormal': true},
-          ],
-          'recommendations': 'Do not exceed 8 tablets per day to avoid liver damage.',
-          'warnings': 'Do not take with other paracetamol-containing products. Avoid before bedtime due to caffeine.',
-        },
-      ];
-    }
+  /// SharedPreferences key for this patient's scan history. Cleared on logout
+  /// by [SessionService] so the next person on the phone can't see it.
+  static const String scansStorageKey = 'ai_medicine_scans';
+  static const int _maxStoredScans = 20;
 
-    if (lang == 'kmr') {
-      return [
-        {
-          'mode': 'medicine',
-          'title': 'Amoxicillin (ئامۆکسیسیلین 500mg)',
-          'category': 'دژی هەوکرنێ • ئەنتی بایۆتیک',
-          'date': 'ئەڤرۆ ١٠:٣٠ سپێدێ',
-          'confidence': '99.4%',
-          'summary': 'ئەڤ دەرمانە ئەنتی بایۆتیکە و دهێتە بکارئینان بۆ چارەسەرکرنا هەوکرنا بەکتریایی وەک قورگ، سنگ، ڕێکا میزێ و برینان.',
-          'markers': [
-            {'name': 'پێکهاتەیا چالاک', 'value': 'Amoxicillin 500mg', 'status': 'چالاک', 'isNormal': true},
-            {'name': 'شێوازێ دەرمانی', 'value': 'کەپسول (Capsule)', 'status': 'نۆرمال', 'isNormal': true},
-            {'name': 'ژەم و دەم', 'value': 'ڕۆژێ ٣ جاران (هەر ٨ دەمژمێران)', 'status': 'شیرەت', 'isNormal': true},
-            {'name': 'شێوازێ خوارنێ', 'value': 'پشتی خوارنێ دگەل ئاڤێ', 'status': 'گرنگ', 'isNormal': true},
-          ],
-          'recommendations': 'کۆرسێ دەرمانی هەتا دووماهییێ تمام بکە خۆ ئەگەر هەست ب باشبوونێ ژی بکەی دا بەکتریا سەرنەهەڵدەتەڤە.',
-          'warnings': 'ئەگەر حەساسییەت ب پەنسلینێ هەبیت نابیت چ جاران ئەڤی دەرمانی بکاربینی.',
-        },
-        {
-          'mode': 'medicine',
-          'title': 'Panadol Extra (پانادۆڵ ئێکسسترا)',
-          'category': 'ئێش شکێن و دابەزینەرا تایێ',
-          'date': 'دوهی ٠٤:١٥ ئێڤاری',
-          'confidence': '99.1%',
-          'summary': 'دهێتە بکارئینان بۆ هێورکرنا ئێشانا سەرێ، شەقیقێ، ددانان، پشتا و ماسوولکان و دابەزاندنا تایێ.',
-          'markers': [
-            {'name': 'پێکهاتەیا چالاک', 'value': 'Paracetamol + Caffeine', 'status': 'چالاک', 'isNormal': true},
-            {'name': 'شێوازێ دەرمانی', 'value': 'حەب (Tablet)', 'status': 'نۆرمال', 'isNormal': true},
-            {'name': 'ژەم و دەم', 'value': '١-٢ حەب دەمێ پێدڤی (هەر ٦ دەمژمێران)', 'status': 'شیرەت', 'isNormal': true},
-          ],
-          'recommendations': 'ڕۆژانە پتر ژ ٨ حەبان مەخۆ دا کو زیان نەگەهیتە جگەرێ.',
-          'warnings': 'دگەل دەرمانێن دی یێن پاراسیتامۆڵێ تێکەل نەکە، و بەری نڤستنێ ژبەر کافایینێ نەخۆی چێترە.',
-        },
-      ];
+  Future<void> _loadScans() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(scansStorageKey);
+      if (raw == null || raw.isEmpty) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is! List || !mounted) return;
+      setState(() {
+        _userScans
+          ..clear()
+          ..addAll(decoded.whereType<Map>().map((e) => Map<String, dynamic>.from(e)));
+      });
+    } catch (e) {
+      debugPrint('Failed to load scan history: $e');
     }
-
-    // Kurdish Sorani (ckb)
-    return [
-      {
-        'mode': 'medicine',
-        'title': 'Amoxicillin (ئامۆکسیسیلین 500mg)',
-        'category': 'دژەهەوکردن • ئەنتی بایۆتیک',
-        'date': 'ئەمڕۆ ١٠:٣٠ بەیانی',
-        'confidence': '99.4%',
-        'summary': 'ئەم دەرمانە ئەنتی بایۆتیکێکی کاریگەرە بۆ چارەسەری هەوکردنی بەکتریایی وەک هەوکردنی قوڕگ، سنگ، میزەڕۆ و برین.',
-        'markers': [
-          {'name': 'پێکهاتەی چالاک', 'value': 'Amoxicillin 500mg', 'status': 'چالاک', 'isNormal': true},
-          {'name': 'شێوەی دەرمان', 'value': 'کەپسول (Capsule)', 'status': 'ئاسایی', 'isNormal': true},
-          {'name': 'ژەم و کات', 'value': 'ڕۆژی ٣ جار (هەر ٨ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
-          {'name': 'شێوازی خواردن', 'value': 'دوای نان لەگەڵ ئاو', 'status': 'گرنگ', 'isNormal': true},
-        ],
-        'recommendations': 'کۆرسەکە تا کۆتایی تەواو بکە تەنانەت ئەگەر هەستت بە باشبوونیش کرد.',
-        'warnings': 'ئەگەر هەستیاریت (حەساسییەت) بە پەنسلین هەیە هەرگیز نابێت ئەم دەرمانە بخۆیت.',
-      },
-      {
-        'mode': 'medicine',
-        'title': 'Panadol Extra (پانادۆڵ ئێکسسترا)',
-        'category': 'ئازارشکێن و دابەزێنەری تا',
-        'date': 'دوێنێ ٠٤:١٥ ئێوارە',
-        'confidence': '99.1%',
-        'summary': 'بەکاردێت بۆ هێورکردنەوەی ئازاری سەرئێشە، شەقیقە، ددان، پشت و ماسولکە و دابەزاندنی تا.',
-        'markers': [
-          {'name': 'پێکهاتەی چالاک', 'value': 'Paracetamol + Caffeine', 'status': 'چالاک', 'isNormal': true},
-          {'name': 'شێوەی دەرمان', 'value': 'حەب (Tablet)', 'status': 'ئاسایی', 'isNormal': true},
-          {'name': 'ژەم و کات', 'value': '١-٢ حەب لە کاتی پێویست (هەر ٦ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
-        ],
-        'recommendations': 'ڕۆژانە زیاتر لە ٨ حەب مەخۆ تاوەکو زیان بە جگەر نەگات.',
-        'warnings': 'لەگەڵ دەرمانی تری پاراسیتامۆڵ تێکەڵی مەکە، و پێش خەوتن نەیخۆیت چاکترە.',
-      },
-      {
-        'mode': 'medicine',
-        'title': 'Augmentin (ئۆگمێنتین 1g)',
-        'category': 'دژەهەوکردنی بەهێز • دژە بەکتریا',
-        'date': 'پێش دوو ڕۆژ',
-        'confidence': '99.2%',
-        'summary': 'ئۆگمێنتین ئەنتی بایۆتیکێکی زۆر بەهێزە بۆ هەوکردنی توندی سییەکان، جیوب، گوێی ناوەڕاست و پێست.',
-        'markers': [
-          {'name': 'پێکهاتەی چالاک', 'value': 'Amoxicillin + Clavulanate', 'status': 'چالاک', 'isNormal': true},
-          {'name': 'شێوەی دەرمان', 'value': 'حەب (Tablet)', 'status': 'ئاسایی', 'isNormal': true},
-          {'name': 'ژەم و کات', 'value': 'ڕۆژی ٢ جار (هەر ١٢ کاتژمێر)', 'status': 'ڕێنمایی', 'isNormal': true},
-        ],
-        'recommendations': 'لەگەڵ خواردندا بیخۆ بۆ ئەوەی گەدەت پارێزراو بێت.',
-        'warnings': 'کۆرسەکە بە تەواوی وەربگرە و لە ژەم مەپەڕێنە.',
-      },
-      {
-        'mode': 'medicine',
-        'title': 'Omeprazole (ئۆمیپرازۆڵ 20mg)',
-        'category': 'دژە ترشەڵۆک • پارێزەری گەدە',
-        'date': 'پێش سێ ڕۆژ',
-        'confidence': '99.3%',
-        'summary': 'چارەسەری دڵەکزێ، کەمکردنەوەی ترشی گەدە و چاکبوونەوەی برینی گەدە و دوازدەگرێ دەکات.',
-        'markers': [
-          {'name': 'پێکهاتەی چالاک', 'value': 'Omeprazole 20mg', 'status': 'چالاک', 'isNormal': true},
-          {'name': 'شێوەی دەرمان', 'value': 'کەپسول (Capsule)', 'status': 'ئاسایی', 'isNormal': true},
-          {'name': 'ژەم و کات', 'value': 'ڕۆژی ١ جار بەیانیان بە گەدەی بەتاڵ', 'status': 'ڕێنمایی', 'isNormal': true},
-        ],
-        'recommendations': 'کەپسولەکە بە تەواوی بیلووشە و مەیجوو.',
-        'warnings': 'دوور بکەوەرەوە لە خواردنی توند، ترش و چەور لە کاتی چارەسەردا.',
-      },
-    ];
   }
 
-  List<Map<String, dynamic>> _getAllRecentScans(BuildContext context) {
-    final lang = context.locale.languageCode;
-    return [..._userScans, ..._getLocalizedDefaultScans(lang)];
+  Future<void> _saveScans() async {
+    try {
+      if (_userScans.length > _maxStoredScans) {
+        _userScans.removeRange(_maxStoredScans, _userScans.length);
+      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(scansStorageKey, jsonEncode(_userScans));
+    } catch (e) {
+      debugPrint('Failed to save scan history: $e');
+    }
   }
 
   @override
   void initState() {
     super.initState();
     _currentMode = 'medicine';
+    _loadScans();
   }
 
   TextStyle _kStyle({
@@ -270,6 +129,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             _scanResult = realResult;
             _userScans.insert(0, realResult);
           });
+          _saveScans();
         }
       }
     } catch (e) {
@@ -287,212 +147,6 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
       _isAnalyzing = false;
       _analysisStep = 0;
     });
-  }
-
-  void _showMedicineSearchModal() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final currentLang = context.locale.languageCode;
-    final library = AiClinicalVisionService.instance.getMedicineLibrary(language: currentLang);
-    String query = '';
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final filtered = library.where((m) {
-              if (query.trim().isEmpty) return true;
-              final q = query.toLowerCase().trim();
-              return m['title'].toString().toLowerCase().contains(q) ||
-                  m['category'].toString().toLowerCase().contains(q) ||
-                  m['summary'].toString().toLowerCase().contains(q);
-            }).toList();
-
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.82,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 44,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(7),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2563EB).withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Iconsax.search_normal_1,
-                              color: Color(0xFF2563EB),
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'گەڕان بۆ شیکاری دەرمان',
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                            ),
-                          ),
-                        ],
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        icon: const Icon(Icons.close_rounded),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Search box
-                  Container(
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: TextField(
-                      onChanged: (v) => setModalState(() => query = v),
-                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
-                      decoration: const InputDecoration(
-                        hintText: 'ناوی دەرمان بنووسە (Panadol, Amox, Brufen...)',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 13,
-                          color: Color(0xFF94A3B8),
-                        ),
-                        prefixIcon: Icon(
-                          Iconsax.search_normal_1,
-                          size: 18,
-                          color: Color(0xFF94A3B8),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 11),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Expanded(
-                    child: filtered.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'هیچ دەرمانێک نەدۆزرایەوە',
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 13.5,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            itemCount: filtered.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 10),
-                            itemBuilder: (context, i) {
-                              final med = filtered[i];
-                              return InkWell(
-                                onTap: () {
-                                  Navigator.pop(ctx);
-                                  setState(() {
-                                    _scannedImage = null;
-                                    _currentMode = 'medicine';
-                                    _scanResult = Map<String, dynamic>.from(med);
-                                    _scanResult!['date'] = DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now());
-                                    _userScans.insert(0, _scanResult!);
-                                  });
-                                },
-                                borderRadius: BorderRadius.circular(14),
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(
-                                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: const Icon(
-                                          Icons.medication_rounded,
-                                          color: Color(0xFF2563EB),
-                                          size: 20,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              med['title'],
-                                              style: TextStyle(
-                                                fontFamily: 'Rabar',
-                                                fontSize: 13.5,
-                                                fontWeight: FontWeight.bold,
-                                                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              med['category'],
-                                              style: const TextStyle(
-                                                fontFamily: 'Rabar',
-                                                fontSize: 11,
-                                                color: Color(0xFF64748B),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const Icon(
-                                        Icons.arrow_forward_ios_rounded,
-                                        size: 14,
-                                        color: Color(0xFF94A3B8),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   @override
@@ -1275,40 +929,47 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'ai_recent_scans'.tr(),
-              style: TextStyle(
-                fontFamily: 'Rabar',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'ai_accuracy_badge'.tr(),
-                style: const TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF10B981),
-                ),
-              ),
-            ),
-          ],
+        Text(
+          'ai_recent_scans'.tr(),
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+          ),
         ),
         const SizedBox(height: 12),
         Builder(
           builder: (context) {
-            final recentList = _getAllRecentScans(context);
+            final recentList = _userScans;
+            if (recentList.isEmpty) {
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.history_rounded, size: 32, color: Color(0xFF94A3B8)),
+                    const SizedBox(height: 8),
+                    Text(
+                      'ai_no_recent_scans'.tr(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 13,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
             return ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
