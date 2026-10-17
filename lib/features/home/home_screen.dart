@@ -152,7 +152,10 @@ class HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 10),
+                        // ── Compact Emergency SOS Banner (Higher up & Sleek) ──
+                        const SizedBox(height: 8),
+                        const EmergencySosBanner(),
+                        const SizedBox(height: 12),
 
                         // ── Banners / Promo Carousel ──
                         if (_isLoading)
@@ -163,12 +166,8 @@ class HomeScreenState extends State<HomeScreen> {
                               .fadeIn(duration: 400.ms)
                               .slideY(begin: 0.1, end: 0, curve: Curves.easeOut),
 
-                        // ── Emergency SOS Banner ──
-                        const SizedBox(height: 12),
-                        const EmergencySosBanner(),
-
                         // ── Services Categories Grid ──
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 16),
                         const ServicesCategoryGrid(),
 
                         // ── Top Laboratories Section ──

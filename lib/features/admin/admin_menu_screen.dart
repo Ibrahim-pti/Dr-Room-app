@@ -11,6 +11,7 @@ import 'admin_categories_screen.dart';
 import 'admin_transactions_screen.dart';
 import 'admin_banners_screen.dart';
 import 'admin_notifications_screen.dart';
+import 'admin_emergency_screen.dart';
 import 'admin_app_bar.dart';
 
 class AdminMenuScreen extends StatefulWidget {
@@ -55,6 +56,14 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
       {
         'sectionTitle': 'بەڕێوەبردنی ناوەڕۆک و ڕێکخستنەکان',
         'items': [
+          {
+            'title': 'فریاکەوتن و حاڵەتی لەناکاو (SOS)',
+            'permission': AdminPermissions.manageContent,
+            'subtitle': 'بەڕێوەبردنی ژمارە و نەخۆشخانەکانی فریاکەوتن',
+            'icon': Icons.emergency,
+            'color': const Color(0xFFEF4444),
+            'screen': const AdminEmergencyScreen(),
+          },
           {
             'title': 'بانەر و ڕیکلامەکان',
             'permission': AdminPermissions.manageContent,

@@ -70,7 +70,8 @@ Route::get('/service-categories', function (\Illuminate\Http\Request $request) {
         ->get();
 });
 
-// ─── Emergency Reels API ──────────────────────────────────────────────
+// ─── Emergency SOS & Contacts API ───────────────────────────────────
+Route::get('/emergency-contacts', [\App\Http\Controllers\Api\EmergencyContactController::class, 'index']);
 Route::get('/emergency-reels', [\App\Http\Controllers\Api\EmergencyReelController::class, 'index']);
 
 // ─── Pharmacy Mobile App API ──────────────────────────────────────────────
@@ -220,6 +221,13 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::apiResource('banners', BannerController::class);
             Route::apiResource('articles', ArticleController::class);
             Route::apiResource('notifications', NotificationController::class);
+
+            // Emergency Contacts (SOS)
+            Route::get('/emergency-contacts', [\App\Http\Controllers\Api\EmergencyContactController::class, 'adminIndex']);
+            Route::post('/emergency-contacts', [\App\Http\Controllers\Api\EmergencyContactController::class, 'store']);
+            Route::put('/emergency-contacts/{id}', [\App\Http\Controllers\Api\EmergencyContactController::class, 'update']);
+            Route::patch('/emergency-contacts/{id}/toggle', [\App\Http\Controllers\Api\EmergencyContactController::class, 'toggle']);
+            Route::delete('/emergency-contacts/{id}', [\App\Http\Controllers\Api\EmergencyContactController::class, 'destroy']);
         });
 
         Route::middleware('permission:manage_orders')
