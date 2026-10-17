@@ -4,7 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_orders_screen.dart';
 import 'admin_nurses_screen.dart';
-import 'admin_articles_screen.dart';
+import 'admin_labs_screen.dart';
 import 'admin_menu_screen.dart';
 import '../../core/utils/admin_permissions.dart';
 
@@ -31,7 +31,7 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
     AdminDashboardScreen(),
     AdminOrdersScreen(isRoot: true),
     AdminNursesScreen(isRoot: true),
-    AdminArticlesScreen(isRoot: true),
+    AdminLabsScreen(isRoot: true),
     AdminMenuScreen(),
   ];
 
@@ -39,7 +39,7 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
     _NavItem(icon: Iconsax.category_2, label: 'سەرەکی'),
     _NavItem(icon: Iconsax.box, label: 'داواکارییەکان'),
     _NavItem(icon: Iconsax.profile_2user, label: 'پەرستارەکان'),
-    _NavItem(icon: Iconsax.firstline, label: 'فریاگوزاری'),
+    _NavItem(icon: Iconsax.microscope, label: 'تاقیگەکان'),
     _NavItem(icon: Iconsax.setting_2, label: 'ڕێکخستن'),
   ];
 

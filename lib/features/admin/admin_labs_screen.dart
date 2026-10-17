@@ -6,7 +6,8 @@ import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
 
 class AdminLabsScreen extends StatefulWidget {
-  const AdminLabsScreen({super.key});
+  final bool isRoot;
+  const AdminLabsScreen({super.key, this.isRoot = false});
 
   @override
   State<AdminLabsScreen> createState() => _AdminLabsScreenState();
@@ -100,14 +101,14 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
     final filteredApproved = _filterList(approvedLabs);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-      appBar: const AdminAppBar(
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      appBar: AdminAppBar(
         title: 'تاقیگەکان',
         subtitle: 'بینین و قبوڵکردنی تاقیگەکان',
         icon: Icons.science_rounded,
         iconColor: Colors.white,
-        iconBackgroundColor: Color(0xFF8B5CF6),
-        showBackButton: true,
+        iconBackgroundColor: const Color(0xFF8B5CF6),
+        showBackButton: !widget.isRoot,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
