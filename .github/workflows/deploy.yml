@@ -91,7 +91,8 @@ jobs:
             chown -R www:www "$DEPLOY_DIR"
             chmod -R 775 storage bootstrap/cache
 
-            echo "🔄 --- ڕیلۆدکردنی خزمەتگوزاری PHP-FPM ---"
-            /etc/init.d/php-fpm-84 reload 2>/dev/null || systemctl reload php-fpm 2>/dev/null || true
+            echo "🔄 --- دەستپێکردنەوەی خزمەتگوزاری PHP-FPM ---"
+            /etc/init.d/php-fpm-84 start 2>/dev/null || /etc/init.d/php-fpm-83 start 2>/dev/null || /etc/init.d/php-fpm-82 start 2>/dev/null || true
+            /etc/init.d/php-fpm-84 restart 2>/dev/null || /etc/init.d/php-fpm-83 restart 2>/dev/null || /etc/init.d/php-fpm-82 restart 2>/dev/null || systemctl restart php-fpm 2>/dev/null || true
 
             echo "✅ دیپلۆیکردن بە سەرکەوتوویی تەواو بوو!"

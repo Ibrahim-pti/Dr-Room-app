@@ -189,6 +189,8 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
                           ? null
                           : () async {
                               if (selectedImage == null) return;
+                              final messenger = ScaffoldMessenger.of(context);
+                              final nav = Navigator.of(ctx);
                               setModalState(() => isSubmitting = true);
                               final prefs = await SharedPreferences.getInstance();
                               final token = prefs.getString('auth_token');
@@ -206,6 +208,9 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
                                 request.fields['title_ar'] = tr['ar'] ?? '';
                               }
 
+                              request.fields['is_active'] = '1';
+                              request.fields['sort_order'] = '0';
+
                               request.files.add(
                                 await http.MultipartFile.fromPath('image', selectedImage!.path),
                               );
@@ -215,10 +220,22 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
                                 setModalState(() => isSubmitting = false);
                               }
                               
-                              if (res.statusCode == 201) {
-                                if (!ctx.mounted) return;
-                                Navigator.pop(ctx);
+                              if (res.statusCode == 201 || res.statusCode == 200) {
+                                nav.pop();
                                 _fetchBanners();
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('بانەرەکە بە سەرکەوتوویی زیاد کرا', style: TextStyle(fontFamily: 'Rabar')),
+                                    backgroundColor: Color(0xFF10B981),
+                                  ),
+                                );
+                              } else {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text('هەڵە لە زیادکردنی بانەر (${res.statusCode})', style: const TextStyle(fontFamily: 'Rabar')),
+                                    backgroundColor: const Color(0xFFEF4444),
+                                  ),
+                                );
                               }
                             },
                       style: ElevatedButton.styleFrom(

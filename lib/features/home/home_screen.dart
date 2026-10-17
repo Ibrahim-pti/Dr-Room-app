@@ -91,6 +91,20 @@ class HomeScreenState extends State<HomeScreen> {
           });
         }
       }
+
+      if (_banners.isEmpty) {
+        try {
+          final bRes = await ApiClient.get('/banners');
+          if (bRes.statusCode == 200) {
+            final bData = jsonDecode(bRes.body);
+            if (bData is List && mounted) {
+              setState(() {
+                _banners = bData;
+              });
+            }
+          }
+        } catch (_) {}
+      }
     } catch (e) {
       debugPrint('Error fetching home data: $e');
     } finally {

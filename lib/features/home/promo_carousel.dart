@@ -226,11 +226,17 @@ class _PromoCarouselState extends State<PromoCarousel> {
               final imagePath = isApiData ? promo['image_path']?.toString() : null;
 
               String? fullImageUrl;
+              bool isLocalAsset = false;
               if (imagePath != null && imagePath.isNotEmpty) {
                 if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
                   fullImageUrl = imagePath;
-                } else if (!imagePath.startsWith('assets/')) {
-                  fullImageUrl = '${ApiClient.storageUrl}/$imagePath';
+                } else if (imagePath.startsWith('assets/')) {
+                  isLocalAsset = true;
+                } else {
+                  final cleanPath = imagePath
+                      .replaceFirst(RegExp(r'^/?storage/'), '')
+                      .replaceFirst(RegExp(r'^/+'), '');
+                  fullImageUrl = '${ApiClient.storageUrl}/$cleanPath';
                 }
               }
 
@@ -248,12 +254,12 @@ class _PromoCarouselState extends State<PromoCarousel> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(22),
-                  child: fullImageUrl != null
+                  child: isLocalAsset
                       ? Stack(
                           fit: StackFit.expand,
                           children: [
-                            Image.network(
-                              fullImageUrl,
+                            Image.asset(
+                              imagePath!,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return _buildGradientBanner(context, title, index);
@@ -291,7 +297,50 @@ class _PromoCarouselState extends State<PromoCarousel> {
                               ),
                           ],
                         )
-                      : _buildGradientBanner(context, title, index),
+                      : (fullImageUrl != null
+                          ? Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.network(
+                                  fullImageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _buildGradientBanner(context, title, index);
+                                  },
+                                ),
+                                if (title.isNotEmpty)
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.bottomCenter,
+                                          end: Alignment.topCenter,
+                                          colors: [
+                                            Colors.black.withValues(alpha: 0.75),
+                                            Colors.transparent,
+                                          ],
+                                        ),
+                                      ),
+                                      child: Text(
+                                        title,
+                                        style: const TextStyle(
+                                          fontFamily: 'Rabar',
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            )
+                          : _buildGradientBanner(context, title, index)),
                 ),
               );
             },
