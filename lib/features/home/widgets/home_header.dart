@@ -305,7 +305,7 @@ class HomeHeader extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'search_doctors'.tr(),
+                          'search'.tr(),
                           style: const TextStyle(
                             fontFamily: 'Rabar',
                             color: Color(0xFF94A3B8),

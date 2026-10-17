@@ -50,8 +50,11 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
     if (rawAddress == null || rawAddress.trim().isEmpty) {
       return 'address'.tr();
     }
-    if (rawAddress == 'سەردانی تاقیگە' || rawAddress == 'visit_lab'.tr()) {
-      return 'visit_lab'.tr();
+    if (rawAddress == 'سەردانی تاقیگە' ||
+        rawAddress == 'visit_lab'.tr() ||
+        rawAddress.startsWith('سەردانی تاقیگە') ||
+        rawAddress.startsWith('visit_lab'.tr())) {
+      return rawAddress.contains('-') ? rawAddress : 'visit_lab'.tr();
     }
     return rawAddress.trim();
   }

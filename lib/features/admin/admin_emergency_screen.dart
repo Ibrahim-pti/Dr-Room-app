@@ -305,7 +305,7 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'حاڵەتی لەناکاو و فریاکەوتن (SOS)',
+                            'حاڵەتی لەناکاو و فریاکەوتن',
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 16,

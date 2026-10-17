@@ -57,7 +57,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         'sectionTitle': 'بەڕێوەبردنی ناوەڕۆک و ڕێکخستنەکان',
         'items': [
           {
-            'title': 'فریاکەوتن و حاڵەتی لەناکاو (SOS)',
+            'title': 'فریاکەوتن و حاڵەتی لەناکاو',
             'permission': AdminPermissions.manageContent,
             'subtitle': 'بەڕێوەبردنی ژمارە و نەخۆشخانەکانی فریاکەوتن',
             'icon': Icons.emergency,

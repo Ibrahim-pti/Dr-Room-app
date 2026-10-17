@@ -10,6 +10,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:convert';
+import '../../core/utils/api_client.dart';
 import '../../core/utils/currency.dart';
 import 'payment_method_screen.dart';
 
@@ -39,6 +41,12 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   GoogleMapController? _mapController;
   LatLng? _currentLatLng;
 
+  // Lab location details for "Visit Lab" mode
+  LatLng? _labLatLng;
+  String? _labAddress;
+  String? _labName;
+  Map<String, dynamic>? _labDetails;
+
   TextStyle _kStyle({
     double fontSize = 14,
     FontWeight fontWeight = FontWeight.normal,
@@ -59,7 +67,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
     super.initState();
     _addressController.text = _locationDetails;
 
-    // If a staff was selected for home sample collection, default to home
+    // Detect lab or staff information from cart
     final cart = context.read<CartProvider>();
     final hasStaff = cart.items.any((item) =>
         item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'));
@@ -67,8 +75,84 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
       _sampleCollectionMethod = 'home';
     }
 
+    for (final item in cart.items) {
+      if (item.extraData?['lab_name'] != null) {
+        _labName = item.extraData!['lab_name'].toString();
+      }
+      if (item.extraData?['lab_location'] != null) {
+        _labAddress = item.extraData!['lab_location'].toString();
+      }
+      final lat = double.tryParse(item.extraData?['lab_lat']?.toString() ?? '');
+      final lng = double.tryParse(item.extraData?['lab_lng']?.toString() ?? '');
+      if (lat != null && lng != null) {
+        _labLatLng = LatLng(lat, lng);
+      }
+      final lid = item.extraData?['lab_id'] ?? item.extraData?['lab_user_id'];
+      if (lid != null) {
+        _fetchLabInfo(int.tryParse(lid.toString()) ?? 0);
+        break;
+      }
+    }
+
     // Auto fetch location on screen load
     _getCurrentLocation();
+  }
+
+  Future<void> _fetchLabInfo(int labId) async {
+    if (labId <= 0) return;
+    try {
+      final res = await ApiClient.get('/labs/$labId');
+      if (res.statusCode == 200 && mounted) {
+        final decoded = jsonDecode(res.body);
+        final data = decoded is Map && decoded['data'] != null ? decoded['data'] : decoded;
+        if (data is Map) {
+          final lat = double.tryParse(data['latitude']?.toString() ?? '');
+          final lng = double.tryParse(data['longitude']?.toString() ?? '');
+          setState(() {
+            _labDetails = Map<String, dynamic>.from(data);
+            _labName ??= data['name']?.toString();
+            _labAddress ??= data['location']?.toString() ?? data['address']?.toString();
+            if (lat != null && lng != null) {
+              _labLatLng = LatLng(lat, lng);
+            }
+          });
+          if (_sampleCollectionMethod == 'lab' && _labLatLng != null) {
+            _mapController?.animateCamera(
+              CameraUpdate.newCameraPosition(
+                CameraPosition(target: _labLatLng!, zoom: 15.5),
+              ),
+            );
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  Set<Marker> _buildMapMarkers() {
+    if (_currentLatLng == null) return {};
+    final isWork = _sampleCollectionMethod == 'work';
+    return {
+      Marker(
+        markerId: const MarkerId('selected_location'),
+        position: _currentLatLng!,
+        draggable: true,
+        infoWindow: InfoWindow(
+          title: isWork
+              ? 'work_sample_collection'.tr()
+              : 'home_sample_collection'.tr(),
+          snippet: _locationDetails,
+        ),
+        onDragEnd: (LatLng newPosition) {
+          setState(() {
+            _currentLatLng = newPosition;
+          });
+          _updateAddressFromLatLng(newPosition);
+        },
+        icon: BitmapDescriptor.defaultMarkerWithHue(
+          isWork ? BitmapDescriptor.hueAzure : BitmapDescriptor.hueRed,
+        ),
+      ),
+    };
   }
 
   @override
@@ -311,22 +395,32 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
     final isLab = context.read<CartProvider>().serviceType == 'lab';
 
     if (_formKey.currentState!.validate() && _selectedGender != null) {
-      String finalLocation = 'سەردانی تاقیگە';
-      if (!isLab || _sampleCollectionMethod == 'home') {
-        final customAddr = _addressController.text.trim();
-        finalLocation = customAddr.isNotEmpty ? customAddr : _locationDetails;
-      }
-
-      // Find selected staff or nurse if any
+      // Find selected staff, nurse, or lab item
       CartItem? staffItem;
+      CartItem? labItem;
       for (final item in context.read<CartProvider>().items) {
         if (item.extraData?['type'] == 'staff' ||
             item.id.startsWith('staff_') ||
             item.extraData?['type'] == 'nursing_prescription' ||
             item.extraData?['nurse_id'] != null) {
           staffItem = item;
-          break;
         }
+        if (item.extraData?['lab_id'] != null) {
+          labItem = item;
+        }
+      }
+
+      final effectiveLabName = _labName ?? labItem?.extraData?['lab_name'] ?? staffItem?.extraData?['lab_name'];
+
+      final customAddr = _addressController.text.trim();
+      final baseLoc = customAddr.isNotEmpty ? customAddr : _locationDetails;
+      String finalLocation;
+      if (isLab && _sampleCollectionMethod == 'work') {
+        finalLocation = '$baseLoc (${'work_sample_collection'.tr()})';
+      } else if (isLab && _sampleCollectionMethod == 'home') {
+        finalLocation = '$baseLoc (${'home_sample_collection'.tr()})';
+      } else {
+        finalLocation = baseLoc;
       }
 
       // Save details to CartProvider
@@ -341,8 +435,8 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         'nurse_id': staffItem?.extraData?['nurse_id'] ?? staffItem?.extraData?['staff_id'],
         'staff_name': staffItem?.extraData?['staff_name'],
         'staff_title': staffItem?.extraData?['staff_title'],
-        'lab_id': staffItem?.extraData?['lab_id'],
-        'lab_name': staffItem?.extraData?['lab_name'],
+        'lab_id': _labDetails?['id'] ?? labItem?.extraData?['lab_id'] ?? staffItem?.extraData?['lab_id'],
+        'lab_name': effectiveLabName,
         'location': finalLocation,
         'lat': _currentLatLng?.latitude,
         'lng': _currentLatLng?.longitude,
@@ -557,226 +651,219 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── Location Section (Only if home collection or general) ──
-                    if (!isLab || _sampleCollectionMethod == 'home') ...[
-                      Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF10B981,
-                                  ).withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Iconsax.location,
-                                  color: Color(0xFF10B981),
-                                  size: 18,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                isLab
-                                    ? 'sample_location'.tr()
-                                    : 'service_location'.tr(),
-                                style: _kStyle(
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF0F172A),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          )
-                          .animate()
-                          .fadeIn(delay: 250.ms)
-                          .slideX(begin: -0.05, end: 0),
-
-                      const SizedBox(height: 12),
-
-                      // Location text badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
+                    // ── Location & Map Section ──
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: (_sampleCollectionMethod == 'work'
+                                    ? const Color(0xFF3B82F6)
+                                    : const Color(0xFF10B981))
+                                .withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _sampleCollectionMethod == 'work'
+                                ? Icons.business_rounded
+                                : Iconsax.location,
+                            color: _sampleCollectionMethod == 'work'
+                                ? const Color(0xFF3B82F6)
+                                : const Color(0xFF10B981),
+                            size: 18,
+                          ),
                         ),
-                        margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: borderColor),
+                        const SizedBox(width: 10),
+                        Text(
+                          isLab
+                              ? 'sample_location'.tr()
+                              : 'service_location'.tr(),
+                          style: _kStyle(
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Iconsax.map,
-                              color: Color(0xFF3B82F6),
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _isLoadingAddress
-                                  ? Row(
-                                      children: [
-                                        const SizedBox(
-                                          width: 12,
-                                          height: 12,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                              Color(0xFF3B82F6),
-                                            ),
+                      ],
+                    )
+                    .animate()
+                    .fadeIn(delay: 250.ms)
+                    .slideX(begin: -0.05, end: 0),
+
+                    const SizedBox(height: 12),
+
+                    // Location text badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: _sampleCollectionMethod == 'work'
+                              ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                              : borderColor,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _sampleCollectionMethod == 'work'
+                                ? Icons.business_rounded
+                                : Iconsax.map,
+                            color: const Color(0xFF3B82F6),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _isLoadingAddress
+                                ? Row(
+                                    children: [
+                                      const SizedBox(
+                                        width: 12,
+                                        height: 12,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                            Color(0xFF3B82F6),
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'دیاریکردنی ناونیشان...',
-                                          style: _kStyle(
-                                            fontSize: 12.5,
-                                            color: const Color(0xFF3B82F6),
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Text(
-                                      _locationDetails,
-                                      style: _kStyle(
-                                        fontSize: 12.5,
-                                        color: (Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? const Color(0xFFCBD5E1)
-                                            : const Color(0xFF475569)),
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'دیاریکردنی ناونیشان...',
+                                        style: _kStyle(
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF3B82F6),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Text(
+                                    _sampleCollectionMethod == 'work' &&
+                                            _locationDetails !=
+                                                'دیاریکردنی شوێن...'
+                                        ? '${'work_sample_collection'.tr()}: $_locationDetails'
+                                        : _locationDetails,
+                                    style: _kStyle(
+                                      fontSize: 12.5,
+                                      color: (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? const Color(0xFFCBD5E1)
+                                          : const Color(0xFF475569)),
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // The Map Container
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: borderColor),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Stack(
+                          children: [
+                            GoogleMap(
+                              onMapCreated: (controller) {
+                                _mapController = controller;
+                              },
+                              initialCameraPosition: CameraPosition(
+                                target: _currentLatLng ??
+                                    const LatLng(36.1911, 44.0092),
+                                zoom: 15.0,
+                              ),
+                              onCameraIdle: () {
+                                if (_currentLatLng != null) {
+                                  _updateAddressFromLatLng(_currentLatLng!);
+                                }
+                              },
+                              onTap: (LatLng location) {
+                                setState(() {
+                                  _currentLatLng = location;
+                                });
+                                _mapController?.animateCamera(
+                                  CameraUpdate.newLatLng(location),
+                                );
+                                _updateAddressFromLatLng(location);
+                              },
+                              markers: _buildMapMarkers(),
+                              myLocationEnabled: true,
+                              myLocationButtonEnabled: false,
+                              zoomControlsEnabled: true,
+                              mapToolbarEnabled: true,
+                              padding: const EdgeInsets.only(
+                                bottom: 20,
+                                right: 10,
+                              ),
+                              gestureRecognizers:
+                                  <Factory<OneSequenceGestureRecognizer>>{
+                                    Factory<OneSequenceGestureRecognizer>(
+                                      () => EagerGestureRecognizer(),
+                                    ),
+                                  },
+                            ),
+                            // Floating map controls
+                            Positioned(
+                              right: 10,
+                              bottom: 16,
+                              child: InkWell(
+                                onTap: _getCurrentLocation,
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: cardBg,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        blurRadius: 8,
+                                      ),
+                                    ],
+                                  ),
+                                  child: _isLoadingLocation
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child:
+                                              CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.my_location,
+                                          size: 18,
+                                          color: Color(0xFF3B82F6),
+                                        ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
-
-                      // The Map Container
-                      Container(
-                        height: 200,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: borderColor),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 14,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Stack(
-                            children: [
-                              GoogleMap(
-                                onMapCreated: (controller) {
-                                  _mapController = controller;
-                                },
-                                initialCameraPosition: CameraPosition(
-                                  target:
-                                      _currentLatLng ??
-                                      const LatLng(36.1911, 44.0092),
-                                  zoom: 15.0,
-                                ),
-                                onCameraIdle: () {
-                                  if (_currentLatLng != null) {
-                                    _updateAddressFromLatLng(_currentLatLng!);
-                                  }
-                                },
-                                onTap: (LatLng location) {
-                                  setState(() {
-                                    _currentLatLng = location;
-                                  });
-                                  _mapController?.animateCamera(
-                                    CameraUpdate.newLatLng(location),
-                                  );
-                                  _updateAddressFromLatLng(location);
-                                },
-                                markers: _currentLatLng != null
-                                    ? {
-                                        Marker(
-                                          markerId: const MarkerId(
-                                            'selected_location',
-                                          ),
-                                          position: _currentLatLng!,
-                                          draggable: true,
-                                          onDragEnd: (LatLng newPosition) {
-                                            setState(() {
-                                              _currentLatLng = newPosition;
-                                            });
-                                            _updateAddressFromLatLng(newPosition);
-                                          },
-                                          icon:
-                                              BitmapDescriptor.defaultMarkerWithHue(
-                                                BitmapDescriptor.hueRed,
-                                              ),
-                                        ),
-                                      }
-                                    : {},
-                                myLocationEnabled: true,
-                                myLocationButtonEnabled: false,
-                                zoomControlsEnabled: true,
-                                mapToolbarEnabled: true,
-                                padding: const EdgeInsets.only(
-                                  bottom: 20,
-                                  right: 10,
-                                ),
-                                gestureRecognizers:
-                                    <Factory<OneSequenceGestureRecognizer>>{
-                                      Factory<OneSequenceGestureRecognizer>(
-                                        () => EagerGestureRecognizer(),
-                                      ),
-                                    },
-                              ),
-                              // Floating map controls
-                              Positioned(
-                                right: 10,
-                                bottom: 16,
-                                child: InkWell(
-                                  onTap: _getCurrentLocation,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: cardBg,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                          blurRadius: 8,
-                                        ),
-                                      ],
-                                    ),
-                                    child: _isLoadingLocation
-                                        ? const SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : const Icon(
-                                            Icons.my_location,
-                                            size: 18,
-                                            color: Color(0xFF3B82F6),
-                                          ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.05, end: 0),
-                    ],
+                    ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.05, end: 0),
 
                     const SizedBox(height: 20),
                   ],
@@ -871,24 +958,39 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                   setState(() => _sampleCollectionMethod = 'home');
                   final fee = (staffItem?.price ?? 0.0);
                   context.read<CartProvider>().setServiceType('lab', extraFee: fee);
+                  if (_currentLatLng != null) {
+                    _mapController?.animateCamera(
+                      CameraUpdate.newCameraPosition(
+                        CameraPosition(target: _currentLatLng!, zoom: 15.0),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildCollectionOption(
-                label: 'visit_lab'.tr(),
-                icon: Icons.local_hospital_rounded,
-                isSelected: _sampleCollectionMethod == 'lab',
+                label: 'work_sample_collection'.tr(),
+                icon: Icons.business_rounded,
+                isSelected: _sampleCollectionMethod == 'work',
                 onTap: () {
-                  setState(() => _sampleCollectionMethod = 'lab');
-                  context.read<CartProvider>().setServiceType('lab', extraFee: 0.0);
+                  setState(() => _sampleCollectionMethod = 'work');
+                  final fee = (staffItem?.price ?? 0.0);
+                  context.read<CartProvider>().setServiceType('lab', extraFee: fee);
+                  if (_currentLatLng != null) {
+                    _mapController?.animateCamera(
+                      CameraUpdate.newCameraPosition(
+                        CameraPosition(target: _currentLatLng!, zoom: 15.0),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
           ],
         ),
-        if (_sampleCollectionMethod == 'home') ...[
+        if (_sampleCollectionMethod == 'home' || _sampleCollectionMethod == 'work') ...[
           const SizedBox(height: 12),
           if (staffItem != null) ...[
             Container(
@@ -906,10 +1008,12 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.12),
-                    child: const Icon(
-                      Iconsax.profile_circle,
-                      color: Color(0xFF2563EB),
-                      size: 26,
+                    child: Icon(
+                      _sampleCollectionMethod == 'work'
+                          ? Icons.business_rounded
+                          : Iconsax.profile_circle,
+                      color: const Color(0xFF2563EB),
+                      size: 24,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -952,7 +1056,11 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          staffItem.extraData?['staff_title'] ?? staffItem.extraData?['lab_name'] ?? 'پسپۆڕی نموونەوەرگرتن لە ماڵەوە',
+                          staffItem.extraData?['staff_title'] ??
+                              staffItem.extraData?['lab_name'] ??
+                              (_sampleCollectionMethod == 'work'
+                                  ? 'پسپۆڕی نموونەوەرگرتن لە شوێنی کار'
+                                  : 'پسپۆڕی نموونەوەرگرتن لە ماڵەوە'),
                           style: const TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 11.5,
@@ -965,7 +1073,9 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                             const Icon(Iconsax.car, size: 13, color: Color(0xFF2563EB)),
                             const SizedBox(width: 4),
                             Text(
-                              'کرێی سەردانی ماڵەوە: ${Currency.format(staffItem.price)}',
+                              _sampleCollectionMethod == 'work'
+                                  ? 'کرێی هاتنی سەر کار: ${Currency.format(staffItem.price)}'
+                                  : 'کرێی سەردانی ماڵەوە: ${Currency.format(staffItem.price)}',
                               style: const TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 11,
@@ -992,13 +1102,15 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                 ),
               ),
               child: Row(
-                children: const [
-                  Icon(Iconsax.info_circle, color: Color(0xFF2563EB), size: 18),
-                  SizedBox(width: 10),
+                children: [
+                  const Icon(Iconsax.info_circle, color: Color(0xFF2563EB), size: 18),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'ستافی تاقیگە: تاقیگە باشترین پسپۆڕی بەردەست دیاری دەکات بۆ ئەوەی بێتە ماڵەوە بۆ وەرگرتنی نموونە',
-                      style: TextStyle(
+                      _sampleCollectionMethod == 'work'
+                          ? 'ستافی تاقیگە: تاقیگە باشترین پسپۆڕی بەردەست دەنێرێت بۆ شوێنی کارەکەت بۆ وەرگرتنی نموونە'
+                          : 'ستافی تاقیگە: تاقیگە باشترین پسپۆڕی بەردەست دیاری دەکات بۆ ئەوەی بێتە ماڵەوە بۆ وەرگرتنی نموونە',
+                      style: const TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: 11.5,
                         color: Color(0xFF2563EB),

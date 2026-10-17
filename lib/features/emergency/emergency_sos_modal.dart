@@ -169,7 +169,7 @@ class _EmergencySosSheetState extends State<_EmergencySosSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'فریاکەوتنی خێرا و بەپەلە (SOS)',
+                      'sos_title'.tr(),
                       style: _kStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,

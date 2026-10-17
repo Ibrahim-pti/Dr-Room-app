@@ -156,8 +156,8 @@
                                 $patientGenderKurdish = 'دیارینەکراو';
                             }
 
-                            $collectionMethodRaw = $details['collection_method'] ?? $details['sample_collection_method'] ?? ($order->extra_fee > 0 ? 'home' : 'lab');
-                            $collectionMethodText = ($collectionMethodRaw === 'home') ? '🏠 لە ماڵەوە (Home Sample)' : '🏢 لە تاقیگە (Lab Visit)';
+                            $collectionMethodRaw = $details['collection_method'] ?? $details['sample_collection_method'] ?? ($order->extra_fee > 0 ? 'home' : 'work');
+                            $collectionMethodText = ($collectionMethodRaw === 'home') ? '🏠 لە ماڵەوە (Home Sample)' : '🏢 لە سەر کار / دەوام (Workplace Sample)';
                             
                             $address = !empty($details['location'])
                                 ? $details['location']
