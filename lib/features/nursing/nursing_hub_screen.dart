@@ -8,8 +8,8 @@ import '../../core/providers/cart_provider.dart';
 import '../../core/utils/currency.dart';
 import '../../core/utils/api_client.dart';
 import '../checkout/checkout_details_screen.dart';
+import '../lab/upload_prescription_screen.dart';
 import '../requests/my_requests_screen.dart';
-import '../emergency/sos_screen.dart';
 import 'nurse_list_screen.dart';
 
 class NursingHubScreen extends StatefulWidget {
@@ -390,339 +390,9 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
     );
   }
 
-  // ── 1. Select Services Modal (Dynamic from API) ──
-  void _showSelectServicesModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        String query = '';
 
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final filtered = _nursingPriceList.where((s) {
-              final q = query.toLowerCase();
-              return s['name'].toString().toLowerCase().contains(q) ||
-                  (s['name_en'] ?? '').toString().toLowerCase().contains(q) ||
-                  (s['name_ar'] ?? '').toString().toLowerCase().contains(q);
-            }).toList();
 
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.82,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 44,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'nursing_item_1'.tr(),
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: TextField(
-                        onChanged: (v) => setModalState(() => query = v),
-                        style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
-                        decoration: InputDecoration(
-                          hintText: 'nursing_search_service'.tr(),
-                          hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 13, color: Color(0xFF94A3B8)),
-                          prefixIcon: const Icon(Iconsax.search_normal_1, size: 18, color: Color(0xFF94A3B8)),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: filtered.isEmpty
-                        ? Center(
-                            child: Text(
-                              'no_results_found'.tr(),
-                              style: const TextStyle(fontFamily: 'Rabar', fontSize: 14, color: Color(0xFF94A3B8)),
-                            ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                            itemCount: filtered.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 10),
-                            itemBuilder: (context, idx) {
-                              final item = filtered[idx];
-                              final cart = Provider.of<CartProvider>(context);
-                              final inCart = cart.items.any((i) => i.id == item['id']);
-                              final localizedName = _getLocalized(item, 'name');
-                              final localizedDuration = _getLocalized(item, 'duration');
-
-                              return Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: inCart
-                                        ? const Color(0xFF0D9488)
-                                        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                                    width: inCart ? 1.5 : 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 44,
-                                      height: 44,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF0D9488).withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Icon(item['icon'] as IconData, color: const Color(0xFF0D9488), size: 22),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            localizedName,
-                                            style: TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 3),
-                                          Text(
-                                            '${'nursing_duration'.tr()} $localizedDuration',
-                                            style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            Currency.format(item['price']),
-                                            style: const TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF10B981),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: inCart ? const Color(0xFF10B981) : const Color(0xFF0D9488),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                        elevation: 0,
-                                      ),
-                                      onPressed: () {
-                                        _toggleServiceInCart(item);
-                                        setModalState(() {});
-                                      },
-                                      child: Text(
-                                        inCart
-                                            ? '${'nursing_selected_service_badge'.tr()} ✓'
-                                            : 'nursing_select_service_btn'.tr(),
-                                        style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // ── 2. Emergency & Rapid Request Modal (Translated) ──
-  void _showFastEmergencyModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.emergency_rounded, color: Color(0xFFEF4444), size: 34),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'nursing_item_2'.tr(),
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 19,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'nursing_fast_dispatch_desc'.tr(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 12.5,
-                  color: Color(0xFF64748B),
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.timer_rounded, color: Color(0xFFEF4444), size: 24),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        '${'nursing_est_arrival'.tr()} ${'nursing_arrival_time_val'.tr()}',
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFEF4444),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const SosScreen()),
-                        );
-                      },
-                      child: Text(
-                        'nursing_sos_call'.tr(),
-                        style: const TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEF4444),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        elevation: 0,
-                      ),
-                      onPressed: () {
-                        final cart = Provider.of<CartProvider>(context, listen: false);
-                        cart.setServiceType('nursing');
-                        cart.addItem(CartItem(
-                          id: 'urgent_nurse_dispatch',
-                          name: 'nursing_urgent_dispatch'.tr(),
-                          price: 25000.0,
-                          quantity: 1,
-                          extraData: {'urgent': true},
-                        ));
-                        Navigator.pop(ctx);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const CheckoutDetailsScreen()),
-                        );
-                      },
-                      child: Text(
-                        'nursing_urgent_send_now'.tr(),
-                        style: const TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // ── 3. Select Specialist Staff Modal (Live from API) ──
+  // ── 2. Select Specialist Staff Modal (Live from API) ──
   void _showStaffSelectionModal() {
     showModalBottomSheet(
       context: context,
@@ -1529,7 +1199,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                 ),
               ),
 
-            // ── Main 7 Feature Cards List ──
+            // ── Main 6 Feature Cards List ──
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _fetchDynamicData,
@@ -1538,39 +1208,33 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                   physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                   padding: const EdgeInsets.fromLTRB(20, 6, 20, 16),
                   children: [
-                    // 1. هەڵبژاردنی خزمەتگوزاری
+                    // 1. هەڵبژاردنی ڕەچەتە
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       number: '١',
                       title: 'nursing_item_1'.tr(),
                       subtitle: 'nursing_item_1_desc'.tr(),
-                      icon: Iconsax.health,
+                      icon: Iconsax.document_upload,
                       color: const Color(0xFF0D9488),
-                      badgeText: _nursingPriceList.isNotEmpty
-                          ? '${_nursingPriceList.length} ${'nursing_services_count'.tr()}'
+                      badgeText: _staffList.isNotEmpty
+                          ? '${_staffList.length} ${'nursing_staff_count'.tr()}'
                           : null,
-                      onTap: _showSelectServicesModal,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const UploadPrescriptionScreen(serviceType: 'nursing'),
+                          ),
+                        );
+                      },
                     ),
 
-                    // 2. فریاکەوتن و داواکاری خێرا
+                    // 2. هەڵبژاردنی ستاف
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       number: '٢',
-                      title: 'nursing_item_2'.tr(),
-                      subtitle: 'nursing_item_2_desc'.tr(),
-                      icon: Icons.emergency_rounded,
-                      color: const Color(0xFFEF4444),
-                      badgeText: 'nursing_urgent_badge'.tr(),
-                      onTap: _showFastEmergencyModal,
-                    ),
-
-                    // 3. هەڵبژاردنی ستاف
-                    _buildFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      number: '٣',
                       title: 'nursing_item_3'.tr(),
                       subtitle: 'nursing_item_3_desc'.tr(),
                       icon: Iconsax.people,
@@ -1581,11 +1245,11 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       onTap: _showStaffSelectionModal,
                     ),
 
-                    // 4. نرخی خزمەتگوزارییەکان
+                    // 3. نرخی خزمەتگوزارییەکان
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٤',
+                      number: '٣',
                       title: 'nursing_item_4'.tr(),
                       subtitle: 'nursing_item_4_desc'.tr(),
                       icon: Iconsax.tag,
@@ -1594,11 +1258,11 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       onTap: _showPriceListModal,
                     ),
 
-                    // 5. پاکێجی چاودێریکردنی نەخۆش
+                    // 4. پاکێجی چاودێریکردنی نەخۆش
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٥',
+                      number: '٤',
                       title: 'nursing_item_5'.tr(),
                       subtitle: 'nursing_item_5_desc'.tr(),
                       icon: Iconsax.shield_security,
@@ -1609,11 +1273,11 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       onTap: _showCarePackagesModal,
                     ),
 
-                    // 6. ئەرشیفی داواکارییەکانم
+                    // 5. ئەرشیفی داواکارییەکانم
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٦',
+                      number: '٥',
                       title: 'nursing_item_6'.tr(),
                       subtitle: 'nursing_item_6_desc'.tr(),
                       icon: Iconsax.archive_book,
@@ -1626,11 +1290,11 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       },
                     ),
 
-                    // 7. پوختەی داواکاری و ناردن
+                    // 6. پوختەی داواکاری و ناردن
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٧',
+                      number: '٦',
                       title: 'nursing_item_7'.tr(),
                       subtitle: 'nursing_item_7_desc'.tr(),
                       icon: Iconsax.send_2,
@@ -1651,7 +1315,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                               ),
                             ),
                           );
-                          _showSelectServicesModal();
+                          _showPriceListModal();
                         } else {
                           Navigator.push(
                             context,

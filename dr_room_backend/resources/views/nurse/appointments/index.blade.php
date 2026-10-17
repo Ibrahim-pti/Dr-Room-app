@@ -64,9 +64,23 @@
                             <td style="padding:16px 24px;">
                                 @php
                                     $patientDetails = is_string($app->patient_details) ? json_decode($app->patient_details, true) : $app->patient_details;
+                                    $prescriptionImg = $patientDetails['prescription_image'] ?? $patientDetails['prescription_url'] ?? null;
                                 @endphp
                                 <div style="font-size:0.85rem;color:#334155;">{{ $patientDetails['location'] ?? 'ناونیشان دیارینەکراوە' }}</div>
                                 <div style="font-size:0.75rem;color:#64748b;direction:ltr;text-align:right;">{{ $patientDetails['phone'] ?? '' }}</div>
+                                @if($prescriptionImg)
+                                    @php
+                                        $fullPrescUrl = (str_starts_with($prescriptionImg, 'http://') || str_starts_with($prescriptionImg, 'https://'))
+                                            ? $prescriptionImg
+                                            : (str_starts_with($prescriptionImg, 'storage/') ? asset($prescriptionImg) : asset('storage/' . ltrim($prescriptionImg, '/')));
+                                    @endphp
+                                    <div style="margin-top: 6px;">
+                                        <a href="{{ $fullPrescUrl }}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#ecfdf5;color:#0d9488;padding:3px 8px;border-radius:6px;font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid #a7f3d0;">
+                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            وێنەی ڕەچەتە
+                                        </a>
+                                    </div>
+                                @endif
                             </td>
                             <td style="padding:16px 24px;">
                                 <div style="font-size:0.9rem;font-weight:700;color:#059669;">{{ number_format($app->total_price, 0) }} د.ع</div>
@@ -158,8 +172,22 @@
                         <td style="padding:16px 24px;">
                             @php
                                 $patientDetails = is_string($req->patient_details) ? json_decode($req->patient_details, true) : $req->patient_details;
+                                $reqPrescriptionImg = $patientDetails['prescription_image'] ?? $patientDetails['prescription_url'] ?? null;
                             @endphp
                             <div style="font-size:0.85rem;color:#334155;">{{ $patientDetails['location'] ?? 'ناونیشان دیارینەکراوە' }}</div>
+                            @if($reqPrescriptionImg)
+                                @php
+                                    $fullReqPrescUrl = (str_starts_with($reqPrescriptionImg, 'http://') || str_starts_with($reqPrescriptionImg, 'https://'))
+                                        ? $reqPrescriptionImg
+                                        : (str_starts_with($reqPrescriptionImg, 'storage/') ? asset($reqPrescriptionImg) : asset('storage/' . ltrim($reqPrescriptionImg, '/')));
+                                @endphp
+                                <div style="margin-top: 6px;">
+                                    <a href="{{ $fullReqPrescUrl }}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#fef3c7;color:#b45309;padding:3px 8px;border-radius:6px;font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid #fde68a;">
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        وێنەی ڕەچەتە
+                                    </a>
+                                </div>
+                            @endif
                         </td>
                         <td style="padding:16px 24px;">
                             <div style="font-size:0.9rem;font-weight:700;color:#b45309;">{{ number_format($req->total_price, 0) }} د.ع</div>

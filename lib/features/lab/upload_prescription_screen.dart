@@ -7,12 +7,20 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/utils/api_client.dart';
+import '../../core/utils/currency.dart';
 import '../../core/utils/localization_extensions.dart';
 import '../../core/providers/cart_provider.dart';
 import '../checkout/checkout_details_screen.dart';
 
 class UploadPrescriptionScreen extends StatefulWidget {
-  const UploadPrescriptionScreen({super.key});
+  final String serviceType; // 'lab' or 'nursing'
+
+  const UploadPrescriptionScreen({
+    super.key,
+    this.serviceType = 'lab',
+  });
+
+  bool get isNursing => serviceType == 'nursing';
 
   @override
   State<UploadPrescriptionScreen> createState() =>
@@ -25,33 +33,93 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
   bool _isLoading = true;
   bool _isUploading = false;
-  List<Map<String, dynamic>> _labs = [];
-  Map<String, dynamic>? _selectedLab;
+  List<Map<String, dynamic>> _providers = [];
+  Map<String, dynamic>? _selectedProvider;
+
+  Color get _themeColor =>
+      widget.isNursing ? const Color(0xFF0D9488) : const Color(0xFF2563EB);
 
   @override
   void initState() {
     super.initState();
-    _fetchLabs();
+    _fetchProviders();
   }
 
-  Future<void> _fetchLabs() async {
+  Future<void> _fetchProviders() async {
     setState(() => _isLoading = true);
     try {
-      final res = await ApiClient.get('/labs');
-      if (res.statusCode == 200) {
-        final decoded = jsonDecode(res.body);
-        final list = decoded is Map && decoded.containsKey('data')
-            ? (decoded['data'] as List? ?? [])
-            : (decoded is List ? decoded : []);
-        if (list.isNotEmpty) {
-          _labs = list.map((e) => Map<String, dynamic>.from(e)).toList();
-          if (_labs.isNotEmpty) {
-            _selectedLab = _labs.first;
+      if (widget.isNursing) {
+        // Fetch specialist nurses from /nurses (fallback to /labs/staff)
+        List<dynamic> rawStaff = [];
+        final nursesRes = await ApiClient.get('/nurses');
+        if (nursesRes.statusCode == 200) {
+          final decoded = jsonDecode(nursesRes.body);
+          if (decoded is Map && decoded['nurses'] is List && (decoded['nurses'] as List).isNotEmpty) {
+            rawStaff = decoded['nurses'] as List;
+          } else if (decoded is Map && decoded['data'] is List && (decoded['data'] as List).isNotEmpty) {
+            rawStaff = decoded['data'] as List;
+          }
+        }
+
+        if (rawStaff.isEmpty) {
+          final staffRes = await ApiClient.get('/labs/staff');
+          if (staffRes.statusCode == 200) {
+            final decoded = jsonDecode(staffRes.body);
+            if (decoded is Map && decoded['data'] is List && (decoded['data'] as List).isNotEmpty) {
+              rawStaff = decoded['data'] as List;
+            }
+          }
+        }
+
+        if (rawStaff.isNotEmpty) {
+          _providers = rawStaff.map((e) {
+            final s = Map<String, dynamic>.from(e);
+            final fee = (s['fee'] as num?)?.toDouble() ??
+                (s['visit_fee'] as num?)?.toDouble() ??
+                15000.0;
+            return {
+              'id': s['id'].toString(),
+              'nurse_id': s['nurse_id']?.toString() ?? s['id'].toString(),
+              'name': s['name'] ?? '',
+              'name_en': s['name_en'] ?? s['name'] ?? '',
+              'name_ar': s['name_ar'] ?? s['name'] ?? '',
+              'title': s['title'] ?? s['specialty'] ?? 'nursing_verified_nurse'.tr(),
+              'title_en': s['title_en'] ?? s['specialty_en'] ?? 'Specialist Nurse',
+              'title_ar': s['title_ar'] ?? s['specialty_ar'] ?? 'ممرض معتمد',
+              'specialty': s['specialty'] ?? s['title'] ?? 'nursing_verified_nurse'.tr(),
+              'specialty_en': s['specialty_en'] ?? s['title_en'] ?? 'Specialist Nurse',
+              'specialty_ar': s['specialty_ar'] ?? s['title_ar'] ?? 'ممرض معتمد',
+              'city': s['city'] ?? '',
+              'city_en': s['city_en'] ?? s['city'] ?? '',
+              'city_ar': s['city_ar'] ?? s['city'] ?? '',
+              'rating': (s['rating'] as num?)?.toDouble() ?? 5.0,
+              'fee': fee,
+              'image': s['image'] ?? s['profile_image'] ?? s['image_path'],
+            };
+          }).toList();
+
+          if (_providers.isNotEmpty) {
+            _selectedProvider = _providers.first;
+          }
+        }
+      } else {
+        // Fetch laboratories
+        final res = await ApiClient.get('/labs');
+        if (res.statusCode == 200) {
+          final decoded = jsonDecode(res.body);
+          final list = decoded is Map && decoded.containsKey('data')
+              ? (decoded['data'] as List? ?? [])
+              : (decoded is List ? decoded : []);
+          if (list.isNotEmpty) {
+            _providers = list.map((e) => Map<String, dynamic>.from(e)).toList();
+            if (_providers.isNotEmpty) {
+              _selectedProvider = _providers.first;
+            }
           }
         }
       }
     } catch (e) {
-      debugPrint('Error loading labs: $e');
+      debugPrint('Error loading providers: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -80,8 +148,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     return city.isNotEmpty ? city : 'city_erbil'.tr();
   }
 
-  Widget _buildLabAvatar(Map<String, dynamic> lab, bool isDark) {
-    final imageRaw = lab['image'] ?? lab['profile_image'] ?? lab['image_path'];
+  Widget _buildProviderAvatar(Map<String, dynamic> provider, bool isDark) {
+    final imageRaw = provider['image'] ?? provider['profile_image'] ?? provider['image_path'];
     final String imagePath =
         (imageRaw != null && imageRaw.toString().trim().isNotEmpty)
             ? imageRaw.toString().trim()
@@ -141,12 +209,12 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       width: 52,
       height: 52,
       decoration: BoxDecoration(
-        color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+        color: _themeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: const Icon(
-        Iconsax.hospital,
-        color: Color(0xFF2563EB),
+      child: Icon(
+        widget.isNursing ? Iconsax.user : Iconsax.hospital,
+        color: _themeColor,
         size: 26,
       ),
     );
@@ -163,12 +231,13 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       ),
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'upload_prescription'.tr(),
+                'select_image_source'.tr(),
                 style: TextStyle(
                   fontFamily: 'Rabar',
                   fontSize: 17,
@@ -176,17 +245,17 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                   color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                    color: _themeColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Iconsax.gallery,
-                    color: Color(0xFF2563EB),
+                    color: _themeColor,
                     size: 22,
                   ),
                 ),
@@ -263,7 +332,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       return;
     }
 
-    if (_selectedLab == null) {
+    if (_selectedProvider == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFFEF4444),
@@ -272,7 +341,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           content: Text(
-            'please_select_lab_first'.tr(),
+            widget.isNursing
+                ? 'please_select_nurse_first'.tr()
+                : 'please_select_lab_first'.tr(),
             style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
           ),
         ),
@@ -311,28 +382,53 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
     final cart = context.read<CartProvider>();
     cart.clearCart();
-    cart.setServiceType('lab', extraFee: 0.0);
 
     final finalUrl = uploadedUrl ?? _imageFile?.path;
     final finalPath = uploadedPath ?? _imageFile?.path;
 
-    cart.addItem(
-      CartItem(
-        id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',
-        name: 'prescription_order_name'.tr(),
-        price: 0.0,
-        quantity: 1,
-        extraData: {
-          'prescription_path': finalPath,
-          'prescription_url': finalUrl,
-          'prescription_image': finalUrl,
-          'lab_id': _selectedLab!['id'],
-          'lab_name': _selectedLab!['name'],
-          'lab_user_id': _selectedLab!['user_id'] ?? _selectedLab!['id'],
-          'is_prescription': true,
-        },
-      ),
-    );
+    if (widget.isNursing) {
+      final fee = (_selectedProvider!['fee'] as num?)?.toDouble() ?? 15000.0;
+      final staffName = _selectedProvider!['name'] ?? '';
+      cart.setServiceType('nursing', extraFee: fee);
+      cart.addItem(
+        CartItem(
+          id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',
+          name: '${'prescription_order_name'.tr()} ($staffName)',
+          price: fee,
+          quantity: 1,
+          extraData: {
+            'prescription_path': finalPath,
+            'prescription_url': finalUrl,
+            'prescription_image': finalUrl,
+            'is_prescription': true,
+            'type': 'nursing_prescription',
+            'nurse_id': _selectedProvider!['nurse_id'] ?? _selectedProvider!['id'],
+            'staff_id': _selectedProvider!['id'],
+            'staff_name': staffName,
+            'staff_title': _selectedProvider!['specialty'] ?? _selectedProvider!['title'],
+          },
+        ),
+      );
+    } else {
+      cart.setServiceType('lab', extraFee: 0.0);
+      cart.addItem(
+        CartItem(
+          id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',
+          name: 'prescription_order_name'.tr(),
+          price: 0.0,
+          quantity: 1,
+          extraData: {
+            'prescription_path': finalPath,
+            'prescription_url': finalUrl,
+            'prescription_image': finalUrl,
+            'lab_id': _selectedProvider!['id'],
+            'lab_name': _selectedProvider!['name'],
+            'lab_user_id': _selectedProvider!['user_id'] ?? _selectedProvider!['id'],
+            'is_prescription': true,
+          },
+        ),
+      );
+    }
 
     Navigator.push(
       context,
@@ -372,7 +468,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'upload_prescription'.tr(),
+          widget.isNursing ? 'nursing_item_1'.tr() : 'upload_prescription'.tr(),
           style: TextStyle(
             fontFamily: 'Rabar',
             color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -382,8 +478,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+          ? Center(
+              child: CircularProgressIndicator(color: _themeColor),
             )
           : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -403,7 +499,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'upload_doc_subtitle'.tr(),
+                    widget.isNursing
+                        ? 'nursing_item_1_desc'.tr()
+                        : 'upload_doc_subtitle'.tr(),
                     style: const TextStyle(
                       fontFamily: 'Rabar',
                       fontSize: 13,
@@ -446,14 +544,12 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                   width: 80,
                                   height: 80,
                                   decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF2563EB,
-                                    ).withValues(alpha: 0.1),
+                                    color: _themeColor.withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Iconsax.camera,
-                                    color: Color(0xFF2563EB),
+                                    color: _themeColor,
                                     size: 38,
                                   ),
                                 ),
@@ -504,11 +600,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                     const SizedBox(width: 8),
                                     Text(
                                       'change_image'.tr(),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontFamily: 'Rabar',
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2563EB),
+                                        color: _themeColor,
                                       ),
                                     ),
                                   ],
@@ -520,7 +616,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
                   const SizedBox(height: 28),
 
-                  // ── 2. Select Laboratory (دەستنیشانکردنی تاقیگە) ──
+                  // ── 2. Select Provider (Nurse or Lab) ──
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -528,7 +624,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'select_lab_step'.tr(),
+                            widget.isNursing
+                                ? 'select_nurse_step'.tr()
+                                : 'select_lab_step'.tr(),
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 16,
@@ -540,7 +638,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'select_lab_subtitle'.tr(),
+                            widget.isNursing
+                                ? 'select_nurse_subtitle'.tr()
+                                : 'select_lab_subtitle'.tr(),
                             style: const TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 12,
@@ -549,7 +649,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                           ),
                         ],
                       ),
-                      if (_selectedLab != null)
+                      if (_selectedProvider != null)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -577,13 +677,15 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                   ),
                   const SizedBox(height: 14),
 
-                  // Laboratory List
-                  if (_labs.isEmpty)
+                  // Provider List (Nurses or Laboratories)
+                  if (_providers.isEmpty)
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Text(
-                          'no_labs_found'.tr(),
+                          widget.isNursing
+                              ? 'no_nurses_found'.tr()
+                              : 'no_labs_found'.tr(),
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             color: isDark ? Colors.white60 : Colors.black54,
@@ -595,34 +697,35 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _labs.length,
+                      itemCount: _providers.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (context, idx) {
-                        final lab = _labs[idx];
-                        final isSelected = _selectedLab?['id'] == lab['id'];
+                        final provider = _providers[idx];
+                        final isSelected =
+                            _selectedProvider?['id'] == provider['id'];
 
                         return GestureDetector(
-                          onTap: () => setState(() => _selectedLab = lab),
+                          onTap: () => setState(() => _selectedProvider = provider),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? (isDark
-                                      ? const Color(0xFF2563EB).withValues(alpha: 0.12)
-                                      : const Color(0xFFF6F9FE))
+                                      ? _themeColor.withValues(alpha: 0.12)
+                                      : _themeColor.withValues(alpha: 0.05))
                                   : cardBg,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isSelected
-                                    ? const Color(0xFF3B82F6).withValues(alpha: 0.55)
+                                    ? _themeColor.withValues(alpha: 0.55)
                                     : borderColor,
                                 width: isSelected ? 1.5 : 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: isSelected
-                                      ? const Color(0xFF3B82F6).withValues(alpha: 0.08)
+                                      ? _themeColor.withValues(alpha: 0.08)
                                       : Colors.black.withValues(
                                           alpha: isDark ? 0.2 : 0.02,
                                         ),
@@ -633,7 +736,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             ),
                             child: Row(
                               children: [
-                                _buildLabAvatar(lab, isDark),
+                                _buildProviderAvatar(provider, isDark),
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
@@ -643,9 +746,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                     children: [
                                       Text(
                                         context.localizedField(
-                                          lab,
+                                          provider,
                                           'name',
-                                          fallback: 'cat_lab'.tr(),
+                                          fallback: widget.isNursing
+                                              ? (provider['name'] ?? '')
+                                              : 'cat_lab'.tr(),
                                         ),
                                         style: TextStyle(
                                           fontFamily: 'Rabar',
@@ -661,40 +766,106 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
-                                          const Icon(
-                                            Iconsax.location,
-                                            size: 13,
-                                            color: Color(0xFF64748B),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            _formatCity(lab['city'] ?? lab['location']),
-                                            style: const TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 12,
+                                          if (widget.isNursing) ...[
+                                            Flexible(
+                                              child: Text(
+                                                context.localizedField(
+                                                  provider,
+                                                  'specialty',
+                                                  fallback: provider['title'] ??
+                                                      'nursing_verified_nurse'.tr(),
+                                                ),
+                                                style: const TextStyle(
+                                                  fontFamily: 'Rabar',
+                                                  fontSize: 12,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            if (provider['city'] != null &&
+                                                provider['city'].toString().isNotEmpty) ...[
+                                              const SizedBox(width: 6),
+                                              const Icon(
+                                                Iconsax.location,
+                                                size: 11,
+                                                color: Color(0xFF64748B),
+                                              ),
+                                              const SizedBox(width: 2),
+                                              Text(
+                                                _formatCity(provider['city']),
+                                                style: const TextStyle(
+                                                  fontFamily: 'Rabar',
+                                                  fontSize: 11,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                              ),
+                                            ],
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 7,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF0D9488)
+                                                    .withValues(alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                Currency.format(
+                                                  provider['fee'] ?? 15000,
+                                                ),
+                                                style: const TextStyle(
+                                                  fontFamily: 'Rabar',
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF0D9488),
+                                                ),
+                                              ),
+                                            ),
+                                          ] else ...[
+                                            const Icon(
+                                              Iconsax.location,
+                                              size: 13,
                                               color: Color(0xFF64748B),
                                             ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          const Icon(
-                                            Icons.star_rounded,
-                                            color: Color(0xFFF59E0B),
-                                            size: 14,
-                                          ),
-                                          const SizedBox(width: 3),
-                                          Text(
-                                            '${lab['rating'] ?? 4.8}',
-                                            style: const TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.bold,
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              _formatCity(
+                                                provider['city'] ??
+                                                    provider['location'],
+                                              ),
+                                              style: const TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 12,
+                                                color: Color(0xFF64748B),
+                                              ),
                                             ),
-                                          ),
+                                            const SizedBox(width: 12),
+                                            const Icon(
+                                              Icons.star_rounded,
+                                              color: Color(0xFFF59E0B),
+                                              size: 14,
+                                            ),
+                                            const SizedBox(width: 3),
+                                            Text(
+                                              '${provider['rating'] ?? 4.8}',
+                                              style: const TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 11.5,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ],
                                   ),
                                 ),
+                                const SizedBox(width: 8),
                                 Container(
                                   width: 22,
                                   height: 22,
@@ -702,12 +873,12 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isSelected
-                                          ? const Color(0xFF3B82F6)
+                                          ? _themeColor
                                           : borderColor,
                                       width: 1.5,
                                     ),
                                     color: isSelected
-                                        ? const Color(0xFF3B82F6)
+                                        ? _themeColor
                                         : Colors.transparent,
                                   ),
                                   child: isSelected
@@ -748,72 +919,72 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-              onPressed: _isUploading ? null : _proceedToCheckout,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                onPressed: _isUploading ? null : _proceedToCheckout,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _themeColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
                 ),
-                elevation: 0,
-              ),
-              child: _isUploading
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                child: _isUploading
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'uploading_image_to_server'.tr(),
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1.2,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Iconsax.tick_circle,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            'continue_checkout'.tr(),
+                          const SizedBox(width: 12),
+                          Text(
+                            'uploading_image_to_server'.tr(),
                             style: const TextStyle(
                               fontFamily: 'Rabar',
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               height: 1.2,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Iconsax.tick_circle,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              'continue_checkout'.tr(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 1.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
