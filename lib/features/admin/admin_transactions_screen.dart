@@ -115,7 +115,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
         title: 'مامەڵە و داهات',
         subtitle: 'تۆماری هەموو پارەدانەکان',
@@ -236,6 +236,46 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                     const Color(0xFFEF4444))),
           ],
         ),
+        if (_summary['by_method'] is List && (_summary['by_method'] as List).isNotEmpty) ...[
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: (_summary['by_method'] as List).map<Widget>((bm) {
+                final label = bm['label'] ?? bm['method'] ?? '';
+                final total = _money(bm['total']);
+                final count = bm['count'] ?? 0;
+                final isCash = (bm['method'] ?? '') == 'cash';
+                final chipColor = isCash ? const Color(0xFF0D9488) : const Color(0xFF3B82F6);
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                return Container(
+                  margin: const EdgeInsetsDirectional.only(end: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: chipColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: chipColor.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(isCash ? Iconsax.money_send : Iconsax.card_pos, size: 13, color: chipColor),
+                      const SizedBox(width: 5),
+                      Text('$label ($count): ',
+                          style: TextStyle(fontFamily: 'Rabar', fontSize: 11, fontWeight: FontWeight.bold, color: chipColor)),
+                      Text(total,
+                          style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white70 : const Color(0xFF0F172A))),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -275,6 +315,20 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
       _ => 'شکستخواردوو',
     };
 
+    final method = (transaction['method'] ?? 'cash').toString().toLowerCase();
+    final methodLabel = switch (method) {
+      'cash' => 'کاش',
+      'fib' => 'FIB',
+      'fastpay' => 'FastPay',
+      'zaincash' => 'ZainCash',
+      'qi_card' => 'Qi Card',
+      'card' => 'کارت',
+      'wallet' => 'جزدان',
+      _ => method.toUpperCase(),
+    };
+    final isCash = method == 'cash';
+    final methodColor = isCash ? const Color(0xFF0D9488) : const Color(0xFF3B82F6);
+
     return GestureDetector(
       onTap: () => _changeStatus(transaction),
       child: Container(
@@ -309,6 +363,35 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AdminUi.subtitle,
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: methodColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: methodColor.withValues(alpha: 0.2)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(isCash ? Iconsax.money_send : Iconsax.card_pos, size: 10, color: methodColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              methodLabel,
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: methodColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

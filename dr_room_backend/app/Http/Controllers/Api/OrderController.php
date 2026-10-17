@@ -130,24 +130,45 @@ class OrderController extends Controller
                 ]);
             }
 
-            if ($request->filled('transaction_reference')) {
-                \App\Models\Transaction::create([
-                    'reference'   => $request->transaction_reference,
-                    'user_id'     => Auth::id(),
-                    'amount'      => (float)$order->total_price,
-                    'currency'    => 'IQD',
-                    'status'      => 'completed',
-                    'method'      => $request->payment_method,
-                    'description' => ucfirst($order->service_type) . ' Order #' . $order->id . ' (Rasedi)',
-                    'payable_type' => \App\Models\Order::class,
-                    'payable_id'   => $order->id,
-                    'paid_at'     => now(),
-                    'meta'        => [
-                        'gateway' => $request->payment_method,
-                        'rasedi_reference' => $request->transaction_reference,
-                    ],
-                ]);
+            // Normalize payment method
+            $rawMethod = strtolower($request->payment_method ?? 'cash');
+            $normMethod = 'cash';
+            if (str_contains($rawMethod, 'fib')) {
+                $normMethod = 'fib';
+            } elseif (str_contains($rawMethod, 'fastpay')) {
+                $normMethod = 'fastpay';
+            } elseif (str_contains($rawMethod, 'zain')) {
+                $normMethod = 'zaincash';
+            } elseif (str_contains($rawMethod, 'qi')) {
+                $normMethod = 'qi_card';
+            } elseif (str_contains($rawMethod, 'card')) {
+                $normMethod = 'card';
+            } elseif (str_contains($rawMethod, 'wallet')) {
+                $normMethod = 'wallet';
             }
+
+            $isOnline = $request->filled('transaction_reference') || ($normMethod !== 'cash');
+            $txStatus = $isOnline ? 'completed' : ($order->status === 'completed' ? 'completed' : 'pending');
+            $txRef = $request->transaction_reference 
+                ?? (($normMethod === 'cash' ? 'CSH-' : 'ONL-') . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(5)) . '-' . $order->id);
+
+            \App\Models\Transaction::create([
+                'reference'    => $txRef,
+                'user_id'      => Auth::id(),
+                'amount'       => (float)$order->total_price,
+                'currency'     => 'IQD',
+                'status'       => $txStatus,
+                'method'       => $normMethod,
+                'description'  => ucfirst($order->service_type ?? 'Medical') . ' Order #' . $order->id . ' (' . ($normMethod === 'cash' ? 'کاش' : \App\Models\Transaction::METHOD_LABELS[$normMethod] ?? $normMethod) . ')',
+                'payable_type' => \App\Models\Order::class,
+                'payable_id'   => $order->id,
+                'paid_at'      => $txStatus === 'completed' ? now() : null,
+                'meta'         => [
+                    'gateway'          => $request->payment_method ?? $normMethod,
+                    'rasedi_reference' => $request->transaction_reference,
+                    'is_online'        => $isOnline,
+                ],
+            ]);
 
             DB::commit();
 

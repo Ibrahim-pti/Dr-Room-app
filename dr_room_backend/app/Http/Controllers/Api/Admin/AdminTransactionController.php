@@ -48,9 +48,9 @@ class AdminTransactionController extends Controller
 
         return response()->json([
             'total_revenue'   => (float)(clone $completed)->sum('amount'),
-            'today'           => (float)(clone $completed)->whereDate('created_at', today())->sum('amount'),
-            'this_month'      => (float)(clone $completed)->whereMonth('created_at', now()->month)
-                                                          ->whereYear('created_at', now()->year)->sum('amount'),
+            'today'           => (float)(clone $completed)->whereDate(DB::raw('COALESCE(paid_at, created_at)'), today())->sum('amount'),
+            'this_month'      => (float)(clone $completed)->whereMonth(DB::raw('COALESCE(paid_at, created_at)'), now()->month)
+                                                          ->whereYear(DB::raw('COALESCE(paid_at, created_at)'), now()->year)->sum('amount'),
             'transaction_count' => (clone $completed)->count(),
             'pending_count'   => Transaction::where('status', 'pending')->count(),
             'failed_count'    => Transaction::where('status', 'failed')->count(),
@@ -66,8 +66,8 @@ class AdminTransactionController extends Controller
                     'count'  => (int)$row->count,
                 ]),
             'last_7_days'     => Transaction::completed()
-                ->where('created_at', '>=', now()->subDays(6)->startOfDay())
-                ->select(DB::raw('DATE(created_at) as day'), DB::raw('SUM(amount) as total'))
+                ->where(DB::raw('COALESCE(paid_at, created_at)'), '>=', now()->subDays(6)->startOfDay())
+                ->select(DB::raw('DATE(COALESCE(paid_at, created_at)) as day'), DB::raw('SUM(amount) as total'))
                 ->groupBy('day')
                 ->orderBy('day')
                 ->get(),
@@ -87,6 +87,18 @@ class AdminTransactionController extends Controller
             'status'  => $request->status,
             'paid_at' => $request->status === 'completed' ? ($transaction->paid_at ?? now()) : $transaction->paid_at,
         ]);
+
+        // Keep linked order payment_status in sync
+        if ($transaction->payable_type === \App\Models\Order::class && $transaction->payable_id) {
+            $order = \App\Models\Order::find($transaction->payable_id);
+            if ($order) {
+                if ($request->status === 'completed') {
+                    $order->update(['payment_status' => 'paid']);
+                } elseif ($request->status === 'refunded') {
+                    $order->update(['payment_status' => 'refunded']);
+                }
+            }
+        }
 
         ActivityLog::record('updated', $transaction, "مامەڵە {$transaction->reference}", [
             'from' => $before,

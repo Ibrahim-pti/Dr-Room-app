@@ -106,8 +106,8 @@ Route::prefix('nurse')->middleware(['auth', IsNurse::class])->group(function () 
     Route::get('/patients/notes', fn() => view('shared.placeholder', ['layout' => 'nurse.layouts.app', 'title' => 'تێبینی ڕۆژانە']))->name('nurse.patients.notes');
     Route::get('/patients/medication', fn() => view('shared.placeholder', ['layout' => 'nurse.layouts.app', 'title' => 'پێدانی دەرمان']))->name('nurse.patients.medication');
     
-    // Earnings
-    Route::get('/earnings', [NurseEarningsController::class, 'index'])->name('nurse.earnings.index');
+    // Earnings (Disabled for nurses per requirements)
+    Route::get('/earnings', fn() => redirect()->route('nurse.appointments.index'))->name('nurse.earnings.index');
     
     // Profile
     Route::get('/profile', [NurseProfileController::class, 'index'])->name('nurse.profile.index');

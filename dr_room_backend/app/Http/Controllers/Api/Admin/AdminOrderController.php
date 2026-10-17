@@ -93,6 +93,25 @@ class AdminOrderController extends Controller
 
         $order = Order::findOrFail($id);
         $order->status = $request->status;
+
+        if ($request->status === 'completed') {
+            $order->payment_status = 'paid';
+            \App\Models\Transaction::where('payable_type', Order::class)
+                ->where('payable_id', $order->id)
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'completed',
+                    'paid_at' => now(),
+                ]);
+        } elseif ($request->status === 'cancelled') {
+            \App\Models\Transaction::where('payable_type', Order::class)
+                ->where('payable_id', $order->id)
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'failed',
+                ]);
+        }
+
         $order->save();
 
         OrderNotificationService::notifyStatusChanged($order, $request->status);
