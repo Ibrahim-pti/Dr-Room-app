@@ -70,6 +70,16 @@ class OrderController extends Controller
                 }
             }
 
+            if (!$assignedNurseId && !empty($request->patient_details['nurse_id'])) {
+                $assignedNurseId = $request->patient_details['nurse_id'];
+            }
+            if (!$assignedNurseId && !empty($request->patient_details['staff_id'])) {
+                $assignedNurseId = $request->patient_details['staff_id'];
+            }
+            if (!$assignedLabId && !empty($request->patient_details['lab_id'])) {
+                $assignedLabId = $request->patient_details['lab_id'];
+            }
+
             // If it's a lab service and assignedLabId corresponds to a Lab model ID instead of User ID, resolve user_id
             if ($assignedLabId) {
                 $labRecord = \App\Models\Lab::find($assignedLabId);

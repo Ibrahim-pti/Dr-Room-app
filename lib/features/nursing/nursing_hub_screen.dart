@@ -10,7 +10,7 @@ import '../../core/utils/api_client.dart';
 import '../checkout/checkout_details_screen.dart';
 import '../lab/upload_prescription_screen.dart';
 import '../requests/my_requests_screen.dart';
-import 'nurse_list_screen.dart';
+
 
 class NursingHubScreen extends StatefulWidget {
   const NursingHubScreen({super.key});
@@ -1150,39 +1150,6 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const NurseListScreen()),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0D9488).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Iconsax.profile_2user, color: Color(0xFF0D9488), size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            _staffList.isNotEmpty
-                                ? '${'nursing_all_nurses'.tr()} (${_staffList.length})'
-                                : 'nursing_all_nurses'.tr(),
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0D9488),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ],

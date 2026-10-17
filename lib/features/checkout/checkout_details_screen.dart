@@ -317,10 +317,13 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         finalLocation = customAddr.isNotEmpty ? customAddr : _locationDetails;
       }
 
-      // Find selected staff if any
+      // Find selected staff or nurse if any
       CartItem? staffItem;
       for (final item in context.read<CartProvider>().items) {
-        if (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) {
+        if (item.extraData?['type'] == 'staff' ||
+            item.id.startsWith('staff_') ||
+            item.extraData?['type'] == 'nursing_prescription' ||
+            item.extraData?['nurse_id'] != null) {
           staffItem = item;
           break;
         }
@@ -335,6 +338,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         'nurse_gender': null,
         'collection_method': isLab ? _sampleCollectionMethod : null,
         'staff_id': staffItem?.extraData?['staff_id'],
+        'nurse_id': staffItem?.extraData?['nurse_id'] ?? staffItem?.extraData?['staff_id'],
         'staff_name': staffItem?.extraData?['staff_name'],
         'staff_title': staffItem?.extraData?['staff_title'],
         'lab_id': staffItem?.extraData?['lab_id'],

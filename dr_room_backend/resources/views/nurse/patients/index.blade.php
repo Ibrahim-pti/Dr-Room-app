@@ -36,7 +36,10 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 text-slate-600" dir="ltr">
-                            {{ $patient->appointments->first()->appointment_date->format('Y-m-d') ?? '-' }}
+                            @php
+                                $lastVisit = $patient->orders->first()?->created_at ?? $patient->nurseAppointments?->first()?->appointment_date;
+                            @endphp
+                            {{ $lastVisit ? $lastVisit->format('Y-m-d') : '-' }}
                         </td>
                     </tr>
                 @empty

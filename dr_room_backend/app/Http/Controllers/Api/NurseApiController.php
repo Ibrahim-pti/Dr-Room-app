@@ -232,34 +232,55 @@ class NurseApiController extends Controller
                 'duration_en' => '15 min',
                 'duration_ar' => '١٥ دقيقة',
             ],
+            [
+                'id' => 'catheter',
+                'name' => 'دانان یان گۆڕینی سۆندەی میز (کاسیتەر)',
+                'name_en' => 'Urinary Catheter Care',
+                'name_ar' => 'تركيب أو تبديل القسطرة البولية',
+                'description' => 'دانان و چاودێری سۆندەی میز بە شێوازێکی پزیشکی و پاکژ',
+                'icon' => 'activity',
+                'price' => 25000,
+                'duration' => '٣٠ خولەک',
+                'duration_en' => '30 min',
+                'duration_ar' => '٣٠ دقيقة',
+            ],
+            [
+                'id' => 'physiotherapy',
+                'name' => 'ڕاهێنانی فیزیۆتێراپی و چارەسەری سروشتی',
+                'name_en' => 'Physical Therapy & Rehabilitation',
+                'name_ar' => 'العلاج الطبيعي والتأهيل البدني',
+                'description' => 'ڕاهێنانی جەستەیی بۆ دوای نەشتەرگەری و جەڵتە و لاوازی ماسولکە',
+                'icon' => 'blend',
+                'price' => 35000,
+                'duration' => '٤٥ خولەک',
+                'duration_en' => '45 min',
+                'duration_ar' => '٤٥ دقيقة',
+            ],
+            [
+                'id' => 'elderly_hygiene',
+                'name' => 'چاودێری پاکوخاوێنی و خۆشوشتنی نەخۆش لە جێگە',
+                'name_en' => 'Bedbound Patient Hygiene & Bathing',
+                'name_ar' => 'العناية بالنظافة والاستحمام للمريض طريح الفراش',
+                'description' => 'خۆشوشتن و خاوێنکردنەوەی نەخۆشی بێدەسەڵات لەناو جێگە',
+                'icon' => 'scissor',
+                'price' => 30000,
+                'duration' => '٤٥ خولەک',
+                'duration_en' => '45 min',
+                'duration_ar' => '٤٥ دقيقة',
+            ],
         ];
 
-        try {
-            $dynamicCats = \App\Models\ServiceCategory::ofScope('nursing')->active()->orderBy('sort_order')->get();
-            foreach ($dynamicCats as $cat) {
-                $exists = false;
-                foreach ($services as $s) {
-                    if ($s['name'] === $cat->name) {
-                        $exists = true;
-                        break;
-                    }
-                }
-                if (!$exists) {
-                    $services[] = [
-                        'id' => 'cat_' . $cat->id,
-                        'name' => $cat->name,
-                        'name_en' => $cat->name_en ?? $cat->name,
-                        'name_ar' => $cat->name_ar ?? $cat->name,
-                        'description' => 'خزمەتگوزاری پسپۆڕی پەرستاری لە ماڵەوە',
-                        'icon' => 'health',
-                        'price' => 20000,
-                        'duration' => '٣٠ خولەک',
-                        'duration_en' => '30 min',
-                        'duration_ar' => '٣٠ دقيقة',
-                    ];
-                }
+        // Ensure unique services by name and id
+        $uniqueServices = [];
+        $seenNames = [];
+        foreach ($services as $s) {
+            $normalizedName = trim(mb_strtolower($s['name']));
+            if (!isset($seenNames[$normalizedName])) {
+                $seenNames[$normalizedName] = true;
+                $uniqueServices[] = $s;
             }
-        } catch (\Exception $e) {}
+        }
+        $services = $uniqueServices;
 
         return response()->json([
             'success' => true,
