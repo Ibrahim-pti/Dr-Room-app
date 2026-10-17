@@ -471,15 +471,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminOrdersScreen(),
       },
       {
-        'title': 'دەرمانخانەکان',
-        'subtitle': '$totalPharmacies دەرمانخانە',
-        'icon': Iconsax.health,
-        'color': const Color(0xFF0D9488),
-        'bg': const Color(0xFFF0FDFA),
-        'badge': pendingPharmacies > 0 ? '$pendingPharmacies پەسەندکردن' : null,
-        'screen': const AdminPharmaciesScreen(),
-      },
-      {
         'title': 'تاقیگەکان',
         'subtitle': '$totalLabs تاقیگەی پزیشکی',
         'icon': Iconsax.microscope,
@@ -514,6 +505,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'bg': const Color(0xFFEFF6FF),
         'badge': null,
         'screen': const AdminBannersScreen(),
+      },
+      {
+        'title': 'دەرمانخانەکان',
+        'subtitle': '$totalPharmacies دەرمانخانە',
+        'icon': Iconsax.health,
+        'color': const Color(0xFF0D9488),
+        'bg': const Color(0xFFF0FDFA),
+        'badge': pendingPharmacies > 0 ? '$pendingPharmacies پەسەندکردن' : null,
+        'screen': const AdminPharmaciesScreen(),
       },
     ];
 
