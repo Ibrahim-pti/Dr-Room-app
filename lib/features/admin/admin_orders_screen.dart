@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/providers/admin_order_provider.dart';
+import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/utils/currency.dart';
@@ -153,45 +153,49 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
   }
 
   Map<String, dynamic> _getStatusBadge(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-        return {
-          'text': 'نوێ (چاوەڕوانکراو)',
-          'color': const Color(0xFFF59E0B),
-          'bgColor': const Color(0xFFFEF3C7),
-          'icon': Iconsax.clock,
-        };
-      case 'processing':
-      case 'accepted':
-      case 'in_progress':
-        return {
-          'text': 'لە جێبەجێکردن',
-          'color': const Color(0xFF3B82F6),
-          'bgColor': const Color(0xFFEFF6FF),
-          'icon': Iconsax.refresh_2,
-        };
-      case 'completed':
-      case 'delivered':
-        return {
-          'text': 'تەواوبوو',
-          'color': const Color(0xFF10B981),
-          'bgColor': const Color(0xFFECFDF5),
-          'icon': Iconsax.tick_circle,
-        };
-      case 'cancelled':
-        return {
-          'text': 'هەڵوەشاوەتەوە',
-          'color': const Color(0xFFEF4444),
-          'bgColor': const Color(0xFFFEE2E2),
-          'icon': Iconsax.close_circle,
-        };
-      default:
-        return {
-          'text': status ?? 'نادیار',
-          'color': const Color(0xFF64748B),
-          'bgColor': const Color(0xFFF1F5F9),
-          'icon': Iconsax.info_circle,
-        };
+    final s = status?.toLowerCase().trim() ?? '';
+    if (s == 'pending' || s == 'new' || s == 'نوێ' || s.contains('چاوەڕوان')) {
+      return {
+        'text': 'نوێ (چاوەڕوانکراو)',
+        'color': const Color(0xFFF59E0B),
+        'bgColor': const Color(0xFFFEF3C7),
+        'icon': Iconsax.clock,
+      };
+    } else if (s == 'processing' || s == 'in_progress' || s == 'accepted' || s.contains('جێبەجێ')) {
+      return {
+        'text': 'لە جێبەجێکردن',
+        'color': const Color(0xFF3B82F6),
+        'bgColor': const Color(0xFFEFF6FF),
+        'icon': Iconsax.refresh_2,
+      };
+    } else if (s == 'approved' || s.contains('پەسەند')) {
+      return {
+        'text': 'مۆڵەت پێدراو (پەسەندکراو)',
+        'color': const Color(0xFF10B981),
+        'bgColor': const Color(0xFFECFDF5),
+        'icon': Iconsax.tick_circle,
+      };
+    } else if (s == 'completed' || s == 'delivered' || s == 'done' || s.contains('تەواو')) {
+      return {
+        'text': 'تەواوبوو',
+        'color': const Color(0xFF10B981),
+        'bgColor': const Color(0xFFECFDF5),
+        'icon': Iconsax.tick_circle,
+      };
+    } else if (s == 'cancelled' || s == 'rejected' || s.contains('هەڵوەش') || s.contains('ڕەت')) {
+      return {
+        'text': 'هەڵوەشاوەتەوە',
+        'color': const Color(0xFFEF4444),
+        'bgColor': const Color(0xFFFEE2E2),
+        'icon': Iconsax.close_circle,
+      };
+    } else {
+      return {
+        'text': status?.isNotEmpty == true ? status! : 'نادیار',
+        'color': const Color(0xFF64748B),
+        'bgColor': const Color(0xFFF1F5F9),
+        'icon': Iconsax.info_circle,
+      };
     }
   }
 
@@ -252,23 +256,20 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
             );
           }
 
-          final pendingOrders = provider.orders
-              .where((o) => (o['status'] ?? '').toString().toLowerCase() == 'pending')
-              .toList();
+          final pendingOrders = provider.orders.where((o) {
+            final st = (o['status'] ?? '').toString().toLowerCase();
+            return st == 'pending' || st == 'new' || st.isEmpty;
+          }).toList();
 
-          final processingOrders = provider.orders
-              .where((o) {
-                final st = (o['status'] ?? '').toString().toLowerCase();
-                return st == 'processing' || st == 'accepted' || st == 'in_progress';
-              })
-              .toList();
+          final processingOrders = provider.orders.where((o) {
+            final st = (o['status'] ?? '').toString().toLowerCase();
+            return st == 'processing' || st == 'accepted' || st == 'in_progress' || st == 'approved';
+          }).toList();
 
-          final completedOrders = provider.orders
-              .where((o) {
-                final st = (o['status'] ?? '').toString().toLowerCase();
-                return st == 'completed' || st == 'delivered' || st == 'cancelled';
-              })
-              .toList();
+          final completedOrders = provider.orders.where((o) {
+            final st = (o['status'] ?? '').toString().toLowerCase();
+            return st == 'completed' || st == 'delivered' || st == 'cancelled' || st == 'done';
+          }).toList();
 
           return Column(
             children: [
@@ -676,20 +677,32 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                         ),
                       ],
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          'وردەکارییەکان',
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF3B82F6),
+                    Material(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        onTap: () => _showOrderDetailsModal(order),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Text(
+                                'وردەکارییەکان',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF3B82F6),
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFF3B82F6)),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF3B82F6)),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -702,441 +715,635 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
   }
 
   void _showOrderDetailsModal(dynamic order) {
-    final sender = _getSenderInfo(order);
-    final receiver = _getReceiverInfo(order);
-    final statusInfo = _getStatusBadge(order['status']?.toString());
-    final totalPrice = order['total_price'] ?? 0;
-    final extraFee = order['extra_fee'] ?? 0;
-    final paymentMethod = order['payment_method'] ?? 'کاش لەکاتی وەرگرتن';
-    final dateStr = _formatDate(order['created_at']?.toString());
+    try {
+      final sender = _getSenderInfo(order);
+      final receiver = _getReceiverInfo(order);
+      final statusInfo = _getStatusBadge(order['status']?.toString());
+      final num totalPrice = num.tryParse('${order['total_price']}') ?? 0;
+      final num extraFee = num.tryParse('${order['extra_fee']}') ?? 0;
+      final num subtotal = num.tryParse('${order['subtotal']}') ?? (totalPrice - extraFee);
+      final paymentMethod = (order['payment_method'] ?? 'کاش لەکاتی وەرگرتن').toString();
+      final dateStr = _formatDate(order['created_at']?.toString());
 
-    var locationDetails = order['location_details'];
-    if (locationDetails is String) {
-      try {
-        locationDetails = jsonDecode(locationDetails);
-      } catch (_) {}
-    }
-    if (locationDetails is! Map) {
-      locationDetails = {};
-    }
-    final address = locationDetails['address'] ?? locationDetails['address_text'] ?? 'ناونیشان دیاری نەکراوە';
-    final double? lat = locationDetails['lat'] != null
-        ? double.tryParse(locationDetails['lat'].toString())
-        : (locationDetails['latitude'] != null ? double.tryParse(locationDetails['latitude'].toString()) : null);
-    final double? lng = locationDetails['lng'] != null
-        ? double.tryParse(locationDetails['lng'].toString())
-        : (locationDetails['longitude'] != null ? double.tryParse(locationDetails['longitude'].toString()) : null);
+      var locationDetails = order['location_details'];
+      if (locationDetails is String) {
+        try {
+          locationDetails = jsonDecode(locationDetails);
+        } catch (_) {}
+      }
+      if (locationDetails is! Map) {
+        locationDetails = {};
+      }
 
-    var items = order['items'];
-    if (items is String) {
-      try {
-        items = jsonDecode(items);
-      } catch (_) {}
-    }
-    if (items is! List) {
-      items = [];
-    }
+      var patientDetails = order['patient_details'];
+      if (patientDetails is String) {
+        try {
+          patientDetails = jsonDecode(patientDetails);
+        } catch (_) {}
+      }
+      if (patientDetails is! Map) {
+        patientDetails = {};
+      }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.85,
-          decoration: BoxDecoration(
-            color: AppColors.getSurface(context),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            children: [
-              // Header indicator
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.getBorder(context),
-                  borderRadius: BorderRadius.circular(2),
+      final address = (locationDetails['address'] ??
+              locationDetails['address_text'] ??
+              patientDetails['location'] ??
+              patientDetails['address'] ??
+              order['address'] ??
+              'ناونیشان دیاری نەکراوە')
+          .toString();
+
+      final double? lat = locationDetails['lat'] != null
+          ? double.tryParse(locationDetails['lat'].toString())
+          : (locationDetails['latitude'] != null ? double.tryParse(locationDetails['latitude'].toString()) : null);
+      final double? lng = locationDetails['lng'] != null
+          ? double.tryParse(locationDetails['lng'].toString())
+          : (locationDetails['longitude'] != null ? double.tryParse(locationDetails['longitude'].toString()) : null);
+
+      var items = order['items'];
+      if (items is String) {
+        try {
+          items = jsonDecode(items);
+        } catch (_) {}
+      }
+      if (items is! List) {
+        items = [];
+      }
+
+      final prescriptionImage = patientDetails['prescription_image'] ??
+          patientDetails['prescription_url'] ??
+          order['prescription_image'] ??
+          order['prescription_url'];
+
+      final orderId = order['id'];
+      final rawStatus = (order['status'] ?? '').toString().toLowerCase();
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.88,
+            decoration: BoxDecoration(
+              color: AppColors.getSurface(context),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              children: [
+                // Header indicator
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.getBorder(context),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
 
-              // Title bar
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Iconsax.receipt_2, color: Color(0xFF3B82F6), size: 22),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'وردەکاری داواکاری #${order['id']}',
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.getTextTitle(context),
-                              ),
+                // Title bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            if (dateStr.isNotEmpty)
+                            child: const Icon(Iconsax.receipt_2, color: Color(0xFF3B82F6), size: 22),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Text(
-                                dateStr,
+                                'وردەکاری داواکاری #$orderId',
                                 style: TextStyle(
                                   fontFamily: 'Rabar',
-                                  fontSize: 12,
-                                  color: AppColors.getTextSubtitle(context),
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.getTextTitle(context),
                                 ),
                               ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      icon: const Icon(Icons.close_rounded),
-                      color: AppColors.getTextSubtitle(context),
-                    ),
-                  ],
-                ),
-              ),
-
-              const Divider(height: 1, thickness: 1),
-
-              // Scrollable content
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    // Status row
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: statusInfo['bgColor'] as Color,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(statusInfo['icon'] as IconData, color: statusInfo['color'] as Color, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'دۆخی داواکاری: ${statusInfo['text']}',
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: statusInfo['color'] as Color,
-                              ),
-                            ),
+                              if (dateStr.isNotEmpty)
+                                Text(
+                                  dateStr,
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 12,
+                                    color: AppColors.getTextSubtitle(context),
+                                  ),
+                                ),
+                            ],
                           ),
                         ],
                       ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // 1. Sender Box
-                    _buildSectionHeader('زانیاری نێرەر (نەخۆش)', Iconsax.user),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.getBackground(context),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.getBorder(context)),
+                      IconButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        icon: const Icon(Icons.close_rounded),
+                        color: AppColors.getTextSubtitle(context),
                       ),
-                      child: Column(
-                        children: [
-                          _buildInfoRow('ناوی تەواو', sender['name'] ?? 'نەخۆش'),
-                          const Divider(height: 16),
-                          _buildInfoRow('ژمارەی مۆبایل', sender['phone'] ?? 'دیاری نەکراوە'),
-                          if (sender['age']?.isNotEmpty == true) ...[
-                            const Divider(height: 16),
-                            _buildInfoRow('تەمەن', '${sender['age']} ساڵ'),
+                    ],
+                  ),
+                ),
+
+                const Divider(height: 1, thickness: 1),
+
+                // Scrollable content
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      // Status row
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: (statusInfo['bgColor'] as Color?) ?? const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              (statusInfo['icon'] as IconData?) ?? Iconsax.info_circle,
+                              color: (statusInfo['color'] as Color?) ?? const Color(0xFF3B82F6),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'دۆخی داواکاری: ${statusInfo['text'] ?? ''}',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: (statusInfo['color'] as Color?) ?? const Color(0xFF3B82F6),
+                                ),
+                              ),
+                            ),
                           ],
-                          if (sender['gender']?.isNotEmpty == true) ...[
-                            const Divider(height: 16),
-                            _buildInfoRow('ڕەگەز', sender['gender'] == 'male' ? 'نێر' : 'مێ'),
-                          ],
-                          if (sender['notes']?.isNotEmpty == true) ...[
-                            const Divider(height: 16),
-                            _buildInfoRow('تێبینی نەخۆش', sender['notes']!),
-                          ],
-                        ],
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    // 2. Receiver Box
-                    _buildSectionHeader('زانیاری وەرگر (${receiver['type']})', receiver['icon'] as IconData),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.getBackground(context),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.getBorder(context)),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildInfoRow('جۆری خزمەتگوزاری', receiver['type'] ?? ''),
-                          const Divider(height: 16),
-                          _buildInfoRow('ناوی دابینکەر', receiver['name'] ?? ''),
-                          if (receiver['phone']?.toString().isNotEmpty == true) ...[
-                            const Divider(height: 16),
-                            _buildInfoRow('ژمارەی پەیوەندی', receiver['phone'].toString()),
-                          ],
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // 3. Items List
-                    _buildSectionHeader('بڕگەکان / خزمەتگوزارییە داواکراوەکان', Iconsax.box),
-                    const SizedBox(height: 10),
-                    if (items.isEmpty)
+                      // 1. Sender Box (Patient)
+                      _buildSectionHeader('زانیاری نێرەر (نەخۆش)', Iconsax.user),
+                      const SizedBox(height: 10),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: AppColors.getBackground(context),
                           borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.getBorder(context)),
                         ),
-                        child: const Text('هیچ بڕگەیەک تۆمار نەکراوە', style: TextStyle(fontFamily: 'Rabar')),
-                      )
-                    else
+                        child: Column(
+                          children: [
+                            _buildInfoRow('ناوی تەواو', sender['name'] ?? 'نەخۆش'),
+                            const Divider(height: 16),
+                            _buildContactRow('ژمارەی مۆبایل', sender['phone'] ?? 'دیاری نەکراوە'),
+                            if (sender['age']?.isNotEmpty == true) ...[
+                              const Divider(height: 16),
+                              _buildInfoRow('تەمەن', '${sender['age']} ساڵ'),
+                            ],
+                            if (sender['gender']?.isNotEmpty == true) ...[
+                              const Divider(height: 16),
+                              _buildInfoRow('ڕەگەز', sender['gender'] == 'male' ? 'نێر' : 'مێ'),
+                            ],
+                            if (sender['notes']?.isNotEmpty == true) ...[
+                              const Divider(height: 16),
+                              _buildInfoRow('تێبینی نەخۆش', sender['notes']!),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // 2. Receiver Box (Provider)
+                      _buildSectionHeader('زانیاری وەرگر (${receiver['type'] ?? ''})', (receiver['icon'] as IconData?) ?? Iconsax.hospital),
+                      const SizedBox(height: 10),
                       Container(
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: AppColors.getBackground(context),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: AppColors.getBorder(context)),
                         ),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: items.length,
-                          separatorBuilder: (_, _) => const Divider(height: 1),
-                          itemBuilder: (context, idx) {
-                            final itm = items[idx];
-                            final itmName = itm['item_name'] ?? itm['name'] ?? 'بڕگە';
-                            final itmPrice = itm['price'] ?? 0;
-                            final itmQty = itm['quantity'] ?? 1;
-
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '${idx + 1}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF3B82F6),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          itmName,
-                                          style: TextStyle(
-                                            fontFamily: 'Rabar',
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.getTextTitle(context),
-                                          ),
-                                        ),
-                                        if (itmQty > 1)
-                                          Text(
-                                            'ژمارە: $itmQty',
-                                            style: TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 12,
-                                              color: AppColors.getTextSubtitle(context),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                  Text(
-                                    Currency.format(num.tryParse('$itmPrice') ?? 0),
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF10B981),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                        child: Column(
+                          children: [
+                            _buildInfoRow('جۆری خزمەتگوزاری', receiver['type']?.toString() ?? ''),
+                            const Divider(height: 16),
+                            _buildInfoRow('ناوی دابینکەر', receiver['name']?.toString() ?? ''),
+                            if (receiver['phone']?.toString().isNotEmpty == true) ...[
+                              const Divider(height: 16),
+                              _buildContactRow('ژمارەی پەیوەندی', receiver['phone'].toString()),
+                            ],
+                          ],
                         ),
                       ),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    // 4. Location & Address
-                    _buildSectionHeader('ناونیشان و شوێن', Iconsax.location),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.getBackground(context),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.getBorder(context)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                      // 3. Items List
+                      _buildSectionHeader('بڕگەکان / خزمەتگوزارییە داواکراوەکان', Iconsax.box),
+                      const SizedBox(height: 10),
+                      if (items.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.getBackground(context),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.getBorder(context)),
+                          ),
+                          child: const Text('هیچ بڕگەیەک تۆمار نەکراوە', style: TextStyle(fontFamily: 'Rabar')),
+                        )
+                      else
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.getBackground(context),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.getBorder(context)),
+                          ),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: items.length,
+                            separatorBuilder: (_, _) => const Divider(height: 1),
+                            itemBuilder: (context, idx) {
+                              final itm = items[idx];
+                              final itmMap = itm is Map ? itm : <String, dynamic>{};
+                              final itmName = itmMap['item_name'] ?? itmMap['name'] ?? 'بڕگە';
+                              final itmPrice = num.tryParse('${itmMap['price']}') ?? 0;
+                              final itmQty = num.tryParse('${itmMap['quantity']}') ?? 1;
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '${idx + 1}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF3B82F6),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            itmName.toString(),
+                                            style: TextStyle(
+                                              fontFamily: 'Rabar',
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.getTextTitle(context),
+                                            ),
+                                          ),
+                                          if (itmQty > 1)
+                                            Text(
+                                              'ژمارە: $itmQty',
+                                              style: TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 12,
+                                                color: AppColors.getTextSubtitle(context),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      Currency.format(itmPrice),
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF10B981),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+
+                      if (prescriptionImage != null && prescriptionImage.toString().isNotEmpty) ...[
+                        const SizedBox(height: 20),
+                        _buildSectionHeader('وێنەی ڕەچەتەی پزیشکی', Iconsax.document_upload),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.getBackground(context),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.getBorder(context)),
+                          ),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Iconsax.location, size: 18, color: Color(0xFF3B82F6)),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  address,
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 13.5,
-                                    color: AppColors.getTextTitle(context),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  prescriptionImage.toString().startsWith('http')
+                                      ? prescriptionImage.toString()
+                                      : '${ApiClient.baseUrl}/${prescriptionImage.toString().replaceAll(RegExp(r'^/+'), '')}',
+                                  height: 200,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Container(
+                                    height: 100,
+                                    alignment: Alignment.center,
+                                    child: const Text('نەتوانرا وێنەی ڕەچەتە پیشان بدرێت', style: TextStyle(fontFamily: 'Rabar')),
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          if (lat != null && lng != null) ...[
-                            const SizedBox(height: 14),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: SizedBox(
-                                height: 130,
-                                width: double.infinity,
-                                child: IgnorePointer(
-                                  child: GoogleMap(
-                                    initialCameraPosition: CameraPosition(
-                                      target: LatLng(lat, lng),
-                                      zoom: 14.5,
-                                    ),
-                                    markers: {
-                                      Marker(
-                                        markerId: const MarkerId('patient_loc'),
-                                        position: LatLng(lat, lng),
-                                      ),
-                                    },
-                                    myLocationButtonEnabled: false,
-                                    zoomControlsEnabled: false,
-                                    mapToolbarEnabled: false,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            InkWell(
-                              onTap: () async {
-                                final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url);
-                                }
-                              },
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(Iconsax.map_1, size: 16, color: Color(0xFF3B82F6)),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'کردنەوە لە گۆگڵ ماپ',
+                        ),
+                      ],
+
+                      const SizedBox(height: 20),
+
+                      // 4. Location & Address
+                      _buildSectionHeader('ناونیشان و شوێن', Iconsax.location),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.getBackground(context),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.getBorder(context)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Iconsax.location, size: 20, color: Color(0xFF3B82F6)),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    address,
                                     style: TextStyle(
                                       fontFamily: 'Rabar',
-                                      fontSize: 13,
-                                      color: Color(0xFF3B82F6),
-                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.getTextTitle(context),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // 5. Payment Summary
-                    _buildSectionHeader('کورتەی پارەدان', Iconsax.wallet_3),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.getBackground(context),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.getBorder(context)),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildInfoRow('شێوازی پارەدان', paymentMethod.toString()),
-                          if (extraFee > 0) ...[
-                            const Divider(height: 16),
-                            _buildInfoRow('کرێی گەیاندن / خزمەتگوزاری', Currency.format(num.tryParse('$extraFee') ?? 0)),
-                          ],
-                          const Divider(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'کۆی گشتی',
-                                style: TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
                                 ),
-                              ),
-                              Text(
-                                Currency.format(num.tryParse('$totalPrice') ?? 0),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF10B981),
+                              ],
+                            ),
+                            if (lat != null && lng != null) ...[
+                              const SizedBox(height: 14),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.2)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF3B82F6),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(Iconsax.map_1, color: Colors.white, size: 20),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'شوێنی دیاریکراو لەسەر نەخشە',
+                                            style: TextStyle(
+                                              fontFamily: 'Rabar',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 11.5,
+                                              color: const Color(0xFF64748B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    ElevatedButton.icon(
+                                      onPressed: () => _launchUrlSafe('https://www.google.com/maps/search/?api=1&query=$lat,$lng'),
+                                      icon: const Icon(Icons.open_in_new, size: 14),
+                                      label: const Text(
+                                        'نەخشە',
+                                        style: TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF3B82F6),
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 30),
-                  ],
+
+                      const SizedBox(height: 20),
+
+                      // 5. Payment Summary
+                      _buildSectionHeader('کورتەی پارەدان', Iconsax.wallet_3),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.getBackground(context),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.getBorder(context)),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildInfoRow('شێوازی پارەدان', paymentMethod),
+                            if (subtotal > 0 && subtotal != totalPrice) ...[
+                              const Divider(height: 16),
+                              _buildInfoRow('نرخی سەرەتایی', Currency.format(subtotal)),
+                            ],
+                            if (extraFee > 0) ...[
+                              const Divider(height: 16),
+                              _buildInfoRow('کرێی گەیاندن / خزمەتگوزاری', Currency.format(extraFee)),
+                            ],
+                            const Divider(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'کۆی گشتی',
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                                Text(
+                                  Currency.format(totalPrice),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF10B981),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // 6. Action Controls for Admin
+                      if (orderId is int) ...[
+                        Row(
+                          children: [
+                            if (rawStatus == 'pending') ...[
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    Navigator.pop(ctx);
+                                    final ok = await context.read<AdminOrderProvider>().updateStatus(orderId, 'processing');
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            ok ? 'داواکاری پەسەندکرا و گوازرایەوە بۆ جێبەجێکردن' : 'نەتوانرا دۆخ نوێ بکرێتەوە',
+                                            style: const TextStyle(fontFamily: 'Rabar'),
+                                          ),
+                                          backgroundColor: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
+                                  label: const Text('پەسەندکردن', style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF3B82F6),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
+                            if (rawStatus == 'processing' || rawStatus == 'accepted' || rawStatus == 'in_progress') ...[
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    Navigator.pop(ctx);
+                                    final ok = await context.read<AdminOrderProvider>().updateStatus(orderId, 'completed');
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            ok ? 'داواکاری بە سەرکەوتوویی تەواو کرا' : 'نەتوانرا دۆخ نوێ بکرێتەوە',
+                                            style: const TextStyle(fontFamily: 'Rabar'),
+                                          ),
+                                          backgroundColor: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: const Icon(Icons.done_all_rounded, size: 18),
+                                  label: const Text('تەواوکردن', style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF10B981),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
+                            if (rawStatus != 'cancelled' && rawStatus != 'completed')
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () async {
+                                    Navigator.pop(ctx);
+                                    final ok = await context.read<AdminOrderProvider>().updateStatus(orderId, 'cancelled');
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            ok ? 'داواکاری هەڵوەشێندرایەوە' : 'نەتوانرا دۆخ نوێ بکرێتەوە',
+                                            style: const TextStyle(fontFamily: 'Rabar'),
+                                          ),
+                                          backgroundColor: ok ? const Color(0xFFEF4444) : const Color(0xFF64748B),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: const Icon(Icons.cancel_outlined, size: 18),
+                                  label: const Text('ڕەتکردنەوە', style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFFEF4444),
+                                    side: const BorderSide(color: Color(0xFFEF4444)),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 30),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          );
+        },
+      );
+    } catch (e, stack) {
+      debugPrint('Error showing order details modal: $e\n$stack');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('کێشەیەک ڕوویدا لە پیشاندانی وردەکارییەکان: $e', style: const TextStyle(fontFamily: 'Rabar')),
+            backgroundColor: const Color(0xFFEF4444),
           ),
         );
-      },
-    );
+      }
+    }
   }
 
   Widget _buildSectionHeader(String title, IconData icon) {
@@ -1180,5 +1387,59 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
         ),
       ],
     );
+  }
+
+  Widget _buildContactRow(String label, String phone) {
+    final hasPhone = phone.isNotEmpty && phone != 'دیاری نەکراوە' && phone != 'بێ ژمارە';
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 13,
+            color: AppColors.getTextSubtitle(context),
+          ),
+        ),
+        Row(
+          children: [
+            Text(
+              phone,
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 13.5,
+                fontWeight: FontWeight.bold,
+                color: AppColors.getTextTitle(context),
+              ),
+            ),
+            if (hasPhone) ...[
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () => _launchUrlSafe('tel:$phone'),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.phone_in_talk_rounded, size: 15, color: Color(0xFF10B981)),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _launchUrlSafe(String urlStr) async {
+    try {
+      final uri = Uri.parse(urlStr);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
   }
 }
