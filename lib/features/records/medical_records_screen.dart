@@ -89,7 +89,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               )
             : null,
         title: Text(
-          'تۆماری پزیشکی',
+          'medical_records'.tr(),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 18,
