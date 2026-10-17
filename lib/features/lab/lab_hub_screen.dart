@@ -29,6 +29,21 @@ class _LabHubScreenState extends State<LabHubScreen> {
   List<Map<String, dynamic>> _packagesList = [];
   List<Map<String, dynamic>> _staffList = [];
 
+  // Helper method to retrieve localized string for API items
+  String _getLocalized(Map<String, dynamic> item, String key) {
+    final lang = context.locale.languageCode;
+    if (lang == 'ar' && item['${key}_ar'] != null && item['${key}_ar'].toString().trim().isNotEmpty) {
+      return item['${key}_ar'].toString();
+    }
+    if (lang == 'en' && item['${key}_en'] != null && item['${key}_en'].toString().trim().isNotEmpty) {
+      return item['${key}_en'].toString();
+    }
+    if (lang == 'ckb' && item['${key}_ku'] != null && item['${key}_ku'].toString().trim().isNotEmpty) {
+      return item['${key}_ku'].toString();
+    }
+    return (item[key] ?? item['${key}_ku'] ?? item['${key}_en'] ?? '').toString();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -108,6 +123,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
             'id': p['id'].toString(),
             'title': p['name'] ?? '',
             'title_en': p['name_en'] ?? p['name'] ?? '',
+            'title_ar': p['name_ar'] ?? p['name'] ?? '',
             'tests': testsStr,
             'tests_count': p['tests_count'] ?? (p['tests'] is List ? (p['tests'] as List).length : 0),
             'original_price': originalPrice,
@@ -147,6 +163,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                   'id': '${labId}_pkg_${pMap['id']}',
                   'title': pMap['name'] ?? '',
                   'title_en': pMap['name_en'] ?? pMap['name'] ?? '',
+                  'title_ar': pMap['name_ar'] ?? pMap['name'] ?? '',
                   'tests':
                       pMap['desc'] ??
                       (pMap['tests'] is List
@@ -180,7 +197,10 @@ class _LabHubScreenState extends State<LabHubScreen> {
           final s = Map<String, dynamic>.from(e);
           return {
             'id': s['id'].toString(),
+            'nurse_id': s['nurse_id']?.toString() ?? s['id'].toString(),
             'name': s['name'] ?? '',
+            'name_en': s['name_en'] ?? s['name'] ?? '',
+            'name_ar': s['name_ar'] ?? s['name'] ?? '',
             'title': s['title'] ?? s['specialty'] ?? '',
             'lab': s['lab_name'] ?? '',
             'lab_id': s['lab_id'] ?? s['lab_user_id'] ?? s['id'],
@@ -213,6 +233,9 @@ class _LabHubScreenState extends State<LabHubScreen> {
     );
 
     final staffFee = (staff['visit_fee'] as num?)?.toDouble() ?? 0.0;
+    final staffName = _getLocalized(staff, 'name');
+    final staffTitle = _getLocalized(staff, 'title');
+
     cart.setServiceType(
       'lab',
       extraFee: staffFee,
@@ -220,14 +243,15 @@ class _LabHubScreenState extends State<LabHubScreen> {
     cart.addItem(
       CartItem(
         id: 'staff_${staff['id']}',
-        name: 'وەرگرتنی نموونە لە ماڵەوە (${staff['name']})',
+        name: '${'lab_hub_home_sample'.tr()} ($staffName)',
         price: staffFee,
         quantity: 1,
         extraData: {
           'type': 'staff',
           'staff_id': staff['id'],
-          'staff_name': staff['name'],
-          'staff_title': staff['title'],
+          'nurse_id': staff['nurse_id'],
+          'staff_name': staffName,
+          'staff_title': staffTitle,
           'lab_id': staff['lab_id'],
           'lab_name': staff['lab'],
         },
@@ -250,7 +274,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '${staff['name']} وەک پسپۆڕی نموونەوەرگرتن هەڵبژێردرا',
+                '$staffName ${'lab_hub_staff_selected_msg'.tr()}',
                 style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
               ),
             ),
@@ -263,10 +287,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
   void _addTestToCart(Map<String, dynamic> test) {
     final cart = Provider.of<CartProvider>(context, listen: false);
     cart.setServiceType('lab');
+    final testName = _getLocalized(test, 'name');
     cart.addItem(
       CartItem(
         id: test['id'].toString(),
-        name: test['name_ku'] ?? test['name'],
+        name: testName,
         price: (test['price'] as num).toDouble(),
         quantity: 1,
         extraData: {
@@ -293,7 +318,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '${test['name_ku'] ?? test['name']} زیادکرا بۆ سەبەتە',
+                '$testName ${'nursing_added_to_cart'.tr()}',
                 style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
               ),
             ),
@@ -306,10 +331,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
   void _addPackageToCart(Map<String, dynamic> pkg) {
     final cart = Provider.of<CartProvider>(context, listen: false);
     cart.setServiceType('lab');
+    final pkgTitle = _getLocalized(pkg, 'title');
     cart.addItem(
       CartItem(
         id: pkg['id'].toString(),
-        name: pkg['title'] ?? '',
+        name: pkgTitle,
         price: (pkg['discount_price'] as num).toDouble(),
         quantity: 1,
         extraData: {
@@ -336,7 +362,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '${pkg['title']} زیادکرا بۆ سەبەتە',
+                '$pkgTitle ${'nursing_added_to_cart'.tr()}',
                 style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
               ),
             ),
@@ -437,8 +463,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                         fontSize: 13.5,
                       ),
                       decoration: InputDecoration(
-                        hintText:
-                            'گەڕان بەپێی ناو یان شار (هەولێر، سلێمانی...)...',
+                        hintText: 'lab_hub_search_staff'.tr(),
                         hintStyle: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13,
@@ -466,10 +491,10 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             ),
                           )
                         : filteredStaff.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'هیچ کارمەند یان پسپۆڕێک نەدۆزرایەوە',
-                              style: TextStyle(
+                              'lab_hub_no_staff'.tr(),
+                              style: const TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 14,
                                 color: Color(0xFF94A3B8),
@@ -499,6 +524,9 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                       staff['image'].toString(),
                                     )
                                   : null;
+                              final localizedStaffName = _getLocalized(staff, 'name');
+                              final localizedStaffTitle = _getLocalized(staff, 'title');
+                              final localizedStaffCity = _getLocalized(staff, 'city');
 
                               return Container(
                                 padding: const EdgeInsets.all(14),
@@ -564,7 +592,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                             children: [
                                               Expanded(
                                                 child: Text(
-                                                  staff['name'],
+                                                  localizedStaffName,
                                                   style: TextStyle(
                                                     fontFamily: 'Rabar',
                                                     fontSize: 14.5,
@@ -580,10 +608,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                                       TextOverflow.ellipsis,
                                                 ),
                                               ),
-                                              if (staff['city'] != null &&
-                                                  staff['city']
-                                                      .toString()
-                                                      .isNotEmpty)
+                                              if (localizedStaffCity.isNotEmpty)
                                                 Container(
                                                   padding:
                                                       const EdgeInsets.symmetric(
@@ -600,7 +625,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                                         ),
                                                   ),
                                                   child: Text(
-                                                    staff['city'].toString(),
+                                                    localizedStaffCity,
                                                     style: const TextStyle(
                                                       fontFamily: 'Rabar',
                                                       fontSize: 10.5,
@@ -614,8 +639,9 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            staff['title'] ??
-                                                'پسپۆڕی نموونەوەرگرتن',
+                                            localizedStaffTitle.isNotEmpty
+                                                ? localizedStaffTitle
+                                                : 'lab_hub_default_staff_title'.tr(),
                                             style: const TextStyle(
                                               fontFamily: 'Rabar',
                                               fontSize: 11.5,
@@ -643,7 +669,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                               ),
                                               const SizedBox(width: 8),
                                               Text(
-                                                'کرێ: ${Currency.format(staff['visit_fee'])}',
+                                                '${'lab_hub_fee'.tr()} ${Currency.format(staff['visit_fee'])}',
                                                 style: const TextStyle(
                                                   fontFamily: 'Rabar',
                                                   fontSize: 11,
@@ -679,8 +705,8 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                       },
                                       child: Text(
                                         isSelected
-                                            ? 'دیاریکراوە ✓'
-                                            : 'دیاریکردن',
+                                            ? '${'lab_hub_selected'.tr()} ✓'
+                                            : 'lab_hub_select'.tr(),
                                         style: const TextStyle(
                                           fontFamily: 'Rabar',
                                           fontSize: 11.5,
@@ -794,7 +820,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                         fontSize: 13.5,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'گەڕان بۆ پشکنین یان تاقیگە...',
+                        hintText: 'lab_hub_search_tests'.tr(),
                         hintStyle: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13,
@@ -822,10 +848,10 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             ),
                           )
                         : filteredTests.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'هیچ پشکنینێک نەدۆزرایەوە',
-                              style: TextStyle(
+                              'lab_hub_no_tests'.tr(),
+                              style: const TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 14,
                                 color: Color(0xFF94A3B8),
@@ -838,6 +864,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                 const SizedBox(height: 10),
                             itemBuilder: (context, idx) {
                               final t = filteredTests[idx];
+                              final localizedTestName = _getLocalized(t, 'name');
 
                               return Container(
                                 padding: const EdgeInsets.all(14),
@@ -860,7 +887,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            t['name_ku'] ?? t['name'],
+                                            localizedTestName,
                                             style: TextStyle(
                                               fontFamily: 'Rabar',
                                               fontSize: 13.5,
@@ -872,7 +899,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            'تاقیگە: ${t['lab']}',
+                                            '${'lab_hub_lab_label'.tr()} ${t['lab']}',
                                             style: const TextStyle(
                                               fontFamily: 'Rabar',
                                               fontSize: 11,
@@ -1028,7 +1055,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                         fontSize: 13.5,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'گەڕان بۆ پاکێج یان تاقیگە...',
+                        hintText: 'lab_hub_search_packages'.tr(),
                         hintStyle: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13,
@@ -1056,10 +1083,10 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             ),
                           )
                         : filteredPackages.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'هیچ پاکێجێک نەدۆزرایەوە',
-                              style: TextStyle(
+                              'lab_hub_no_packages'.tr(),
+                              style: const TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 14,
                                 color: Color(0xFF94A3B8),
@@ -1072,6 +1099,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                 const SizedBox(height: 14),
                             itemBuilder: (context, idx) {
                               final pkg = filteredPackages[idx];
+                              final localizedTitle = _getLocalized(pkg, 'title');
 
                               return Container(
                                 padding: const EdgeInsets.all(16),
@@ -1123,7 +1151,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                pkg['title'],
+                                                localizedTitle,
                                                 style: TextStyle(
                                                   fontFamily: 'Rabar',
                                                   fontSize: 15,
@@ -1135,7 +1163,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                               ),
                                               if (pkg['lab_name'] != null)
                                                 Text(
-                                                  'تاقیگە: ${pkg['lab_name']}',
+                                                  '${'lab_hub_lab_label'.tr()} ${pkg['lab_name']}',
                                                   style: const TextStyle(
                                                     fontFamily: 'Rabar',
                                                     fontSize: 11,
@@ -1160,7 +1188,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                               ),
                                             ),
                                             child: Text(
-                                              'داشکاندن ${pkg['discount_percent']}',
+                                              '${'lab_hub_discount'.tr()} ${pkg['discount_percent']}',
                                               style: const TextStyle(
                                                 fontFamily: 'Rabar',
                                                 fontSize: 10.5,
@@ -1173,7 +1201,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
-                                      'پشکنینەکان: ${pkg['tests']}',
+                                      '${'lab_hub_tests_label'.tr()} ${pkg['tests']}',
                                       style: const TextStyle(
                                         fontFamily: 'Rabar',
                                         fontSize: 12,
@@ -1234,9 +1262,9 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                             _addPackageToCart(pkg);
                                             Navigator.pop(ctx);
                                           },
-                                          child: const Text(
-                                            'داواکردنی پاکێج',
-                                            style: TextStyle(
+                                          child: Text(
+                                            'lab_hub_order_package'.tr(),
+                                            style: const TextStyle(
                                               fontFamily: 'Rabar',
                                               fontSize: 13,
                                               color: Colors.white,
@@ -1319,9 +1347,9 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                 : const Color(0xFF0F172A),
                           ),
                         ),
-                        const Text(
-                          'پشکنین، ڕەچەتە، ستاف و شیکاریی AI',
-                          style: TextStyle(
+                        Text(
+                          'lab_hub_subtitle'.tr(),
+                          style: const TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 12,
                             color: Color(0xFF64748B),
@@ -1359,8 +1387,8 @@ class _LabHubScreenState extends State<LabHubScreen> {
                           const SizedBox(width: 6),
                           Text(
                             _labsList.isNotEmpty
-                                ? 'تاقیگەکان (${_labsList.length})'
-                                : 'تاقیگەکان',
+                                ? '${'lab_hub_labs'.tr()} (${_labsList.length})'
+                                : 'lab_hub_labs'.tr(),
                             style: const TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 12,
@@ -1407,7 +1435,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       icon: Iconsax.document_upload,
                       color: const Color(0xFF2563EB),
                       badgeText: _labsList.isNotEmpty
-                          ? '${_labsList.length} تاقیگە'
+                          ? '${_labsList.length} ${'lab_hub_labs_count'.tr()}'
                           : null,
                       onTap: () {
                         Navigator.push(
@@ -1430,9 +1458,9 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       color: const Color(0xFF8B5CF6),
                       badgeText: selectedStaffItem != null
                           ? (selectedStaffItem.extraData?['staff_name'] ??
-                                'دیاریکراوە')
+                                'lab_hub_selected'.tr())
                           : (_staffList.isNotEmpty
-                                ? '${_staffList.length} پسپۆڕ'
+                                ? '${_staffList.length} ${'lab_hub_specialists_count'.tr()}'
                                 : null),
                       onTap: _showStaffSelectionModal,
                     ),
@@ -1446,7 +1474,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       subtitle: 'lab_item_4_desc'.tr(),
                       icon: Iconsax.tag,
                       color: const Color(0xFFF59E0B),
-                      badgeText: 'بەراوردکاری',
+                      badgeText: 'lab_hub_compare_badge'.tr(),
                       onTap: _showTestPricesModal,
                     ),
 
@@ -1460,7 +1488,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       icon: Iconsax.box_1,
                       color: const Color(0xFFEC4899),
                       badgeText: _packagesList.isNotEmpty
-                          ? '${_packagesList.length} پاکێج'
+                          ? '${_packagesList.length} ${'lab_hub_packages_count'.tr()}'
                           : null,
                       onTap: _showPackagesModal,
                     ),
@@ -1493,7 +1521,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       subtitle: 'lab_item_7_desc'.tr(),
                       icon: Icons.auto_awesome_rounded,
                       color: const Color(0xFF7C3AED),
-                      badgeText: 'AI زیرەک',
+                      badgeText: 'lab_hub_ai_badge'.tr(),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -1516,16 +1544,16 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       icon: Iconsax.send_2,
                       color: const Color(0xFF10B981),
                       badgeText: cart.items.isNotEmpty
-                          ? '${cart.items.length} بەردەست'
+                          ? '${cart.items.length} ${'lab_hub_items_count'.tr()}'
                           : null,
                       onTap: () {
                         if (cart.items.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: Color(0xFF0F172A),
+                            SnackBar(
+                              backgroundColor: const Color(0xFF0F172A),
                               content: Text(
-                                'تکایە سەرەتا پشکنین یان پاکێجێک هەڵبژێرە',
-                                style: TextStyle(fontFamily: 'Rabar'),
+                                'lab_hub_select_first'.tr(),
+                                style: const TextStyle(fontFamily: 'Rabar'),
                               ),
                             ),
                           );
@@ -1575,7 +1603,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${cart.items.length} خزمەتگوزاری دیاریکراو',
+                            '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
                             style: const TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 11.5,
@@ -1618,9 +1646,9 @@ class _LabHubScreenState extends State<LabHubScreen> {
                           size: 16,
                           color: Colors.white,
                         ),
-                        label: const Text(
-                          'تەواوکردنی داواکاری',
-                          style: TextStyle(
+                        label: Text(
+                          'lab_hub_complete_order'.tr(),
+                          style: const TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,

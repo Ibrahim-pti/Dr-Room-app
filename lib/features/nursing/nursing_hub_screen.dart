@@ -30,7 +30,6 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
   @override
   void initState() {
     super.initState();
-    _initFallbackData();
     _fetchDynamicData();
   }
 
@@ -47,118 +46,6 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
       return item['${key}_ku'].toString();
     }
     return (item[key] ?? item['${key}_ku'] ?? item['${key}_en'] ?? '').toString();
-  }
-
-  void _initFallbackData() {
-    // Initial fallback data if network has not responded yet
-    _nursingPriceList = [
-      {
-        'id': 'cat_inj_im',
-        'name': 'لێدانی دەرزی (ماسولکە یان دەمار)',
-        'name_en': 'Injection (IM / IV)',
-        'name_ar': 'حقن (عضلي / وريدي)',
-        'price': 10000.0,
-        'duration': '١٥ خولەک',
-        'duration_en': '15 min',
-        'duration_ar': '١٥ دقيقة',
-        'icon': Iconsax.health,
-      },
-      {
-        'id': 'cat_cannula',
-        'name': 'دانانی کانیۆلا و دەرزی دەمار',
-        'name_en': 'IV Cannula Insertion',
-        'name_ar': 'تركيب كانيولا وريدية',
-        'price': 15000.0,
-        'duration': '٢٠ خولەک',
-        'duration_en': '20 min',
-        'duration_ar': '٢٠ دقيقة',
-        'icon': Iconsax.activity,
-      },
-      {
-        'id': 'cat_serum',
-        'name': 'بەستنی موغەزی (سیرۆم)',
-        'name_en': 'IV Fluid Infusion (Serum)',
-        'name_ar': 'إعطاء مغذي ومحاليل وريدية',
-        'price': 20000.0,
-        'duration': '٤٥ خولەک',
-        'duration_en': '45 min',
-        'duration_ar': '٤٥ دقيقة',
-        'icon': Iconsax.drop,
-      },
-      {
-        'id': 'cat_wound',
-        'name': 'پاککردنەوە و پانسمانی برین',
-        'name_en': 'Wound Cleaning & Dressing',
-        'name_ar': 'تنظيف وتضميد الجروح',
-        'price': 25000.0,
-        'duration': '٣٠ خولەک',
-        'duration_en': '30 min',
-        'duration_ar': '٣٠ دقيقة',
-        'icon': Iconsax.shield_tick,
-      },
-      {
-        'id': 'cat_vitals',
-        'name': 'پێوانی پەستان، شەکرە و ئۆکسجین',
-        'name_en': 'Vital Signs Monitoring Check',
-        'name_ar': 'فحص الضغط والسكر والأكسجين',
-        'price': 10000.0,
-        'duration': '١٥ خولەک',
-        'duration_en': '15 min',
-        'duration_ar': '١٥ دقيقة',
-        'icon': Iconsax.heart,
-      },
-    ];
-
-    _carePackages = [
-      {
-        'id': 'pkg_post_op',
-        'title': 'پاکێجی چاودێری پاش نەشتەرگەری',
-        'title_en': 'Post-Operative Recovery Package',
-        'title_ar': 'باقة الرعاية ما بعد الجراحة',
-        'desc': 'چاودێری برین، لێدانی دەرمانی ئازارشکێن و دژەهەوکردن، پێوانی نیشانە سەرەکییەکان (٥ سەردان)',
-        'desc_en': 'Wound dressing, IV meds, pain management and vitals check (5 visits)',
-        'desc_ar': 'غيار الجروح، أدوية مسكنة، ومتابعة العلامات الحيوية (٥ زيارات)',
-        'visits': '٥ سەردانی ماڵەوە',
-        'visits_en': '5 Home Visits',
-        'visits_ar': '٥ زيارات منزلية',
-        'original_price': 125000.0,
-        'discount_price': 89000.0,
-        'discount_percent': '28%',
-        'color': const Color(0xFF0D9488),
-      },
-      {
-        'id': 'pkg_elderly',
-        'title': 'پاکێجی چاودێری بەساڵاچووان',
-        'title_en': 'Elderly Routine Home Care',
-        'title_ar': 'باقة رعاية كبار السن المنزلية',
-        'desc': 'پێوانی ڕۆژانەی پەستان و شەکرە، دانان و بەڕێوەبردنی دەرمان، چاودێری تەندروستی (٧ ڕۆژ)',
-        'desc_en': 'Daily vitals monitoring, medication schedule, and general home hygiene (7 days)',
-        'desc_ar': 'متابعة السكر والضغط يومياً وتنظيم الأدوية والرعاية (٧ أيام)',
-        'visits': '٧ سەردانی هەفتانە',
-        'visits_en': '7 Weekly Visits',
-        'visits_ar': '٧ زيارات أسبوعية',
-        'original_price': 175000.0,
-        'discount_price': 119000.0,
-        'discount_percent': '32%',
-        'color': const Color(0xFF2563EB),
-      },
-      {
-        'id': 'pkg_shift_12h',
-        'title': 'پاکێجی مانەوەی پەرستار (١٢ کاتژمێری)',
-        'title_en': '12-Hour Intensive Home Nursing Shift',
-        'title_ar': 'باقة شفت تمريض منزلي (١٢ ساعة)',
-        'desc': 'مانەوەی تەواوی پەرستاری پسپۆڕ بۆ ماوەی ١٢ کاتژمێر بۆ چاودێری وردی نەخۆشی تایبەت',
-        'desc_en': 'Full shift 12 hours dedicated certified nursing care at home',
-        'desc_ar': 'ممرض متخصص متواجد ١٢ ساعة متواصلة لرعاية الحالات الحرجة',
-        'visits': 'شەفتی ١٢ کاتژمێری',
-        'visits_en': '12-Hour Shift',
-        'visits_ar': 'شفت ١٢ ساعة',
-        'original_price': 90000.0,
-        'discount_price': 65000.0,
-        'discount_percent': '27%',
-        'color': const Color(0xFF8B5CF6),
-      },
-    ];
   }
 
   Future<void> _fetchDynamicData() async {
@@ -472,6 +359,9 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
       extraData: {
         'type': 'staff',
         'staff_id': staff['id'],
+        // Nurse model id — the backend resolves it to users.id so the order
+        // lands in this nurse's dashboard.
+        'nurse_id': staff['nurse_id'],
         'staff_name': staffName,
         'staff_title': staffTitle,
         'city': staffCity,
@@ -1472,8 +1362,10 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              Currency.format(pkg['original_price']),
+                                            if (pkg['original_price'] != null &&
+                                                (pkg['original_price'] as num) > (pkg['discount_price'] as num))
+                                              Text(
+                                                Currency.format(pkg['original_price']),
                                               style: const TextStyle(
                                                 fontFamily: 'Rabar',
                                                 fontSize: 12,
@@ -1655,7 +1547,9 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       subtitle: 'nursing_item_1_desc'.tr(),
                       icon: Iconsax.health,
                       color: const Color(0xFF0D9488),
-                      badgeText: '${_nursingPriceList.length} ${'nursing_services_count'.tr()}',
+                      badgeText: _nursingPriceList.isNotEmpty
+                          ? '${_nursingPriceList.length} ${'nursing_services_count'.tr()}'
+                          : null,
                       onTap: _showSelectServicesModal,
                     ),
 
@@ -1709,7 +1603,9 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       subtitle: 'nursing_item_5_desc'.tr(),
                       icon: Iconsax.shield_security,
                       color: const Color(0xFFEC4899),
-                      badgeText: '${_carePackages.length} ${'nursing_packages_count'.tr()}',
+                      badgeText: _carePackages.isNotEmpty
+                          ? '${_carePackages.length} ${'nursing_packages_count'.tr()}'
+                          : null,
                       onTap: _showCarePackagesModal,
                     ),
 

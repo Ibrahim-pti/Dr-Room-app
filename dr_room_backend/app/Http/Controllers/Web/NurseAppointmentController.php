@@ -15,14 +15,14 @@ class NurseAppointmentController extends Controller
         
         // Appointments assigned to this nurse
         $appointments = Order::where('assigned_nurse_id', $userId)
-            ->where('service_type', 'Nursing Services')
+            ->whereIn('service_type', ['Nursing Services', 'nursing'])
             ->with('patient')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
             
         // Pending requests without a nurse
         $unassignedRequests = Order::whereNull('assigned_nurse_id')
-            ->where('service_type', 'Nursing Services')
+            ->whereIn('service_type', ['Nursing Services', 'nursing'])
             ->where('status', 'pending')
             ->with('patient')
             ->orderBy('created_at', 'desc')

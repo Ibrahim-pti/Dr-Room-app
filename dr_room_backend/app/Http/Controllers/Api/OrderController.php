@@ -78,6 +78,15 @@ class OrderController extends Controller
                 }
             }
 
+            // The app sends the Nurse model ID (from /nurses or /labs/staff), but
+            // orders.assigned_nurse_id references users.id — resolve it here.
+            if ($assignedNurseId) {
+                $nurseRecord = \App\Models\Nurse::find($assignedNurseId);
+                if ($nurseRecord && $nurseRecord->user_id) {
+                    $assignedNurseId = $nurseRecord->user_id;
+                }
+            }
+
             $patientDetails = $request->patient_details ?? [];
             if ($prescriptionImage) {
                 $patientDetails['prescription_image'] = $prescriptionImage;
