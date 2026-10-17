@@ -128,7 +128,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   title: 'phone_call'.tr(),
                   color: const Color(0xFF3B82F6),
                   onTap: () async {
-                    final Uri url = Uri.parse('tel:+9647501234567');
+                    final Uri url = Uri.parse('tel:+9647512596050');
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url);
                     }
@@ -141,7 +141,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   title: 'send_email'.tr(),
                   color: const Color(0xFFF59E0B),
                   onTap: () async {
-                    final Uri url = Uri.parse('mailto:support@drroom.app?subject=Support');
+                    final Uri url = Uri.parse('mailto:drrroomapp@gmail.com?subject=Support');
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url);
                     }

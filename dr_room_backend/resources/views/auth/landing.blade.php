@@ -402,7 +402,7 @@
             <a href="#about">دەربارە</a>
             <a href="#features">تایبەتمەندییەکان</a>
         </div>
-        <p>پەیوەندیمان پێوە بکە بۆ پرسیارەکانت: 07501234567 | info@drroom.app</p>
+        <p>پەیوەندیمان پێوە بکە بۆ پرسیارەکانت: <a href="tel:+9647512596050" dir="ltr">0751 259 6050</a> | <a href="mailto:drrroomapp@gmail.com">drrroomapp@gmail.com</a></p>
         <p>&copy; 2026 DrRoom. هەموو مافێک پارێزراوە.</p>
     </footer>
 

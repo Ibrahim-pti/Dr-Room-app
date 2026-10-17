@@ -102,7 +102,7 @@
                     <p>
                         ئەگەر هەر پرسیار یان تێبینییەکت هەیە دەربارەی ئەم سیاسەتە، دەتوانیت لە ڕێگەی پەیوەندی ناو ئەپ یان ئیمەیڵی فەرمی تیمەکەمانەوە پەیوەندیمان پێوە بکەیت:
                         <br>
-                        <span class="font-bold text-teal-700" dir="ltr">support@drroom.app</span> | <span class="font-bold text-teal-700" dir="ltr">+964 750 000 0000</span>
+                        <a href="mailto:drrroomapp@gmail.com" class="font-bold text-teal-700 hover:underline" dir="ltr">drrroomapp@gmail.com</a> | <a href="tel:+9647512596050" class="font-bold text-teal-700 hover:underline" dir="ltr">+964 751 259 6050</a>
                     </p>
                 </section>
 
