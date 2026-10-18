@@ -540,7 +540,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 controller: _phoneController,
                                 keyboardType: TextInputType.phone,
                                 textDirection: TextDirection.ltr,
-                                textAlign: TextAlign.right,
+                                textAlign: TextAlign.start,
                                 onChanged: (_) {
                                   if (_phoneError != null) {
                                     setState(() => _phoneError = null);

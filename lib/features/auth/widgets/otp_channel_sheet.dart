@@ -83,6 +83,15 @@ Future<String?> showOtpChannelSheet(BuildContext context) {
 
               _OtpChannelCard(
                 isDark: isDark,
+                color: const Color(0xFF229ED9),
+                icon: Icons.send_rounded,
+                title: 'receive_via_telegram'.tr(),
+                subtitle: 'receive_via_telegram_desc'.tr(),
+                onTap: () => Navigator.pop(ctx, 'telegram'),
+              ),
+              const SizedBox(height: 12),
+              _OtpChannelCard(
+                isDark: isDark,
                 color: const Color(0xFF25D366),
                 icon: Icons.chat_bubble_rounded,
                 title: 'receive_via_whatsapp'.tr(),
