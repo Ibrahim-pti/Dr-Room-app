@@ -130,6 +130,9 @@ return [
     'screen_labs_f1' => 'Filter by nearest lab, top ratings, and specialized panels',
     'screen_labs_f2' => 'Medical lab tests at fair and standardized prices',
     'screen_labs_f3' => 'Certified mobile lab phlebotomists dispatched to your door',
+    'registered_labs' => 'Registered Laboratories',
+    'labs_count' => 'Labs',
+    'no_labs_yet' => 'Laboratories will appear here soon',
 
     'screen_nursing_tab' => 'Nursing Care',
     'screen_nursing_title' => 'Professional Home Nursing & Medical Care',

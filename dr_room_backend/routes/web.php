@@ -234,10 +234,20 @@ Route::get('/privacy-policy', function () {
 })->name('privacy.policy');
 
 Route::get('/{locale?}', function ($locale = 'ckb') {
-    if (!in_array($locale, ['en', 'ar', 'ckb'])) {
+    if (!in_array($locale, ['en', 'ar', 'ckb', 'kmr'])) {
         abort(404);
     }
     app()->setLocale($locale);
-    return view('welcome', ['locale' => $locale]);
+
+    $labs = \App\Models\User::where('role', 'lab')
+        ->where('status', 'approved')
+        ->with('lab')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('welcome', [
+        'locale' => $locale,
+        'labs' => $labs,
+    ]);
 });
 
