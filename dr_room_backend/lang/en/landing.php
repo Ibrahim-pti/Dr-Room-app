@@ -170,5 +170,12 @@ return [
     'contact_us' => 'Contact Us',
     'address' => 'Erbil, Kurdistan Region, Iraq',
     'rights_reserved' => 'All rights reserved by DrRoom',
+    'medical_disclaimer_title' => 'Medical & Legal Disclaimer:',
+    'medical_disclaimer' => 'DrRoom is a healthcare coordination platform delivering home and workplace medical services via licensed professionals. In life-threatening emergencies, please immediately contact national emergency services (122) or your nearest emergency hospital.',
+    'whatsapp_contact' => 'Chat on WhatsApp',
+    'app_coming_soon_title' => 'DrRoom App is Coming Soon',
+    'app_coming_soon_desc' => 'We are in the final launch stages on Google Play and the App Store. You can contact us directly via WhatsApp to request services.',
+    'notify_whatsapp' => 'Contact via WhatsApp (+964 751 259 6050)',
+    'close' => 'Close',
 ];
 
