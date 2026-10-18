@@ -33,7 +33,7 @@ Route::post('/translate', [\App\Http\Controllers\Api\TranslateController::class,
 // App Version & Force Update Config
 Route::get('/app-version', function () {
     return response()->json([
-        'latest_version' => '1.0.0',
+        'latest_version' => '1.0.2',
         'min_required_version' => '1.0.0',
         'force_update' => false,
         'update_title' => 'وەشانی نوێ بەردەستە',
