@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 
@@ -601,74 +602,138 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: () => _openFullImageView(context, fullFileUrl),
-                  child: Container(
+                if (fullFileUrl.toLowerCase().contains('.pdf'))
+                  Container(
                     width: double.infinity,
-                    constraints: const BoxConstraints(maxHeight: 260),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.25)),
                     ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      alignment: Alignment.center,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image.network(
-                          fullFileUrl,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(30),
-                                child: CircularProgressIndicator(),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(14),
                               ),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              padding: const EdgeInsets.all(24),
-                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                              child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFEF4444), size: 28),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(Iconsax.document_text, size: 36, color: Color(0xFF3B82F6)),
-                                  const SizedBox(height: 8),
                                   Text(
-                                    'فایلی ڕاپۆرتی تاقیگە (PDF)',
-                                    style: _kStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                    'ڕاپۆرتی فەرمی پشکنین (PDF)',
+                                    style: _kStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'فایلی ڕاپۆرتی تاقیگەیە، کلیک بکە بۆ کردنەوە و داگرتن',
+                                    style: _kStyle(fontSize: 11.5, color: const Color(0xFF94A3B8)),
                                   ),
                                 ],
                               ),
-                            );
-                          },
-                        ),
-                        Positioned(
-                          bottom: 10,
-                          left: 10,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(Iconsax.maximize_4, color: Colors.white, size: 14),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'zoom_in'.tr(),
-                                  style: _kStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                                ),
-                              ],
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final uri = Uri.parse(fullFileUrl);
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            },
+                            icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                            label: Text('کردنەوە و داگرتنی فایلی PDF', style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEF4444),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
                             ),
                           ),
                         ),
                       ],
                     ),
+                  )
+                else
+                  GestureDetector(
+                    onTap: () => _openFullImageView(context, fullFileUrl),
+                    child: Container(
+                      width: double.infinity,
+                      constraints: const BoxConstraints(maxHeight: 260),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Image.network(
+                            fullFileUrl,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(30),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                padding: const EdgeInsets.all(24),
+                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                child: Column(
+                                  children: [
+                                    const Icon(Iconsax.document_text, size: 36, color: Color(0xFF3B82F6)),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'فایلی ڕاپۆرتی تاقیگە',
+                                      style: _kStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                          Positioned(
+                            bottom: 10,
+                            left: 10,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Iconsax.maximize_4, color: Colors.white, size: 14),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'zoom_in'.tr(),
+                                    style: _kStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
                 const SizedBox(height: 20),
               ],
 
@@ -806,7 +871,12 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
-  void _openFullImageView(BuildContext context, String imageUrl) {
+  void _openFullImageView(BuildContext context, String imageUrl) async {
+    if (imageUrl.toLowerCase().contains('.pdf')) {
+      final uri = Uri.parse(imageUrl);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(

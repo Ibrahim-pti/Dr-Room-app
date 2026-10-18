@@ -99,6 +99,19 @@ class LabResultController extends Controller
             $order->update(['status' => 'completed']);
         }
 
+        // Send In-App notification to patient
+        \App\Models\AppNotification::create([
+            'user_id' => $request->patient_id,
+            'title' => 'ئەنجامی پشکنین ئامادەیە',
+            'title_en' => 'Lab Test Result Ready',
+            'title_ar' => 'نتيجة الفحص جاهزة',
+            'message' => 'ئەنجامی پشکنینەکەت لەلایەن ' . (Auth::user()->name ?? 'تاقیگە') . ' تۆمارکرا و فایلی ڕاپۆرت بەردەستە.',
+            'message_en' => 'Your lab test result has been completed. Official report file is available.',
+            'message_ar' => 'تم إكمال نتيجة الفحص المخبري وتوفير تقرير التحليل.',
+            'type' => 'lab_result',
+            'is_read' => false,
+        ]);
+
         return redirect()->route('lab.patients.index')->with('success', 'ئەنجامی پشکنین بە سەرکەوتوویی تۆمارکرا و ڕاستەوخۆ بۆ نەخۆش نێردرا.');
     }
 
