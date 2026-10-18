@@ -868,17 +868,6 @@
                 </div>
             </div>
 
-            <!-- Medical Disclaimer -->
-            <div class="mt-10 pt-6 border-t border-slate-100">
-                <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/70 text-xs text-amber-950 leading-relaxed max-w-4xl flex items-start gap-3">
-                    <span class="text-base flex-shrink-0">⚠️</span>
-                    <div>
-                        <strong class="font-bold text-amber-900 block mb-0.5">{{ __('landing.medical_disclaimer_title') }}</strong>
-                        <span class="text-amber-800">{{ __('landing.medical_disclaimer') }}</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-slate-100 text-xs text-slate-400 font-medium gap-4">
                 <div>
                     &copy; {{ date('Y') }} DrRoom. {{ __('landing.rights_reserved') }}.
