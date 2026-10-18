@@ -8,7 +8,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/api_client.dart';
 import '../../nursing/nurse_list_screen.dart';
 import '../../nursing/nurse_details_screen.dart';
-import '../data/home_mock_data.dart';
 
 import '../../../core/utils/localization_extensions.dart';
 
@@ -19,14 +18,15 @@ class TopNursesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (topNurses.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark
         ? const Color(0xFF334155)
         : const Color(0xFFE2E8F0);
-    final nursesList = topNurses.isNotEmpty
-        ? topNurses
-        : HomeMockData.fallbackNurses;
+    final nursesList = topNurses;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

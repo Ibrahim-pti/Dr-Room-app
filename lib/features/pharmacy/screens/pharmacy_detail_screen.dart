@@ -122,7 +122,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
       final meds = results[0] as List<Medication>;
       final rawReviews = results[2] as List<dynamic>;
 
-      final activeMeds = meds.isNotEmpty ? meds : _fallbackMedications;
+      final activeMeds = meds;
 
       // Extract distinct categories dynamically with translations from medications!
       final Map<String, Map<String, String>> distinctCategories = {};
@@ -148,38 +148,20 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
         setState(() {
           _categories = dynamicCats;
           _medications = activeMeds;
-          if (rawReviews.isNotEmpty) {
-            _reviews = rawReviews.map((r) => Map<String, dynamic>.from(r as Map)).toList();
-          } else {
-            _reviews = _fallbackReviews;
-          }
+          _reviews = rawReviews.isNotEmpty
+              ? rawReviews.map((r) => Map<String, dynamic>.from(r as Map)).toList()
+              : [];
           _isLoading = false;
         });
       }
     } catch (_) {
       if (mounted) {
-        final activeMeds = _fallbackMedications;
-        final Map<String, Map<String, String>> distinctCategories = {};
-        for (final m in activeMeds) {
-          if (m.category != null && m.category!.trim().isNotEmpty && m.category != 'هەمووی') {
-            final catKey = m.category!.trim();
-            if (!distinctCategories.containsKey(catKey)) {
-              distinctCategories[catKey] = {
-                'name': catKey,
-                'name_ar': (m.categoryAr != null && m.categoryAr!.isNotEmpty) ? m.categoryAr! : catKey,
-                'name_en': (m.categoryEn != null && m.categoryEn!.isNotEmpty) ? m.categoryEn! : catKey,
-              };
-            }
-          }
-        }
-        List<Map<String, String>> dynamicCats = [
-          {'name': 'هەمووی', 'name_ar': 'الكل', 'name_en': 'All'},
-          ...distinctCategories.values,
-        ];
         setState(() {
-          _categories = dynamicCats;
-          _medications = activeMeds;
-          _reviews = _fallbackReviews;
+          _categories = [
+            {'name': 'هەمووی', 'name_ar': 'الكل', 'name_en': 'All'},
+          ];
+          _medications = [];
+          _reviews = [];
           _isLoading = false;
         });
       }
@@ -1681,9 +1663,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
         ? const Color(0xFF334155)
         : const Color(0xFFE2E8F0);
 
-    final medList = _medications.isNotEmpty
-        ? _medications
-        : _fallbackMedications;
+    final medList = _medications;
     final filteredMeds = medList.where((med) {
       final query = _searchMedController.text.trim().toLowerCase();
       final matchesQuery = query.isEmpty ||

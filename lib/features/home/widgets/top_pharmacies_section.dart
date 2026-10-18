@@ -10,7 +10,6 @@ import '../../../core/utils/localization_extensions.dart';
 import '../../pharmacy/models/pharmacy_model.dart';
 import '../../pharmacy/screens/pharmacies_screen.dart';
 import '../../pharmacy/screens/pharmacy_detail_screen.dart';
-import '../data/home_mock_data.dart';
 
 class TopPharmaciesSection extends StatelessWidget {
   final List<dynamic> topPharmacies;
@@ -19,10 +18,13 @@ class TopPharmaciesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (topPharmacies.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final pharmaciesList = topPharmacies.isNotEmpty ? topPharmacies : HomeMockData.fallbackPharmacies;
+    final pharmaciesList = topPharmacies;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

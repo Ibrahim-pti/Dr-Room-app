@@ -79,51 +79,8 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
     }
   }
 
-  List<Pharmacy> get _fallbackPharmacies => [
-        Pharmacy(
-          id: 1,
-          name: 'دەرمانخانەی شاری پزیشکی (City Pharmacy)',
-          address: 'هەولێر، شەقامی ٤٠ مەتری - نزیک نەخۆشخانەی نانەکەلی',
-          phone: '07501234567',
-          rating: 4.9,
-          deliveryFee: 2500,
-          isOpen: true,
-          profileImage: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600',
-        ),
-        Pharmacy(
-          id: 2,
-          name: 'دەرمانخانەی ژیان (Zhyan 24/7 Pharmacy)',
-          address: 'سلێمانی، شەقامی تووی مەلیك - بەرامبەر پارکی ئازادی',
-          phone: '07701234567',
-          rating: 4.8,
-          deliveryFee: 3000,
-          isOpen: true,
-          profileImage: 'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=600',
-        ),
-        Pharmacy(
-          id: 3,
-          name: 'دەرمانخانەی ڕۆژ (Rozh Pharmacy)',
-          address: 'دهۆک، شەقامی گشتی کاوە - تەنیشت سەنتەری پزیشکی',
-          phone: '07509876543',
-          rating: 4.7,
-          deliveryFee: 2000,
-          isOpen: false,
-          profileImage: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=600',
-        ),
-        Pharmacy(
-          id: 4,
-          name: 'دەرمانخانەی شیفا (Shifa Pharmacy)',
-          address: 'هەولێر، شەقامی ٦٠ مەتری - گەڕەکی وەزیران',
-          phone: '07503332211',
-          rating: 4.9,
-          deliveryFee: 2500,
-          isOpen: true,
-          profileImage: 'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=600',
-        ),
-      ];
-
   List<Pharmacy> _getFilteredPharmacies() {
-    final displayList = _pharmacies.isNotEmpty ? _pharmacies : _fallbackPharmacies;
+    final displayList = _pharmacies;
     final query = _searchCtrl.text.trim().toLowerCase();
 
     return displayList.where((pharmacy) {

@@ -92,12 +92,38 @@ class AppController extends Controller
                 ];
             });
 
+        $topLabs = \App\Models\Lab::where('is_approved', true)
+            ->with(['user:id,name,name_en,name_ar,email,profile_image'])
+            ->orderBy('rating', 'desc')
+            ->take(6)
+            ->get()
+            ->map(function ($lab) {
+                return [
+                    'id' => $lab->id,
+                    'name' => $lab->name ?? ($lab->user->name ?? ''),
+                    'name_en' => $lab->name_en ?? ($lab->user->name_en ?? ''),
+                    'name_ar' => $lab->name_ar ?? ($lab->user->name_ar ?? ''),
+                    'city' => $lab->city ?? '',
+                    'location' => $lab->location ?? '',
+                    'address' => $lab->address ?? $lab->location ?? '',
+                    'phone' => $lab->phone ?? '',
+                    'rating' => (float)($lab->rating ?? 4.9),
+                    'total_reviews' => (int)($lab->total_reviews ?? 0),
+                    'image' => $lab->image_path
+                        ? (str_starts_with($lab->image_path, 'http') ? $lab->image_path : asset('storage/' . $lab->image_path))
+                        : ($lab->user && $lab->user->profile_image
+                            ? asset('storage/' . $lab->user->profile_image)
+                            : null),
+                ];
+            });
+
         return response()->json([
             'banners' => Banner::where('is_active', true)->orderBy('sort_order')->get(),
             'categories' => Category::all(),
             'latest_articles' => Article::where('is_published', true)->latest()->take(5)->get(),
             'top_doctors' => $topDoctors,
             'top_nurses' => $topNurses,
+            'top_labs' => $topLabs,
             'top_pharmacies' => $topPharmacies,
         ]);
     }

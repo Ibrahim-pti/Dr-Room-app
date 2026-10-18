@@ -162,13 +162,13 @@ class _EmergencyReelsScreenState extends State<EmergencyReelsScreen> {
         }).toList();
 
         setState(() {
-          _articles = [...apiArticles, ..._fallbackArticles];
+          _articles = apiArticles;
           _isLoading = false;
         });
       } else {
         if (mounted) {
           setState(() {
-            _articles = List.from(_fallbackArticles);
+            _articles = [];
             _isLoading = false;
           });
         }
@@ -177,7 +177,7 @@ class _EmergencyReelsScreenState extends State<EmergencyReelsScreen> {
       debugPrint('Error fetching articles from Admin API: $e');
       if (mounted) {
         setState(() {
-          _articles = List.from(_fallbackArticles);
+          _articles = [];
           _isLoading = false;
         });
       }

@@ -204,8 +204,11 @@ class _PromoCarouselState extends State<PromoCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.banners.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final langCode = context.locale.languageCode;
-    final itemsCount = widget.banners.isNotEmpty ? widget.banners.length : _fallbackPromos.length;
+    final itemsCount = widget.banners.length;
 
     return Column(
       children: [

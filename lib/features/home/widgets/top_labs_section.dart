@@ -7,17 +7,21 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/localization_extensions.dart';
 import '../../lab/all_labs_screen.dart';
 import '../../lab/lab_details_screen.dart';
-import '../data/home_mock_data.dart';
 
 class TopLabsSection extends StatelessWidget {
-  const TopLabsSection({super.key});
+  final List<dynamic>? topLabs;
+
+  const TopLabsSection({super.key, this.topLabs});
 
   @override
   Widget build(BuildContext context) {
+    if (topLabs == null || topLabs!.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final labs = HomeMockData.fallbackLabs;
+    final labs = topLabs!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,10 +125,20 @@ class TopLabsSection extends StatelessWidget {
                               height: 96,
                               width: double.infinity,
                               color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                              child: Image.asset(
-                                imagePath,
-                                fit: BoxFit.cover,
-                              ),
+                              child: imagePath.toString().startsWith('http')
+                                  ? Image.network(
+                                      imagePath.toString(),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Image.asset(
+                                        'assets/images/laboratory.jpg',
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      imagePath.toString().isNotEmpty ? imagePath.toString() : 'assets/images/laboratory.jpg',
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const SizedBox(),
+                                    ),
                             ),
                           ),
 

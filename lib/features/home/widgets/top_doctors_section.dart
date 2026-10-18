@@ -9,8 +9,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/api_client.dart';
 import '../../doctors/all_doctors_screen.dart';
 
-
-import '../data/home_mock_data.dart';
 import '../../doctors/doctor_details_screen.dart';
 
 class TopDoctorsSection extends StatelessWidget {
@@ -20,14 +18,15 @@ class TopDoctorsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (topDoctors.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark
         ? const Color(0xFF334155)
         : const Color(0xFFE2E8F0);
-    final doctorsList = topDoctors.isNotEmpty
-        ? topDoctors
-        : HomeMockData.fallbackDoctors;
+    final doctorsList = topDoctors;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -11,7 +11,6 @@ import '../../core/utils/api_client.dart';
 import '../../core/providers/appointment_provider.dart';
 import '../../core/services/app_version_service.dart';
 import 'promo_carousel.dart';
-import 'widgets/emergency_sos_banner.dart';
 import 'widgets/home_header.dart';
 import 'widgets/services_category_grid.dart';
 import 'widgets/top_nurses_section.dart';
@@ -31,6 +30,7 @@ class HomeScreenState extends State<HomeScreen> {
   String? _profileImageUrl;
   List<dynamic> _banners = [];
   List<dynamic> _topNurses = [];
+  List<dynamic> _topLabs = [];
 
   @override
   void initState() {
@@ -79,6 +79,7 @@ class HomeScreenState extends State<HomeScreen> {
           setState(() {
             _banners = data['banners'] ?? [];
             _topNurses = data['top_nurses'] ?? [];
+            _topLabs = data['top_labs'] ?? [];
             _userName = userName;
             _profileImageUrl = profileImg;
           });
@@ -90,6 +91,21 @@ class HomeScreenState extends State<HomeScreen> {
             _profileImageUrl = profileImg;
           });
         }
+      }
+
+      if (_topLabs.isEmpty) {
+        try {
+          final lRes = await ApiClient.get('/labs');
+          if (lRes.statusCode == 200) {
+            final lData = jsonDecode(lRes.body);
+            final list = (lData is Map && lData['data'] is List)
+                ? lData['data']
+                : (lData is List ? lData : []);
+            if (mounted && list is List) {
+              setState(() => _topLabs = list);
+            }
+          }
+        } catch (_) {}
       }
 
       if (_banners.isEmpty) {
@@ -152,31 +168,34 @@ class HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Compact Emergency SOS Banner (Higher up & Sleek) ──
                         const SizedBox(height: 8),
-                        const EmergencySosBanner(),
-                        const SizedBox(height: 12),
 
                         // ── Banners / Promo Carousel ──
                         if (_isLoading)
                           _buildBannerSkeleton(context)
-                        else
+                        else if (_banners.isNotEmpty) ...[
                           PromoCarousel(banners: _banners)
                               .animate()
                               .fadeIn(duration: 400.ms)
                               .slideY(begin: 0.1, end: 0, curve: Curves.easeOut),
+                          const SizedBox(height: 12),
+                        ],
 
                         // ── Services Categories Grid ──
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 4),
                         const ServicesCategoryGrid(),
 
                         // ── Top Laboratories Section ──
-                        const SizedBox(height: 16),
-                        const TopLabsSection(),
+                        if (_topLabs.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          TopLabsSection(topLabs: _topLabs),
+                        ],
 
                         // ── Top Nurses Section ──
-                        const SizedBox(height: 16),
-                        TopNursesSection(topNurses: _topNurses),
+                        if (_topNurses.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          TopNursesSection(topNurses: _topNurses),
+                        ],
 
                         // ── Bottom Padding for Floating MainShell Bar ──
                         SizedBox(height: 95 + MediaQuery.viewPaddingOf(context).bottom),
