@@ -150,6 +150,11 @@ class ApiClient {
     final prefs = await _getPrefs();
     await prefs.remove('auth_token');
     await prefs.remove('user_role');
+    await prefs.remove('user_name');
+    await prefs.remove('user_phone');
+    await prefs.remove('user_profile_image');
+    await prefs.remove('profile_image');
+    await prefs.remove('is_admin');
   }
 
   static Uri _uri(String endpoint) => Uri.parse('$baseUrl$endpoint');

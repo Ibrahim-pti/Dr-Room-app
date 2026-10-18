@@ -48,8 +48,13 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> _loadCachedUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final un = prefs.getString('user_name') ?? '';
-      final profileImg = prefs.getString('user_profile_image') ?? prefs.getString('profile_image');
+      final token = prefs.getString('auth_token');
+      final isGuest = token == null || token.isEmpty;
+      final un = isGuest ? '' : (prefs.getString('user_name') ?? '');
+      final profileImg = isGuest
+          ? null
+          : (prefs.getString('user_profile_image') ??
+              prefs.getString('profile_image'));
       if (mounted) {
         setState(() {
           _userName = un.isNotEmpty ? un : 'guest_user'.tr();

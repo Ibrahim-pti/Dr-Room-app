@@ -41,10 +41,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final isGuest = token == null || token.isEmpty;
+
     if (mounted) {
       setState(() {
-        final token = prefs.getString('auth_token');
-        _isGuest = token == null || token.isEmpty;
+        _isGuest = isGuest;
         _isAdmin =
             prefs.getBool('is_admin') == true ||
             prefs.getString('user_role') == 'admin';
@@ -54,8 +56,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _userName = un.isNotEmpty ? un : 'guest_user'.tr();
           _userPhone = prefs.getString('user_phone') ?? '';
           _profileImageUrl = prefs.getString('user_profile_image');
+        } else {
+          _userName = 'guest_user'.tr();
+          _userPhone = '';
+          _profileImageUrl = null;
         }
       });
+    }
+
+    if (!isGuest) {
+      try {
+        final res = await ApiClient.get('/user');
+        if (res.statusCode == 401 && mounted) {
+          setState(() {
+            _isGuest = true;
+            _userName = 'guest_user'.tr();
+            _userPhone = '';
+            _profileImageUrl = null;
+            _isAdmin = false;
+          });
+        }
+      } catch (_) {
+        if (mounted) {
+          final p = await SharedPreferences.getInstance();
+          final t = p.getString('auth_token');
+          if (t == null || t.isEmpty) {
+            setState(() {
+              _isGuest = true;
+              _userName = 'guest_user'.tr();
+              _userPhone = '';
+              _profileImageUrl = null;
+              _isAdmin = false;
+            });
+          }
+        }
+      }
     }
   }
 
