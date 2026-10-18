@@ -102,7 +102,9 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '٣٣٪',
+                                  context.locale.languageCode == 'en'
+                                      ? '33%'
+                                      : '٣٣٪',
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12,

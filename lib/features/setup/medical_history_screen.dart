@@ -161,7 +161,9 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '١٠٠٪',
+                                  context.locale.languageCode == 'en'
+                                      ? '100%'
+                                      : '١٠٠٪',
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12,
