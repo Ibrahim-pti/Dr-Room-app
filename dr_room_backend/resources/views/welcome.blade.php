@@ -177,7 +177,6 @@
                 <div class="hidden xl:flex items-center gap-1 bg-slate-100/90 p-1.5 rounded-full border border-slate-200/80">
                     <a href="#" class="text-white bg-[#1e60eb] font-bold px-4 py-1.5 rounded-full text-xs transition whitespace-nowrap">{{ __('landing.home') }}</a>
                     <a href="#services" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">{{ __('landing.services') }}</a>
-                    <a href="#labs-directory" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">تاقیگەکان</a>
                     <a href="#app-screens" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">{{ __('landing.features') }}</a>
                     <a href="#why-us" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">{{ __('landing.about_tag') }}</a>
                     <a href="#testimonials" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">ڕای بەکارهێنەران</a>
@@ -248,7 +247,6 @@
             <div class="px-4 pt-3 pb-6 space-y-2">
                 <a href="#" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-blue-600 font-bold bg-blue-50 rounded-xl text-sm">{{ __('landing.home') }}</a>
                 <a href="#services" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.services') }}</a>
-                <a href="#labs-directory" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">تاقیگەکان</a>
                 <a href="#app-screens" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.features') }}</a>
                 <a href="#why-us" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.about_tag') }}</a>
                 <a href="#testimonials" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">ڕای بەکارهێنەران</a>
@@ -287,9 +285,6 @@
                         {{ $approvedLabs->count() }} {{ __('landing.labs_count') }}
                     </span>
                 </div>
-                <a href="#labs-directory" class="text-xs font-bold text-[#1e60eb] hover:underline hidden sm:inline-block">
-                    هەموو تاقیگەکان ببینە ←
-                </a>
             </div>
         </div>
 
@@ -341,35 +336,9 @@
                     </h1>
                     
                     <!-- Description -->
-                    <p class="text-base sm:text-lg text-slate-600 mb-6 max-w-xl leading-relaxed font-medium">
+                    <p class="text-base sm:text-lg text-slate-600 mb-8 max-w-xl leading-relaxed font-medium">
                         {{ __('landing.hero_desc') }}
                     </p>
-
-                    <!-- In-App Style Search Bar (Matching the App's Header Search Bar) -->
-                    <div class="w-full max-w-md mb-6">
-                        <div class="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl p-1.5 focus-within:border-[#1e60eb] focus-within:bg-white transition-colors">
-                            <div class="flex items-center justify-center w-10 h-10 text-slate-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            </div>
-                            <input type="text" 
-                                   x-model="searchQuery" 
-                                   placeholder="گەڕان بەدوای تاقیگە، پشکنین، پەرستار، یان دکتۆر..." 
-                                   class="w-full bg-transparent text-xs sm:text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none px-2 py-1">
-                            <a :href="'https://wa.me/9647512596050?text=' + encodeURIComponent('سڵاو، دەمەوێت پرسیار بکەم دەربارەی: ' + (searchQuery || 'خزمەتگوزارییەکانی دکتۆر رووم'))" 
-                               target="_blank" 
-                               class="bg-[#1e60eb] hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex-shrink-0 transition">
-                                داواکردن
-                            </a>
-                        </div>
-                        <!-- Quick Search Tags -->
-                        <div class="flex flex-wrap gap-1.5 mt-2.5">
-                            <span class="text-[10px] text-slate-400 font-bold self-center">پێشنیارکراو:</span>
-                            <a href="#services" @click="searchQuery = 'پشکنینی خوێن'" class="text-[10px] font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-2 py-0.5 rounded-lg border border-slate-200 transition">پشکنینی خوێن</a>
-                            <a href="#services" @click="searchQuery = 'دەرزی و کانیۆلا'" class="text-[10px] font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-2 py-0.5 rounded-lg border border-slate-200 transition">دەرزی لە ماڵەوە</a>
-                            <a href="#labs-directory" @click="searchQuery = 'تاقیگەکان'" class="text-[10px] font-bold text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-2 py-0.5 rounded-lg border border-slate-200 transition">لیستی تاقیگەکان</a>
-                            <a href="tel:122" class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200 transition">١٢٢ فریاکەوتن</a>
-                        </div>
-                    </div>
 
                     <!-- App Store Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-3.5 w-full justify-center lg:justify-start max-w-md">
@@ -436,14 +405,9 @@
     <section id="services" class="py-20 bg-white border-b border-slate-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
-                <div>
-                    <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">{{ __('landing.our_services') }}</span>
-                    <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-3 tracking-tight">{{ __('landing.our_services') }}</h2>
-                </div>
-                <p class="text-slate-500 text-sm sm:text-base font-medium max-w-md">
-                    {{ __('landing.services_desc') }}
-                </p>
+            <div class="mb-12">
+                <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">{{ __('landing.our_services') }}</span>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-3 tracking-tight">{{ __('landing.our_services') }}</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -457,12 +421,8 @@
                         <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.lab_tests') }}</h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.lab_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-sky-50 text-sky-700 border border-sky-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.available_home') }}</span>
-                        <a href="https://wa.me/9647512596050?text={{ rawurlencode('سڵاو، دەمەوێت پشکنینی تاقیگە لە ماڵەوە داوا بکەم') }}" target="_blank" class="text-xs font-bold text-[#1e60eb] hover:underline flex items-center gap-1">
-                            <span>داواکردن</span>
-                            <span>←</span>
-                        </a>
                     </div>
                 </div>
                 
@@ -475,12 +435,8 @@
                         <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.nursing') }}</h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.nursing_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-teal-50 text-teal-700 border border-teal-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.fast_booking') }}</span>
-                        <a href="https://wa.me/9647512596050?text={{ rawurlencode('سڵاو، پێویستم بە پەرستارە لە ماڵەوە بۆ ئەنجامدانی دەرزی/کانیۆلا/پانسمان') }}" target="_blank" class="text-xs font-bold text-[#1e60eb] hover:underline flex items-center gap-1">
-                            <span>داواکردن</span>
-                            <span>←</span>
-                        </a>
                     </div>
                 </div>
                 
@@ -493,12 +449,8 @@
                         <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.doctor') }}</h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.doctor_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-blue-50 text-blue-700 border border-blue-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.fast_booking') }}</span>
-                        <a href="https://wa.me/9647512596050?text={{ rawurlencode('سڵاو، دەمەوێت ڕاوێژ لەگەڵ پزیشک بکەم') }}" target="_blank" class="text-xs font-bold text-[#1e60eb] hover:underline flex items-center gap-1">
-                            <span>نۆرەگرتن</span>
-                            <span>←</span>
-                        </a>
                     </div>
                 </div>
                 
@@ -511,12 +463,8 @@
                         <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.pharmacy') }}</h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.pharmacy_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-rose-50 text-rose-700 border border-rose-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.instant_delivery') }}</span>
-                        <a href="https://wa.me/9647512596050?text={{ rawurlencode('سڵاو، وێنەی ڕەچەتەم پێیە بۆ ناردنی دەرمان') }}" target="_blank" class="text-xs font-bold text-[#1e60eb] hover:underline flex items-center gap-1">
-                            <span>ناردنی ڕەچەتە</span>
-                            <span>←</span>
-                        </a>
                     </div>
                 </div>
                 
@@ -529,12 +477,8 @@
                         <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.screen_firstaid_tab') }}</h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.screen_firstaid_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-amber-50 text-amber-800 border border-amber-200 text-xs font-extrabold px-3 py-1 rounded-xl">ڕێبەری CPR و سووتان</span>
-                        <a href="tel:122" class="text-xs font-bold text-rose-600 hover:underline flex items-center gap-1">
-                            <span>SOS ١٢٢</span>
-                            <span>←</span>
-                        </a>
                     </div>
                 </div>
                 
@@ -547,74 +491,10 @@
                         <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.more_services') }}</h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.more_desc') }}</p>
                     </div>
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-extrabold px-3 py-1 rounded-xl">پارێزراو بە تەواوی</span>
-                        <a href="#download" @click.prevent="showDownloadModal = true" class="text-xs font-bold text-[#1e60eb] hover:underline flex items-center gap-1">
-                            <span>مەلەفی دیجیتاڵی</span>
-                            <span>←</span>
-                        </a>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Dedicated Registered Labs Directory ("لیستی تاقیگەکان") -->
-    <section id="labs-directory" class="py-20 bg-slate-50 border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
-                <div>
-                    <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">تۆڕی مۆڵەتپێدراو</span>
-                    <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-3 tracking-tight">لیستی تاقیگە باوەڕپێکراوەکان</h2>
-                </div>
-                <p class="text-slate-500 text-sm sm:text-base font-medium max-w-md">
-                    هەموو تاقیگەکان خاوەنی مۆڵەتی فەرمین و پشکنینەکانیان بە پێشکەوتووترین ئامێر لە ماڵەوە ئەنجام دەدرێن.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                @forelse($approvedLabs as $labUser)
-                    <div class="bg-white rounded-3xl p-5 border border-slate-200 hover:border-blue-400 transition-all flex flex-col justify-between group">
-                        <div>
-                            <div class="relative w-full h-36 rounded-2xl overflow-hidden bg-slate-100 mb-4 border border-slate-100">
-                                <img src="{{ $resolveLabIcon($labUser) }}" 
-                                     alt="{{ $resolveLabName($labUser) }}" 
-                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                     onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
-                                <span class="absolute top-2.5 end-2.5 bg-white/95 text-slate-800 text-[10px] font-black px-2 py-0.5 rounded-lg border border-slate-200">
-                                    تاقیگە
-                                </span>
-                                <span class="absolute bottom-2.5 start-2.5 bg-black/80 text-white text-[11px] font-extrabold px-2 py-0.5 rounded-lg flex items-center gap-1">
-                                    <span class="text-amber-400">★</span> 4.9
-                                </span>
-                            </div>
-                            
-                            <h4 class="text-base font-black text-slate-900 mb-1 group-hover:text-[#1e60eb] transition-colors">
-                                {{ $resolveLabName($labUser) }}
-                            </h4>
-                            <p class="text-xs text-slate-500 font-medium mb-3 flex items-center gap-1.5">
-                                <span>📍</span>
-                                <span>{{ $labUser->address ?? 'هەرێمی کوردستان' }}</span>
-                            </p>
-                        </div>
-
-                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                                بەردەستە لە ماڵەوە
-                            </span>
-                            <a href="https://wa.me/9647512596050?text={{ rawurlencode('سڵاو، دەمەوێت لە ڕێگەی (' . $resolveLabName($labUser) . ') پشکنینی تاقیگە بکەم لە ماڵەوە') }}" 
-                               target="_blank" 
-                               class="text-xs font-bold text-[#1e60eb] hover:underline">
-                                داواکردن ←
-                            </a>
-                        </div>
-                    </div>
-                @empty
-                    <div class="col-span-full py-12 text-center text-slate-400 text-sm font-medium">
-                        {{ __('landing.no_labs_yet') }}
-                    </div>
-                @endforelse
             </div>
         </div>
     </section>
@@ -1128,7 +1008,6 @@
                     <ul class="space-y-2.5 text-xs sm:text-sm text-slate-600 font-medium">
                         <li><a href="#" class="hover:text-blue-600 transition">{{ __('landing.home') }}</a></li>
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.services') }}</a></li>
-                        <li><a href="#labs-directory" class="hover:text-blue-600 transition">تاقیگەکان</a></li>
                         <li><a href="#app-screens" class="hover:text-blue-600 transition">{{ __('landing.app_showcase_tag') }}</a></li>
                         <li><a href="#why-us" class="hover:text-blue-600 transition">{{ __('landing.about_tag') }}</a></li>
                         <li><a href="#testimonials" class="hover:text-blue-600 transition">ڕای بەکارهێنەران</a></li>
