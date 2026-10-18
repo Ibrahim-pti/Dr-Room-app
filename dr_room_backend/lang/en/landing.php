@@ -126,9 +126,9 @@ return [
     
     'screen_labs_tab' => 'Medical Laboratories',
     'screen_labs_title' => 'Extensive Accredited Laboratory Network',
-    'screen_labs_desc' => 'Browse verified laboratories across Erbil, Sulaymaniyah, Duhok, and Kirkuk with ratings, real-time operating hours, and exclusive discounts.',
+    'screen_labs_desc' => 'Browse verified laboratories across Erbil, Sulaymaniyah, Duhok, and Kirkuk with ratings, real-time operating hours, and certified services.',
     'screen_labs_f1' => 'Filter by nearest lab, top ratings, and specialized panels',
-    'screen_labs_f2' => 'Exclusive discounts up to 25% on home sample collection',
+    'screen_labs_f2' => 'Medical lab tests at fair and standardized prices',
     'screen_labs_f3' => 'Certified mobile lab phlebotomists dispatched to your door',
 
     'screen_nursing_tab' => 'Nursing Care',
