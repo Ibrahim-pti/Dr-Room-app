@@ -179,7 +179,6 @@
                     <a href="#services" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">{{ __('landing.services') }}</a>
                     <a href="#app-screens" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">{{ __('landing.features') }}</a>
                     <a href="#why-us" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">{{ __('landing.about_tag') }}</a>
-                    <a href="#testimonials" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">ڕای بەکارهێنەران</a>
                     <a href="#faq" class="text-slate-600 hover:text-blue-600 hover:bg-white font-semibold px-3 py-1.5 rounded-full text-xs transition whitespace-nowrap">{{ __('landing.faq') }}</a>
                 </div>
 
@@ -249,7 +248,6 @@
                 <a href="#services" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.services') }}</a>
                 <a href="#app-screens" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.features') }}</a>
                 <a href="#why-us" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.about_tag') }}</a>
-                <a href="#testimonials" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">ڕای بەکارهێنەران</a>
                 <a href="#faq" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.faq') }}</a>
                 <a href="/staff" class="block px-4 py-2.5 text-blue-700 font-extrabold bg-blue-50 rounded-xl text-sm border border-blue-200 flex items-center justify-between">
                     <span>{{ __('landing.staff_portal') }}</span>
@@ -758,81 +756,7 @@
         </div>
     </section>
 
-    <!-- Testimonials / Patient Reviews Section (Flat Cards) -->
-    <section id="testimonials" class="py-20 bg-white border-b border-slate-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-2xl mx-auto mb-14">
-                <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">{{ __('landing.testimonials') }}</span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-3 mb-2 tracking-tight">چی دەڵێن دەربارەی دکتۆر رووم؟</h2>
-                <p class="text-slate-500 text-sm sm:text-base font-medium">{{ __('landing.test_desc') }}</p>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Review 1 -->
-                <div class="bg-slate-50 rounded-3xl p-6 border border-slate-200 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center gap-1 text-amber-400 mb-3 text-sm">
-                            ★★★★★
-                        </div>
-                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium mb-6">
-                            {{ __('landing.test_1') }}
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-3 pt-4 border-t border-slate-200">
-                        <div class="w-9 h-9 rounded-full bg-blue-100 text-[#1e60eb] font-black text-xs flex items-center justify-center">
-                            س
-                        </div>
-                        <div>
-                            <div class="text-xs font-black text-slate-900">{{ __('landing.test_1_author') }}</div>
-                            <div class="text-[10px] text-slate-400 font-semibold">{{ __('landing.test_1_city') }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Review 2 -->
-                <div class="bg-slate-50 rounded-3xl p-6 border border-slate-200 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center gap-1 text-amber-400 mb-3 text-sm">
-                            ★★★★★
-                        </div>
-                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium mb-6">
-                            {{ __('landing.test_2') }}
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-3 pt-4 border-t border-slate-200">
-                        <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 font-black text-xs flex items-center justify-center">
-                            هـ
-                        </div>
-                        <div>
-                            <div class="text-xs font-black text-slate-900">{{ __('landing.test_2_author') }}</div>
-                            <div class="text-[10px] text-slate-400 font-semibold">{{ __('landing.test_2_city') }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Review 3 -->
-                <div class="bg-slate-50 rounded-3xl p-6 border border-slate-200 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center gap-1 text-amber-400 mb-3 text-sm">
-                            ★★★★★
-                        </div>
-                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium mb-6">
-                            {{ __('landing.test_3') }}
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-3 pt-4 border-t border-slate-200">
-                        <div class="w-9 h-9 rounded-full bg-purple-100 text-purple-700 font-black text-xs flex items-center justify-center">
-                            د
-                        </div>
-                        <div>
-                            <div class="text-xs font-black text-slate-900">{{ __('landing.test_3_author') }}</div>
-                            <div class="text-[10px] text-slate-400 font-semibold">{{ __('landing.test_3_city') }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Staff & Healthcare Professionals Banner (Flat Navy, Crisp Border) -->
     <section class="py-12 bg-slate-950 text-white border-b border-slate-900">
@@ -1010,7 +934,6 @@
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.services') }}</a></li>
                         <li><a href="#app-screens" class="hover:text-blue-600 transition">{{ __('landing.app_showcase_tag') }}</a></li>
                         <li><a href="#why-us" class="hover:text-blue-600 transition">{{ __('landing.about_tag') }}</a></li>
-                        <li><a href="#testimonials" class="hover:text-blue-600 transition">ڕای بەکارهێنەران</a></li>
                         <li><a href="#how-it-works" class="hover:text-blue-600 transition">{{ __('landing.how_it_works') }}</a></li>
                         <li><a href="/staff" class="text-blue-600 font-bold hover:underline transition">{{ __('landing.staff_portal') }}</a></li>
                     </ul>
