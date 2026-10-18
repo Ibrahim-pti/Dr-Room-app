@@ -375,9 +375,6 @@
                         {{ $approvedLabs->count() }} {{ __('landing.labs_count') }}
                     </span>
                 </div>
-                <span class="text-[11px] font-bold text-slate-400 hidden sm:inline-block">
-                    ⚡ ئۆتۆماتیک لە داشبۆردەوە دەخرێنەڕوو
-                </span>
             </div>
         </div>
 
