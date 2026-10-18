@@ -962,5 +962,8 @@
   "lab_hub_no_packages": "هیچ پاکێجێک نەدۆزرایەوە",
   "lab_hub_discount": "داشکاندن",
   "lab_hub_tests_label": "پشکنینەکان:",
-  "lab_hub_order_package": "داواکردنی پاکێج"
+  "lab_hub_order_package": "داواکردنی پاکێج",
+  "password_english_only": "تکایە وشەی نهێنی تەنها بە پیتی ئینگلیزی بنووسە",
+  "account_under_review": "هەژمارەکەت لەژێر پێداچوونەوەی ئەدمیندایە. تکایە چاوەڕێ بکە.",
+  "account_blocked": "هەژمارەکەت بلۆک کراوە."
 }

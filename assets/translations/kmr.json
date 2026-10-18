@@ -959,5 +959,8 @@
   "lab_hub_no_packages": "چ پاکێج نەهاتنە دیتن",
   "lab_hub_discount": "داشکاندن",
   "lab_hub_tests_label": "پشکنین:",
-  "lab_hub_order_package": "داخوازکرنا پاکێجێ"
+  "lab_hub_order_package": "داخوازکرنا پاکێجێ",
+  "password_english_only": "هیڤیە پەیڤا نهێنی ب پیتێن ئینگلیزی بنڤیسە",
+  "account_under_review": "هەژمارا تە ل بن پێداچوونا ئەدمینیدایە. هیڤیە چاڤەڕێ بە.",
+  "account_blocked": "هەژمارا تە هاتیە بلۆک کرن."
 }

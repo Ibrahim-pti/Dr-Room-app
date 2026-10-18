@@ -962,5 +962,8 @@
   "lab_hub_no_packages": "No packages found",
   "lab_hub_discount": "Discount",
   "lab_hub_tests_label": "Tests:",
-  "lab_hub_order_package": "Order Package"
+  "lab_hub_order_package": "Order Package",
+  "password_english_only": "Password must be in English letters only",
+  "account_under_review": "Your account is under admin review. Please wait.",
+  "account_blocked": "Your account has been blocked."
 }

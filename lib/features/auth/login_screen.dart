@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _passwordError = password.isEmpty
           ? 'password_required'.tr()
           : (RegExp(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]').hasMatch(password)
-              ? 'تکایە وشەی نهێنی تەنها بە پیتی ئینگلیزی بنووسە'
+              ? 'password_english_only'.tr()
               : null);
       _formError = null;
     });
@@ -136,6 +136,31 @@ class _LoginScreenState extends State<LoginScreen> {
     if (provider == null || !mounted) return;
 
     await _submitLogin(normalizedPhone, password, provider);
+  }
+
+  String _localizedLoginError(int statusCode, String responseBody) {
+    if (statusCode == 401) {
+      return 'invalid_phone_or_password'.tr();
+    }
+    try {
+      final err = jsonDecode(responseBody);
+      final raw = err is Map ? (err['message'] ?? '').toString() : '';
+      if (raw.contains('پێداچوونەوە') ||
+          raw.toLowerCase().contains('review') ||
+          raw.toLowerCase().contains('pending')) {
+        return 'account_under_review'.tr();
+      }
+      if (raw.contains('بلۆک') || raw.toLowerCase().contains('block')) {
+        return 'account_blocked'.tr();
+      }
+      if (raw.contains('هەڵەیە') ||
+          raw.toLowerCase().contains('invalid') ||
+          raw.toLowerCase().contains('credential')) {
+        return 'invalid_phone_or_password'.tr();
+      }
+      if (raw.isNotEmpty) return raw;
+    } catch (_) {}
+    return 'server_connection_error'.tr();
   }
 
   Future<void> _submitLogin(
@@ -167,17 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         widget.onOtpSent(normalizedPhone);
       } else {
-        String msg;
-        try {
-          final err = jsonDecode(response.body);
-          msg = (err is Map ? err['message'] : null) ??
-              'invalid_phone_or_password'.tr();
-        } catch (_) {
-          // A non-JSON body (an HTML error page) must not swallow the failure.
-          msg = response.statusCode == 401
-              ? 'invalid_phone_or_password'.tr()
-              : 'server_connection_error'.tr();
-        }
+        final msg = _localizedLoginError(response.statusCode, response.body);
         if (mounted) setState(() => _formError = msg);
       }
     } on UnauthorizedException {

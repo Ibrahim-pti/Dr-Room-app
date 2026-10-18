@@ -143,7 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _passwordError = password.isEmpty
           ? 'password_required'.tr()
           : (RegExp(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]').hasMatch(password)
-              ? 'تکایە وشەی نهێنی تەنها بە پیتی ئینگلیزی بنووسە'
+              ? 'password_english_only'.tr()
               : null);
       _confirmPasswordError = confirmPassword.isEmpty
           ? 'confirm_password_required'.tr()

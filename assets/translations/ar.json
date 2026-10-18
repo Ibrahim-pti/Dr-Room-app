@@ -962,5 +962,8 @@
   "lab_hub_no_packages": "لم يتم العثور على باقات",
   "lab_hub_discount": "خصم",
   "lab_hub_tests_label": "الفحوصات:",
-  "lab_hub_order_package": "طلب الباقة"
+  "lab_hub_order_package": "طلب الباقة",
+  "password_english_only": "يرجى كتابة كلمة المرور بالحروف الإنجليزية فقط",
+  "account_under_review": "حسابك قيد مراجعة الإدارة. يرجى الانتظار.",
+  "account_blocked": "تم حظر حسابك."
 }
