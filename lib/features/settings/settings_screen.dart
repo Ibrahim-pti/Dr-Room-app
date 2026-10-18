@@ -775,7 +775,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
-                  height: 48,
+                  height: 52,
                   child: ElevatedButton(
                     onPressed: isDeleting
                         ? null
@@ -798,6 +798,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFEF4444),
                       foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       elevation: 0,
                     ),
@@ -807,13 +808,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             height: 20,
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                           )
-                        : Text(
-                            'yes_delete_account'.tr(),
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                        : FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'yes_delete_account'.tr(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 1.2,
+                              ),
                             ),
                           ),
                   ),
