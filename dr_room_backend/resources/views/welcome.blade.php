@@ -267,6 +267,7 @@
         </div>
     </nav>
 
+    @if($approvedLabs->count() >= 5)
     <!-- Top Registered Labs Live Ticker (Flat, Crisp Border, Seamless Scrolling) -->
     <section class="mt-20 py-3.5 bg-slate-50 border-b border-slate-200 relative z-20 overflow-hidden">
         <div class="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mb-2.5">
@@ -309,9 +310,10 @@
             </div>
         </div>
     </section>
+    @endif
 
     <!-- Hero Section (Matches App's Crisp Aesthetic, Live Mobile Mockup, Zero Shadows) -->
-    <section class="pt-10 pb-16 md:pt-14 md:pb-24 bg-white relative overflow-hidden border-b border-slate-100">
+    <section class="{{ $approvedLabs->count() >= 5 ? 'pt-10 md:pt-14' : 'pt-28 md:pt-32' }} pb-16 md:pb-24 bg-white relative overflow-hidden border-b border-slate-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-14">
                 
