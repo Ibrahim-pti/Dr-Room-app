@@ -25,10 +25,10 @@ class AdminLabController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:50',
+            'phone' => 'nullable|string|max:50|unique:users,phone',
             'city' => 'nullable|string|max:100',
             'lab_type' => 'nullable|string|max:100',
-            'email' => 'nullable|email',
+            'email' => 'nullable|email|unique:users,email',
             'location' => 'nullable|string|max:255',
         ]);
 

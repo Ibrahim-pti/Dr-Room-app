@@ -25,8 +25,8 @@ class AdminNurseController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:50|unique:users,phone',
+            'email' => 'nullable|email|unique:users,email',
             'specialty' => 'nullable|string|max:150',
         ]);
 
