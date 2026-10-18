@@ -366,7 +366,7 @@
                                 <span class="text-sm font-bold text-emerald-950">{{ __('landing.screen_labs_f1') }}</span>
                             </div>
                             <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-amber-50 border border-amber-100">
-                                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold flex-shrink-0">%</div>
+                                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold flex-shrink-0 text-sm">🏷️</div>
                                 <span class="text-sm font-bold text-amber-950">{{ __('landing.screen_labs_f2') }}</span>
                             </div>
                             <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
