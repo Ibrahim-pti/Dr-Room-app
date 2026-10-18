@@ -146,6 +146,19 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+        @keyframes marquee-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .marquee-track {
+            display: flex;
+            width: max-content;
+            gap: 1rem;
+            animation: marquee-scroll 32s linear infinite;
+        }
+        .marquee-track:hover {
+            animation-play-state: paused;
+        }
     </style>
 </head>
 <body x-data="{ showDownloadModal: false }" class="text-slate-800 antialiased bg-white selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
@@ -346,44 +359,46 @@
         </div>
     </section>
 
-    <!-- Dedicated Laboratories Showcase (Only Icon & Name, Auto-loaded from Dashboard) -->
-    <section class="py-12 bg-slate-50/90 border-y border-slate-200/70 relative z-20">
-        <div class="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+    <!-- Dedicated Laboratories Showcase (Horizontal Autoplay, Only Icon & Name) -->
+    <section class="py-7 bg-slate-50/90 border-y border-slate-200/70 relative z-20 overflow-hidden">
+        <div class="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                    <span class="relative flex h-3 w-3">
+                    <span class="relative flex h-2.5 w-2.5">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                     </span>
-                    <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                    <h3 class="text-xs sm:text-sm font-black text-slate-800 tracking-tight">
                         {{ __('landing.registered_labs') }}
                     </h3>
-                    <span class="text-xs font-black text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-200/60">
+                    <span class="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full border border-emerald-200/60">
                         {{ $approvedLabs->count() }} {{ __('landing.labs_count') }}
                     </span>
                 </div>
-                <p class="text-xs text-slate-500 font-medium hidden md:block">
-                    {{ __('landing.screen_labs_desc') }}
-                </p>
+                <span class="text-[11px] font-bold text-slate-400 hidden sm:inline-block">
+                    ⚡ ئۆتۆماتیک لە داشبۆردەوە دەخرێنەڕوو
+                </span>
             </div>
+        </div>
 
-            <!-- Laboratories Grid (Only Icon + Name) -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                @forelse($approvedLabs as $labUser)
-                    <div class="flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-emerald-300 hover:-translate-y-0.5 transition-all duration-200 group">
-                        <img src="{{ $resolveLabIcon($labUser) }}" 
-                             alt="{{ $resolveLabName($labUser) }}" 
-                             class="w-12 h-12 rounded-xl object-cover border border-slate-100 flex-shrink-0 shadow-xs group-hover:scale-105 transition-transform bg-slate-50"
-                             onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
-                        <span class="text-xs sm:text-sm font-extrabold text-slate-800 group-hover:text-emerald-700 transition-colors line-clamp-2 leading-tight">
-                            {{ $resolveLabName($labUser) }}
-                        </span>
+        <!-- Horizontal Marquee Container (No shadows, full width, continuous autoplay) -->
+        <div class="w-full overflow-hidden select-none" dir="ltr">
+            <div class="marquee-track py-2">
+                @for($loopIndex = 0; $loopIndex < 4; $loopIndex++)
+                    <div class="flex items-center gap-4 flex-shrink-0">
+                        @foreach($approvedLabs as $labUser)
+                            <div dir="{{ in_array(app()->getLocale(), ['ar', 'ckb']) ? 'rtl' : 'ltr' }}" class="inline-flex items-center gap-3 px-4 py-2.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:border-emerald-400 hover:scale-105 transition-all duration-200 whitespace-nowrap flex-shrink-0 cursor-pointer">
+                                <img src="{{ $resolveLabIcon($labUser) }}" 
+                                     alt="{{ $resolveLabName($labUser) }}" 
+                                     class="w-10 h-10 rounded-xl object-cover border border-slate-100 p-0.5 bg-slate-50 flex-shrink-0"
+                                     onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
+                                <span class="text-xs sm:text-sm font-black text-slate-800 hover:text-emerald-700 transition-colors">
+                                    {{ $resolveLabName($labUser) }}
+                                </span>
+                            </div>
+                        @endforeach
                     </div>
-                @empty
-                    <div class="col-span-full p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
-                        {{ __('landing.no_labs_yet') }}
-                    </div>
-                @endforelse
+                @endfor
             </div>
         </div>
     </section>
@@ -452,37 +467,18 @@
                         <p class="text-slate-600 text-base leading-relaxed mb-8 font-medium">
                             {{ __('landing.screen_labs_desc') }}
                         </p>
-                        <!-- Dynamic Registered Laboratories (Only Icon + Name) -->
-                        <div class="mt-6">
-                            <div class="flex items-center justify-between mb-3.5">
-                                <div class="flex items-center gap-2">
-                                    <span class="relative flex h-2.5 w-2.5">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                                    </span>
-                                    <span class="text-xs font-black uppercase tracking-wider text-slate-700">{{ __('landing.registered_labs') }}</span>
-                                </div>
-                                <span class="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
-                                    {{ $approvedLabs->count() }} {{ __('landing.labs_count') }}
-                                </span>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold flex-shrink-0">★</div>
+                                <span class="text-sm font-bold text-emerald-950">{{ __('landing.screen_labs_f1') }}</span>
                             </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[320px] overflow-y-auto pr-1">
-                                @forelse($approvedLabs as $labUser)
-                                    <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/90 hover:bg-emerald-50/50 border border-slate-100 hover:border-emerald-200 transition-all duration-200 group shadow-xs">
-                                        <img src="{{ $resolveLabIcon($labUser) }}" 
-                                             alt="{{ $resolveLabName($labUser) }}" 
-                                             class="w-12 h-12 rounded-xl object-cover bg-white border border-slate-200/80 p-0.5 flex-shrink-0 group-hover:scale-105 group-hover:border-emerald-400 transition-all shadow-xs"
-                                             onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
-                                        <span class="text-sm font-black text-slate-800 group-hover:text-emerald-700 transition-colors leading-snug line-clamp-2">
-                                            {{ $resolveLabName($labUser) }}
-                                        </span>
-                                    </div>
-                                @empty
-                                    <div class="col-span-2 p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                                        {{ __('landing.no_labs_yet') }}
-                                    </div>
-                                @endforelse
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-amber-50 border border-amber-100">
+                                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold flex-shrink-0 text-sm">🏷️</div>
+                                <span class="text-sm font-bold text-amber-950">{{ __('landing.screen_labs_f2') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">✓</div>
+                                <span class="text-sm font-bold text-slate-800">{{ __('landing.screen_labs_f3') }}</span>
                             </div>
                         </div>
                     </div>
