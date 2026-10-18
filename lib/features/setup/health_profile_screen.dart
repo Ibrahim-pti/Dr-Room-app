@@ -164,7 +164,9 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '٦٦٪',
+                                  context.locale.languageCode == 'en'
+                                      ? '66%'
+                                      : '٦٦٪',
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12,
@@ -508,7 +510,7 @@ class _HealthProfileScreenState extends State<HealthProfileScreen> {
                   final isSelected = age == _selectedAge;
                   return Center(
                     child: Text(
-                      '$age ساڵ',
+                      '$age ${'years'.tr()}',
                       style: TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: isSelected ? 22 : 16,
