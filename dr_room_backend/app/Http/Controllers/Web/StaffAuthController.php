@@ -84,13 +84,13 @@ class StaffAuthController extends Controller
             'status' => 'pending',
         ]);
 
-        Auth::login($user);
+        Auth::guard('web')->login($user);
         return redirect()->route('staff.waiting');
     }
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('staff.login');

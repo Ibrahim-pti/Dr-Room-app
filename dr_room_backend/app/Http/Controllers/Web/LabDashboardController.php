@@ -23,7 +23,8 @@ class LabDashboardController extends Controller
         $recentRequests = collect();
 
         if ($schemaReady) {
-            $scoped = fn() => LabResult::where('lab_id', $user->id);
+            $labId = $lab ? $lab->id : $user->id;
+            $scoped = fn() => LabResult::where('lab_id', $labId);
 
             $todayRequests = $scoped()->whereDate('created_at', today())->count();
             $completedTests = $scoped()->where('status', 'completed')->count();

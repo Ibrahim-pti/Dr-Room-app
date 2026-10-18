@@ -450,12 +450,8 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
                                         child: Builder(
                                           builder: (context) {
                                             final imgPath = banner['image_path'].toString();
-                                            final url = imgPath.startsWith('http')
-                                                ? imgPath
-                                                : (imgPath.startsWith('assets/')
-                                                    ? null
-                                                    : '${ApiClient.storageUrl}/$imgPath');
-                                            if (url == null) {
+                                            final url = ApiClient.getImageUrl(imgPath);
+                                            if (url.isEmpty || imgPath.startsWith('assets/')) {
                                               return Container(
                                                 height: 160,
                                                 color: AppColors.primary.withValues(alpha: 0.1),

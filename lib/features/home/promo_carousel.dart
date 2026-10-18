@@ -231,15 +231,10 @@ class _PromoCarouselState extends State<PromoCarousel> {
               String? fullImageUrl;
               bool isLocalAsset = false;
               if (imagePath != null && imagePath.isNotEmpty) {
-                if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-                  fullImageUrl = imagePath;
-                } else if (imagePath.startsWith('assets/')) {
+                if (imagePath.startsWith('assets/')) {
                   isLocalAsset = true;
                 } else {
-                  final cleanPath = imagePath
-                      .replaceFirst(RegExp(r'^/?storage/'), '')
-                      .replaceFirst(RegExp(r'^/+'), '');
-                  fullImageUrl = '${ApiClient.storageUrl}/$cleanPath';
+                  fullImageUrl = ApiClient.getImageUrl(imagePath);
                 }
               }
 
