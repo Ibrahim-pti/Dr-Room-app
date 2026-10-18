@@ -290,15 +290,12 @@ class AuthController extends Controller
             ->orWhere('phone', $phone)
             ->first();
 
-        // If user doesn't exist yet, automatically create patient account
+        // If user doesn't exist, do NOT auto-create; require them to register first!
         if (!$user) {
-            $user = User::create([
-                'name' => 'User ' . substr($normalizedPhone, -4),
-                'phone' => $normalizedPhone,
-                'password' => Hash::make(\Illuminate\Support\Str::random(16)),
-                'role' => 'patient',
-                'status' => 'approved',
-            ]);
+            return response()->json([
+                'message' => 'ئەم ژمارە مۆبایلە تۆمار نەکراوە، تکایە سەرەتا خۆت تۆمار بکە.',
+                'not_registered' => true,
+            ], 404);
         }
 
         if ($user->status === 'pending') {
