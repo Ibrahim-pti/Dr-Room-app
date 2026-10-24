@@ -145,12 +145,12 @@ return [
     'screen_nursing_f2' => 'Injections, IV cannulas, wound dressing, and fast care',
     'screen_nursing_f3' => 'Seamless booking with integrated Emergency SOS button',
 
-    'screen_firstaid_tab' => 'First Aid Guide',
-    'screen_firstaid_title' => 'Life-Saving Emergency & First Aid Guidelines',
-    'screen_firstaid_desc' => 'Step-by-step certified emergency protocols for choking, burns, cardiac arrest (CPR), and trauma care before the ambulance arrives.',
-    'screen_firstaid_f1' => 'Cardiac pulmonary resuscitation (CPR) & Heimlich maneuver protocols',
-    'screen_firstaid_f2' => 'Immediate first aid for 1st, 2nd, and 3rd degree burns and wounds',
-    'screen_firstaid_f3' => 'Categorized into Respiratory, Skin, and Cardiovascular emergencies',
+    'screen_firstaid_tab' => 'Health News & Information',
+    'screen_firstaid_title' => 'Latest Health News, Articles & Verified Medical Insights',
+    'screen_firstaid_desc' => 'Read verified medical advice, preventive tips, and health insights from top clinical experts to keep you and your family protected.',
+    'screen_firstaid_f1' => 'Verified articles & guides by certified medical specialists',
+    'screen_firstaid_f2' => 'Stay updated with the latest medical news & discoveries',
+    'screen_firstaid_f3' => 'Dedicated categories for common conditions & prevention',
 
     // Testimonials
     'testimonials' => 'What Our Patients Say',
