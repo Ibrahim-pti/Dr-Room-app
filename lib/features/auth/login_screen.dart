@@ -406,58 +406,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => setSheetState(() => chosenProvider = 'telegram'),
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: chosenProvider == 'telegram'
-                                          ? (isDark ? const Color(0xFF1E293B) : Colors.white)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: chosenProvider == 'telegram'
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(alpha: 0.06),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.send_rounded,
-                                          size: 16,
-                                          color: chosenProvider == 'telegram'
-                                              ? const Color(0xFF0284C7)
-                                              : const Color(0xFF64748B),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          'channel_telegram'.tr(),
-                                          style: TextStyle(
-                                            fontFamily: 'Rabar',
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: chosenProvider == 'telegram'
-                                                ? const Color(0xFF0284C7)
-                                                : const Color(0xFF64748B),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: InkWell(
                                   onTap: () => setSheetState(() => chosenProvider = 'whatsapp'),
@@ -642,9 +591,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: chosenProvider == 'whatsapp'
                                   ? const Color(0xFF16A34A)
-                                  : (chosenProvider == 'telegram'
-                                      ? const Color(0xFF0284C7)
-                                      : const Color(0xFF2563EB)),
+                                  : const Color(0xFF2563EB),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               elevation: 0,
@@ -661,18 +608,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                       Icon(
                                         chosenProvider == 'whatsapp'
                                             ? Icons.chat_bubble_outline_rounded
-                                            : (chosenProvider == 'telegram'
-                                                ? Icons.send_rounded
-                                                : Icons.sms_outlined),
+                                            : Icons.sms_outlined,
                                         size: 19,
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
                                         chosenProvider == 'whatsapp'
                                             ? 'send_code_via_whatsapp'.tr()
-                                            : (chosenProvider == 'telegram'
-                                                ? 'send_code_via_telegram'.tr()
-                                                : 'send_code_via_sms'.tr()),
+                                            : 'send_code_via_sms'.tr(),
                                         style: const TextStyle(
                                           fontFamily: 'Rabar',
                                           fontSize: 14.5,
@@ -703,20 +646,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               Icon(
                                 chosenProvider == 'whatsapp'
                                     ? Icons.chat_bubble_outline_rounded
-                                    : (chosenProvider == 'telegram'
-                                        ? Icons.send_rounded
-                                        : Icons.sms_outlined),
+                                    : Icons.sms_outlined,
                                 size: 18,
                                 color: chosenProvider == 'whatsapp'
                                     ? const Color(0xFF16A34A)
-                                    : (chosenProvider == 'telegram'
-                                        ? const Color(0xFF0284C7)
-                                        : const Color(0xFF2563EB)),
+                                    : const Color(0xFF2563EB),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  '${'code_sent_to'.tr()}: $targetPhone (${chosenProvider == 'whatsapp' ? 'channel_whatsapp'.tr() : (chosenProvider == 'telegram' ? 'channel_telegram'.tr() : 'channel_sms'.tr())})',
+                                  '${'code_sent_to'.tr()}: $targetPhone (${chosenProvider == 'whatsapp' ? 'channel_whatsapp'.tr() : 'channel_sms'.tr()})',
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12.5,

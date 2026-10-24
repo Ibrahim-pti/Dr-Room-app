@@ -157,9 +157,7 @@ class _OtpScreenState extends State<OtpScreen> {
         _startTimer();
         final channelName = provider == 'whatsapp'
             ? 'receive_via_whatsapp'.tr()
-            : (provider == 'telegram'
-                ? 'receive_via_telegram'.tr()
-                : 'receive_via_sms'.tr());
+            : 'receive_via_sms'.tr();
         setState(() {
           _infoMessage = '${'code_sent_via'.tr()} $channelName';
         });
@@ -405,40 +403,6 @@ class _OtpScreenState extends State<OtpScreen> {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    // Resend via Telegram
-                    OutlinedButton.icon(
-                      onPressed: !_isResending ? () => _resendCode('telegram') : null,
-                      icon: (_isResending && _resendingProvider == 'telegram')
-                          ? const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Color(0xFF229ED9),
-                              ),
-                            )
-                          : const Icon(
-                              Icons.send_rounded,
-                              size: 16,
-                              color: Color(0xFF229ED9),
-                            ),
-                      label: Text(
-                        'receive_via_telegram'.tr(),
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0284C7),
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF229ED9), width: 1.2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      ),
-                    ),
                     // Resend via WhatsApp
                     OutlinedButton.icon(
                       onPressed: !_isResending ? () => _resendCode('whatsapp') : null,

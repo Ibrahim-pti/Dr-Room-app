@@ -468,31 +468,31 @@
                     </div>
                 </div>
                 
-                <!-- Service 5: Ambulance & Emergency Guide -->
+                <!-- Service 5: Sonar & X-Ray -->
                 <div class="bg-white hover:bg-slate-50/70 rounded-3xl p-7 border border-slate-200 hover:border-blue-400 transition-all flex flex-col justify-between group">
                     <div>
-                        <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
-                            🚑
+                        <div class="w-14 h-14 rounded-2xl bg-cyan-50 text-cyan-600 border border-cyan-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
+                            🩻
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.screen_firstaid_tab') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.screen_firstaid_desc') }}</p>
+                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.xray') }}</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.xray_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
-                        <span class="bg-amber-50 text-amber-800 border border-amber-200 text-xs font-extrabold px-3 py-1 rounded-xl">ڕێبەری CPR و سووتان</span>
+                        <span class="bg-cyan-50 text-cyan-700 border border-cyan-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.available_home') }}</span>
                     </div>
                 </div>
                 
-                <!-- Service 6: Smart Records -->
+                <!-- Service 6: Health News & Information -->
                 <div class="bg-white hover:bg-slate-50/70 rounded-3xl p-7 border border-slate-200 hover:border-blue-400 transition-all flex flex-col justify-between group">
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
-                            📁
+                            📰
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.more_services') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.more_desc') }}</p>
+                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.health_news') }}</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.health_news_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
-                        <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-extrabold px-3 py-1 rounded-xl">پارێزراو بە تەواوی</span>
+                        <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.latest_articles') }}</span>
                     </div>
                 </div>
             </div>
@@ -949,7 +949,8 @@
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.nursing') }}</a></li>
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.doctor') }}</a></li>
                         <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.pharmacy') }}</a></li>
-                        <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.screen_firstaid_tab') }}</a></li>
+                        <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.xray') }}</a></li>
+                        <li><a href="#services" class="hover:text-blue-600 transition">{{ __('landing.health_news') }}</a></li>
                     </ul>
                 </div>
 

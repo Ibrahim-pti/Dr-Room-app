@@ -44,11 +44,15 @@ return [
     'pharmacy' => 'Online Pharmacy & Delivery',
     'pharmacy_desc' => 'Upload your prescription and get certified medicines delivered safely to your door.',
     
-    'xray' => 'X-Ray & Ultrasound',
+    'xray' => 'Ultrasound & X-Ray',
     'xray_desc' => 'Mobile home radiology services and effortless clinic imaging appointments.',
     
-    'more_services' => 'Smart Medical Records',
-    'more_desc' => 'Keep all your medical history, prescriptions, and lab tests synchronized in one secure file.',
+    'health_news' => 'Health News & Information',
+    'health_news_desc' => 'Read the latest verified medical articles, healthcare news, and preventive tips.',
+    'latest_articles' => 'Latest Articles',
+    
+    'more_services' => 'Health News & Information',
+    'more_desc' => 'Read the latest verified medical articles, healthcare news, and preventive tips.',
     
     'available_home' => 'Home Available',
     'fast_booking' => 'Fast Booking',
