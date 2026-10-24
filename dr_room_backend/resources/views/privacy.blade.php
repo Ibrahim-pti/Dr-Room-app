@@ -112,7 +112,9 @@
                         <span class="inline-flex flex-wrap gap-4 mt-2">
                             <a href="mailto:drrroomapp@gmail.com" class="font-bold text-[#1e60eb] hover:underline" dir="ltr">drrroomapp@gmail.com</a>
                             <span class="text-slate-300">|</span>
-                            <a href="tel:+9647512596050" class="font-bold text-[#1e60eb] hover:underline" dir="ltr">+964 751 259 6050</a>
+                            <a href="tel:+9647506148003" class="font-bold text-[#1e60eb] hover:underline" dir="ltr">+964 750 614 8003</a>
+                            <span class="text-slate-300">|</span>
+                            <a href="tel:+9647764114040" class="font-bold text-[#1e60eb] hover:underline" dir="ltr">+964 776 411 4040</a>
                         </span>
                     </p>
                 </section>

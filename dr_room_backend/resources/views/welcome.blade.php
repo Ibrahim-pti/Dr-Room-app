@@ -960,7 +960,11 @@
                     <ul class="space-y-3 text-xs sm:text-sm text-slate-600 font-medium">
                         <li class="flex items-start gap-2.5">
                             <svg class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                            <a href="tel:+9647512596050" class="hover:text-blue-600 transition" dir="ltr">+964 751 259 6050</a>
+                            <a href="tel:+9647506148003" class="hover:text-blue-600 transition" dir="ltr">+964 750 614 8003</a>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            <a href="tel:+9647764114040" class="hover:text-blue-600 transition" dir="ltr">+964 776 411 4040</a>
                         </li>
                         <li class="flex items-start gap-2.5">
                             <svg class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
@@ -988,7 +992,7 @@
     </footer>
 
     <!-- Floating WhatsApp Widget (Flat, Crisp Border, Live Beacon) -->
-    <a href="https://wa.me/9647512596050?text={{ rawurlencode('سڵاو، دەربارەی خزمەتگوزارییەکانی دکتۆر رووم پرسیارم هەیە') }}" 
+    <a href="https://wa.me/9647506148003?text={{ rawurlencode('سڵاو، دەربارەی خزمەتگوزارییەکانی دکتۆر رووم پرسیارم هەیە') }}" 
        target="_blank" 
        rel="noopener noreferrer"
        class="fixed bottom-6 start-6 z-50 flex items-center gap-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white px-4 py-3 rounded-full border border-white hover:scale-105 active:scale-95 transition-all duration-200 group"
@@ -1042,7 +1046,7 @@
                 </p>
 
                 <div class="space-y-3">
-                    <a href="https://wa.me/9647512596050?text={{ rawurlencode('سڵاو، دەمەوێت لە ڕێگەی دکتۆر روومەوە خزمەتگوزاری پزیشکی داوا بکەم') }}"
+                    <a href="https://wa.me/9647506148003?text={{ rawurlencode('سڵاو، دەمەوێت لە ڕێگەی دکتۆر روومەوە خزمەتگوزاری پزیشکی داوا بکەم') }}"
                        target="_blank"
                        rel="noopener noreferrer"
                        class="w-full flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#20bd5a] text-white py-3.5 px-5 rounded-2xl font-bold text-sm border border-emerald-400 transition active:scale-95">

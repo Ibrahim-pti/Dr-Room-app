@@ -128,7 +128,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   title: 'phone_call'.tr(),
                   color: const Color(0xFF3B82F6),
                   onTap: () async {
-                    final Uri url = Uri.parse('tel:+9647512596050');
+                    final Uri url = Uri.parse('tel:+9647506148003');
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url);
                     }
