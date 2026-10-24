@@ -130,4 +130,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(NurseAppointment::class, 'patient_id');
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'patient_id');
+    }
+
+    public function assignedNurseOrders()
+    {
+        return $this->hasMany(Order::class, 'assigned_nurse_id');
+    }
+
+    public function assignedPharmacyOrders()
+    {
+        return $this->hasMany(Order::class, 'assigned_pharmacy_id');
+    }
+
+    public function assignedLabOrders()
+    {
+        return $this->hasMany(Order::class, 'assigned_lab_id');
+    }
 }

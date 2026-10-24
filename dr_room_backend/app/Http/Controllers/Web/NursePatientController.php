@@ -28,16 +28,34 @@ class NursePatientController extends Controller
         }
 
         $patients = User::whereIn('id', $patientIds)
-            ->withCount(['orders as total_visits' => function($q) use ($userId) {
-                $q->where('assigned_nurse_id', $userId)
-                  ->whereIn('service_type', ['Nursing Services', 'nursing']);
-            }])
-            ->with(['orders' => function($q) use ($userId) {
-                $q->where('assigned_nurse_id', $userId)
-                  ->whereIn('service_type', ['Nursing Services', 'nursing'])
-                  ->orderBy('created_at', 'desc')
-                  ->take(1);
-            }])
+            ->withCount([
+                'orders as total_visits' => function($q) use ($userId) {
+                    $q->where('assigned_nurse_id', $userId)
+                      ->whereIn('service_type', ['Nursing Services', 'nursing']);
+                },
+                'nurseAppointments as total_appointments' => function($q) use ($nurse) {
+                    if ($nurse) {
+                        $q->where('nurse_id', $nurse->id);
+                    } else {
+                        $q->whereRaw('1 = 0');
+                    }
+                }
+            ])
+            ->with([
+                'orders' => function($q) use ($userId) {
+                    $q->where('assigned_nurse_id', $userId)
+                      ->whereIn('service_type', ['Nursing Services', 'nursing'])
+                      ->orderBy('created_at', 'desc');
+                },
+                'nurseAppointments' => function($q) use ($nurse) {
+                    if ($nurse) {
+                        $q->where('nurse_id', $nurse->id)
+                          ->orderBy('appointment_date', 'desc');
+                    } else {
+                        $q->whereRaw('1 = 0');
+                    }
+                }
+            ])
             ->paginate(15);
 
         return view('nurse.patients.index', compact('patients'));

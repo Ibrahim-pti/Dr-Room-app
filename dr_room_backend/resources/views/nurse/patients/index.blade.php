@@ -32,14 +32,21 @@
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ $patient->total_visits }}
+                                {{ ($patient->total_visits ?? 0) + ($patient->total_appointments ?? 0) }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-slate-600" dir="ltr">
                             @php
-                                $lastVisit = $patient->orders->first()?->created_at ?? $patient->nurseAppointments?->first()?->appointment_date;
+                                $lastOrderDate = $patient->orders->first()?->created_at;
+                                $lastAppDate = $patient->nurseAppointments->first()?->appointment_date;
+                                $lastVisit = null;
+                                if ($lastOrderDate && $lastAppDate) {
+                                    $lastVisit = $lastOrderDate->gt($lastAppDate) ? $lastOrderDate : $lastAppDate;
+                                } else {
+                                    $lastVisit = $lastOrderDate ?? $lastAppDate;
+                                }
                             @endphp
-                            {{ $lastVisit ? $lastVisit->format('Y-m-d') : '-' }}
+                            {{ $lastVisit ? \Carbon\Carbon::parse($lastVisit)->format('Y-m-d') : '-' }}
                         </td>
                     </tr>
                 @empty
