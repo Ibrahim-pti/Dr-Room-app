@@ -699,7 +699,7 @@
                 <div class="w-full lg:w-1/2 flex justify-center select-none">
                     <div class="w-[270px] sm:w-[300px] h-[550px] sm:h-[600px] rounded-[3.4rem] phone-bezel overflow-hidden relative">
                         <div class="absolute top-2 w-24 h-4 bg-slate-900 rounded-full z-20 left-1/2 -translate-x-1/2"></div>
-                        <img src="{{ asset('images/app_first_aid.png') }}" alt="DrRoom Trust" class="w-full h-full object-cover rounded-[2.6rem]">
+                        <img src="{{ asset('images/app_home.png') }}" alt="DrRoom Trust" class="w-full h-full object-cover rounded-[2.6rem]" onerror="this.onerror=null; this.src='{{ asset('images/app-screen-front.png') }}';">
                     </div>
                 </div>
 
@@ -716,41 +716,41 @@
                         {{ __('landing.about_desc') }}
                     </p>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                         <!-- Pillar 1 -->
-                        <div class="bg-white p-4.5 rounded-2xl border border-slate-200">
-                            <div class="w-10 h-10 bg-blue-50 text-[#1e60eb] rounded-xl flex items-center justify-center font-bold mb-3 border border-blue-100">
+                        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
+                            <div class="w-12 h-12 bg-blue-50 text-[#1e60eb] rounded-2xl flex items-center justify-center text-2xl mb-4 border border-blue-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 🛡️
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm mb-1">{{ __('landing.verified_prof') }}</h4>
-                            <p class="text-slate-500 text-xs leading-relaxed">{{ __('landing.verified_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2 tracking-tight">{{ __('landing.verified_prof') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">{{ __('landing.verified_desc') }}</p>
                         </div>
 
                         <!-- Pillar 2 -->
-                        <div class="bg-white p-4.5 rounded-2xl border border-slate-200">
-                            <div class="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-xl flex items-center justify-center font-bold mb-3 border border-emerald-100">
+                        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
+                            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-emerald-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 ⚡
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm mb-1">{{ __('landing.fast_reliable') }}</h4>
-                            <p class="text-slate-500 text-xs leading-relaxed">{{ __('landing.fast_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2 tracking-tight">{{ __('landing.fast_reliable') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">{{ __('landing.fast_desc') }}</p>
                         </div>
 
                         <!-- Pillar 3 -->
-                        <div class="bg-white p-4.5 rounded-2xl border border-slate-200">
-                            <div class="w-10 h-10 bg-purple-50 text-purple-700 rounded-xl flex items-center justify-center font-bold mb-3 border border-purple-100">
+                        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
+                            <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-purple-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 📱
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm mb-1">{{ __('landing.easy_booking') }}</h4>
-                            <p class="text-slate-500 text-xs leading-relaxed">{{ __('landing.easy_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2 tracking-tight">{{ __('landing.easy_booking') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">{{ __('landing.easy_desc') }}</p>
                         </div>
 
                         <!-- Pillar 4 -->
-                        <div class="bg-white p-4.5 rounded-2xl border border-slate-200">
-                            <div class="w-10 h-10 bg-amber-50 text-amber-700 rounded-xl flex items-center justify-center font-bold mb-3 border border-amber-100">
+                        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
+                            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-amber-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 🔒
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm mb-1">{{ __('landing.secure_pay') }}</h4>
-                            <p class="text-slate-500 text-xs leading-relaxed">{{ __('landing.secure_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2 tracking-tight">{{ __('landing.secure_pay') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">{{ __('landing.secure_desc') }}</p>
                         </div>
                     </div>
                 </div>
