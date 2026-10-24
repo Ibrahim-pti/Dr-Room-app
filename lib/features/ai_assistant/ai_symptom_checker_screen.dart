@@ -215,27 +215,13 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               ),
             ),
             const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'ai_scanner_title'.tr(),
-                  style: _kStyle(
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'ai_scanner_subtitle'.tr(),
-                  style: _kStyle(
-                    color: const Color(0xFF2563EB),
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            Text(
+              'ai_scanner_title'.tr(),
+              style: _kStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
