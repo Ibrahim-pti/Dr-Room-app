@@ -73,7 +73,7 @@ jobs:
             cd "$DEPLOY_DIR"
 
             echo "⚡ --- دابەزاندنی پاکەیجەکان (Composer) ---"
-            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --ignore-platform-reqs
 
             echo "🗄️ --- جێبەجێکردنی مایگرەیشنەکان (Database Migrate) ---"
             php artisan migrate --force
