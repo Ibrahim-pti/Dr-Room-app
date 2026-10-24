@@ -96,18 +96,12 @@
             </div>
         </div>
 
-        <!-- Hours, Discount, YouTube -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
+        <!-- Hours, YouTube -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
             <div>
                 <label for="opening_hours" class="block text-sm font-medium text-slate-700 mb-2">کاتەکانی دەوام (Opening Hours)</label>
                 <input type="text" id="opening_hours" name="opening_hours" value="{{ old('opening_hours', $lab?->opening_hours ?? '08:00 AM - 10:00 PM') }}"
                     placeholder="08:00 AM - 10:00 PM" dir="ltr"
-                    class="w-full text-left px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
-            </div>
-            <div>
-                <label for="discount" class="block text-sm font-medium text-slate-700 mb-2">داشکاندنی گشتی (%)</label>
-                <input type="number" id="discount" name="discount" min="0" max="100" value="{{ old('discount', $lab?->discount) }}"
-                    placeholder="نموونە: 20" dir="ltr"
                     class="w-full text-left px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
             </div>
             <div>
