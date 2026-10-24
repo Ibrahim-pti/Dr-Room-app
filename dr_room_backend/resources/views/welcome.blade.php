@@ -530,9 +530,9 @@
                     <span>{{ __('landing.screen_nursing_tab') }}</span>
                 </button>
 
-                <!-- Tab 3: First Aid -->
-                <button @click="activeTab = 'firstaid'" :class="activeTab === 'firstaid' ? 'bg-rose-600 text-white border-rose-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
-                    <span>🚨</span>
+                <!-- Tab 3: Health News & Information -->
+                <button @click="activeTab = 'firstaid'" :class="activeTab === 'firstaid' ? 'bg-[#1e60eb] text-white border-blue-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
+                    <span>📰</span>
                     <span>{{ __('landing.screen_firstaid_tab') }}</span>
                 </button>
 
