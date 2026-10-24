@@ -625,8 +625,8 @@
                         </div>
                     </div>
                     <div class="w-full lg:w-1/2">
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-black mb-4 border border-rose-200">
-                            <span>🚨</span> {{ __('landing.screen_firstaid_tab') }}
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 text-[#1e60eb] text-xs font-black mb-4 border border-blue-200">
+                            <span>📰</span> {{ __('landing.screen_firstaid_tab') }}
                         </div>
                         <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.5]">
                             {{ __('landing.screen_firstaid_title') }}
@@ -635,16 +635,16 @@
                             {{ __('landing.screen_firstaid_desc') }}
                         </p>
                         <div class="space-y-3">
-                            <div class="flex items-center gap-3 p-3 rounded-2xl bg-rose-50/70 border border-rose-200">
-                                <div class="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">🫀</div>
-                                <span class="text-xs sm:text-sm font-bold text-rose-950">{{ __('landing.screen_firstaid_f1') }}</span>
+                            <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200">
+                                <div class="w-8 h-8 rounded-xl bg-blue-100 text-[#1e60eb] flex items-center justify-center font-bold flex-shrink-0 text-sm">✓</div>
+                                <span class="text-xs sm:text-sm font-bold text-slate-900">{{ __('landing.screen_firstaid_f1') }}</span>
                             </div>
                             <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200">
-                                <div class="w-8 h-8 rounded-xl bg-blue-100 text-[#1e60eb] flex items-center justify-center font-bold flex-shrink-0 text-sm">🔥</div>
+                                <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold flex-shrink-0 text-sm">★</div>
                                 <span class="text-xs sm:text-sm font-bold text-slate-900">{{ __('landing.screen_firstaid_f2') }}</span>
                             </div>
                             <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200">
-                                <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold flex-shrink-0 text-sm">✓</div>
+                                <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold flex-shrink-0 text-sm">💡</div>
                                 <span class="text-xs sm:text-sm font-bold text-slate-900">{{ __('landing.screen_firstaid_f3') }}</span>
                             </div>
                         </div>
