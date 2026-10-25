@@ -7,8 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-use App\Models\Doctor;
-use App\Models\Nurse;
+use App\Services\OtpService;
 
 class StaffAuthController extends Controller
 {
@@ -22,39 +21,45 @@ class StaffAuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+        $request->validate([
+            'phone' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ], [
+            'phone.required' => 'تکایە ژمارەی مۆبایلەکەت بنووسە.',
+            'password.required' => 'تکایە وشەی تێپەڕ بنووسە.',
         ]);
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            
-            if ($user->status === 'pending') {
-                return redirect()->route('staff.waiting');
-            }
-            
-            if ($user->status === 'blocked') {
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'هەژمارەکەت بلۆک کراوە.',
-                ]);
-            }
-            
-            if (in_array($user->role, ['doctor', 'nurse', 'lab', 'pharmacy'])) {
-                $request->session()->regenerate();
-                return $this->redirectBasedOnRole($user->role);
-            } else {
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'تۆ دەسەڵاتی ستافت نییە بۆ چوونەژوورەوە لێرە.',
-                ]);
-            }
+        $input = $request->phone;
+        $user = OtpService::findUserByPhoneOrEmail($input);
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return back()->withErrors([
+                'phone' => 'ژمارەی مۆبایل یان وشەی تێپەڕ هەڵەیە.',
+            ])->withInput($request->except('password'));
         }
 
-        return back()->withErrors([
-            'email' => 'زانیارییەکان هەڵەن یان بوونیان نییە.',
-        ])->onlyInput('email');
+        if ($user->status === 'pending') {
+            Auth::guard('web')->login($user, true);
+            return redirect()->route('staff.waiting');
+        }
+
+        if ($user->status === 'blocked') {
+            return back()->withErrors([
+                'phone' => 'هەژمارەکەت بلۆک کراوە.',
+            ])->withInput($request->except('password'));
+        }
+
+        if (in_array($user->role, ['doctor', 'nurse', 'lab', 'pharmacy', 'admin'])) {
+            // Default remember to true so session never expires prematurely
+            $remember = $request->boolean('remember', true);
+            Auth::guard('web')->login($user, $remember);
+            $request->session()->regenerate();
+            return $this->redirectBasedOnRole($user->role);
+        } else {
+            return back()->withErrors([
+                'phone' => 'تۆ دەسەڵاتی ستافت نییە بۆ چوونەژوورەوە لێرە.',
+            ])->withInput($request->except('password'));
+        }
     }
 
     public function showRegister()
@@ -69,22 +74,47 @@ class StaffAuthController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'phone' => ['required', 'string', 'max:20', 'unique:users'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'phone' => ['required', 'string', 'max:25'],
             'role' => ['required', 'string', 'in:doctor,nurse,lab,pharmacy'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'email' => ['nullable', 'string', 'email', 'max:255'],
+        ], [
+            'name.required' => 'تکایە ناوی تەواو بنووسە.',
+            'phone.required' => 'تکایە ژمارەی مۆبایل بنووسە.',
+            'role.required' => 'تکایە پیشەکەت دیاری بکە.',
+            'password.required' => 'تکایە وشەی تێپەڕ بنووسە.',
+            'password.min' => 'وشەی تێپەڕ دەبێت لانیکەم ٦ پیت بێت.',
+            'password.confirmed' => 'دووبارەکردنەوەی وشەی تێپەڕ وەک یەک نییە.',
         ]);
+
+        $localPhone = OtpService::toLocalPhone($request->phone);
+
+        // Check if phone already registered
+        $existing = OtpService::findUserByPhoneOrEmail($localPhone);
+        if ($existing) {
+            return back()->withErrors([
+                'phone' => 'ئەم ژمارە مۆبایلە پێشتر تۆمارکراوە، تکایە بچۆ ژوورەوە.',
+            ])->withInput($request->except('password', 'password_confirmation'));
+        }
+
+        if ($request->filled('email')) {
+            if (User::where('email', $request->email)->exists()) {
+                return back()->withErrors([
+                    'email' => 'ئەم ئیمەیڵە پێشتر بەکارهاتووە.',
+                ])->withInput($request->except('password', 'password_confirmation'));
+            }
+        }
 
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
+            'phone' => $localPhone,
+            'email' => $request->email ?: ($localPhone . '@drroom.com'),
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'status' => 'pending',
         ]);
 
-        Auth::guard('web')->login($user);
+        Auth::guard('web')->login($user, true);
         return redirect()->route('staff.waiting');
     }
 
@@ -95,8 +125,8 @@ class StaffAuthController extends Controller
         $request->session()->regenerateToken();
         return redirect()->route('staff.login');
     }
-    
-    private function redirectBasedOnRole($role) 
+
+    private function redirectBasedOnRole($role)
     {
         if ($role === 'doctor') {
             return redirect('/doctor/dashboard');
@@ -106,6 +136,8 @@ class StaffAuthController extends Controller
             return redirect('/lab/dashboard');
         } elseif ($role === 'pharmacy') {
             return redirect('/pharmacy/dashboard');
+        } elseif ($role === 'admin') {
+            return redirect('/admin/dashboard');
         }
         return redirect()->route('staff.login');
     }
@@ -130,7 +162,7 @@ class StaffAuthController extends Controller
         if (!$user) {
             return response()->json(['status' => 'unauthenticated'], 401);
         }
-        
+
         return response()->json(['status' => $user->status]);
     }
 }

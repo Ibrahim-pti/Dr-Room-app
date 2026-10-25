@@ -32,11 +32,11 @@ Route::prefix('staff')->group(function () {
     Route::get('/register', [StaffAuthController::class, 'showRegister'])->name('staff.register');
     Route::post('/register', [StaffAuthController::class, 'register']);
 
-    // Password reset
-    Route::get('/forgot-password', [StaffPasswordResetController::class, 'showLinkRequest'])->name('password.request');
-    Route::post('/forgot-password', [StaffPasswordResetController::class, 'sendLink'])->name('password.email');
-    Route::get('/reset-password/{token}', [StaffPasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [StaffPasswordResetController::class, 'reset'])->name('password.update');
+    // Password reset with Phone OTP
+    Route::get('/forgot-password', [StaffPasswordResetController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password', [StaffPasswordResetController::class, 'sendOtp'])->name('password.email');
+    Route::get('/reset-password', [StaffPasswordResetController::class, 'showForgotForm'])->name('password.reset');
+    Route::post('/reset-password', [StaffPasswordResetController::class, 'resetPassword'])->name('password.update');
 
     Route::post('/logout', [StaffAuthController::class, 'logout'])->name('staff.logout')->middleware('auth');
     

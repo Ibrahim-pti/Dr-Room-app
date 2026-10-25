@@ -88,6 +88,55 @@
         .form-control::placeholder { color: #64748b; font-weight: 500; font-size: 14px; }
         .form-control:focus { border-color: #2563EB; background: #ffffff; box-shadow: 0 0 0 4px rgba(37,99,235,0.12); }
 
+        /* Phone Input with Country Code */
+        .phone-input-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: 50px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 14px;
+            background: #f8fafc;
+            transition: all 0.2s;
+            overflow: hidden;
+            direction: ltr;
+        }
+        .phone-input-wrapper:focus-within {
+            border-color: #2563EB;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+        }
+        .country-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 14px;
+            background: #f1f5f9;
+            height: 100%;
+            border-right: 1.5px solid #cbd5e1;
+            color: #0f172a;
+            font-size: 13.5px;
+            font-weight: 700;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .country-badge .flag { font-size: 16px; }
+        .phone-input {
+            flex: 1;
+            height: 100%;
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 14px !important;
+            font-size: 15px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+            text-align: left;
+            letter-spacing: 0.5px;
+        }
+        .phone-input::placeholder { color: #94a3b8; font-weight: 500; letter-spacing: normal; }
+
         /* Custom Dropdown Trigger */
         .select-btn {
             width: 100%; height: 50px; padding: 0 16px 0 16px;
@@ -249,17 +298,13 @@
                     </div>
 
                     <div class="form-group">
-                        <svg class="form-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                        </svg>
-                        <input type="email" name="email" value="{{ old('email') }}" required dir="ltr" class="form-control" placeholder="ناونیشانی ئیمەیڵ">
-                    </div>
-
-                    <div class="form-group">
-                        <svg class="form-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                        </svg>
-                        <input type="text" name="phone" value="{{ old('phone') }}" required dir="ltr" class="form-control" placeholder="ژمارەی مۆبایل">
+                        <div class="phone-input-wrapper">
+                            <div class="country-badge">
+                                <span class="flag">🇮🇶</span>
+                                <span class="code">+964</span>
+                            </div>
+                            <input type="tel" name="phone" value="{{ old('phone') }}" required dir="ltr" class="phone-input" placeholder="07xxxxxxxxx">
+                        </div>
                     </div>
                     
                     <!-- Luxury Downward Opening Custom Dropdown -->
