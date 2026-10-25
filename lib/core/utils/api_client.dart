@@ -72,7 +72,7 @@ class ApiClient {
   static Future<Map<String, String>> _getHeaders() async {
     final prefs = await _getPrefs();
     final token = prefs.getString('auth_token');
-    final localeStr = prefs.getString('locale') ?? 'en';
+    final localeStr = prefs.getString('locale') ?? prefs.getString('easy_localization') ?? 'ckb';
     final lang = localeStr.contains('_') ? localeStr.split('_')[0] : localeStr;
 
     return {

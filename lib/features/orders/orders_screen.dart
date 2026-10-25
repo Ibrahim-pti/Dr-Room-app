@@ -284,7 +284,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      order.title,
+                      order.localizedTitle(context),
                       style: _kStyle(
                         color: isDark ? Colors.white : const Color(0xFF0F172A),
                         fontSize: 15,

@@ -33,6 +33,32 @@ class User extends Authenticatable
         ];
     }
 
+    protected $appends = ['avatar_url'];
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        $raw = $this->profile_image;
+        if (!$raw && $this->relationLoaded('nurse') && $this->nurse) {
+            $raw = $this->nurse->image_path;
+        } elseif (!$raw && $this->relationLoaded('doctor') && $this->doctor) {
+            $raw = $this->doctor->image_path;
+        } elseif (!$raw && $this->relationLoaded('lab') && $this->lab) {
+            $raw = $this->lab->image_path;
+        } elseif (!$raw && $this->relationLoaded('pharmacy') && $this->pharmacy) {
+            $raw = $this->pharmacy->image_path;
+        }
+
+        if (empty($raw)) return null;
+        if (str_starts_with($raw, 'http://') || str_starts_with($raw, 'https://')) {
+            return $raw;
+        }
+        $clean = ltrim($raw, '/');
+        if (str_starts_with($clean, 'storage/')) {
+            return asset($clean);
+        }
+        return asset('storage/' . $clean);
+    }
+
     public function getIsAdminAttribute(): bool
     {
         return $this->role === 'admin';

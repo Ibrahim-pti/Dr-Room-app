@@ -60,13 +60,39 @@ class OrderModel {
   /// Raw `service_type` from the API — 'Lab Tests', 'Nursing Services',
   /// 'pharmacy' … Kept as sent so it survives a round trip unchanged.
   final String serviceType;
+  final String? titleCkb;
+  final String? titleKmr;
+  final String? titleAr;
+  final String? titleEn;
+
   final OrderStatus status;
+  final String? statusLabelCkb;
+  final String? statusLabelKmr;
+  final String? statusLabelAr;
+  final String? statusLabelEn;
+
   final double price;
   final DateTime date;
   final String? assignedNurseId;
   final String? assignedNurseName;
+  final String? assignedNurseNameEn;
+  final String? assignedNurseNameAr;
+  final String? assignedNurseNameKmr;
+  final String? assignedNurseNameCkb;
   final String? assignedNurseAvatar;
+  final String? assignedNurseSpecialty;
+  final String? assignedNurseSpecialtyEn;
+  final String? assignedNurseSpecialtyAr;
+  final String? assignedNurseSpecialtyKmr;
+  final String? assignedNurseSpecialtyCkb;
+  final String? assignedNursePhone;
+
   final String? assignedPharmacyName;
+  final String? assignedPharmacyNameEn;
+  final String? assignedPharmacyNameAr;
+  final String? assignedPharmacyNameKmr;
+  final String? assignedPharmacyAvatar;
+
   final String? paymentMethod;
   final List<dynamic>? items;
 
@@ -77,32 +103,97 @@ class OrderModel {
   const OrderModel({
     required this.id,
     required this.serviceType,
+    this.titleCkb,
+    this.titleKmr,
+    this.titleAr,
+    this.titleEn,
     required this.status,
+    this.statusLabelCkb,
+    this.statusLabelKmr,
+    this.statusLabelAr,
+    this.statusLabelEn,
     required this.price,
     required this.date,
     this.assignedNurseId,
     this.assignedNurseName,
+    this.assignedNurseNameEn,
+    this.assignedNurseNameAr,
+    this.assignedNurseNameKmr,
+    this.assignedNurseNameCkb,
     this.assignedNurseAvatar,
+    this.assignedNurseSpecialty,
+    this.assignedNurseSpecialtyEn,
+    this.assignedNurseSpecialtyAr,
+    this.assignedNurseSpecialtyKmr,
+    this.assignedNurseSpecialtyCkb,
+    this.assignedNursePhone,
     this.assignedPharmacyName,
+    this.assignedPharmacyNameEn,
+    this.assignedPharmacyNameAr,
+    this.assignedPharmacyNameKmr,
+    this.assignedPharmacyAvatar,
     this.paymentMethod,
     this.items,
     this.customTitle,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    final nurse = json['assigned_nurse'];
-    final pharmacy = json['assigned_pharmacy'];
+    final nurse = json['assigned_nurse'] is Map<String, dynamic>
+        ? json['assigned_nurse'] as Map<String, dynamic>
+        : (json['assigned_nurse'] is Map ? Map<String, dynamic>.from(json['assigned_nurse'] as Map) : null);
+    final pharmacy = json['assigned_pharmacy'] is Map<String, dynamic>
+        ? json['assigned_pharmacy'] as Map<String, dynamic>
+        : (json['assigned_pharmacy'] is Map ? Map<String, dynamic>.from(json['assigned_pharmacy'] as Map) : null);
+
+    final rawNurseAvatar = nurse?['avatar']?.toString() ??
+        nurse?['image_url']?.toString() ??
+        nurse?['profile_image']?.toString() ??
+        nurse?['avatar_url']?.toString();
+    final resolvedNurseAvatar = (rawNurseAvatar != null && rawNurseAvatar.trim().isNotEmpty)
+        ? ApiClient.getImageUrl(rawNurseAvatar.trim())
+        : null;
+
+    final rawPharmacyAvatar = pharmacy?['avatar']?.toString() ??
+        pharmacy?['image_url']?.toString() ??
+        pharmacy?['profile_image']?.toString();
+    final resolvedPharmacyAvatar = (rawPharmacyAvatar != null && rawPharmacyAvatar.trim().isNotEmpty)
+        ? ApiClient.getImageUrl(rawPharmacyAvatar.trim())
+        : null;
+
+    final statusLabels = json['status_labels'] is Map ? json['status_labels'] as Map : null;
 
     return OrderModel(
       id: json['id']?.toString() ?? '',
       serviceType: json['service_type']?.toString() ?? '',
+      titleCkb: json['title_ckb']?.toString(),
+      titleKmr: json['title_kmr']?.toString(),
+      titleAr: json['title_ar']?.toString(),
+      titleEn: json['title_en']?.toString(),
       status: OrderStatus.fromApi(json['status']?.toString()),
+      statusLabelCkb: statusLabels?['ckb']?.toString() ?? json['status_label']?.toString(),
+      statusLabelKmr: statusLabels?['kmr']?.toString(),
+      statusLabelAr: statusLabels?['ar']?.toString(),
+      statusLabelEn: statusLabels?['en']?.toString(),
       price: double.tryParse(json['total_price']?.toString() ?? '') ?? 0.0,
       date: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
       assignedNurseId: nurse?['id']?.toString(),
       assignedNurseName: nurse?['name']?.toString(),
-      assignedNurseAvatar: nurse?['avatar']?.toString() ?? nurse?['profile_image']?.toString(),
+      assignedNurseNameEn: nurse?['name_en']?.toString(),
+      assignedNurseNameAr: nurse?['name_ar']?.toString(),
+      assignedNurseNameKmr: nurse?['name_kmr']?.toString(),
+      assignedNurseNameCkb: nurse?['name_ckb']?.toString(),
+      assignedNurseAvatar: resolvedNurseAvatar,
+      assignedNurseSpecialty: nurse?['specialty']?.toString(),
+      assignedNurseSpecialtyEn: nurse?['specialty_en']?.toString(),
+      assignedNurseSpecialtyAr: nurse?['specialty_ar']?.toString(),
+      assignedNurseSpecialtyKmr: nurse?['specialty_kmr']?.toString(),
+      assignedNurseSpecialtyCkb: nurse?['specialty_ckb']?.toString(),
+      assignedNursePhone: nurse?['phone']?.toString(),
       assignedPharmacyName: pharmacy?['name']?.toString(),
+      assignedPharmacyNameEn: pharmacy?['name_en']?.toString(),
+      assignedPharmacyNameAr: pharmacy?['name_ar']?.toString(),
+      assignedPharmacyNameKmr: pharmacy?['name_kmr']?.toString(),
+      assignedPharmacyAvatar: resolvedPharmacyAvatar,
       paymentMethod: json['payment_method']?.toString(),
       items: json['items'] is List ? json['items'] : null,
     );
@@ -120,13 +211,35 @@ class OrderModel {
     return OrderModel(
       id: id,
       serviceType: serviceType,
+      titleCkb: titleCkb,
+      titleKmr: titleKmr,
+      titleAr: titleAr,
+      titleEn: titleEn,
       status: status ?? this.status,
+      statusLabelCkb: statusLabelCkb,
+      statusLabelKmr: statusLabelKmr,
+      statusLabelAr: statusLabelAr,
+      statusLabelEn: statusLabelEn,
       price: price,
       date: date,
       assignedNurseId: assignedNurseId ?? this.assignedNurseId,
       assignedNurseName: assignedNurseName ?? this.assignedNurseName,
+      assignedNurseNameEn: assignedNurseNameEn,
+      assignedNurseNameAr: assignedNurseNameAr,
+      assignedNurseNameKmr: assignedNurseNameKmr,
+      assignedNurseNameCkb: assignedNurseNameCkb,
       assignedNurseAvatar: assignedNurseAvatar ?? this.assignedNurseAvatar,
+      assignedNurseSpecialty: assignedNurseSpecialty,
+      assignedNurseSpecialtyEn: assignedNurseSpecialtyEn,
+      assignedNurseSpecialtyAr: assignedNurseSpecialtyAr,
+      assignedNurseSpecialtyKmr: assignedNurseSpecialtyKmr,
+      assignedNurseSpecialtyCkb: assignedNurseSpecialtyCkb,
+      assignedNursePhone: assignedNursePhone,
       assignedPharmacyName: assignedPharmacyName ?? this.assignedPharmacyName,
+      assignedPharmacyNameEn: assignedPharmacyNameEn,
+      assignedPharmacyNameAr: assignedPharmacyNameAr,
+      assignedPharmacyNameKmr: assignedPharmacyNameKmr,
+      assignedPharmacyAvatar: assignedPharmacyAvatar,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       items: items ?? this.items,
       customTitle: customTitle,
@@ -140,14 +253,89 @@ class OrderModel {
   bool get _isNursing => _serviceKey.contains('nurs');
   bool get _isPharmacy => _serviceKey.contains('pharmac');
 
-  /// What the patient sees as the order's name. Falls back to the translated
-  /// service name so an order is never labelled with a raw English string.
+  /// Context-aware localized title. Prioritizes the active language from BuildContext.
+  String localizedTitle(BuildContext context) {
+    if (customTitle != null && customTitle!.isNotEmpty) return customTitle!;
+    final lang = context.locale.languageCode.toLowerCase();
+
+    if (lang == 'kmr' && titleKmr != null && titleKmr!.isNotEmpty) return titleKmr!;
+    if (lang == 'ar' && titleAr != null && titleAr!.isNotEmpty) return titleAr!;
+    if (lang == 'en' && titleEn != null && titleEn!.isNotEmpty) return titleEn!;
+    if ((lang == 'ckb' || lang == 'ku') && titleCkb != null && titleCkb!.isNotEmpty) return titleCkb!;
+
+    if (_isLab) return 'lab_tests'.tr();
+    if (_isNursing) return 'nursing_services'.tr();
+    if (_isPharmacy) return 'pharmacy'.tr();
+
+    return serviceType.isNotEmpty ? serviceType : 'general_service'.tr();
+  }
+
+  /// Context-aware localized nurse name.
+  String? localizedNurseName(BuildContext context) {
+    if (assignedNurseName == null || assignedNurseName!.isEmpty) return null;
+    final lang = context.locale.languageCode.toLowerCase();
+
+    if (lang == 'kmr' && assignedNurseNameKmr != null && assignedNurseNameKmr!.isNotEmpty) {
+      return assignedNurseNameKmr;
+    }
+    if (lang == 'ar' && assignedNurseNameAr != null && assignedNurseNameAr!.isNotEmpty) {
+      return assignedNurseNameAr;
+    }
+    if (lang == 'en' && assignedNurseNameEn != null && assignedNurseNameEn!.isNotEmpty) {
+      return assignedNurseNameEn;
+    }
+    if ((lang == 'ckb' || lang == 'ku') && assignedNurseNameCkb != null && assignedNurseNameCkb!.isNotEmpty) {
+      return assignedNurseNameCkb;
+    }
+    return assignedNurseName;
+  }
+
+  /// Context-aware localized nurse specialty.
+  String? localizedNurseSpecialty(BuildContext context) {
+    if (assignedNurseSpecialty == null || assignedNurseSpecialty!.isEmpty) return null;
+    final lang = context.locale.languageCode.toLowerCase();
+
+    if (lang == 'kmr' && assignedNurseSpecialtyKmr != null && assignedNurseSpecialtyKmr!.isNotEmpty) {
+      return assignedNurseSpecialtyKmr;
+    }
+    if (lang == 'ar' && assignedNurseSpecialtyAr != null && assignedNurseSpecialtyAr!.isNotEmpty) {
+      return assignedNurseSpecialtyAr;
+    }
+    if (lang == 'en' && assignedNurseSpecialtyEn != null && assignedNurseSpecialtyEn!.isNotEmpty) {
+      return assignedNurseSpecialtyEn;
+    }
+    if ((lang == 'ckb' || lang == 'ku') && assignedNurseSpecialtyCkb != null && assignedNurseSpecialtyCkb!.isNotEmpty) {
+      return assignedNurseSpecialtyCkb;
+    }
+    return assignedNurseSpecialty;
+  }
+
+  /// Context-aware localized pharmacy name.
+  String? localizedPharmacyName(BuildContext context) {
+    if (assignedPharmacyName == null || assignedPharmacyName!.isEmpty) return null;
+    final lang = context.locale.languageCode.toLowerCase();
+
+    if (lang == 'kmr' && assignedPharmacyNameKmr != null && assignedPharmacyNameKmr!.isNotEmpty) {
+      return assignedPharmacyNameKmr;
+    }
+    if (lang == 'ar' && assignedPharmacyNameAr != null && assignedPharmacyNameAr!.isNotEmpty) {
+      return assignedPharmacyNameAr;
+    }
+    if (lang == 'en' && assignedPharmacyNameEn != null && assignedPharmacyNameEn!.isNotEmpty) {
+      return assignedPharmacyNameEn;
+    }
+    return assignedPharmacyName;
+  }
+
+  /// Fallback title when no BuildContext is available.
   String get title {
     if (customTitle != null && customTitle!.isNotEmpty) return customTitle!;
 
     if (_isLab) return 'lab_tests'.tr();
     if (_isNursing) return 'nursing_services'.tr();
     if (_isPharmacy) return 'pharmacy'.tr();
+
+    if (titleCkb != null && titleCkb!.isNotEmpty) return titleCkb!;
 
     return serviceType.isNotEmpty ? serviceType : 'general_service'.tr();
   }

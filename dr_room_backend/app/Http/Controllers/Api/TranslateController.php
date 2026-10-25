@@ -23,7 +23,7 @@ class TranslateController extends Controller
 
                 $en = TranslationService::translate($val, 'en', 'ckb');
                 $ar = TranslationService::translate($val, 'ar', 'ckb');
-                $kmr = TranslationService::translate($val, 'ku', 'ckb');
+                $kmr = TranslationService::translate($val, 'kmr', 'ckb');
 
                 $results[$key] = [
                     'en' => $en,
@@ -54,7 +54,7 @@ class TranslateController extends Controller
 
         $en = TranslationService::translate($text, 'en', 'ckb');
         $ar = TranslationService::translate($text, 'ar', 'ckb');
-        $kmr = TranslationService::translate($text, 'ku', 'ckb');
+        $kmr = TranslationService::translate($text, 'kmr', 'ckb');
 
         return response()->json([
             'success' => true,

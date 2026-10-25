@@ -13,13 +13,26 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
+        $lang = $request->header('Accept-Language', $request->query('lang', 'ckb'));
         $orders = Order::where('patient_id', Auth::id())
-            ->with(['items', 'assignedNurse', 'assignedPharmacy'])
+            ->with(['items', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab'])
             ->orderBy('created_at', 'desc')
             ->get();
             
         return response()->json([
-            'data' => $orders
+            'data' => $orders->map(fn($o) => $this->formatOrder($o, $lang))
+        ]);
+    }
+
+    public function show(Request $request, $id)
+    {
+        $lang = $request->header('Accept-Language', $request->query('lang', 'ckb'));
+        $order = Order::where('patient_id', Auth::id())
+            ->with(['items', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'data' => $this->formatOrder($order, $lang)
         ]);
     }
 
@@ -172,15 +185,260 @@ class OrderController extends Controller
 
             DB::commit();
 
+            $lang = $request->header('Accept-Language', $request->query('lang', 'ckb'));
+            $order->load(['items', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab']);
+
             return response()->json([
                 'message' => 'Order created successfully',
-                'order' => $order->load(['items', 'assignedNurse', 'assignedPharmacy', 'assignedLab'])
+                'order' => $this->formatOrder($order, $lang),
+                'data' => $this->formatOrder($order, $lang),
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Failed to create order: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Format Order with full translations and resolved media URLs.
+     */
+    public function formatOrder($order, string $lang = 'ckb'): array
+    {
+        $langCode = strtolower(substr($lang, 0, 3));
+        if ($langCode === 'kur' || $langCode === 'ku') $langCode = 'ckb';
+        if (!in_array($langCode, ['ckb', 'kmr', 'ar', 'en'])) $langCode = 'ckb';
+
+        $serviceTitles = $this->getServiceTitles($order->service_type ?? '');
+        $statusLabels = $this->getStatusLabels($order->status ?? 'pending');
+
+        // Format Assigned Nurse
+        $assignedNurse = null;
+        if ($order->assignedNurse) {
+            $u = $order->assignedNurse;
+            $n = $u->nurse;
+            $rawImg = $u->profile_image ?? ($n->image_path ?? null);
+            $imgUrl = $this->resolveImageUrl($rawImg);
+
+            $nameEn = $u->name_en ?: $u->name;
+            $nameAr = $u->name_ar ?: ($u->name_en ?: $u->name);
+            $nameKmr = $u->name_kmr ?: ($u->name_ckb ?: $u->name);
+            $nameCkb = $u->name ?: ($u->name_en ?: '');
+
+            $chosenName = match($langCode) {
+                'en' => $nameEn,
+                'ar' => $nameAr,
+                'kmr' => $nameKmr,
+                default => $nameCkb,
+            };
+
+            $assignedNurse = [
+                'id' => $u->id,
+                'nurse_id' => $n->id ?? null,
+                'name' => $chosenName,
+                'name_en' => $nameEn,
+                'name_ar' => $nameAr,
+                'name_kmr' => $nameKmr,
+                'name_ckb' => $nameCkb,
+                'avatar' => $imgUrl,
+                'image_url' => $imgUrl,
+                'profile_image' => $imgUrl,
+                'phone' => $u->phone ?? ($n->phone ?? null),
+                'specialty' => $n->specialty ?? null,
+                'specialty_en' => $n->specialty_en ?? ($n->specialty ?? null),
+                'specialty_ar' => $n->specialty_ar ?? ($n->specialty ?? null),
+                'specialty_kmr' => $n->specialty_kmr ?? ($n->specialty ?? null),
+            ];
+        }
+
+        // Format Assigned Pharmacy
+        $assignedPharmacy = null;
+        if ($order->assignedPharmacy) {
+            $u = $order->assignedPharmacy;
+            $p = $u->pharmacy;
+            $rawImg = $u->profile_image ?? ($p->image_path ?? null);
+            $imgUrl = $this->resolveImageUrl($rawImg);
+
+            $nameEn = $u->name_en ?: $u->name;
+            $nameAr = $u->name_ar ?: ($u->name_en ?: $u->name);
+            $nameKmr = $u->name_kmr ?: ($u->name_ckb ?: $u->name);
+            $nameCkb = $u->name ?: ($u->name_en ?: '');
+
+            $chosenName = match($langCode) {
+                'en' => $nameEn,
+                'ar' => $nameAr,
+                'kmr' => $nameKmr,
+                default => $nameCkb,
+            };
+
+            $assignedPharmacy = [
+                'id' => $u->id,
+                'pharmacy_id' => $p->id ?? null,
+                'name' => $chosenName,
+                'name_en' => $nameEn,
+                'name_ar' => $nameAr,
+                'name_kmr' => $nameKmr,
+                'name_ckb' => $nameCkb,
+                'avatar' => $imgUrl,
+                'image_url' => $imgUrl,
+                'phone' => $u->phone ?? ($p->phone ?? null),
+            ];
+        }
+
+        // Format Assigned Lab
+        $assignedLab = null;
+        if ($order->assignedLab) {
+            $u = $order->assignedLab;
+            $l = $u->lab;
+            $rawImg = $u->profile_image ?? ($l->image_path ?? null);
+            $imgUrl = $this->resolveImageUrl($rawImg);
+
+            $nameEn = $u->name_en ?: $u->name;
+            $nameAr = $u->name_ar ?: ($u->name_en ?: $u->name);
+            $nameKmr = $u->name_kmr ?: ($u->name_ckb ?: $u->name);
+            $nameCkb = $u->name ?: ($u->name_en ?: '');
+
+            $chosenName = match($langCode) {
+                'en' => $nameEn,
+                'ar' => $nameAr,
+                'kmr' => $nameKmr,
+                default => $nameCkb,
+            };
+
+            $assignedLab = [
+                'id' => $u->id,
+                'lab_id' => $l->id ?? null,
+                'name' => $chosenName,
+                'name_en' => $nameEn,
+                'name_ar' => $nameAr,
+                'name_kmr' => $nameKmr,
+                'name_ckb' => $nameCkb,
+                'avatar' => $imgUrl,
+                'image_url' => $imgUrl,
+                'phone' => $u->phone ?? ($l->phone ?? null),
+            ];
+        }
+
+        return [
+            'id' => $order->id,
+            'patient_id' => $order->patient_id,
+            'service_type' => $order->service_type,
+            'title' => $serviceTitles[$langCode] ?? $serviceTitles['ckb'],
+            'title_ckb' => $serviceTitles['ckb'],
+            'title_kmr' => $serviceTitles['kmr'],
+            'title_ar' => $serviceTitles['ar'],
+            'title_en' => $serviceTitles['en'],
+            'subtotal' => $order->subtotal,
+            'extra_fee' => $order->extra_fee,
+            'total_price' => $order->total_price,
+            'status' => $order->status,
+            'status_label' => $statusLabels[$langCode] ?? $statusLabels['ckb'],
+            'status_labels' => $statusLabels,
+            'payment_method' => $order->payment_method,
+            'assigned_nurse_id' => $order->assigned_nurse_id,
+            'assigned_pharmacy_id' => $order->assigned_pharmacy_id,
+            'assigned_lab_id' => $order->assigned_lab_id,
+            'patient_details' => $order->patient_details,
+            'location_details' => $order->location_details,
+            'created_at' => $order->created_at?->toIso8601String(),
+            'updated_at' => $order->updated_at?->toIso8601String(),
+            'items' => $order->items,
+            'assigned_nurse' => $assignedNurse,
+            'assigned_pharmacy' => $assignedPharmacy,
+            'assigned_lab' => $assignedLab,
+        ];
+    }
+
+    private function resolveImageUrl(?string $raw): ?string
+    {
+        if (empty($raw)) return null;
+        if (str_starts_with($raw, 'http://') || str_starts_with($raw, 'https://')) {
+            return $raw;
+        }
+        $clean = ltrim($raw, '/');
+        if (str_starts_with($clean, 'storage/')) {
+            return asset($clean);
+        }
+        return asset('storage/' . $clean);
+    }
+
+    private function getServiceTitles(string $serviceType): array
+    {
+        $lower = strtolower(trim($serviceType));
+        if (str_contains($lower, 'nurs')) {
+            return [
+                'ckb' => 'خزمەتگوزاری پەرستاری',
+                'kmr' => 'خزمەتگوزارییێن پەرستاریێ',
+                'ar'  => 'خدمات التمريض',
+                'en'  => 'Nursing Services',
+            ];
+        }
+        if (str_contains($lower, 'lab')) {
+            return [
+                'ckb' => 'پشکنینی تاقیگە',
+                'kmr' => 'پشکنینێن تاقیگەهێ',
+                'ar'  => 'تحاليل المختبر',
+                'en'  => 'Lab Tests',
+            ];
+        }
+        if (str_contains($lower, 'pharmac') || str_contains($lower, 'medic')) {
+            return [
+                'ckb' => 'دەرمانخانە',
+                'kmr' => 'دەرمانخانە',
+                'ar'  => 'صيدلية',
+                'en'  => 'Pharmacy',
+            ];
+        }
+        if (str_contains($lower, 'xray') || str_contains($lower, 'x-ray') || str_contains($lower, 'radiolog')) {
+            return [
+                'ckb' => 'تیشک و سۆنار',
+                'kmr' => 'تیشک و سۆنار',
+                'ar'  => 'الأشعة والسونار',
+                'en'  => 'X-Ray & Scan',
+            ];
+        }
+        return [
+            'ckb' => $serviceType,
+            'kmr' => $serviceType,
+            'ar'  => $serviceType,
+            'en'  => $serviceType,
+        ];
+    }
+
+    private function getStatusLabels(string $status): array
+    {
+        return match(strtolower(trim($status))) {
+            'pending' => [
+                'ckb' => 'چاوەڕوانی پشتڕاستکردنەوەیە',
+                'kmr' => 'چاڤەڕێی پشتڕاستکرنێیە',
+                'ar'  => 'قيد الانتظار',
+                'en'  => 'Pending Confirmation',
+            ],
+            'processing', 'in_progress', 'accepted', 'approved' => [
+                'ckb' => 'لە قۆناغی جێبەجێکردندایە',
+                'kmr' => 'د بجهئینانێ دایە',
+                'ar'  => 'قيد التنفيذ',
+                'en'  => 'Processing',
+            ],
+            'completed', 'delivered', 'done' => [
+                'ckb' => 'تەواوکراوە',
+                'kmr' => 'تمامکری',
+                'ar'  => 'مكتمل',
+                'en'  => 'Completed',
+            ],
+            'cancelled', 'rejected' => [
+                'ckb' => 'هەڵوەشێنراوەتەوە',
+                'kmr' => 'هاتیە هەلوەشاندن',
+                'ar'  => 'ملغي',
+                'en'  => 'Cancelled',
+            ],
+            default => [
+                'ckb' => 'چاوەڕوانی',
+                'kmr' => 'چاڤەڕێ',
+                'ar'  => 'قيد الانتظار',
+                'en'  => 'Pending',
+            ],
+        };
     }
 
     /**

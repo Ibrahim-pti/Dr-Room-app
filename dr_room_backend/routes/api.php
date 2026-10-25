@@ -129,6 +129,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ─── Patient: Orders (Labs, Pharmacy, Nursing) ──────────────────────────
     Route::post('/nursing/book', [\App\Http\Controllers\Api\NurseApiController::class, 'book']);
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::post('/orders', [OrderController::class, 'store']);
 
     // ─── Patient: Lab and Nurse Records ─────────────────────────────────────

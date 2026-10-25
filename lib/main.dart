@@ -65,14 +65,14 @@ void main() async {
     ProviderScope(
       child: EasyLocalization(
         supportedLocales: const [
+          Locale('ckb'),
           Locale('en'),
           Locale('ar'),
-          Locale('ckb'),
           Locale('kmr'),
         ],
         path: 'assets/translations',
-        fallbackLocale: const Locale('en'),
-        startLocale: const Locale('en'),
+        fallbackLocale: const Locale('ckb'),
+        startLocale: const Locale('ckb'),
         child: const DrRoomApp(),
       ),
     ),

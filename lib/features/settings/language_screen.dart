@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguageScreen extends StatelessWidget {
   const LanguageScreen({super.key});
@@ -112,8 +113,10 @@ class LanguageScreen extends StatelessWidget {
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return InkWell(
-      onTap: () {
-        context.setLocale(Locale(localeCode));
+      onTap: () async {
+        await context.setLocale(Locale(localeCode));
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('locale', localeCode);
       },
       borderRadius: BorderRadius.circular(20),
       child: AnimatedContainer(

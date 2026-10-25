@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../core/providers/order_provider.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class OrderProgressTimeline extends StatelessWidget {
   final OrderStatus status;
 
@@ -28,19 +30,57 @@ class OrderProgressTimeline extends StatelessWidget {
     OrderStatus.completed,
   ];
 
-  static const Map<OrderStatus, String> _labels = {
-    OrderStatus.pending: 'داواکاری تۆمارکرا',
-    OrderStatus.processing: 'لە جێبەجێکردندایە',
-    OrderStatus.completed: 'تەواوکرا',
-    OrderStatus.cancelled: 'هەڵوەشێنراوە',
-  };
+  String _getStepLabel(OrderStatus s, BuildContext context) {
+    final lang = context.locale.languageCode.toLowerCase();
+    switch (s) {
+      case OrderStatus.pending:
+        if (lang == 'kmr') return 'داخوازی هاتە تۆمارکرن';
+        if (lang == 'ar') return 'تم تسجيل الطلب';
+        if (lang == 'en') return 'Order Placed';
+        return 'داواکاری تۆمارکرا';
+      case OrderStatus.processing:
+        if (lang == 'kmr') return 'د قۆناغا بجهئینانێ دایە';
+        if (lang == 'ar') return 'قيد التنفيذ والمتابعة';
+        if (lang == 'en') return 'In Progress';
+        return 'لە جێبەجێکردندایە';
+      case OrderStatus.completed:
+        if (lang == 'kmr') return 'تەواوکرایە';
+        if (lang == 'ar') return 'مكتمل';
+        if (lang == 'en') return 'Completed';
+        return 'تەواوکرا';
+      case OrderStatus.cancelled:
+        if (lang == 'kmr') return 'هاتیە هەلوەشاندن';
+        if (lang == 'ar') return 'ملغي';
+        if (lang == 'en') return 'Cancelled';
+        return 'هەڵوەشێنراوە';
+    }
+  }
 
-  static const Map<OrderStatus, String> _subtitles = {
-    OrderStatus.pending: 'داواکارییەکەت گەیشت و چاوەڕوانی پشتڕاستکردنەوەیە',
-    OrderStatus.processing: 'تیمەکەمان لە پەیوەندی و جێبەجێکردنی داواکارییەکەدان',
-    OrderStatus.completed: 'پشکنین و ئەنجامەکان بە تەواوی ئەنجام دران',
-    OrderStatus.cancelled: 'داواکارییەکە بە سەرکەوتوویی هەڵوەشێنراوەتەوە',
-  };
+  String _getStepSubtitle(OrderStatus s, BuildContext context) {
+    final lang = context.locale.languageCode.toLowerCase();
+    switch (s) {
+      case OrderStatus.pending:
+        if (lang == 'kmr') return 'داخوازییا تە گەهشت و چاڤەڕێی پشتڕاستکرنێیە';
+        if (lang == 'ar') return 'تم استلام طلبك وبانتظار التأكيد';
+        if (lang == 'en') return 'Order received and awaiting confirmation';
+        return 'داواکارییەکەت گەیشت و چاوەڕوانی پشتڕاستکردنەوەیە';
+      case OrderStatus.processing:
+        if (lang == 'kmr') return 'تیمێ مە د پەیوەندی و بجهئینانا داخوازیێ دانە';
+        if (lang == 'ar') return 'فريقنا الطبي يتابع وينفذ الطلب حالياً';
+        if (lang == 'en') return 'Our medical team is executing and following up';
+        return 'تیمەکەمان لە پەیوەندی و جێبەجێکردنی داواکارییەکەدان';
+      case OrderStatus.completed:
+        if (lang == 'kmr') return 'پشکنین و ئەنجام ب سەرکەفتیانە هاتنە ئەنجامدان';
+        if (lang == 'ar') return 'تم الانتهاء من كافة الخدمات بنجاح';
+        if (lang == 'en') return 'All examinations and services completed successfully';
+        return 'پشکنین و ئەنجامەکان بە تەواوی ئەنجام دران';
+      case OrderStatus.cancelled:
+        if (lang == 'kmr') return 'داخوازی ب سەرکەفتیانە هاتیە هەلوەشاندن';
+        if (lang == 'ar') return 'تم إلغاء الطلب بنجاح';
+        if (lang == 'en') return 'Order has been cancelled successfully';
+        return 'داواکارییەکە بە سەرکەوتوویی هەڵوەشێنراوەتەوە';
+    }
+  }
 
   static const Map<OrderStatus, IconData> _icons = {
     OrderStatus.pending: Iconsax.receipt_item,
@@ -92,7 +132,7 @@ class OrderProgressTimeline extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                'پێشکەوتنی داواکاری',
+                'order_progress'.tr(),
                 style: _kStyle(
                   color: isDark ? Colors.white : const Color(0xFF0F172A),
                   fontSize: 16,
@@ -179,7 +219,7 @@ class OrderProgressTimeline extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _labels[step]!,
+                    _getStepLabel(step, context),
                     style: _kStyle(
                       color: isReached
                           ? (isDark ? Colors.white : const Color(0xFF0F172A))
@@ -190,7 +230,7 @@ class OrderProgressTimeline extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _subtitles[step]!,
+                    _getStepSubtitle(step, context),
                     style: _kStyle(
                       color: isReached
                           ? const Color(0xFF64748B)

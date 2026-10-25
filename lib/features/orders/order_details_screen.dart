@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../core/utils/api_client.dart';
 import '../../core/providers/order_provider.dart';
 import '../doctors/chat_screen.dart';
 import '../doctors/video_call_screen.dart';
@@ -92,28 +93,54 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     super.dispose();
   }
 
-  String _getStatusTitle(OrderStatus status) {
+  String _getStatusTitle(OrderStatus status, BuildContext context) {
+    final lang = context.locale.languageCode.toLowerCase();
     switch (status) {
       case OrderStatus.pending:
-        return 'چاوەڕوانی پشتڕاستکردنەوەیە';
+        if (lang == 'kmr') return _currentOrder.statusLabelKmr ?? 'چاڤەڕێی پشتڕاستکرنێیە';
+        if (lang == 'ar') return _currentOrder.statusLabelAr ?? 'قيد الانتظار والتأكيد';
+        if (lang == 'en') return _currentOrder.statusLabelEn ?? 'Pending Confirmation';
+        return _currentOrder.statusLabelCkb ?? 'چاوەڕوانی پشتڕاستکردنەوەیە';
       case OrderStatus.processing:
-        return 'لە قۆناغی جێبەجێکردندایە';
+        if (lang == 'kmr') return _currentOrder.statusLabelKmr ?? 'د قۆناغا بجهئینانێ دایە';
+        if (lang == 'ar') return _currentOrder.statusLabelAr ?? 'قيد التنفيذ والمتابعة';
+        if (lang == 'en') return _currentOrder.statusLabelEn ?? 'In Progress';
+        return _currentOrder.statusLabelCkb ?? 'لە قۆناغی جێبەجێکردندایە';
       case OrderStatus.completed:
-        return 'تەواوکراوە';
+        if (lang == 'kmr') return _currentOrder.statusLabelKmr ?? 'تەواوکرایە';
+        if (lang == 'ar') return _currentOrder.statusLabelAr ?? 'مكتمل بنجاح';
+        if (lang == 'en') return _currentOrder.statusLabelEn ?? 'Completed Successfully';
+        return _currentOrder.statusLabelCkb ?? 'تەواوکراوە';
       case OrderStatus.cancelled:
-        return 'هەڵوەشێنراوەتەوە';
+        if (lang == 'kmr') return _currentOrder.statusLabelKmr ?? 'هاتیە هەلوەشاندن';
+        if (lang == 'ar') return _currentOrder.statusLabelAr ?? 'ملغي';
+        if (lang == 'en') return _currentOrder.statusLabelEn ?? 'Cancelled';
+        return _currentOrder.statusLabelCkb ?? 'هەڵوەشێنراوەتەوە';
     }
   }
 
-  String _getStatusDescription(OrderStatus status) {
+  String _getStatusDescription(OrderStatus status, BuildContext context) {
+    final lang = context.locale.languageCode.toLowerCase();
     switch (status) {
       case OrderStatus.pending:
+        if (lang == 'kmr') return 'داخوازییا تە گەهشت و چاڤەڕێی پشتڕاستکرنێیە.';
+        if (lang == 'ar') return 'تم استلام طلبك وهو بانتظار التأكيد.';
+        if (lang == 'en') return 'Your order has been received and is awaiting confirmation.';
         return 'داواکارییەکەت گەیشت و لەلایەن تاقیگەوە چاوەڕوانی پشتڕاستکردنەوەیە.';
       case OrderStatus.processing:
+        if (lang == 'kmr') return 'داخوازییا تە د قۆناغا ئەنجامدان و دووڤچوونێ دایە.';
+        if (lang == 'ar') return 'طلبك قيد التنفيذ والمتابعة من قبل الفريق الطبي.';
+        if (lang == 'en') return 'Your order is currently being processed and prepared.';
         return 'داواکارییەکەت لە قۆناغی ئەنجامدان و بەدواداچووندایە.';
       case OrderStatus.completed:
+        if (lang == 'kmr') return 'هەمی پشکنین و خزمەتگوزاری ب سەرکەفتیانە هاتنە تمامکرن.';
+        if (lang == 'ar') return 'تم إكمال جميع الفحوصات والخدمات بنجاح.';
+        if (lang == 'en') return 'All services and examinations have been successfully completed.';
         return 'هەموو پشکنینەکان بە سەرکەوتوویی تەواو کران.';
       case OrderStatus.cancelled:
+        if (lang == 'kmr') return 'ئەڤ داخوازییە هاتیە هەلوەشاندن.';
+        if (lang == 'ar') return 'تم إلغاء هذا الطلب.';
+        if (lang == 'en') return 'This order has been cancelled.';
         return 'ئەم داواکارییە هەڵوەشێنراوەتەوە.';
     }
   }
@@ -174,7 +201,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           ),
         ),
         title: Text(
-          'وردەکاریی داواکاری',
+          'order_details'.tr(),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 17,
@@ -240,7 +267,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _currentOrder.title,
+                            _currentOrder.localizedTitle(context),
                             style: _kStyle(
                               color: isDark
                                   ? Colors.white
@@ -264,7 +291,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              'کۆدی داواکاری: #${_currentOrder.id}',
+                              '${'order_id'.tr()}: #${_currentOrder.id}',
                               style: _kStyle(
                                 color: const Color(0xFF2563EB),
                                 fontSize: 11.5,
@@ -311,7 +338,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _getStatusTitle(_currentOrder.status),
+                            _getStatusTitle(_currentOrder.status, context),
                             style: _kStyle(
                               color: statusColor,
                               fontSize: 14.5,
@@ -320,7 +347,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            _getStatusDescription(_currentOrder.status),
+                            _getStatusDescription(_currentOrder.status, context),
                             style: _kStyle(
                               color: isDark
                                   ? Colors.white70
@@ -366,16 +393,33 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     children: [
                       Row(
                         children: [
-                          CircleAvatar(
-                            radius: 26,
-                            backgroundColor: const Color(0xFFEFF6FF),
-                            backgroundImage:
-                                _currentOrder.assignedNurseAvatar != null
-                                ? NetworkImage(
-                                    _currentOrder.assignedNurseAvatar!,
-                                  )
-                                : const AssetImage('assets/images/doc1.png')
-                                      as ImageProvider,
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFFEFF6FF),
+                              border: Border.all(
+                                color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: ClipOval(
+                              child: (_currentOrder.assignedNurseAvatar != null &&
+                                      _currentOrder.assignedNurseAvatar!.trim().isNotEmpty)
+                                  ? Image.network(
+                                      ApiClient.getImageUrl(_currentOrder.assignedNurseAvatar),
+                                      fit: BoxFit.cover,
+                                      width: 52,
+                                      height: 52,
+                                      errorBuilder: (c, e, s) => const Center(
+                                        child: Icon(Iconsax.user, color: Color(0xFF3B82F6), size: 26),
+                                      ),
+                                    )
+                                  : const Center(
+                                      child: Icon(Iconsax.user, color: Color(0xFF3B82F6), size: 26),
+                                    ),
+                            ),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -383,7 +427,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _currentOrder.assignedNurseName!,
+                                  _currentOrder.localizedNurseName(context) ?? _currentOrder.assignedNurseName!,
                                   style: _kStyle(
                                     color: isDark
                                         ? Colors.white
@@ -394,7 +438,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'تیمی تەندروستی پەرستاری',
+                                  _currentOrder.localizedNurseSpecialty(context) ?? 'nursing_team'.tr(),
                                   style: _kStyle(
                                     color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                     fontSize: 12,
@@ -411,20 +455,20 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
+                                final nurseDisplayName = _currentOrder.localizedNurseName(context) ?? _currentOrder.assignedNurseName!;
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ChatScreen(
-                                      doctorName:
-                                          _currentOrder.assignedNurseName!,
-                                      doctorImage: 'assets/images/doc1.png',
+                                      doctorName: nurseDisplayName,
+                                      doctorImage: _currentOrder.assignedNurseAvatar ?? 'assets/images/doctor1.png',
                                     ),
                                   ),
                                 );
                               },
                               icon: const Icon(Iconsax.message, size: 16),
                               label: Text(
-                                'گفتوگۆ',
+                                'chat'.tr(),
                                 style: _kStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -444,24 +488,24 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
+                                final nurseDisplayName = _currentOrder.localizedNurseName(context) ?? _currentOrder.assignedNurseName!;
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => VideoCallScreen(
-                                      doctorName:
-                                          _currentOrder.assignedNurseName!,
-                                      doctorImage: 'assets/images/doc1.png',
+                                      doctorName: nurseDisplayName,
+                                      doctorImage: _currentOrder.assignedNurseAvatar ?? 'assets/images/doctor1.png',
                                     ),
                                   ),
                                 );
                               },
-                              icon: Icon(
+                              icon: const Icon(
                                 Iconsax.call,
                                 size: 16,
                                 color: Color(0xFF3B82F6),
                               ),
                               label: Text(
-                                'پەیوەندی',
+                                'call'.tr(),
                                 style: _kStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -515,7 +559,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _currentOrder.assignedPharmacyName!,
+                              _currentOrder.localizedPharmacyName(context) ?? _currentOrder.assignedPharmacyName!,
                               style: _kStyle(
                                 color: isDark
                                     ? Colors.white
@@ -526,7 +570,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'دەرمانخانەی جێبەجێکار',
+                              'executing_pharmacy'.tr(),
                               style: _kStyle(
                                 color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                 fontSize: 12,
@@ -578,7 +622,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          'زانیاریی داواکاری',
+                          'order_information'.tr(),
                           style: _kStyle(
                             color: isDark
                                 ? Colors.white
@@ -592,7 +636,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     const SizedBox(height: 16),
                     _buildDetailRow(
                       context,
-                      'بەرواری تۆمارکردن',
+                      'order_date'.tr(),
                       '${_currentOrder.date.day}/${_currentOrder.date.month}/${_currentOrder.date.year}',
                       isDark: isDark,
                     ),
@@ -603,7 +647,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ),
                     _buildDetailRow(
                       context,
-                      'کاتی داواکاری',
+                      'order_time'.tr(),
                       '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}',
                       isDark: isDark,
                     ),
@@ -615,8 +659,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       ),
                       _buildDetailRow(
                         context,
-                        'شێوازی پارەدان',
-                        _formatPaymentMethod(_currentOrder.paymentMethod),
+                        'payment_method'.tr(),
+                        _formatPaymentMethod(_currentOrder.paymentMethod, context),
                         isDark: isDark,
                       ),
                     ],
@@ -627,8 +671,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ),
                     _buildDetailRow(
                       context,
-                      'کۆی گشتی نرخ',
-                      '${NumberFormat('#,###').format(_currentOrder.price)} د.ع',
+                      'total_price'.tr(),
+                      '${NumberFormat('#,###').format(_currentOrder.price)} ${'currency_iqd'.tr()}',
                       isTotal: true,
                       isDark: isDark,
                     ),
@@ -644,11 +688,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  String _formatPaymentMethod(String? raw) {
-    if (raw == null || raw.isEmpty) return 'کاش';
+  String _formatPaymentMethod(String? raw, BuildContext context) {
+    if (raw == null || raw.isEmpty) return 'cash_on_delivery'.tr();
     final lower = raw.toLowerCase();
     if (lower.contains('delivery') || lower.contains('cash') || lower.contains('کاش')) {
-      return 'کاش لەکاتی وەرگرتن';
+      return 'cash_on_delivery'.tr();
     } else if (lower.contains('fastpay')) {
       return 'FastPay';
     } else if (lower.contains('fib')) {

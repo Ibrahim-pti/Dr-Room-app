@@ -211,11 +211,6 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddLabSheet(context),
-        backgroundColor: const Color(0xFF8B5CF6),
-        child: const Icon(Iconsax.add, color: Colors.white),
-      ),
     );
   }
 
@@ -240,8 +235,8 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
                 const SizedBox(height: 16),
                 Text(
                   isPending
-                      ? 'هیچ پزیشکێکی چاوەڕێکراو نییە'
-                      : 'هیچ پزیشکێکی پەسەندکراو نییە',
+                      ? 'هیچ تاقیگەیەکی چاوەڕێکراو نییە'
+                      : 'هیچ تاقیگەیەکی پەسەندکراو نییە',
                   style: TextStyle(
                     fontFamily: 'Rabar',
                     color: const Color(0xFF94A3B8),
@@ -746,134 +741,6 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  void _showAddLabSheet(BuildContext context) {
-    final nameCtrl = TextEditingController();
-    final cityCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
-    final typeCtrl = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          decoration: BoxDecoration(
-            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'زیادکردنی تاقیگەی نوێ',
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, color: Color(0xFF64748B)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                _buildTextField('ناوی تاقیگە', nameCtrl, Iconsax.building_3),
-                const SizedBox(height: 16),
-                _buildTextField('شار (بۆ نموونە: هەولێر)', cityCtrl, Iconsax.location),
-                const SizedBox(height: 16),
-                _buildTextField('ژمارەی تەلەفۆن', phoneCtrl, Iconsax.call),
-                const SizedBox(height: 16),
-                _buildTextField('جۆری تاقیگە (گشتی، تایبەت)', typeCtrl, Iconsax.category),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (nameCtrl.text.isEmpty) return;
-                      // Mock POST request to backend
-                      try {
-                        await ApiClient.post('/admin/labs', body: {
-                          'name': nameCtrl.text,
-                          'city': cityCtrl.text,
-                          'phone': phoneCtrl.text,
-                          'lab_type': typeCtrl.text,
-                          'status': 'approved', // Automatically approved if added by admin
-                        });
-                      } catch (e) {
-                        debugPrint('Add Lab Mock Error: $e');
-                      }
-                      
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'تاقیگە بە سەرکەوتوویی زیادکرا',
-                              style: TextStyle(fontFamily: 'Rabar'),
-                            ),
-                            backgroundColor: Color(0xFF10B981),
-                          ),
-                        );
-                        _fetchLabs();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B5CF6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: const Text(
-                      'زیادکردن',
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTextField(String hint, TextEditingController ctrl, IconData icon) {
-    return TextField(
-      controller: ctrl,
-      style: TextStyle(fontFamily: 'Rabar', fontSize: 14),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(fontFamily: 'Rabar', color: Color(0xFF94A3B8)),
-        prefixIcon: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
-        filled: true,
-        fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
         ),
       ),
     );
