@@ -26,7 +26,7 @@ class AdminXRayController extends Controller
             'email' => 'nullable|email',
         ]);
 
-        $email = $request->email ?: 'xray_' . Str::random(6) . '@drroom.app';
+        $email = $request->email ?: null;
 
         $user = User::create([
             'name' => $request->name,

@@ -30,7 +30,7 @@ class AdminNurseController extends Controller
             'specialty' => 'nullable|string|max:150',
         ]);
 
-        $email = $request->email ?: 'nurse_' . Str::random(6) . '@drroom.app';
+        $email = $request->email ?: null;
 
         $user = User::create([
             'name' => $request->name,

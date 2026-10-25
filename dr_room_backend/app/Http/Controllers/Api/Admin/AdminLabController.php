@@ -32,7 +32,7 @@ class AdminLabController extends Controller
             'location' => 'nullable|string|max:255',
         ]);
 
-        $email = $request->email ?: 'lab_' . Str::random(6) . '@drroom.app';
+        $email = $request->email ?: null;
 
         $user = User::create([
             'name' => $request->name,

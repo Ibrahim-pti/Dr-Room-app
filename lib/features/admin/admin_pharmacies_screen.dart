@@ -90,7 +90,6 @@ class _AdminPharmaciesScreenState extends State<AdminPharmaciesScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pendingPharmacies =
         _pharmacies.where((d) => d['status'] == 'pending').toList();
     final approvedPharmacies =
@@ -415,7 +414,6 @@ class _AdminPharmaciesScreenState extends State<AdminPharmaciesScreen>
     final nameEn = user['name_en'] ?? '';
     final nameAr = user['name_ar'] ?? '';
     final phone = user['phone'] ?? pharmacy['phone'] ?? '';
-    final email = user['email'] ?? '';
     final address = pharmacy['address'] ?? pharmacy['location'] ?? '';
     final city = pharmacy['city'] ?? '';
     final bio = pharmacy['bio'] ?? '';
@@ -542,7 +540,6 @@ class _AdminPharmaciesScreenState extends State<AdminPharmaciesScreen>
                     const Text('زانیارییەکانی پەیوەندی و لۆکەیشن', style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
                     const SizedBox(height: 8),
                     _buildInfoTile(icon: Iconsax.call, title: 'ژمارەی مۆبایل', value: phone.isNotEmpty ? phone : 'تۆمار نەکراوە'),
-                    _buildInfoTile(icon: Iconsax.sms, title: 'ئیمەیڵ', value: email.isNotEmpty ? email : 'تۆمار نەکراوە'),
                     _buildInfoTile(icon: Iconsax.location, title: 'شار و ناونیشان', value: [city, address].where((s) => s.isNotEmpty).join(' - ').isNotEmpty ? [city, address].where((s) => s.isNotEmpty).join(' - ') : 'دیاری نەکراوە'),
                     const SizedBox(height: 16),
                     const Text('زانیارییەکانی مۆڵەت و کارکردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF475569))),

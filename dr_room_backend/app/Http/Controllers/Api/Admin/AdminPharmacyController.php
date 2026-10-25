@@ -31,7 +31,7 @@ class AdminPharmacyController extends Controller
             'email' => 'nullable|email',
         ]);
 
-        $email = $request->email ?: 'pharmacy_' . Str::random(6) . '@drroom.app';
+        $email = $request->email ?: null;
 
         $user = User::create([
             'name' => $request->name,

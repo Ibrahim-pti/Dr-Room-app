@@ -108,7 +108,7 @@ class StaffAuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'phone' => $localPhone,
-            'email' => $request->email ?: ($localPhone . '@drroom.com'),
+            'email' => $request->email ?: null,
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'status' => 'pending',

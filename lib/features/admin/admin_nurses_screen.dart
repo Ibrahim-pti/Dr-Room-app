@@ -91,7 +91,6 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pendingNurses =
         _nurses.where((n) => n['status'] == 'pending').toList();
     final approvedNurses =
@@ -405,7 +404,6 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
     final nameEn = user['name_en'] ?? '';
     final nameAr = user['name_ar'] ?? '';
     final phone = user['phone'] ?? nurse['phone'] ?? '';
-    final email = user['email'] ?? '';
     final specialty = nurse['specialty'] ?? 'پەرستاری گشتی';
     final specialtyEn = nurse['specialty_en'] ?? '';
     final bio = nurse['bio'] ?? '';
@@ -534,7 +532,6 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
                     const Text('زانیارییەکانی پەیوەندی و ناونیشان', style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF475569))),
                     const SizedBox(height: 8),
                     _buildInfoTile(icon: Iconsax.call, title: 'ژمارەی مۆبایل', value: phone.isNotEmpty ? phone : 'تۆمار نەکراوە'),
-                    _buildInfoTile(icon: Iconsax.sms, title: 'ئیمەیڵ', value: email.isNotEmpty ? email : 'تۆمار نەکراوە'),
                     _buildInfoTile(icon: Iconsax.location, title: 'شار و ناونیشان', value: [city, address].where((s) => s.isNotEmpty).join(' - ').isNotEmpty ? [city, address].where((s) => s.isNotEmpty).join(' - ') : 'دیاری نەکراوە'),
                     const SizedBox(height: 16),
                     const Text('زانیاریی پیشەیی و خزمەتگوزاری', style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF475569))),

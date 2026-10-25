@@ -91,7 +91,7 @@
             <!-- Phone, City, Delivery Fee & Time -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 pt-4 border-t border-slate-100">
                 <div>
-                    <label for="phone" class="block text-xs font-bold text-slate-600 mb-1.5">ژمارەی پەیوەندی <span class="text-red-500">*</span></label>
+                    <label for="phone" class="block text-xs font-bold text-slate-600 mb-1.5">ژمارە مۆبایل <span class="text-red-500">*</span></label>
                     <input type="text" id="phone" name="phone" value="{{ old('phone', $user->phone ?? ($pharmacy ? $pharmacy->phone : '')) }}" required dir="ltr"
                         class="w-full text-right px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
                 </div>

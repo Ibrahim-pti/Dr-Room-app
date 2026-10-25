@@ -69,6 +69,7 @@ class PharmacyProfileController extends Controller
         }
 
         $pharmacy->update([
+            'phone' => $request->phone,
             'image_path' => $pharmacy->image_path,
             'location' => $request->location ?? $pharmacy->location,
             'location_ar' => $request->location_ar ?? $pharmacy->location_ar,
