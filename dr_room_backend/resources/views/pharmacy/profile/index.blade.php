@@ -66,13 +66,18 @@
                 </div>
             </div>
 
-            <!-- Name (Kurdish, Arabic, English) -->
+            <!-- Name (Kurdish, Badini, Arabic, English) -->
             <div class="space-y-4 mb-6">
-                <h4 class="text-sm font-bold text-slate-700">ناوی دەرمانخانە بە سێ زمان</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <h4 class="text-sm font-bold text-slate-700">ناوی دەرمانخانە بە چوار زمان</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
-                        <label for="name" class="block text-xs font-bold text-slate-600 mb-1.5">ناوی دەرمانخانە (کوردی) <span class="text-red-500">*</span></label>
+                        <label for="name" class="block text-xs font-bold text-slate-600 mb-1.5">ناوی دەرمانخانە (سۆرانی) <span class="text-red-500">*</span></label>
                         <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label for="name_kmr" class="block text-xs font-bold text-slate-600 mb-1.5">ناوی دەرمانخانە (بادینی)</label>
+                        <input type="text" id="name_kmr" name="name_kmr" value="{{ old('name_kmr', $user->name_kmr) }}" placeholder="ناڤێ دەرمانخانێ..."
                             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
                     </div>
                     <div>
@@ -135,13 +140,18 @@
                 </div>
             </div>
 
-            <!-- Address (Kurdish, Arabic, English) -->
+            <!-- Address (Kurdish, Badini, Arabic, English) -->
             <div class="space-y-4 mb-6 pt-4 border-t border-slate-100">
                 <h4 class="text-sm font-bold text-slate-700">ناونیشانی تەواوی دەرمانخانە</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
-                        <label for="location" class="block text-xs font-bold text-slate-600 mb-1.5">ناونیشان (کوردی)</label>
+                        <label for="location" class="block text-xs font-bold text-slate-600 mb-1.5">ناونیشان (سۆرانی)</label>
                         <input type="text" id="location" name="location" value="{{ old('location', $pharmacy?->location) }}" placeholder="شەقامی ١٠٠ مەتری - نزیک نەخۆشخانەی ڕزگاری"
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label for="location_kmr" class="block text-xs font-bold text-slate-600 mb-1.5">ناونیشان (بادینی)</label>
+                        <input type="text" id="location_kmr" name="location_kmr" value="{{ old('location_kmr', $pharmacy?->location_kmr) }}" placeholder="جادە، تاخ، باژێر..."
                             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
                     </div>
                     <div>
@@ -157,14 +167,19 @@
                 </div>
             </div>
 
-            <!-- About / Bio (Kurdish, Arabic, English) -->
+            <!-- About / Bio (Kurdish, Badini, Arabic, English) -->
             <div class="space-y-4 mb-6 pt-4 border-t border-slate-100">
                 <h4 class="text-sm font-bold text-slate-700">دەربارەی دەرمانخانە (پێناسە)</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
-                        <label for="bio" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارە (کوردی)</label>
+                        <label for="bio" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارە (سۆرانی)</label>
                         <textarea id="bio" name="bio" rows="3" placeholder="کورتەیەک دەربارەی خزمەتگوزارییەکان و دەرمانەکانی دەرمانخانەکەت..."
                             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700 resize-y">{{ old('bio', $pharmacy?->bio) }}</textarea>
+                    </div>
+                    <div>
+                        <label for="bio_kmr" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارە (بادینی)</label>
+                        <textarea id="bio_kmr" name="bio_kmr" rows="3" placeholder="دەربارەی دەرمانخانێ ب بادینی..."
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700 resize-y">{{ old('bio_kmr', $pharmacy?->bio_kmr) }}</textarea>
                     </div>
                     <div>
                         <label for="bio_ar" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارە (عەرەبی)</label>
@@ -369,13 +384,14 @@ async function translateAll() {
         btn.disabled = true;
 
         const fieldsToTranslate = [
-            { source: 'name', ar: 'name_ar', en: 'name_en' },
-            { source: 'location', ar: 'location_ar', en: 'location_en' },
-            { source: 'bio', ar: 'bio_ar', en: 'bio_en' }
+            { source: 'name', kmr: 'name_kmr', ar: 'name_ar', en: 'name_en' },
+            { source: 'location', kmr: 'location_kmr', ar: 'location_ar', en: 'location_en' },
+            { source: 'bio', kmr: 'bio_kmr', ar: 'bio_ar', en: 'bio_en' }
         ];
 
         for (const field of fieldsToTranslate) {
             const sourceEl = document.getElementById(field.source);
+            const kmrEl = document.getElementById(field.kmr);
             const arEl = document.getElementById(field.ar);
             const enEl = document.getElementById(field.en);
 
@@ -400,21 +416,28 @@ async function translateAll() {
                     }
                 } catch (_) {}
 
-                if (!translations || !translations.en || !translations.ar) {
+                if (!translations || !translations.en || !translations.ar || !translations.kmr) {
                     try {
                         const encoded = encodeURIComponent(text);
-                        const [resEn, resAr] = await Promise.all([
-                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()),
-                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json())
+                        const [resEn, resAr, resKu] = await Promise.all([
+                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()).catch(() => null),
+                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json()).catch(() => null),
+                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ku`).then(r => r.json()).catch(() => null)
                         ]);
                         translations = {
-                            en: resEn?.responseData?.translatedText || '',
-                            ar: resAr?.responseData?.translatedText || ''
+                            en: translations?.en || resEn?.responseData?.translatedText || '',
+                            ar: translations?.ar || resAr?.responseData?.translatedText || '',
+                            kmr: translations?.kmr || resKu?.responseData?.translatedText || ''
                         };
                     } catch (_) {}
                 }
 
                 if (translations) {
+                    if (kmrEl && translations.kmr) {
+                        kmrEl.value = translations.kmr;
+                        kmrEl.classList.add('bg-emerald-50');
+                        setTimeout(() => kmrEl.classList.remove('bg-emerald-50'), 1500);
+                    }
                     if (arEl && translations.ar) {
                         arEl.value = translations.ar;
                         arEl.classList.add('bg-emerald-50');

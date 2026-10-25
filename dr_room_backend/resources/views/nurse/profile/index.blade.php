@@ -85,19 +85,19 @@
                 زانیارییە سەرەکییەکان
             </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-                <!-- Name (Kurdish) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+                <!-- Name (Kurdish - Sorani) -->
                 <div>
-                    <label for="name" class="block text-xs font-bold text-slate-600 mb-1.5">ناوی تەواو (کوردی) <span class="text-red-500">*</span></label>
+                    <label for="name" class="block text-xs font-bold text-slate-600 mb-1.5">ناوی تەواو (سۆرانی) <span class="text-red-500">*</span></label>
                     <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required placeholder="وەک: شاژوان عوسمان ڕەشید"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">
                     @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Name (English) -->
+                <!-- Name (Badini) -->
                 <div>
-                    <label for="name_en" class="block text-xs font-bold text-slate-600 mb-1.5">ناو (ئینگلیزی)</label>
-                    <input type="text" id="name_en" name="name_en" value="{{ old('name_en', $user->name_en) }}" dir="ltr" placeholder="Full name in English"
+                    <label for="name_kmr" class="block text-xs font-bold text-slate-600 mb-1.5">ناو (بادینی)</label>
+                    <input type="text" id="name_kmr" name="name_kmr" value="{{ old('name_kmr', $user->name_kmr) }}" placeholder="ناڤ ب بادینی"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">
                 </div>
 
@@ -105,6 +105,13 @@
                 <div>
                     <label for="name_ar" class="block text-xs font-bold text-slate-600 mb-1.5">ناو (عەرەبی)</label>
                     <input type="text" id="name_ar" name="name_ar" value="{{ old('name_ar', $user->name_ar) }}" dir="rtl" placeholder="الاسم الكامل بالعربية"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">
+                </div>
+
+                <!-- Name (English) -->
+                <div>
+                    <label for="name_en" class="block text-xs font-bold text-slate-600 mb-1.5">ناو (ئینگلیزی)</label>
+                    <input type="text" id="name_en" name="name_en" value="{{ old('name_en', $user->name_en) }}" dir="ltr" placeholder="Full name in English"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">
                 </div>
             </div>
@@ -313,20 +320,25 @@
             </h3>
             <p class="text-xs text-slate-400 mb-4">کاتێک لەسەر نەخشەکە شوێنەکەت دیاری دەکەیت، ناونیشانەکە بە شێوەیەکی ئۆتۆماتیکی دەنوسرێت و وەردەگێڕدرێت.</p>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div>
-                    <label for="address" class="block text-xs font-bold text-slate-600 mb-1.5">ناونیشان / گەڕەک (کوردی)</label>
+                    <label for="address" class="block text-xs font-bold text-slate-600 mb-1.5">ناونیشان / گەڕەک (سۆرانی)</label>
                     <input type="text" id="address" name="address" value="{{ old('address', $nurse->address) }}" placeholder="هەولێر، ٦٠ مەتری، نزیک..."
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">
                 </div>
                 <div>
-                    <label for="address_en" class="block text-xs font-bold text-slate-600 mb-1.5">ناونیشان (ئینگلیزی)</label>
-                    <input type="text" id="address_en" name="address_en" value="{{ old('address_en', $nurse->address_en) }}" dir="ltr" placeholder="Street / Area in English"
+                    <label for="address_kmr" class="block text-xs font-bold text-slate-600 mb-1.5">ناونیشان (بادینی)</label>
+                    <input type="text" id="address_kmr" name="address_kmr" value="{{ old('address_kmr', $nurse->address_kmr) }}" placeholder="جادە، تاخ، باژێر..."
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">
                 </div>
                 <div>
                     <label for="address_ar" class="block text-xs font-bold text-slate-600 mb-1.5">ناونیشان (عەرەبی)</label>
                     <input type="text" id="address_ar" name="address_ar" value="{{ old('address_ar', $nurse->address_ar) }}" dir="rtl" placeholder="العنوان / الحي بالعربية"
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">
+                </div>
+                <div>
+                    <label for="address_en" class="block text-xs font-bold text-slate-600 mb-1.5">ناونیشان (ئینگلیزی)</label>
+                    <input type="text" id="address_en" name="address_en" value="{{ old('address_en', $nurse->address_en) }}" dir="ltr" placeholder="Street / Area in English"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">
                 </div>
             </div>
@@ -369,30 +381,34 @@
             </div>
         </div>
 
-        <!-- Bio (Kurdish, English, Arabic) -->
+        <!-- Bio (Kurdish, Badini, Arabic, English) -->
         <div class="border-t border-slate-100 pt-6 space-y-4">
             <h3 class="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-teal-500"></span>
                 کورتەیەک دەربارەی خۆت (بایۆگرافی)
             </h3>
             
-            <div>
-                <label for="bio" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارەی خۆت و ئەزموونت (کوردی)</label>
-                <textarea id="bio" name="bio" rows="3" placeholder="کورتەیەک دەربارەی ئەزموونی کارکردن و لێهاتووییت بنووسە..."
-                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">{{ old('bio', $nurse->bio) }}</textarea>
-                @error('bio') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                    <label for="bio_en" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارەی خۆت (ئینگلیزی)</label>
-                    <textarea id="bio_en" name="bio_en" rows="2" dir="ltr" placeholder="Short biography in English..."
-                        class="w-full text-left px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">{{ old('bio_en', $nurse->bio_en) }}</textarea>
+                    <label for="bio" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارەی خۆت (سۆرانی)</label>
+                    <textarea id="bio" name="bio" rows="2" placeholder="کورتەیەک دەربارەی ئەزموونی کارکردن..."
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">{{ old('bio', $nurse->bio) }}</textarea>
+                    @error('bio') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="bio_kmr" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارەی خۆت (بادینی)</label>
+                    <textarea id="bio_kmr" name="bio_kmr" rows="2" placeholder="دەربارەی خۆت ب بادینی..."
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">{{ old('bio_kmr', $nurse->bio_kmr) }}</textarea>
                 </div>
                 <div>
                     <label for="bio_ar" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارەی خۆت (عەرەبی)</label>
                     <textarea id="bio_ar" name="bio_ar" rows="2" dir="rtl" placeholder="نبذة عن خبرتك باللغة العربية..."
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">{{ old('bio_ar', $nurse->bio_ar) }}</textarea>
+                </div>
+                <div>
+                    <label for="bio_en" class="block text-xs font-bold text-slate-600 mb-1.5">دەربارەی خۆت (ئینگلیزی)</label>
+                    <textarea id="bio_en" name="bio_en" rows="2" dir="ltr" placeholder="Short biography in English..."
+                        class="w-full text-left px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-medium text-slate-700 text-sm">{{ old('bio_en', $nurse->bio_en) }}</textarea>
                 </div>
             </div>
         </div>
@@ -532,6 +548,7 @@
             });
             const json = await res.json();
             if (json.success && json.data) {
+                if (json.data.address_kmr) document.getElementById('address_kmr').value = json.data.address_kmr;
                 if (json.data.address_en) document.getElementById('address_en').value = json.data.address_en;
                 if (json.data.address_ar) document.getElementById('address_ar').value = json.data.address_ar;
             }
@@ -738,10 +755,13 @@
 
                 // Set Name, Address, Bio
                 const fields = [
+                    { id: 'name_kmr', val: d.name_kmr },
                     { id: 'name_en', val: d.name_en },
                     { id: 'name_ar', val: d.name_ar },
+                    { id: 'address_kmr', val: d.address_kmr },
                     { id: 'address_en', val: d.address_en },
                     { id: 'address_ar', val: d.address_ar },
+                    { id: 'bio_kmr', val: d.bio_kmr },
                     { id: 'bio_en', val: d.bio_en },
                     { id: 'bio_ar', val: d.bio_ar },
                 ];

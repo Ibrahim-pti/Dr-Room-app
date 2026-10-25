@@ -75,7 +75,12 @@
     </div>
 
     <!-- Filled by the translate button, or by the server when left blank -->
-    <div id="translations_container" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 pt-4 border-t border-slate-100">
+    <div id="translations_container" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 pt-4 border-t border-slate-100">
+        <div>
+            <label for="name_kmr" class="block text-sm font-medium text-slate-700 mb-2">ناوی خزمەتگوزاری (بادینی)</label>
+            <input type="text" id="name_kmr" name="name_kmr" value="{{ old('name_kmr') }}" placeholder="ناڤێ خزمەتگوزاریێ ب بادینی"
+                class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg">
+        </div>
         <div>
             <label for="name_en" class="block text-sm font-medium text-slate-700 mb-2">ناوی خزمەتگوزاری (ئینگلیزی)</label>
             <input type="text" id="name_en" name="name_en" value="{{ old('name_en') }}" dir="ltr"
@@ -111,7 +116,7 @@
             <tr class="hover:bg-slate-50/50 transition-colors {{ $service->is_active ? '' : 'opacity-50' }}">
                 <td class="py-4 px-6">
                     <div class="font-medium text-slate-800">{{ $service->name_ckb }}</div>
-                    <div class="text-xs text-slate-500 mt-1">EN: {{ $service->name_en }} | AR: {{ $service->name_ar }}</div>
+                    <div class="text-xs text-slate-500 mt-1">KMR: {{ $service->name_kmr ?? '-' }} | EN: {{ $service->name_en }} | AR: {{ $service->name_ar }}</div>
                 </td>
 
                 <td class="py-4 px-6">
@@ -146,6 +151,7 @@
                     $editPayload = [
                         'id' => $service->id,
                         'name_ckb' => $service->name_ckb,
+                        'name_kmr' => $service->name_kmr,
                         'name_en' => $service->name_en,
                         'name_ar' => $service->name_ar,
                         'price' => (float) $service->price,
@@ -226,7 +232,12 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">ناو (بادینی)</label>
+                        <input type="text" name="name_kmr" id="edit_name_kmr"
+                            class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-2">ناو (ئینگلیزی)</label>
                         <input type="text" name="name_en" id="edit_name_en" dir="ltr"
@@ -295,6 +306,7 @@
     function openEdit(service) {
         document.getElementById('edit_form').action = '{{ url('doctor/services') }}/' + service.id;
         document.getElementById('edit_name_ckb').value = service.name_ckb ?? '';
+        document.getElementById('edit_name_kmr').value = service.name_kmr ?? '';
         document.getElementById('edit_name_en').value = service.name_en ?? '';
         document.getElementById('edit_name_ar').value = service.name_ar ?? '';
         document.getElementById('edit_price').value = service.price;
@@ -322,6 +334,7 @@
 
         document.getElementById('translations_container').classList.remove('hidden');
         document.getElementById('translations_container').classList.add('grid');
+        document.getElementById('name_kmr').value = 'لە وەرگێڕاندایە...';
         document.getElementById('name_en').value = 'لە وەرگێڕاندایە...';
         document.getElementById('name_ar').value = 'لە وەرگێڕاندایە...';
 
@@ -336,8 +349,9 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                document.getElementById('name_en').value = data.translations.en;
-                document.getElementById('name_ar').value = data.translations.ar;
+                if (data.translations.kmr) document.getElementById('name_kmr').value = data.translations.kmr;
+                if (data.translations.en) document.getElementById('name_en').value = data.translations.en;
+                if (data.translations.ar) document.getElementById('name_ar').value = data.translations.ar;
                 
                 const addBtn = document.getElementById('add_submit_btn');
                 addBtn.disabled = false;
@@ -350,6 +364,7 @@
         const text = document.getElementById('edit_name_ckb').value;
         if (!text) return;
 
+        document.getElementById('edit_name_kmr').value = 'لە وەرگێڕاندایە...';
         document.getElementById('edit_name_en').value = 'لە وەرگێڕاندایە...';
         document.getElementById('edit_name_ar').value = 'لە وەرگێڕاندایە...';
 
@@ -364,8 +379,9 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                document.getElementById('edit_name_en').value = data.translations.en;
-                document.getElementById('edit_name_ar').value = data.translations.ar;
+                if (data.translations.kmr) document.getElementById('edit_name_kmr').value = data.translations.kmr;
+                if (data.translations.en) document.getElementById('edit_name_en').value = data.translations.en;
+                if (data.translations.ar) document.getElementById('edit_name_ar').value = data.translations.ar;
                 
                 const editBtn = document.getElementById('edit_submit_btn');
                 editBtn.disabled = false;

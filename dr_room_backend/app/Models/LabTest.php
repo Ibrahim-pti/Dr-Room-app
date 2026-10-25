@@ -11,12 +11,14 @@ class LabTest extends Model
         'name',
         'name_en',
         'name_ar',
+        'name_kmr',
         'type',
         'price',
         'discount',
         'description',
         'description_ar',
         'description_en',
+        'description_kmr',
         'is_active',
     ];
 

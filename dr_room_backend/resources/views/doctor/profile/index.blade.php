@@ -42,6 +42,11 @@
                     @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
+                    <label for="name_kmr" class="block text-sm font-medium text-slate-700 mb-2">ناوی تەواو (بادینی)</label>
+                    <input type="text" id="name_kmr" name="name_kmr" value="{{ old('name_kmr', $user->name_kmr) }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+                </div>
+                <div>
                     <label for="name_ar" class="block text-sm font-medium text-slate-700 mb-2">ناوی تەواو (عەرەبی)</label>
                     <input type="text" id="name_ar" name="name_ar" value="{{ old('name_ar', $user->name_ar) }}" dir="rtl"
                         class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
@@ -71,6 +76,11 @@
                     <input type="text" id="specialty" name="specialty" value="{{ old('specialty', $doctor->specialty) }}"
                         class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
                     @error('specialty') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="specialty_kmr" class="block text-sm font-medium text-slate-700 mb-2">پسپۆڕی (بادینی)</label>
+                    <input type="text" id="specialty_kmr" name="specialty_kmr" value="{{ old('specialty_kmr', $doctor->specialty_kmr) }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
                 </div>
                 <div>
                     <label for="specialty_ar" class="block text-sm font-medium text-slate-700 mb-2">پسپۆڕی (عەرەبی)</label>
@@ -131,6 +141,11 @@
                             class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
                     </div>
                     <div>
+                        <label for="clinic_name_kmr" class="block text-sm font-medium text-slate-700 mb-2">ناوی کلینیک (بادینی)</label>
+                        <input type="text" id="clinic_name_kmr" name="clinic_name_kmr" value="{{ old('clinic_name_kmr', $doctor->clinic_name_kmr) }}" placeholder="کلینیکا ..."
+                            class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+                    </div>
+                    <div>
                         <label for="clinic_name_ar" class="block text-sm font-medium text-slate-700 mb-2">ناوی کلینیک (عەرەبی)</label>
                         <input type="text" id="clinic_name_ar" name="clinic_name_ar" value="{{ old('clinic_name_ar', $doctor->clinic_name_ar) }}" dir="rtl"
                             class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
@@ -146,6 +161,11 @@
                     <div>
                         <label for="address" class="block text-sm font-medium text-slate-700 mb-2">ناونیشان (کوردی)</label>
                         <input type="text" id="address" name="address" value="{{ old('address', $doctor->address) }}" placeholder="شەقام، گەڕەک، شار"
+                            class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label for="address_kmr" class="block text-sm font-medium text-slate-700 mb-2">ناونیشان (بادینی)</label>
+                        <input type="text" id="address_kmr" name="address_kmr" value="{{ old('address_kmr', $doctor->address_kmr) }}" placeholder="جادە، تاخ، باژێر"
                             class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
                     </div>
                     <div>
@@ -186,21 +206,26 @@
         </div>
 
         <!-- Bio -->
-        <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label for="bio" class="block text-sm font-medium text-slate-700 mb-2">کورتەیەک دەربارەی خۆت (کوردی)</label>
-                <textarea id="bio" name="bio" rows="3"
+                <textarea id="bio" name="bio" rows="2"
                     class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">{{ old('bio', $doctor->bio) }}</textarea>
                 @error('bio') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
+                <label for="bio_kmr" class="block text-sm font-medium text-slate-700 mb-2">کورتەیەک دەربارەی خۆت (بادینی)</label>
+                <textarea id="bio_kmr" name="bio_kmr" rows="2"
+                    class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">{{ old('bio_kmr', $doctor->bio_kmr) }}</textarea>
+            </div>
+            <div>
                 <label for="bio_ar" class="block text-sm font-medium text-slate-700 mb-2">کورتەیەک دەربارەی خۆت (عەرەبی)</label>
-                <textarea id="bio_ar" name="bio_ar" rows="3" dir="rtl"
+                <textarea id="bio_ar" name="bio_ar" rows="2" dir="rtl"
                     class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">{{ old('bio_ar', $doctor->bio_ar) }}</textarea>
             </div>
             <div>
                 <label for="bio_en" class="block text-sm font-medium text-slate-700 mb-2">کورتەیەک دەربارەی خۆت (ئینگلیزی)</label>
-                <textarea id="bio_en" name="bio_en" rows="3" dir="ltr"
+                <textarea id="bio_en" name="bio_en" rows="2" dir="ltr"
                     class="w-full text-left px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">{{ old('bio_en', $doctor->bio_en) }}</textarea>
             </div>
         </div>
@@ -290,21 +315,26 @@
                         }
                     } catch (_) {}
 
-                    if (!trans || !trans.en || !trans.ar) {
+                    if (!trans || !trans.en || !trans.ar || !trans.kmr) {
                         try {
                             const encoded = encodeURIComponent(field.val.trim());
-                            const [resEn, resAr] = await Promise.all([
-                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()),
-                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json())
+                            const [resEn, resAr, resKu] = await Promise.all([
+                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()).catch(() => null),
+                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json()).catch(() => null),
+                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ku`).then(r => r.json()).catch(() => null)
                             ]);
                             trans = {
-                                en: resEn?.responseData?.translatedText || '',
-                                ar: resAr?.responseData?.translatedText || ''
+                                en: trans?.en || resEn?.responseData?.translatedText || '',
+                                ar: trans?.ar || resAr?.responseData?.translatedText || '',
+                                kmr: trans?.kmr || resKu?.responseData?.translatedText || ''
                             };
                         } catch (_) {}
                     }
 
                     if (trans) {
+                        if(document.getElementById(field.id + '_kmr') && trans.kmr) {
+                            document.getElementById(field.id + '_kmr').value = trans.kmr;
+                        }
                         if(document.getElementById(field.id + '_en') && trans.en) {
                             document.getElementById(field.id + '_en').value = trans.en;
                         }

@@ -42,6 +42,11 @@
                     @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
+                    <label for="name_kmr" class="block text-sm font-medium text-slate-700 mb-2">ناوی تاقیگە (بادینی)</label>
+                    <input type="text" id="name_kmr" name="name_kmr" value="{{ old('name_kmr', $user->name_kmr) }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+                </div>
+                <div>
                     <label for="name_ar" class="block text-sm font-medium text-slate-700 mb-2">ناوی تاقیگە (عەرەبی)</label>
                     <input type="text" id="name_ar" name="name_ar" value="{{ old('name_ar', $user->name_ar) }}" dir="rtl"
                         class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
@@ -75,11 +80,17 @@
         </div>
 
         <!-- Location / Address -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-slate-100">
             <div>
                 <label for="location" class="block text-sm font-medium text-slate-700 mb-2">ناونیشان (کوردی)</label>
                 <input type="text" id="location" name="location" value="{{ old('location', $lab?->location) }}"
                     placeholder="نموونە: هەولێر - شەقامی پزیشکان"
+                    class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
+            </div>
+            <div>
+                <label for="location_kmr" class="block text-sm font-medium text-slate-700 mb-2">ناونیشان (بادینی)</label>
+                <input type="text" id="location_kmr" name="location_kmr" value="{{ old('location_kmr', $lab?->location_kmr) }}"
+                    placeholder="نموونە: هەولێر - جادا نوژداران"
                     class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
             </div>
             <div>
@@ -114,12 +125,17 @@
 
         <div class="grid grid-cols-1 gap-6 pt-4 border-t border-slate-100">
             <!-- About Us -->
-            <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label for="about_us" class="block text-sm font-medium text-slate-700 mb-2">دەربارەی تاقیگە (کوردی) <span class="text-red-500">*</span></label>
                     <textarea id="about_us" name="about_us" rows="2" required
                         class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">{{ old('about_us', $lab?->about_us) }}</textarea>
                     @error('about_us') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="about_us_kmr" class="block text-sm font-medium text-slate-700 mb-2">دەربارەی تاقیگە (بادینی)</label>
+                    <textarea id="about_us_kmr" name="about_us_kmr" rows="2"
+                        class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">{{ old('about_us_kmr', $lab?->about_us_kmr) }}</textarea>
                 </div>
                 <div>
                     <label for="about_us_ar" class="block text-sm font-medium text-slate-700 mb-2">دەربارەی تاقیگە (عەرەبی)</label>
@@ -294,15 +310,16 @@ async function translateAll() {
         btn.disabled = true;
 
         const fieldsToTranslate = [
-            { source: 'name', ar: 'name_ar', en: 'name_en' },
-            { source: 'location', ar: 'location_ar', en: 'location_en' },
-            { source: 'about_us', ar: 'about_us_ar', en: 'about_us_en' }
+            { source: 'name', ar: 'name_ar', en: 'name_en', kmr: 'name_kmr' },
+            { source: 'location', ar: 'location_ar', en: 'location_en', kmr: 'location_kmr' },
+            { source: 'about_us', ar: 'about_us_ar', en: 'about_us_en', kmr: 'about_us_kmr' }
         ];
 
         for (const field of fieldsToTranslate) {
             const sourceEl = document.getElementById(field.source);
             const arEl = document.getElementById(field.ar);
             const enEl = document.getElementById(field.en);
+            const kmrEl = document.getElementById(field.kmr);
 
             if (sourceEl && sourceEl.value.trim()) {
                 const text = sourceEl.value.trim();
@@ -330,16 +347,18 @@ async function translateAll() {
                 }
 
                 // 2. Client-side fallback if backend failed
-                if (!translations || !translations.en || !translations.ar) {
+                if (!translations || !translations.en || !translations.ar || !translations.kmr) {
                     try {
                         const encoded = encodeURIComponent(text);
-                        const [resEn, resAr] = await Promise.all([
+                        const [resEn, resAr, resKu] = await Promise.all([
                             fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()),
-                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json())
+                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json()),
+                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ku`).then(r => r.json())
                         ]);
                         translations = {
                             en: resEn?.responseData?.translatedText || '',
-                            ar: resAr?.responseData?.translatedText || ''
+                            ar: resAr?.responseData?.translatedText || '',
+                            kmr: resKu?.responseData?.translatedText || ''
                         };
                     } catch (clientErr) {
                         console.error('Client-side translation fallback error:', clientErr);
@@ -352,6 +371,9 @@ async function translateAll() {
                     }
                     if (enEl && translations.en) {
                         enEl.value = translations.en;
+                    }
+                    if (kmrEl && translations.kmr) {
+                        kmrEl.value = translations.kmr;
                     }
                 }
             }

@@ -45,6 +45,7 @@ class LabProfileController extends Controller
             'name' => $request->name,
             'name_en' => $request->name_en,
             'name_ar' => $request->name_ar,
+            'name_kmr' => $request->name_kmr,
             'phone' => $request->phone,
         ]);
 
@@ -54,12 +55,14 @@ class LabProfileController extends Controller
             'location' => $request->location,
             'location_en' => $request->location_en,
             'location_ar' => $request->location_ar,
+            'location_kmr' => $request->location_kmr,
             'opening_hours' => $request->opening_hours ?? '08:00 AM - 10:00 PM',
             'youtube_url' => $request->youtube_url,
             'discount' => $request->discount,
             'about_us' => $request->about_us,
             'about_us_en' => $request->about_us_en,
             'about_us_ar' => $request->about_us_ar,
+            'about_us_kmr' => $request->about_us_kmr,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'home_sample_collection' => $request->has('home_sample_collection') ? true : false,
@@ -77,11 +80,20 @@ class LabProfileController extends Controller
             if ($request->about_us && !$request->about_us_ar) {
                 $updateData['about_us_ar'] = \App\Services\TranslationService::translate($request->about_us, 'ar');
             }
+            if ($request->about_us && !$request->about_us_kmr) {
+                $updateData['about_us_kmr'] = \App\Services\TranslationService::translate($request->about_us, 'ku');
+            }
             if ($request->location && !$request->location_en) {
                 $updateData['location_en'] = \App\Services\TranslationService::translate($request->location, 'en');
             }
             if ($request->location && !$request->location_ar) {
                 $updateData['location_ar'] = \App\Services\TranslationService::translate($request->location, 'ar');
+            }
+            if ($request->location && !$request->location_kmr) {
+                $updateData['location_kmr'] = \App\Services\TranslationService::translate($request->location, 'ku');
+            }
+            if ($request->name && !$request->name_kmr) {
+                $user->update(['name_kmr' => \App\Services\TranslationService::translate($request->name, 'ku')]);
             }
         } catch (\Exception $e) {
             // Translation failed, ignore

@@ -52,9 +52,11 @@ class LabPackageController extends Controller
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'name_ar' => 'nullable|string|max:255',
+            'name_kmr' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
+            'description_kmr' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'discount' => 'nullable|integer|min:0|max:100',
@@ -65,6 +67,17 @@ class LabPackageController extends Controller
 
         $validated['lab_id'] = $lab->id;
         $validated['is_active'] = $request->has('is_active');
+
+        if (empty($validated['name_kmr']) && !empty($validated['name'])) {
+            try {
+                $validated['name_kmr'] = \App\Services\TranslationService::translate($validated['name'], 'ku');
+            } catch (\Exception $e) {}
+        }
+        if (empty($validated['description_kmr']) && !empty($validated['description'])) {
+            try {
+                $validated['description_kmr'] = \App\Services\TranslationService::translate($validated['description'], 'ku');
+            } catch (\Exception $e) {}
+        }
 
         // Auto calculate discount percentage if original_price is provided
         if (!empty($validated['original_price']) && $validated['original_price'] > $validated['price']) {
@@ -106,15 +119,28 @@ class LabPackageController extends Controller
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'name_ar' => 'nullable|string|max:255',
+            'name_kmr' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
+            'description_kmr' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'discount' => 'nullable|integer|min:0|max:100',
             'test_ids' => 'nullable|array',
             'test_ids.*' => 'integer|exists:lab_tests,id',
         ]);
+
+        if (empty($validated['name_kmr']) && !empty($validated['name'])) {
+            try {
+                $validated['name_kmr'] = \App\Services\TranslationService::translate($validated['name'], 'ku');
+            } catch (\Exception $e) {}
+        }
+        if (empty($validated['description_kmr']) && !empty($validated['description'])) {
+            try {
+                $validated['description_kmr'] = \App\Services\TranslationService::translate($validated['description'], 'ku');
+            } catch (\Exception $e) {}
+        }
 
         $validated['is_active'] = $request->has('is_active');
 

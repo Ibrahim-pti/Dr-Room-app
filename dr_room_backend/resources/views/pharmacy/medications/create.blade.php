@@ -30,13 +30,18 @@
                 </button>
             </div>
 
-            <!-- Name (Kurdish, Arabic, English) -->
+            <!-- Name (Kurdish, Badini, Arabic, English) -->
             <div class="space-y-4 mb-6">
-                <h4 class="text-xs font-bold text-slate-700">ناوی دەرمان بە سێ زمان</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <h4 class="text-xs font-bold text-slate-700">ناوی دەرمان بە چوار زمان</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
-                        <label for="name" class="block text-xs font-bold text-slate-600 mb-1.5">ناوی دەرمان (کوردی) <span class="text-red-500">*</span></label>
+                        <label for="name" class="block text-xs font-bold text-slate-600 mb-1.5">ناوی دەرمان (سۆرانی) <span class="text-red-500">*</span></label>
                         <input type="text" id="name" name="name" value="{{ old('name') }}" placeholder="بۆ نموونە: ئۆگمێنتین" required
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
+                    </div>
+                    <div>
+                        <label for="name_kmr" class="block text-xs font-bold text-slate-600 mb-1.5">ناوی دەرمان (بادینی)</label>
+                        <input type="text" id="name_kmr" name="name_kmr" value="{{ old('name_kmr') }}" placeholder="ناڤێ دەرمانی ب بادینی"
                             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700">
                     </div>
                     <div>
@@ -124,14 +129,19 @@
                 <input type="file" name="image" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
             </div>
 
-            <!-- Description (Kurdish, Arabic, English) -->
+            <!-- Description (Kurdish, Badini, Arabic, English) -->
             <div class="space-y-4 mb-8 pt-4 border-t border-slate-100">
-                <h4 class="text-xs font-bold text-slate-700">وەسف و شێوازی بەکارهێنان</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <h4 class="text-xs font-bold text-slate-700">وەسف و شێوازی بەکارهێنان بە چوار زمان</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
-                        <label for="description" class="block text-xs font-bold text-slate-600 mb-1.5">وەسف (کوردی)</label>
+                        <label for="description" class="block text-xs font-bold text-slate-600 mb-1.5">وەسف (سۆرانی)</label>
                         <textarea id="description" name="description" rows="3" placeholder="وەسفێکی کورت لەسەر سوودەکانی ئەم دەرمانە بنووسە..."
                             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700 resize-y">{{ old('description') }}</textarea>
+                    </div>
+                    <div>
+                        <label for="description_kmr" class="block text-xs font-bold text-slate-600 mb-1.5">وەسف (بادینی)</label>
+                        <textarea id="description_kmr" name="description_kmr" rows="3" placeholder="وەسف ب بادینی..."
+                            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-sm font-medium text-slate-700 resize-y">{{ old('description_kmr') }}</textarea>
                     </div>
                     <div>
                         <label for="description_ar" class="block text-xs font-bold text-slate-600 mb-1.5">وەسف (عەرەبی)</label>
@@ -167,13 +177,14 @@ async function translateAll() {
         btn.disabled = true;
 
         const fieldsToTranslate = [
-            { source: 'name', ar: 'name_ar', en: 'name_en' },
+            { source: 'name', kmr: 'name_kmr', ar: 'name_ar', en: 'name_en' },
             { source: 'category', ar: 'category_ar', en: 'category_en' },
-            { source: 'description', ar: 'description_ar', en: 'description_en' }
+            { source: 'description', kmr: 'description_kmr', ar: 'description_ar', en: 'description_en' }
         ];
 
         for (const field of fieldsToTranslate) {
             const sourceEl = document.getElementById(field.source);
+            const kmrEl = field.kmr ? document.getElementById(field.kmr) : null;
             const arEl = document.getElementById(field.ar);
             const enEl = document.getElementById(field.en);
 
@@ -190,6 +201,11 @@ async function translateAll() {
                 const data = await res.json();
                 
                 if (data.success && data.translations) {
+                    if (kmrEl && data.translations.kmr) {
+                        kmrEl.value = data.translations.kmr;
+                        kmrEl.classList.add('bg-emerald-50');
+                        setTimeout(() => kmrEl.classList.remove('bg-emerald-50'), 1500);
+                    }
                     if (arEl && data.translations.ar) {
                         arEl.value = data.translations.ar;
                         arEl.classList.add('bg-emerald-50');

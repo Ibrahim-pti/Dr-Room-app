@@ -22,10 +22,12 @@ class PharmacyProfileController extends Controller
             'name' => 'required|string|max:255',
             'name_ar' => 'nullable|string|max:255',
             'name_en' => 'nullable|string|max:255',
+            'name_kmr' => 'nullable|string|max:255',
             'phone' => 'required|string|max:30',
             'location' => 'nullable|string|max:255',
             'location_ar' => 'nullable|string|max:255',
             'location_en' => 'nullable|string|max:255',
+            'location_kmr' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:100',
             'delivery_fee' => 'nullable|numeric|min:0',
             'delivery_time' => 'nullable|string|max:100',
@@ -33,6 +35,7 @@ class PharmacyProfileController extends Controller
             'bio' => 'nullable|string',
             'bio_ar' => 'nullable|string',
             'bio_en' => 'nullable|string',
+            'bio_kmr' => 'nullable|string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'profile_image' => 'nullable|image|max:4096',
@@ -44,6 +47,7 @@ class PharmacyProfileController extends Controller
         $user->name = $request->name;
         $user->name_ar = $request->name_ar;
         $user->name_en = $request->name_en;
+        $user->name_kmr = $request->name_kmr;
         $user->phone = $request->phone;
         $user->save();
 
@@ -68,12 +72,31 @@ class PharmacyProfileController extends Controller
             }
         }
 
+        $locKmr = $request->location_kmr;
+        $bioKmr = $request->bio_kmr;
+
+        try {
+            if ($request->name && !$user->name_kmr) {
+                $user->name_kmr = \App\Services\TranslationService::translate($request->name, 'ku');
+                $user->save();
+            }
+            if ($request->location && !$locKmr) {
+                $locKmr = \App\Services\TranslationService::translate($request->location, 'ku');
+            }
+            if ($request->bio && !$bioKmr) {
+                $bioKmr = \App\Services\TranslationService::translate($request->bio, 'ku');
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Pharmacy profile kmr translation failed: " . $e->getMessage());
+        }
+
         $pharmacy->update([
             'phone' => $request->phone,
             'image_path' => $pharmacy->image_path,
             'location' => $request->location ?? $pharmacy->location,
             'location_ar' => $request->location_ar ?? $pharmacy->location_ar,
             'location_en' => $request->location_en ?? $pharmacy->location_en,
+            'location_kmr' => $locKmr ?? $pharmacy->location_kmr,
             'city' => $request->city ?? 'هەولێر',
             'delivery_fee' => $request->delivery_fee ?? 3000,
             'delivery_time' => $request->delivery_time ?? '۲۰-۳۰ خولەک',
@@ -81,6 +104,7 @@ class PharmacyProfileController extends Controller
             'bio' => $request->bio,
             'bio_ar' => $request->bio_ar,
             'bio_en' => $request->bio_en,
+            'bio_kmr' => $bioKmr ?? $pharmacy->bio_kmr,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'gallery_images' => $gallery,

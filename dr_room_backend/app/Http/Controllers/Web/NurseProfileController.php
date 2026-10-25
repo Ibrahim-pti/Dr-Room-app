@@ -24,27 +24,33 @@ class NurseProfileController extends Controller
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'name_ar' => 'nullable|string|max:255',
+            'name_kmr' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20',
             'specialty' => 'nullable|string|max:500',
             'specialty_en' => 'nullable|string|max:500',
             'specialty_ar' => 'nullable|string|max:500',
+            'specialty_kmr' => 'nullable|string|max:500',
             'specialties' => 'nullable|array',
             'specialties.*.name' => 'nullable|string|max:255',
             'specialties.*.name_en' => 'nullable|string|max:255',
             'specialties.*.name_ar' => 'nullable|string|max:255',
+            'specialties.*.name_kmr' => 'nullable|string|max:255',
             'custom_services' => 'nullable|array',
             'custom_services.*.name' => 'nullable|string|max:255',
             'custom_services.*.name_en' => 'nullable|string|max:255',
             'custom_services.*.name_ar' => 'nullable|string|max:255',
+            'custom_services.*.name_kmr' => 'nullable|string|max:255',
             'custom_services.*.price' => 'nullable|numeric|min:0',
             'bio' => 'nullable|string',
             'bio_en' => 'nullable|string',
             'bio_ar' => 'nullable|string',
+            'bio_kmr' => 'nullable|string',
             'city' => 'nullable|string|max:100',
             'service_type' => 'nullable|string|max:100',
             'address' => 'nullable|string|max:500',
             'address_en' => 'nullable|string|max:500',
             'address_ar' => 'nullable|string|max:500',
+            'address_kmr' => 'nullable|string|max:500',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'is_available' => 'nullable|boolean',
@@ -62,6 +68,7 @@ class NurseProfileController extends Controller
                         'name' => trim($s['name']),
                         'name_en' => trim($s['name_en'] ?? ''),
                         'name_ar' => trim($s['name_ar'] ?? ''),
+                        'name_kmr' => trim($s['name_kmr'] ?? ''),
                     ];
                 }
             }
@@ -70,11 +77,13 @@ class NurseProfileController extends Controller
         $specialtyKurdish = $request->specialty;
         $specialtyEn = $request->specialty_en;
         $specialtyAr = $request->specialty_ar;
+        $specialtyKmr = $request->specialty_kmr;
 
         if (!empty($specialtiesList)) {
             $specialtyKurdish = implode('، ', array_column($specialtiesList, 'name'));
             $specialtyEn = implode(', ', array_filter(array_column($specialtiesList, 'name_en')));
             $specialtyAr = implode('، ', array_filter(array_column($specialtiesList, 'name_ar')));
+            $specialtyKmr = implode('، ', array_filter(array_column($specialtiesList, 'name_kmr')));
         }
 
         // Process custom services & fees
@@ -86,6 +95,7 @@ class NurseProfileController extends Controller
                         'name' => trim($cs['name']),
                         'name_en' => trim($cs['name_en'] ?? ''),
                         'name_ar' => trim($cs['name_ar'] ?? ''),
+                        'name_kmr' => trim($cs['name_kmr'] ?? ''),
                         'price' => !empty($cs['price']) ? (float)$cs['price'] : 0,
                     ];
                 }
@@ -95,10 +105,13 @@ class NurseProfileController extends Controller
         // Automatic Translation helper
         $userNameEn = $request->name_en;
         $userNameAr = $request->name_ar;
+        $userNameKmr = $request->name_kmr;
         $bioEn = $request->bio_en;
         $bioAr = $request->bio_ar;
+        $bioKmr = $request->bio_kmr;
         $addressEn = $request->address_en;
         $addressAr = $request->address_ar;
+        $addressKmr = $request->address_kmr;
 
         try {
             // Name translations
@@ -108,6 +121,9 @@ class NurseProfileController extends Controller
             if ($request->name && !$userNameAr) {
                 $userNameAr = \App\Services\TranslationService::translate($request->name, 'ar');
             }
+            if ($request->name && !$userNameKmr) {
+                $userNameKmr = \App\Services\TranslationService::translate($request->name, 'ku');
+            }
 
             // Specialty translations
             if ($specialtyKurdish && !$specialtyEn) {
@@ -115,6 +131,9 @@ class NurseProfileController extends Controller
             }
             if ($specialtyKurdish && !$specialtyAr) {
                 $specialtyAr = \App\Services\TranslationService::translate($specialtyKurdish, 'ar');
+            }
+            if ($specialtyKurdish && !$specialtyKmr) {
+                $specialtyKmr = \App\Services\TranslationService::translate($specialtyKurdish, 'ku');
             }
 
             // Custom services translations
@@ -125,6 +144,9 @@ class NurseProfileController extends Controller
                     }
                     if (empty($cService['name_ar'])) {
                         $cService['name_ar'] = \App\Services\TranslationService::translate($cService['name'], 'ar');
+                    }
+                    if (empty($cService['name_kmr'])) {
+                        $cService['name_kmr'] = \App\Services\TranslationService::translate($cService['name'], 'ku');
                     }
                 }
             }
@@ -137,6 +159,9 @@ class NurseProfileController extends Controller
             if ($request->bio && !$bioAr) {
                 $bioAr = \App\Services\TranslationService::translate($request->bio, 'ar');
             }
+            if ($request->bio && !$bioKmr) {
+                $bioKmr = \App\Services\TranslationService::translate($request->bio, 'ku');
+            }
 
             // Address translations
             if ($request->address && !$addressEn) {
@@ -144,6 +169,9 @@ class NurseProfileController extends Controller
             }
             if ($request->address && !$addressAr) {
                 $addressAr = \App\Services\TranslationService::translate($request->address, 'ar');
+            }
+            if ($request->address && !$addressKmr) {
+                $addressKmr = \App\Services\TranslationService::translate($request->address, 'ku');
             }
 
         } catch (\Exception $e) {
@@ -154,6 +182,7 @@ class NurseProfileController extends Controller
             'name' => $request->name,
             'name_en' => $userNameEn,
             'name_ar' => $userNameAr,
+            'name_kmr' => $userNameKmr,
             'phone' => $request->phone,
         ]);
 
@@ -162,13 +191,16 @@ class NurseProfileController extends Controller
                 'specialty' => $specialtyKurdish,
                 'specialty_en' => $specialtyEn,
                 'specialty_ar' => $specialtyAr,
+                'specialty_kmr' => $specialtyKmr,
                 'custom_services' => $customServicesList,
                 'bio' => $request->bio,
                 'bio_en' => $bioEn,
                 'bio_ar' => $bioAr,
+                'bio_kmr' => $bioKmr,
                 'address' => $request->address,
                 'address_en' => $addressEn,
                 'address_ar' => $addressAr,
+                'address_kmr' => $addressKmr,
                 'latitude' => $request->filled('latitude') ? $request->latitude : null,
                 'longitude' => $request->filled('longitude') ? $request->longitude : null,
                 'is_available' => $request->has('is_available') ? (bool) $request->is_available : $nurse->is_available,
@@ -229,22 +261,28 @@ class NurseProfileController extends Controller
         $translations = [
             'name_en' => '',
             'name_ar' => '',
+            'name_kmr' => '',
             'specialty_en' => '',
             'specialty_ar' => '',
+            'specialty_kmr' => '',
             'specialties_translated' => [],
             'custom_services_translated' => [],
             'city_en' => '',
             'city_ar' => '',
+            'city_kmr' => '',
             'address_en' => '',
             'address_ar' => '',
+            'address_kmr' => '',
             'bio_en' => '',
             'bio_ar' => '',
+            'bio_kmr' => '',
         ];
 
         try {
             if ($request->filled('name')) {
                 $translations['name_en'] = \App\Services\TranslationService::translate($request->name, 'en');
                 $translations['name_ar'] = \App\Services\TranslationService::translate($request->name, 'ar');
+                $translations['name_kmr'] = \App\Services\TranslationService::translate($request->name, 'ku');
             }
 
             if ($request->has('specialties') && is_array($request->specialties)) {
@@ -253,14 +291,17 @@ class NurseProfileController extends Controller
                     $kurdish = trim($s['name'] ?? '');
                     $en = trim($s['name_en'] ?? '');
                     $ar = trim($s['name_ar'] ?? '');
+                    $kmr = trim($s['name_kmr'] ?? '');
                     if ($kurdish) {
                         if (!$en) $en = \App\Services\TranslationService::translate($kurdish, 'en');
                         if (!$ar) $ar = \App\Services\TranslationService::translate($kurdish, 'ar');
+                        if (!$kmr) $kmr = \App\Services\TranslationService::translate($kurdish, 'ku');
                     }
                     $specList[$idx] = [
                         'name' => $kurdish,
                         'name_en' => $en,
                         'name_ar' => $ar,
+                        'name_kmr' => $kmr,
                     ];
                 }
                 $translations['specialties_translated'] = $specList;
@@ -272,14 +313,17 @@ class NurseProfileController extends Controller
                     $kurdish = trim($cs['name'] ?? '');
                     $en = trim($cs['name_en'] ?? '');
                     $ar = trim($cs['name_ar'] ?? '');
+                    $kmr = trim($cs['name_kmr'] ?? '');
                     if ($kurdish) {
                         if (!$en) $en = \App\Services\TranslationService::translate($kurdish, 'en');
                         if (!$ar) $ar = \App\Services\TranslationService::translate($kurdish, 'ar');
+                        if (!$kmr) $kmr = \App\Services\TranslationService::translate($kurdish, 'ku');
                     }
                     $csList[$idx] = [
                         'name' => $kurdish,
                         'name_en' => $en,
                         'name_ar' => $ar,
+                        'name_kmr' => $kmr,
                     ];
                 }
                 $translations['custom_services_translated'] = $csList;
@@ -288,18 +332,22 @@ class NurseProfileController extends Controller
             if ($request->filled('specialty')) {
                 $translations['specialty_en'] = \App\Services\TranslationService::translate($request->specialty, 'en');
                 $translations['specialty_ar'] = \App\Services\TranslationService::translate($request->specialty, 'ar');
+                $translations['specialty_kmr'] = \App\Services\TranslationService::translate($request->specialty, 'ku');
             }
             if ($request->filled('city')) {
                 $translations['city_en'] = \App\Services\TranslationService::translate($request->city, 'en');
                 $translations['city_ar'] = \App\Services\TranslationService::translate($request->city, 'ar');
+                $translations['city_kmr'] = \App\Services\TranslationService::translate($request->city, 'ku');
             }
             if ($request->filled('address')) {
                 $translations['address_en'] = \App\Services\TranslationService::translate($request->address, 'en');
                 $translations['address_ar'] = \App\Services\TranslationService::translate($request->address, 'ar');
+                $translations['address_kmr'] = \App\Services\TranslationService::translate($request->address, 'ku');
             }
             if ($request->filled('bio')) {
                 $translations['bio_en'] = \App\Services\TranslationService::translate($request->bio, 'en');
                 $translations['bio_ar'] = \App\Services\TranslationService::translate($request->bio, 'ar');
+                $translations['bio_kmr'] = \App\Services\TranslationService::translate($request->bio, 'ku');
             }
 
             return response()->json([

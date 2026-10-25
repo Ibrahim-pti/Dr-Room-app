@@ -62,6 +62,7 @@ class DoctorServiceController extends Controller
     {
         $request->validate([
             'name_ckb' => 'required|string|max:255',
+            'name_kmr' => 'nullable|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'name_ar' => 'nullable|string|max:255',
             'price' => 'required|numeric|min:0',
@@ -74,14 +75,15 @@ class DoctorServiceController extends Controller
         ]);
 
         $nameCkb = $request->name_ckb;
+        $nameKmr = $request->name_kmr;
         $nameEn = $request->name_en;
         $nameAr = $request->name_ar;
 
-        if (! $nameEn || ! $nameAr) {
+        if (! $nameEn || ! $nameAr || ! $nameKmr) {
             try {
-                $tr = new GoogleTranslate();
-                if (! $nameEn) $nameEn = $tr->setTarget('en')->translate($nameCkb);
-                if (! $nameAr) $nameAr = $tr->setTarget('ar')->translate($nameCkb);
+                if (! $nameEn) $nameEn = \App\Services\TranslationService::translate($nameCkb, 'en');
+                if (! $nameAr) $nameAr = \App\Services\TranslationService::translate($nameCkb, 'ar');
+                if (! $nameKmr) $nameKmr = \App\Services\TranslationService::translate($nameCkb, 'ku');
             } catch (\Exception $e) {
                 Log::error('Service translation failed: ' . $e->getMessage());
             }
@@ -89,6 +91,7 @@ class DoctorServiceController extends Controller
 
         return [
             'name_ckb' => $nameCkb,
+            'name_kmr' => $nameKmr,
             'name_en' => $nameEn,
             'name_ar' => $nameAr,
             'price' => $request->price,

@@ -33,25 +33,32 @@
         <form action="{{ route('lab.packages.store') }}" method="POST" class="space-y-6">
             @csrf
 
-            <!-- Names in 3 languages -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- Names in 4 languages -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-2" for="name">
-                        ناوی پاکێج (بە کوردی) <span class="text-rose-500">*</span>
+                        ناوی پاکێج (سۆرانی) <span class="text-rose-500">*</span>
                     </label>
                     <input class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-bold text-xs text-slate-800 outline-none" 
                            id="name" type="text" name="name" value="{{ old('name') }}" placeholder="نموونە: پاکێجی پشکنینی تەواوی جەستە" required>
                 </div>
                 <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2" for="name_kmr">
+                        ناوی پاکێج (بادینی)
+                    </label>
+                    <input class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-bold text-xs text-slate-800 outline-none" 
+                           id="name_kmr" type="text" name="name_kmr" value="{{ old('name_kmr') }}" placeholder="ناڤێ پاکێجێ ب بادینی">
+                </div>
+                <div>
                     <label class="block text-xs font-bold text-slate-700 mb-2" for="name_ar">
-                        ناوی پاکێج (بە عەرەبی)
+                        ناوی پاکێج (عەرەبی)
                     </label>
                     <input class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-bold text-xs text-slate-800 outline-none" 
                            id="name_ar" type="text" name="name_ar" value="{{ old('name_ar') }}" dir="rtl" placeholder="باقة الفحص الشامل للجسم">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-2" for="name_en">
-                        ناوی پاکێج (بە ئینگلیزی)
+                        ناوی پاکێج (ئینگلیزی)
                     </label>
                     <input class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-bold text-xs text-slate-800 outline-none" 
                            id="name_en" type="text" name="name_en" value="{{ old('name_en') }}" dir="ltr" placeholder="Full Body Checkup Package">
@@ -126,6 +133,7 @@
                 </div>
 
                 <!-- Auto-translated hidden descriptions -->
+                <input type="hidden" id="description_kmr" name="description_kmr" value="{{ old('description_kmr') }}">
                 <input type="hidden" id="description_ar" name="description_ar" value="{{ old('description_ar') }}">
                 <input type="hidden" id="description_en" name="description_en" value="{{ old('description_en') }}">
             </div>
@@ -156,9 +164,11 @@
 async function translateAll() {
     const btn = document.getElementById('translateBtn');
     const nameEl = document.getElementById('name');
+    const nameKmrEl = document.getElementById('name_kmr');
     const nameArEl = document.getElementById('name_ar');
     const nameEnEl = document.getElementById('name_en');
     const descEl = document.getElementById('description');
+    const descKmrEl = document.getElementById('description_kmr');
     const descArEl = document.getElementById('description_ar');
     const descEnEl = document.getElementById('description_en');
 
@@ -185,6 +195,7 @@ async function translateAll() {
         });
         const dataName = await resName.json();
         if (dataName.success && dataName.translations) {
+            if (nameKmrEl) nameKmrEl.value = dataName.translations.kmr || '';
             if (nameArEl) nameArEl.value = dataName.translations.ar || '';
             if (nameEnEl) nameEnEl.value = dataName.translations.en || '';
         }
@@ -202,6 +213,7 @@ async function translateAll() {
             });
             const dataDesc = await resDesc.json();
             if (dataDesc.success && dataDesc.translations) {
+                if (descKmrEl) descKmrEl.value = dataDesc.translations.kmr || '';
                 if (descArEl) descArEl.value = dataDesc.translations.ar || '';
                 if (descEnEl) descEnEl.value = dataDesc.translations.en || '';
             }

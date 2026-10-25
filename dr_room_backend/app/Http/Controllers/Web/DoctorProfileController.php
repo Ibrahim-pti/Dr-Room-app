@@ -51,25 +51,32 @@ class DoctorProfileController extends Controller
             'name' => $request->name,
             'name_en' => $request->name_en,
             'name_ar' => $request->name_ar,
+            'name_kmr' => $request->name_kmr,
             'phone' => $request->phone,
         ]);
 
         if ($doctor) {
             $updateData = [
                 'specialty' => $request->specialty,
+                'specialty_en' => $request->specialty_en,
+                'specialty_ar' => $request->specialty_ar,
+                'specialty_kmr' => $request->specialty_kmr,
                 'bio' => $request->bio,
+                'bio_en' => $request->bio_en,
+                'bio_ar' => $request->bio_ar,
+                'bio_kmr' => $request->bio_kmr,
                 'experience_years' => $request->filled('experience_years') ? $request->experience_years : null,
                 'consultation_fee' => $request->filled('consultation_fee') ? $request->consultation_fee : null,
                 'clinic_name' => $request->clinic_name,
                 'clinic_name_en' => $request->clinic_name_en,
                 'clinic_name_ar' => $request->clinic_name_ar,
+                'clinic_name_kmr' => $request->clinic_name_kmr,
                 'address' => $request->address,
                 'address_en' => $request->address_en,
                 'address_ar' => $request->address_ar,
+                'address_kmr' => $request->address_kmr,
                 'latitude' => $request->filled('latitude') ? $request->latitude : null,
                 'longitude' => $request->filled('longitude') ? $request->longitude : null,
-                // The API exposes the doctor record, not the user, so the
-                // contact number has to live on both.
                 'phone' => $request->phone,
             ];
 
@@ -88,11 +95,6 @@ class DoctorProfileController extends Controller
                 }
             }
 
-            $updateData['specialty_en'] = $request->specialty_en;
-            $updateData['specialty_ar'] = $request->specialty_ar;
-            $updateData['bio_en'] = $request->bio_en;
-            $updateData['bio_ar'] = $request->bio_ar;
-            
             try {
                 if ($request->specialty && !$request->specialty_en) {
                     $updateData['specialty_en'] = \App\Services\TranslationService::translate($request->specialty, 'en');
@@ -100,11 +102,26 @@ class DoctorProfileController extends Controller
                 if ($request->specialty && !$request->specialty_ar) {
                     $updateData['specialty_ar'] = \App\Services\TranslationService::translate($request->specialty, 'ar');
                 }
+                if ($request->specialty && !$request->specialty_kmr) {
+                    $updateData['specialty_kmr'] = \App\Services\TranslationService::translate($request->specialty, 'ku');
+                }
+                if ($request->clinic_name && !$request->clinic_name_kmr) {
+                    $updateData['clinic_name_kmr'] = \App\Services\TranslationService::translate($request->clinic_name, 'ku');
+                }
+                if ($request->address && !$request->address_kmr) {
+                    $updateData['address_kmr'] = \App\Services\TranslationService::translate($request->address, 'ku');
+                }
                 if ($request->bio && !$request->bio_en) {
                     $updateData['bio_en'] = \App\Services\TranslationService::translate($request->bio, 'en');
                 }
                 if ($request->bio && !$request->bio_ar) {
                     $updateData['bio_ar'] = \App\Services\TranslationService::translate($request->bio, 'ar');
+                }
+                if ($request->bio && !$request->bio_kmr) {
+                    $updateData['bio_kmr'] = \App\Services\TranslationService::translate($request->bio, 'ku');
+                }
+                if ($request->name && !$request->name_kmr) {
+                    $user->update(['name_kmr' => \App\Services\TranslationService::translate($request->name, 'ku')]);
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Translation failed: ' . $e->getMessage());
