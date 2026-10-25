@@ -71,21 +71,17 @@ class LabProfileController extends Controller
         }
 
         try {
-            if (class_exists('\Stichoza\GoogleTranslate\GoogleTranslate')) {
-                $tr = new \Stichoza\GoogleTranslate\GoogleTranslate();
-                
-                if ($request->about_us && !$request->about_us_en) {
-                    $updateData['about_us_en'] = $tr->setTarget('en')->translate($request->about_us);
-                }
-                if ($request->about_us && !$request->about_us_ar) {
-                    $updateData['about_us_ar'] = $tr->setTarget('ar')->translate($request->about_us);
-                }
-                if ($request->location && !$request->location_en) {
-                    $updateData['location_en'] = $tr->setTarget('en')->translate($request->location);
-                }
-                if ($request->location && !$request->location_ar) {
-                    $updateData['location_ar'] = $tr->setTarget('ar')->translate($request->location);
-                }
+            if ($request->about_us && !$request->about_us_en) {
+                $updateData['about_us_en'] = \App\Services\TranslationService::translate($request->about_us, 'en');
+            }
+            if ($request->about_us && !$request->about_us_ar) {
+                $updateData['about_us_ar'] = \App\Services\TranslationService::translate($request->about_us, 'ar');
+            }
+            if ($request->location && !$request->location_en) {
+                $updateData['location_en'] = \App\Services\TranslationService::translate($request->location, 'en');
+            }
+            if ($request->location && !$request->location_ar) {
+                $updateData['location_ar'] = \App\Services\TranslationService::translate($request->location, 'ar');
             }
         } catch (\Exception $e) {
             // Translation failed, ignore

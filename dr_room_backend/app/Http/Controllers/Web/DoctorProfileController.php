@@ -94,18 +94,17 @@ class DoctorProfileController extends Controller
             $updateData['bio_ar'] = $request->bio_ar;
             
             try {
-                $tr = new \Stichoza\GoogleTranslate\GoogleTranslate();
                 if ($request->specialty && !$request->specialty_en) {
-                    $updateData['specialty_en'] = $tr->setTarget('en')->translate($request->specialty);
+                    $updateData['specialty_en'] = \App\Services\TranslationService::translate($request->specialty, 'en');
                 }
                 if ($request->specialty && !$request->specialty_ar) {
-                    $updateData['specialty_ar'] = $tr->setTarget('ar')->translate($request->specialty);
+                    $updateData['specialty_ar'] = \App\Services\TranslationService::translate($request->specialty, 'ar');
                 }
                 if ($request->bio && !$request->bio_en) {
-                    $updateData['bio_en'] = $tr->setTarget('en')->translate($request->bio);
+                    $updateData['bio_en'] = \App\Services\TranslationService::translate($request->bio, 'en');
                 }
                 if ($request->bio && !$request->bio_ar) {
-                    $updateData['bio_ar'] = $tr->setTarget('ar')->translate($request->bio);
+                    $updateData['bio_ar'] = \App\Services\TranslationService::translate($request->bio, 'ar');
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Translation failed: ' . $e->getMessage());

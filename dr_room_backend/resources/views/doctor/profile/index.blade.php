@@ -277,17 +277,40 @@
 
             for (const field of fieldsToTranslate) {
                 if (field.val) {
-                    const res = await fetch(`/api/translate`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
-                        body: JSON.stringify({text: field.val})
-                    });
-                    const data = await res.json();
-                    if(document.getElementById(field.id + '_en')) {
-                        document.getElementById(field.id + '_en').value = data.translations?.en || '';
+                    let trans = null;
+                    try {
+                        const res = await fetch(`/api/translate`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+                            body: JSON.stringify({text: field.val})
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.success && data.translations) trans = data.translations;
+                        }
+                    } catch (_) {}
+
+                    if (!trans || !trans.en || !trans.ar) {
+                        try {
+                            const encoded = encodeURIComponent(field.val.trim());
+                            const [resEn, resAr] = await Promise.all([
+                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()),
+                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json())
+                            ]);
+                            trans = {
+                                en: resEn?.responseData?.translatedText || '',
+                                ar: resAr?.responseData?.translatedText || ''
+                            };
+                        } catch (_) {}
                     }
-                    if(document.getElementById(field.id + '_ar')) {
-                        document.getElementById(field.id + '_ar').value = data.translations?.ar || '';
+
+                    if (trans) {
+                        if(document.getElementById(field.id + '_en') && trans.en) {
+                            document.getElementById(field.id + '_en').value = trans.en;
+                        }
+                        if(document.getElementById(field.id + '_ar') && trans.ar) {
+                            document.getElementById(field.id + '_ar').value = trans.ar;
+                        }
                     }
                 }
             }

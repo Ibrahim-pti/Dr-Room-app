@@ -290,7 +290,7 @@ async function translateAll() {
     const originalText = btn.innerHTML;
     
     try {
-        btn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>چاوەڕێبە...</span>';
+        btn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>وەرگێڕان دەکرێت...</span>';
         btn.disabled = true;
 
         const fieldsToTranslate = [
@@ -305,24 +305,53 @@ async function translateAll() {
             const enEl = document.getElementById(field.en);
 
             if (sourceEl && sourceEl.value.trim()) {
-                const res = await fetch('/api/translate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ text: sourceEl.value })
-                });
-                
-                const data = await res.json();
-                
-                if (data.success && data.translations) {
-                    if (arEl && !arEl.value.trim()) {
-                        arEl.value = data.translations.ar;
+                const text = sourceEl.value.trim();
+                let translations = null;
+
+                // 1. Try backend /api/translate
+                try {
+                    const res = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ text: text })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.success && data.translations) {
+                            translations = data.translations;
+                        }
                     }
-                    if (enEl && !enEl.value.trim()) {
-                        enEl.value = data.translations.en;
+                } catch (apiErr) {
+                    console.warn('Backend translation failed, trying client fallback...', apiErr);
+                }
+
+                // 2. Client-side fallback if backend failed
+                if (!translations || !translations.en || !translations.ar) {
+                    try {
+                        const encoded = encodeURIComponent(text);
+                        const [resEn, resAr] = await Promise.all([
+                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()),
+                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json())
+                        ]);
+                        translations = {
+                            en: resEn?.responseData?.translatedText || '',
+                            ar: resAr?.responseData?.translatedText || ''
+                        };
+                    } catch (clientErr) {
+                        console.error('Client-side translation fallback error:', clientErr);
+                    }
+                }
+
+                if (translations) {
+                    if (arEl && translations.ar) {
+                        arEl.value = translations.ar;
+                    }
+                    if (enEl && translations.en) {
+                        enEl.value = translations.en;
                     }
                 }
             }

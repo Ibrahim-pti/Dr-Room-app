@@ -380,25 +380,48 @@ async function translateAll() {
             const enEl = document.getElementById(field.en);
 
             if (sourceEl && sourceEl.value.trim()) {
-                const res = await fetch('/api/translate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ text: sourceEl.value })
-                });
-                
-                const data = await res.json();
-                
-                if (data.success && data.translations) {
-                    if (arEl && data.translations.ar) {
-                        arEl.value = data.translations.ar;
+                const text = sourceEl.value.trim();
+                let translations = null;
+
+                try {
+                    const res = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ text: text })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.success && data.translations) {
+                            translations = data.translations;
+                        }
+                    }
+                } catch (_) {}
+
+                if (!translations || !translations.en || !translations.ar) {
+                    try {
+                        const encoded = encodeURIComponent(text);
+                        const [resEn, resAr] = await Promise.all([
+                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()),
+                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json())
+                        ]);
+                        translations = {
+                            en: resEn?.responseData?.translatedText || '',
+                            ar: resAr?.responseData?.translatedText || ''
+                        };
+                    } catch (_) {}
+                }
+
+                if (translations) {
+                    if (arEl && translations.ar) {
+                        arEl.value = translations.ar;
                         arEl.classList.add('bg-emerald-50');
                         setTimeout(() => arEl.classList.remove('bg-emerald-50'), 1500);
                     }
-                    if (enEl && data.translations.en) {
-                        enEl.value = data.translations.en;
+                    if (enEl && translations.en) {
+                        enEl.value = translations.en;
                         enEl.classList.add('bg-emerald-50');
                         setTimeout(() => enEl.classList.remove('bg-emerald-50'), 1500);
                     }

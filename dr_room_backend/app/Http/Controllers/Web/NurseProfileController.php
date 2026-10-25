@@ -101,32 +101,30 @@ class NurseProfileController extends Controller
         $addressAr = $request->address_ar;
 
         try {
-            $tr = new \Stichoza\GoogleTranslate\GoogleTranslate();
-            
             // Name translations
             if ($request->name && !$userNameEn) {
-                $userNameEn = $tr->setTarget('en')->translate($request->name);
+                $userNameEn = \App\Services\TranslationService::translate($request->name, 'en');
             }
             if ($request->name && !$userNameAr) {
-                $userNameAr = $tr->setTarget('ar')->translate($request->name);
+                $userNameAr = \App\Services\TranslationService::translate($request->name, 'ar');
             }
 
             // Specialty translations
             if ($specialtyKurdish && !$specialtyEn) {
-                $specialtyEn = $tr->setTarget('en')->translate($specialtyKurdish);
+                $specialtyEn = \App\Services\TranslationService::translate($specialtyKurdish, 'en');
             }
             if ($specialtyKurdish && !$specialtyAr) {
-                $specialtyAr = $tr->setTarget('ar')->translate($specialtyKurdish);
+                $specialtyAr = \App\Services\TranslationService::translate($specialtyKurdish, 'ar');
             }
 
             // Custom services translations
             foreach ($customServicesList as &$cService) {
                 if (!empty($cService['name'])) {
                     if (empty($cService['name_en'])) {
-                        $cService['name_en'] = $tr->setTarget('en')->translate($cService['name']);
+                        $cService['name_en'] = \App\Services\TranslationService::translate($cService['name'], 'en');
                     }
                     if (empty($cService['name_ar'])) {
-                        $cService['name_ar'] = $tr->setTarget('ar')->translate($cService['name']);
+                        $cService['name_ar'] = \App\Services\TranslationService::translate($cService['name'], 'ar');
                     }
                 }
             }
@@ -134,18 +132,18 @@ class NurseProfileController extends Controller
 
             // Bio translations
             if ($request->bio && !$bioEn) {
-                $bioEn = $tr->setTarget('en')->translate($request->bio);
+                $bioEn = \App\Services\TranslationService::translate($request->bio, 'en');
             }
             if ($request->bio && !$bioAr) {
-                $bioAr = $tr->setTarget('ar')->translate($request->bio);
+                $bioAr = \App\Services\TranslationService::translate($request->bio, 'ar');
             }
 
             // Address translations
             if ($request->address && !$addressEn) {
-                $addressEn = $tr->setTarget('en')->translate($request->address);
+                $addressEn = \App\Services\TranslationService::translate($request->address, 'en');
             }
             if ($request->address && !$addressAr) {
-                $addressAr = $tr->setTarget('ar')->translate($request->address);
+                $addressAr = \App\Services\TranslationService::translate($request->address, 'ar');
             }
 
         } catch (\Exception $e) {
@@ -244,11 +242,9 @@ class NurseProfileController extends Controller
         ];
 
         try {
-            $tr = new \Stichoza\GoogleTranslate\GoogleTranslate();
-
             if ($request->filled('name')) {
-                $translations['name_en'] = $tr->setTarget('en')->translate($request->name);
-                $translations['name_ar'] = $tr->setTarget('ar')->translate($request->name);
+                $translations['name_en'] = \App\Services\TranslationService::translate($request->name, 'en');
+                $translations['name_ar'] = \App\Services\TranslationService::translate($request->name, 'ar');
             }
 
             if ($request->has('specialties') && is_array($request->specialties)) {
@@ -258,8 +254,8 @@ class NurseProfileController extends Controller
                     $en = trim($s['name_en'] ?? '');
                     $ar = trim($s['name_ar'] ?? '');
                     if ($kurdish) {
-                        if (!$en) $en = $tr->setTarget('en')->translate($kurdish);
-                        if (!$ar) $ar = $tr->setTarget('ar')->translate($kurdish);
+                        if (!$en) $en = \App\Services\TranslationService::translate($kurdish, 'en');
+                        if (!$ar) $ar = \App\Services\TranslationService::translate($kurdish, 'ar');
                     }
                     $specList[$idx] = [
                         'name' => $kurdish,
@@ -277,8 +273,8 @@ class NurseProfileController extends Controller
                     $en = trim($cs['name_en'] ?? '');
                     $ar = trim($cs['name_ar'] ?? '');
                     if ($kurdish) {
-                        if (!$en) $en = $tr->setTarget('en')->translate($kurdish);
-                        if (!$ar) $ar = $tr->setTarget('ar')->translate($kurdish);
+                        if (!$en) $en = \App\Services\TranslationService::translate($kurdish, 'en');
+                        if (!$ar) $ar = \App\Services\TranslationService::translate($kurdish, 'ar');
                     }
                     $csList[$idx] = [
                         'name' => $kurdish,
@@ -290,20 +286,20 @@ class NurseProfileController extends Controller
             }
 
             if ($request->filled('specialty')) {
-                $translations['specialty_en'] = $tr->setTarget('en')->translate($request->specialty);
-                $translations['specialty_ar'] = $tr->setTarget('ar')->translate($request->specialty);
+                $translations['specialty_en'] = \App\Services\TranslationService::translate($request->specialty, 'en');
+                $translations['specialty_ar'] = \App\Services\TranslationService::translate($request->specialty, 'ar');
             }
             if ($request->filled('city')) {
-                $translations['city_en'] = $tr->setTarget('en')->translate($request->city);
-                $translations['city_ar'] = $tr->setTarget('ar')->translate($request->city);
+                $translations['city_en'] = \App\Services\TranslationService::translate($request->city, 'en');
+                $translations['city_ar'] = \App\Services\TranslationService::translate($request->city, 'ar');
             }
             if ($request->filled('address')) {
-                $translations['address_en'] = $tr->setTarget('en')->translate($request->address);
-                $translations['address_ar'] = $tr->setTarget('ar')->translate($request->address);
+                $translations['address_en'] = \App\Services\TranslationService::translate($request->address, 'en');
+                $translations['address_ar'] = \App\Services\TranslationService::translate($request->address, 'ar');
             }
             if ($request->filled('bio')) {
-                $translations['bio_en'] = $tr->setTarget('en')->translate($request->bio);
-                $translations['bio_ar'] = $tr->setTarget('ar')->translate($request->bio);
+                $translations['bio_en'] = \App\Services\TranslationService::translate($request->bio, 'en');
+                $translations['bio_ar'] = \App\Services\TranslationService::translate($request->bio, 'ar');
             }
 
             return response()->json([
