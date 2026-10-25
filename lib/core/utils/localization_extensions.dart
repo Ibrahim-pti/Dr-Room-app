@@ -19,6 +19,11 @@ extension LocalizedContextExtension on BuildContext {
         if (arVal != null && arVal.toString().trim().isNotEmpty) {
           return arVal.toString().trim();
         }
+      } else if (lang == 'kmr') {
+        final kmrVal = item['${fieldName}_kmr'] ?? item['${fieldName}Kmr'] ?? item['${fieldName}_badini'];
+        if (kmrVal != null && kmrVal.toString().trim().isNotEmpty) {
+          return kmrVal.toString().trim();
+        }
       } else {
         // Kurdish (ckb / ku)
         final ckbVal = item['${fieldName}_ckb'] ?? item['${fieldName}_ku'] ?? item['${fieldName}_kurdish'];

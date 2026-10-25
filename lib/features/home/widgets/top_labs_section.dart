@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/localization_extensions.dart';
+import '../../../core/utils/api_client.dart';
 import '../../lab/all_labs_screen.dart';
 import '../../lab/lab_details_screen.dart';
 
@@ -78,8 +79,10 @@ class TopLabsSection extends StatelessWidget {
               final name = context.localizedField(lab, 'name', fallback: 'cat_lab'.tr());
               final city = context.localizedField(lab, 'city', fallback: context.localizedField(lab, 'address', fallback: 'هەولێر'));
               final time = lab['time'] ?? '٢٥-٣٥ خولەک';
-              final rating = (lab['rating'] != null) ? lab['rating'].toString() : '4.9';
-              final imagePath = lab['image'] ?? 'assets/images/lab1.jpg';
+              final rawRating = double.tryParse(lab['rating']?.toString() ?? '0') ?? 0.0;
+              final rating = rawRating > 0 ? rawRating.toStringAsFixed(1) : '5.0';
+              final rawImage = lab['image'] ?? lab['profile_image'] ?? '';
+              final imagePath = ApiClient.getImageUrl(rawImage?.toString());
 
               return GestureDetector(
                 onTap: () {
@@ -125,19 +128,22 @@ class TopLabsSection extends StatelessWidget {
                               height: 96,
                               width: double.infinity,
                               color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                              child: imagePath.toString().startsWith('http')
+                              child: imagePath.startsWith('http')
                                   ? Image.network(
-                                      imagePath.toString(),
+                                      imagePath,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Image.asset(
+                                      errorBuilder: (c, e, s) => Image.asset(
                                         'assets/images/laboratory.jpg',
                                         fit: BoxFit.cover,
                                       ),
                                     )
                                   : Image.asset(
-                                      imagePath.toString().isNotEmpty ? imagePath.toString() : 'assets/images/laboratory.jpg',
+                                      imagePath.isNotEmpty ? imagePath : 'assets/images/laboratory.jpg',
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const SizedBox(),
+                                      errorBuilder: (c, e, s) => Image.asset(
+                                        'assets/images/laboratory.jpg',
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                             ),
                           ),

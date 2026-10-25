@@ -837,22 +837,40 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(18),
-                  child: Image.asset(
-                    (lab['image'] != null && lab['image'].toString().isNotEmpty)
-                        ? lab['image'].toString()
-                        : 'assets/images/laboratory.jpg',
-                    width: 96,
-                    height: 96,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: 96,
-                      height: 96,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Icon(Iconsax.hospital, color: Color(0xFF3B82F6), size: 36),
-                    ),
+                  child: Builder(
+                    builder: (context) {
+                      final raw = lab['image'] ?? lab['profile_image'] ?? '';
+                      final imgUrl = ApiClient.getImageUrl(raw?.toString());
+                      if (imgUrl.startsWith('http')) {
+                        return Image.network(
+                          imgUrl,
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.cover,
+                          errorBuilder: (c, e, s) => Image.asset(
+                            'assets/images/laboratory.jpg',
+                            width: 96,
+                            height: 96,
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      }
+                      return Image.asset(
+                        imgUrl.isNotEmpty ? imgUrl : 'assets/images/laboratory.jpg',
+                        width: 96,
+                        height: 96,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 96,
+                          height: 96,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Icon(Iconsax.hospital, color: Color(0xFF3B82F6), size: 36),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 if (discount != null)
@@ -948,14 +966,19 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                               color: Color(0xFFD97706),
                               size: 13,
                             ),
-                            const SizedBox(width: 3),
-                            Text(
-                              '${lab['rating'] ?? 4.8}',
-                              style: _kurdishStyle(
-                                color: const Color(0xFFB45309),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            Builder(
+                              builder: (context) {
+                                final rNum = double.tryParse(lab['rating']?.toString() ?? '0') ?? 0.0;
+                                final rStr = rNum > 0 ? rNum.toStringAsFixed(1) : '5.0';
+                                return Text(
+                                  rStr,
+                                  style: _kurdishStyle(
+                                    color: const Color(0xFFB45309),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),

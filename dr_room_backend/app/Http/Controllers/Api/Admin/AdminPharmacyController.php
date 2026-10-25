@@ -48,8 +48,8 @@ class AdminPharmacyController extends Controller
             'user_id' => $user->id,
             'phone' => $request->phone,
             'location' => $request->location ?? $request->address ?? 'Erbil',
-            'rating' => 4.8,
-            'total_reviews' => 15,
+            'rating' => 5.0,
+            'total_reviews' => 0,
             'is_approved' => ($user->status === 'approved'),
         ]);
 
@@ -93,7 +93,8 @@ class AdminPharmacyController extends Controller
         
         if (!$user->pharmacy) {
             $user->pharmacy()->create([
-                'rating' => 4.8,
+                'rating' => 5.0,
+                'total_reviews' => 0,
                 'is_approved' => true,
             ]);
         } else {

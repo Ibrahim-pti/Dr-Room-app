@@ -92,6 +92,12 @@ class LabProfileController extends Controller
             if ($request->location && !$request->location_kmr) {
                 $updateData['location_kmr'] = \App\Services\TranslationService::translate($request->location, 'ku');
             }
+            if ($request->name && !$request->name_en) {
+                $user->update(['name_en' => \App\Services\TranslationService::translate($request->name, 'en')]);
+            }
+            if ($request->name && !$request->name_ar) {
+                $user->update(['name_ar' => \App\Services\TranslationService::translate($request->name, 'ar')]);
+            }
             if ($request->name && !$request->name_kmr) {
                 $user->update(['name_kmr' => \App\Services\TranslationService::translate($request->name, 'ku')]);
             }

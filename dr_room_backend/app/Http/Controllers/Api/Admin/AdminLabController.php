@@ -50,8 +50,8 @@ class AdminLabController extends Controller
             'city' => $request->city ?? 'Erbil',
             'phone' => $request->phone,
             'location' => $request->location ?? $request->city,
-            'rating' => 4.8,
-            'total_reviews' => 10,
+            'rating' => $request->rating !== null ? (float)$request->rating : 5.0,
+            'total_reviews' => $request->total_reviews !== null ? (int)$request->total_reviews : 0,
             'is_approved' => ($user->status === 'approved'),
         ]);
 
@@ -97,7 +97,7 @@ class AdminLabController extends Controller
         if (!$user->lab) {
             $user->lab()->create([
                 'city' => 'Erbil',
-                'rating' => 4.8,
+                'rating' => 5.0,
                 'is_approved' => true,
             ]);
         } else {

@@ -43,8 +43,8 @@ class AdminXRayController extends Controller
             'user_id' => $user->id,
             'phone' => $request->phone,
             'location' => $request->location ?? 'Erbil',
-            'rating' => 4.8,
-            'total_reviews' => 8,
+            'rating' => 5.0,
+            'total_reviews' => 0,
             'is_approved' => ($user->status === 'approved'),
         ]);
 
@@ -88,7 +88,8 @@ class AdminXRayController extends Controller
         if (!$user->xray) {
             $user->xray()->create([
                 'location' => 'Erbil',
-                'rating' => 4.8,
+                'rating' => 5.0,
+                'total_reviews' => 0,
                 'is_approved' => true,
             ]);
         } else {

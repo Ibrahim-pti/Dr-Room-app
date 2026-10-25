@@ -335,7 +335,8 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       'location',
       fallback: context.localizedField(_labData, 'address', fallback: ''),
     );
-    final String rating = '${_labData['rating'] ?? 4.8}';
+    final double rawRating = double.tryParse(_labData['rating']?.toString() ?? '0') ?? 0.0;
+    final String rating = rawRating > 0 ? rawRating.toStringAsFixed(1) : '5.0';
     final discount = _labData['discount'];
     final String openingHours = context.localizedField(
       _labData,
@@ -565,8 +566,23 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               },
               itemBuilder: (context, index) {
                 final img = images[index];
+                final imgUrl = ApiClient.getImageUrl(img.toString());
+                if (imgUrl.startsWith('http')) {
+                  return Image.network(
+                    imgUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: const Color(0xFFEFF6FF),
+                      child: const Icon(
+                        Iconsax.hospital,
+                        color: Color(0xFF3B82F6),
+                        size: 48,
+                      ),
+                    ),
+                  );
+                }
                 return Image.asset(
-                  img,
+                  imgUrl.isNotEmpty ? imgUrl : 'assets/images/laboratory.jpg',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
                     color: const Color(0xFFEFF6FF),
@@ -1105,28 +1121,41 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   }
 
   Widget _buildVideoPoster() {
-    final posterImage =
-        (_labData['image'] != null && _labData['image'].toString().isNotEmpty)
+    final raw = (_labData['image'] != null && _labData['image'].toString().isNotEmpty)
         ? _labData['image'].toString()
         : 'assets/images/laboratory.jpg';
+    final posterImage = ApiClient.getImageUrl(raw);
 
     return GestureDetector(
       onTap: _startYoutubeVideo,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            posterImage,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: const Color(0xFF1E293B),
-              child: const Icon(
-                Iconsax.hospital,
-                color: Color(0xFF3B82F6),
-                size: 48,
-              ),
-            ),
-          ),
+          posterImage.startsWith('http')
+              ? Image.network(
+                  posterImage,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: const Color(0xFF1E293B),
+                    child: const Icon(
+                      Iconsax.hospital,
+                      color: Color(0xFF3B82F6),
+                      size: 48,
+                    ),
+                  ),
+                )
+              : Image.asset(
+                  posterImage.isNotEmpty ? posterImage : 'assets/images/laboratory.jpg',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: const Color(0xFF1E293B),
+                    child: const Icon(
+                      Iconsax.hospital,
+                      color: Color(0xFF3B82F6),
+                      size: 48,
+                    ),
+                  ),
+                ),
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(

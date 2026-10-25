@@ -24,21 +24,33 @@ class LabApiController extends Controller
             
         $labs = $users->map(function($user) {
             $lab = $user->lab;
-            $image = $lab && $lab->image_path ? $lab->image_path : ($user->profile_image ? 'storage/' . $user->profile_image : 'assets/images/laboratory.jpg');
+            $rawImg = $lab && $lab->image_path ? $lab->image_path : null;
+            $imageUrl = 'assets/images/laboratory.jpg';
+            if ($rawImg) {
+                if (str_starts_with($rawImg, 'http')) {
+                    $imageUrl = $rawImg;
+                } else {
+                    $imageUrl = asset(ltrim($rawImg, '/'));
+                }
+            }
+
             $discount = $lab && $lab->discount !== null ? (int)$lab->discount : null;
             $isOpen = $lab ? (bool)($lab->is_active ?? true) : true;
+            $ratingVal = ($lab && $lab->rating !== null) ? (float)$lab->rating : 0.0;
+            $reviewsCount = ($lab && $lab->total_reviews !== null) ? (int)$lab->total_reviews : ($lab ? (int)$lab->reviews()->count() : 0);
 
             return [
                 'id' => $user->id,
                 'name' => $user->name,
                 'name_ar' => $user->name_ar ?? $user->name,
                 'name_en' => $user->name_en ?? $user->name,
+                'name_kmr' => $user->name_kmr ?? ($lab ? $lab->name_kmr : null) ?? $user->name,
                 'phone' => $user->phone,
-                'profile_image' => $image,
-                'image' => $image,
+                'profile_image' => $imageUrl,
+                'image' => $imageUrl,
                 'city' => $lab ? ($lab->city ?? 'Erbil') : 'Erbil',
-                'rating' => $lab && $lab->rating ? (float)$lab->rating : 4.8,
-                'reviews' => $lab && $lab->total_reviews ? (int)$lab->total_reviews : 120,
+                'rating' => $ratingVal,
+                'reviews' => $reviewsCount,
                 'discount' => $discount,
                 'is_open' => $isOpen,
                 'opening_hours' => $lab && $lab->opening_hours ? $lab->opening_hours : '08:00 AM - 10:00 PM',
@@ -47,6 +59,11 @@ class LabApiController extends Controller
                 'location' => $lab ? $lab->location : null,
                 'location_ar' => $lab ? $lab->location_ar : null,
                 'location_en' => $lab ? $lab->location_en : null,
+                'location_kmr' => $lab ? $lab->location_kmr : null,
+                'about_us' => $lab ? $lab->about_us : null,
+                'about_us_ar' => $lab ? $lab->about_us_ar : null,
+                'about_us_en' => $lab ? $lab->about_us_en : null,
+                'about_us_kmr' => $lab ? $lab->about_us_kmr : null,
             ];
         });
 
@@ -101,7 +118,11 @@ class LabApiController extends Controller
             $lab->increment('views_count');
         }
 
-        $image = $lab && $lab->image_path ? $lab->image_path : ($user->profile_image ? 'storage/' . $user->profile_image : 'assets/images/laboratory.jpg');
+        $rawImg = $lab && $lab->image_path ? $lab->image_path : null;
+        $image = 'assets/images/laboratory.jpg';
+        if ($rawImg) {
+            $image = str_starts_with($rawImg, 'http') ? $rawImg : asset(ltrim($rawImg, '/'));
+        }
         $discount = $lab && $lab->discount !== null ? (int)$lab->discount : null;
         $isOpen = $lab ? (bool)($lab->is_active ?? true) : true;
         
@@ -111,9 +132,11 @@ class LabApiController extends Controller
                 'name' => (string)$p->name,
                 'name_ar' => $p->name_ar,
                 'name_en' => $p->name_en,
+                'name_kmr' => $p->name_kmr,
                 'desc' => (string)($p->description ?? 'پاکێجی تایبەتی تاقیگە بە داشکاندنی ناوازە'),
                 'description_ar' => $p->description_ar,
                 'description_en' => $p->description_en,
+                'description_kmr' => $p->description_kmr,
                 'price' => (int)$p->price,
                 'original_price' => (int)($p->original_price ?? ($p->discount ? round($p->price / (1 - ($p->discount / 100))) : $p->price)),
                 'discount' => (int)($p->discount ?? 0),
@@ -121,11 +144,15 @@ class LabApiController extends Controller
             ];
         }) : [];
 
+        $ratingVal = ($lab && $lab->rating !== null) ? (float)$lab->rating : 0.0;
+        $reviewsCount = ($lab && $lab->total_reviews !== null) ? (int)$lab->total_reviews : ($lab ? (int)$lab->reviews()->count() : 0);
+
         $data = [
             'id' => $user->id,
             'name' => $user->name,
             'name_ar' => $user->name_ar ?? $user->name,
             'name_en' => $user->name_en ?? $user->name,
+            'name_kmr' => $user->name_kmr ?? ($lab ? $lab->name_kmr : null) ?? $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
             'profile_image' => $image,
@@ -140,8 +167,9 @@ class LabApiController extends Controller
             'location' => $lab && $lab->location ? $lab->location : 'هەولێر - شەقامی پزیشکان',
             'location_ar' => $lab && $lab->location_ar ? $lab->location_ar : 'أربيل - شارع الأطباء',
             'location_en' => $lab && $lab->location_en ? $lab->location_en : 'Erbil - Doctors Street',
-            'rating' => $lab && $lab->rating ? (float)$lab->rating : 5.0,
-            'reviews' => $lab ? (int)($lab->total_reviews ?? $lab->reviews()->count()) : 0,
+            'location_kmr' => $lab ? $lab->location_kmr : null,
+            'rating' => $ratingVal,
+            'reviews' => $reviewsCount,
             'views_count' => $lab ? (int)$lab->views_count : 0,
             'discount' => $discount,
             'is_open' => $isOpen,
@@ -151,6 +179,7 @@ class LabApiController extends Controller
             'about_us' => $lab && $lab->about_us ? $lab->about_us : 'تاقیگەیەکی پزیشکیی پێشکەوتووە لە پێناو دابینکردنی وردترین و خێراترین ئەنجامی پشکنینەکان بە ئامێری مۆدێرن و ستافێکی پسپۆڕ.',
             'about_us_ar' => $lab ? $lab->about_us_ar : 'مختبر طبي متطور يقدم أدق الفحوصات الطبية بأحدث الأجهزة والكوادر المتخصصة.',
             'about_us_en' => $lab ? $lab->about_us_en : 'Advanced medical diagnostic laboratory providing highly accurate and fast test results.',
+            'about_us_kmr' => $lab ? $lab->about_us_kmr : null,
             'latitude' => $lab && $lab->latitude ? $lab->latitude : '36.1911',
             'longitude' => $lab && $lab->longitude ? $lab->longitude : '44.0092',
             'packages' => $packages,
