@@ -223,10 +223,6 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         }
       },
     );
-
-    nameController.dispose();
-    phoneController.dispose();
-    passwordController.dispose();
   }
 
   List<dynamic> get _filteredUsers {
