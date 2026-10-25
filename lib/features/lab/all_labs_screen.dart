@@ -848,7 +848,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                           height: 96,
                           fit: BoxFit.cover,
                           errorBuilder: (c, e, s) => Image.asset(
-                            'assets/images/laboratory.jpg',
+                            'assets/images/lab1.jpg',
                             width: 96,
                             height: 96,
                             fit: BoxFit.cover,
@@ -856,7 +856,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                         );
                       }
                       return Image.asset(
-                        imgUrl.isNotEmpty ? imgUrl : 'assets/images/laboratory.jpg',
+                        imgUrl.isNotEmpty ? imgUrl : 'assets/images/lab1.jpg',
                         width: 96,
                         height: 96,
                         fit: BoxFit.cover,

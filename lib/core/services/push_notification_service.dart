@@ -53,11 +53,15 @@ class PushNotificationService {
         sound: true,
       );
 
-      // Get FCM Token and register with backend
-      final token = await messaging.getToken();
-      if (token != null) {
-        debugPrint('FCM Device Token: $token');
-        await registerToken(token);
+      // Get FCM Token and register with backend (safely handling iOS simulator or APNS delay)
+      try {
+        final token = await messaging.getToken();
+        if (token != null) {
+          debugPrint('FCM Device Token: $token');
+          await registerToken(token);
+        }
+      } catch (tokenError) {
+        debugPrint('PushNotificationService token notice: $tokenError');
       }
 
       // Listen for token refresh

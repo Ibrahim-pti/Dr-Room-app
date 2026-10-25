@@ -133,15 +133,15 @@ class TopLabsSection extends StatelessWidget {
                                       imagePath,
                                       fit: BoxFit.cover,
                                       errorBuilder: (c, e, s) => Image.asset(
-                                        'assets/images/laboratory.jpg',
+                                        'assets/images/lab1.jpg',
                                         fit: BoxFit.cover,
                                       ),
                                     )
                                   : Image.asset(
-                                      imagePath.isNotEmpty ? imagePath : 'assets/images/laboratory.jpg',
+                                      imagePath.isNotEmpty ? imagePath : 'assets/images/lab1.jpg',
                                       fit: BoxFit.cover,
                                       errorBuilder: (c, e, s) => Image.asset(
-                                        'assets/images/laboratory.jpg',
+                                        'assets/images/lab1.jpg',
                                         fit: BoxFit.cover,
                                       ),
                                     ),

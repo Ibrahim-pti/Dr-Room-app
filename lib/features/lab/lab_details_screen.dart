@@ -530,7 +530,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       ];
     } else {
       images = [
-        'assets/images/laboratory.jpg',
+        'assets/images/lab1.jpg',
         'assets/images/lab2.jpg',
         'assets/images/lab3.jpg',
         'assets/images/lab4.jpg',
@@ -582,7 +582,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   );
                 }
                 return Image.asset(
-                  imgUrl.isNotEmpty ? imgUrl : 'assets/images/laboratory.jpg',
+                  imgUrl.isNotEmpty ? imgUrl : 'assets/images/lab1.jpg',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
                     color: const Color(0xFFEFF6FF),
@@ -1123,7 +1123,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   Widget _buildVideoPoster() {
     final raw = (_labData['image'] != null && _labData['image'].toString().isNotEmpty)
         ? _labData['image'].toString()
-        : 'assets/images/laboratory.jpg';
+        : 'assets/images/lab1.jpg';
     final posterImage = ApiClient.getImageUrl(raw);
 
     return GestureDetector(
@@ -1145,7 +1145,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   ),
                 )
               : Image.asset(
-                  posterImage.isNotEmpty ? posterImage : 'assets/images/laboratory.jpg',
+                  posterImage.isNotEmpty ? posterImage : 'assets/images/lab1.jpg',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
                     color: const Color(0xFF1E293B),
