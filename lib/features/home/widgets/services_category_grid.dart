@@ -107,6 +107,7 @@ class ServicesCategoryGrid extends StatelessWidget {
                 width: 78,
                 child: _buildGridCard(
                   context,
+                  imagePath: 'assets/images/add.png',
                   icon: Iconsax.hospital,
                   titleKey: 'cat_ambulance',
                   id: 'ambulance',

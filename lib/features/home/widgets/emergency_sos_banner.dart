@@ -23,22 +23,10 @@ class EmergencySosBanner extends StatelessWidget {
       child: GestureDetector(
         onTap: () => EmergencySosModal.show(context),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: isDark
-                  ? [
-                      const Color(0xFF450A0A).withValues(alpha: 0.5),
-                      const Color(0xFF1E293B),
-                    ]
-                  : [
-                      const Color(0xFFFEF2F2),
-                      const Color(0xFFFFF1F2),
-                    ],
-              begin: Alignment.centerRight,
-              end: Alignment.centerLeft,
-            ),
-            borderRadius: BorderRadius.circular(13),
+            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFEF2F2),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isDark
                   ? const Color(0xFFEF4444).withValues(alpha: 0.35)
@@ -47,9 +35,9 @@ class EmergencySosBanner extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.12 : 0.06),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.12 : 0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 1.5),
               ),
             ],
           ),
@@ -57,26 +45,32 @@ class EmergencySosBanner extends StatelessWidget {
             children: [
               // Pulsing Emergency Icon
               Container(
-                width: 28,
-                height: 28,
+                width: 25,
+                height: 25,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                  color: const Color(0xFFEF4444),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                      blurRadius: 5,
+                    ),
+                  ],
                 ),
                 child: const Center(
                   child: Icon(
                     Icons.emergency,
-                    color: Color(0xFFDC2626),
-                    size: 16,
+                    color: Colors.white,
+                    size: 15,
                   ),
                 ),
               )
                   .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                  .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.08, 1.08), duration: 900.ms),
+                  .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.06, 1.06), duration: 900.ms),
 
-              const SizedBox(width: 9),
+              const SizedBox(width: 8),
 
-              // Title and Subtitle in sleek compact text
+              // Title and Subtitle in crisp, bold, high-contrast text
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,19 +83,19 @@ class EmergencySosBanner extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'Rabar',
                         color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 1),
                     Text(
                       'sos_subtitle'.tr(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: 'Rabar',
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        fontSize: 10.5,
+                        color: isDark ? const Color(0xFFFDA4AF) : const Color(0xFF991B1B),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -114,23 +108,23 @@ class EmergencySosBanner extends StatelessWidget {
               GestureDetector(
                 onTap: () => _quickCall('122'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFDC2626),
-                    borderRadius: BorderRadius.circular(9),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFFDC2626).withValues(alpha: 0.25),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
                       ),
                     ],
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.call, color: Colors.white, size: 11),
-                      SizedBox(width: 4),
+                      Icon(Icons.call, color: Colors.white, size: 10),
+                      SizedBox(width: 3),
                       Text(
                         '122',
                         style: TextStyle(

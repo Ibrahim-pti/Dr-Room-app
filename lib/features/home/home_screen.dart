@@ -184,15 +184,15 @@ class HomeScreenState extends State<HomeScreen> {
                               .animate()
                               .fadeIn(duration: 400.ms)
                               .slideY(begin: 0.1, end: 0, curve: Curves.easeOut),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
                         ],
 
                         // ── Emergency SOS Banner ──
                         const EmergencySosBanner(),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 6),
 
                         // ── Services Categories Grid ──
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         const ServicesCategoryGrid(),
 
                         // ── Top Laboratories Section ──
