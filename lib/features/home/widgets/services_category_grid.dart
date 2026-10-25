@@ -6,7 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../categories/all_categories_screen.dart';
 import '../../doctors/all_doctors_screen.dart';
-import '../../emergency/sos_screen.dart';
+import '../../emergency/emergency_sos_modal.dart';
 import '../../lab/lab_hub_screen.dart';
 import '../../nursing/nursing_hub_screen.dart';
 
@@ -110,7 +110,7 @@ class ServicesCategoryGrid extends StatelessWidget {
                   icon: Iconsax.hospital,
                   titleKey: 'cat_ambulance',
                   id: 'ambulance',
-                  isActive: false,
+                  isActive: true,
                   accentColor: const Color(0xFFEF4444),
                 ),
               ),
@@ -274,7 +274,7 @@ class ServicesCategoryGrid extends StatelessWidget {
     } else if (id == 'doctor') {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const AllDoctorsScreen()));
     } else if (id == 'ambulance') {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const SosScreen()));
+      EmergencySosModal.show(context);
     } else if (id == 'more') {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const AllCategoriesScreen()));
     }

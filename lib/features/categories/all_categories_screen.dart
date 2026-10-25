@@ -1,4 +1,4 @@
-import 'package:dr_room/features/emergency/sos_screen.dart';
+import 'package:dr_room/features/emergency/emergency_sos_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -71,7 +71,7 @@ class AllCategoriesScreen extends StatelessWidget {
             imagePath: 'assets/images/add.png',
             titleKey: 'cat_ambulance',
             id: 'ambulance',
-            isActive: false,
+            isActive: true,
             delay: 300,
           ),
           _buildGridCard(
@@ -152,10 +152,7 @@ class AllCategoriesScreen extends StatelessWidget {
               MaterialPageRoute(builder: (context) => const AllDoctorsScreen()),
             );
           } else if (id == 'ambulance') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SosScreen()),
-            );
+            EmergencySosModal.show(context);
           }
         }
       },

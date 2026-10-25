@@ -12,6 +12,7 @@ import '../../core/providers/appointment_provider.dart';
 import '../../core/services/app_version_service.dart';
 import 'promo_carousel.dart';
 import 'widgets/home_header.dart';
+import 'widgets/emergency_sos_banner.dart';
 import 'widgets/services_category_grid.dart';
 import 'widgets/top_nurses_section.dart';
 import 'widgets/top_labs_section.dart';
@@ -185,6 +186,10 @@ class HomeScreenState extends State<HomeScreen> {
                               .slideY(begin: 0.1, end: 0, curve: Curves.easeOut),
                           const SizedBox(height: 12),
                         ],
+
+                        // ── Emergency SOS Banner ──
+                        const EmergencySosBanner(),
+                        const SizedBox(height: 12),
 
                         // ── Services Categories Grid ──
                         const SizedBox(height: 4),
