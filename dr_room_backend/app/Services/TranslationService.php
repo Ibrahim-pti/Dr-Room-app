@@ -23,6 +23,10 @@ class TranslationService
             return '';
         }
 
+        if (strtolower($source) === strtolower($target)) {
+            return $text;
+        }
+
         // Provider 1: MyMemory Translated API (Reliable, fast, supports ckb)
         try {
             $url = 'https://api.mymemory.translated.net/get?q=' . urlencode($text) . '&langpair=' . urlencode($source) . '|' . urlencode($target);
@@ -30,7 +34,10 @@ class TranslationService
             if ($response->successful()) {
                 $json = $response->json();
                 $translated = $json['responseData']['translatedText'] ?? null;
-                if (!empty($translated) && stripos($translated, 'MYMEMORY WARNING') === false) {
+                if (!empty($translated) 
+                    && stripos($translated, 'MYMEMORY WARNING') === false
+                    && stripos($translated, 'PLEASE SELECT TWO DISTINCT LANGUAGES') === false
+                    && stripos($translated, 'IS AN INVALID TARGET LANGUAGE') === false) {
                     $decoded = html_entity_decode(trim($translated), ENT_QUOTES | ENT_HTML5, 'UTF-8');
                     if (!empty($decoded)) {
                         return $decoded;

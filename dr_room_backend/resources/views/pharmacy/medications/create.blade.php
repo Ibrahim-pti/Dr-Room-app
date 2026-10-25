@@ -157,9 +157,15 @@
             </div>
 
             <!-- Buttons -->
-            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <a href="{{ route('pharmacy.medications.index') }}" class="px-6 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors text-sm">پاشگەزبوونەوە</a>
-                <button type="submit" class="px-8 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors text-sm shadow-md shadow-emerald-200">پاشەکەوتکردن</button>
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                <span id="validationWarning" class="text-xs font-bold text-amber-700 bg-amber-50 px-3.5 py-2 rounded-xl border border-amber-200 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>تکایە سەرجەم فێڵدەکان (سۆرانی، بادینی، عەرەبی، ئینگلیزی) پڕبکەرەوە</span>
+                </span>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('pharmacy.medications.index') }}" class="px-6 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors text-sm">پاشگەزبوونەوە</a>
+                    <button type="submit" id="submitBtn" class="px-8 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors text-sm shadow-md shadow-emerald-200">پاشەکەوتکردن</button>
+                </div>
             </div>
         </form>
     </div>
@@ -168,6 +174,49 @@
 
 @section('scripts')
 <script>
+function checkFormValidity() {
+    const requiredIds = ['name', 'name_kmr', 'name_ar', 'name_en', 'price', 'stock'];
+    let allValid = true;
+    for (const id of requiredIds) {
+        const el = document.getElementById(id);
+        if (el && !el.value.trim()) {
+            allValid = false;
+            break;
+        }
+    }
+    const btn = document.getElementById('submitBtn');
+    const warning = document.getElementById('validationWarning');
+    if (btn) {
+        btn.disabled = !allValid;
+        if (!allValid) {
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            if (warning) warning.classList.remove('hidden');
+        } else {
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            if (warning) warning.classList.add('hidden');
+        }
+    }
+    return allValid;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const ids = ['name', 'name_kmr', 'name_ar', 'name_en', 'price', 'stock'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', checkFormValidity);
+    });
+    checkFormValidity();
+
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!checkFormValidity()) {
+                e.preventDefault();
+                alert('تکایە سەرجەم فێڵدەکان (سۆرانی، بادینی، عەرەبی، ئینگلیزی) پڕبکەرەوە پێش پاشەکەوتکردن!');
+            }
+        });
+    }
+});
 async function translateAll() {
     const btn = document.getElementById('translateBtn');
     const originalText = btn.innerHTML;
@@ -225,6 +274,7 @@ async function translateAll() {
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
+        checkFormValidity();
     }
 }
 

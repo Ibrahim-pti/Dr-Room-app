@@ -270,7 +270,11 @@
         </div>
         @endif
 
-        <div class="pt-4 border-t border-slate-100 flex justify-end">
+        <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+            <span id="validationWarning" class="text-xs font-bold text-amber-700 bg-amber-50 px-3.5 py-2 rounded-xl border border-amber-200 flex items-center gap-2">
+                <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span>تکایە سەرجەم فێڵدەکان (سۆرانی، بادینی، عەرەبی، ئینگلیزی) پڕبکەرەوە پێش پاشەکەوتکردن</span>
+            </span>
             <button id="submit-btn" type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-blue-500/30 flex items-center justify-center min-w-[140px]">
                 پاشەکەوتکردن
             </button>
@@ -345,29 +349,74 @@
                 }
             }
             
-            // Re-enable submit button
-            const submitBtn = document.getElementById('submit-btn');
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            
+            checkFormValidity();
         } catch(e) {
             alert('کێشەیەک ڕوویدا لە وەرگێڕان');
         }
 
         btn.innerHTML = originalText;
         btn.disabled = false;
+        checkFormValidity();
     }
 
-    // Disable submit if translation needed
-    ['specialty', 'bio', 'name', 'clinic_name', 'address'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) {
-            el.addEventListener('input', () => {
-                const submitBtn = document.getElementById('submit-btn');
-                if(submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    function checkFormValidity() {
+        const requiredIds = [
+            'name', 'name_kmr', 'name_ar', 'name_en',
+            'phone',
+            'specialty', 'specialty_kmr', 'specialty_ar', 'specialty_en',
+            'clinic_name', 'clinic_name_kmr', 'clinic_name_ar', 'clinic_name_en',
+            'address', 'address_kmr', 'address_ar', 'address_en'
+        ];
+        let allValid = true;
+        for (const id of requiredIds) {
+            const el = document.getElementById(id);
+            if (el && !el.value.trim()) {
+                allValid = false;
+                break;
+            }
+        }
+        const submitBtn = document.getElementById('submit-btn');
+        const warning = document.getElementById('validationWarning');
+        if (submitBtn) {
+            submitBtn.disabled = !allValid;
+            if (!allValid) {
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                if (warning) warning.classList.remove('hidden');
+            } else {
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                if (warning) warning.classList.add('hidden');
+            }
+        }
+        return allValid;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkIds = [
+            'name', 'name_kmr', 'name_ar', 'name_en',
+            'phone',
+            'specialty', 'specialty_kmr', 'specialty_ar', 'specialty_en',
+            'clinic_name', 'clinic_name_kmr', 'clinic_name_ar', 'clinic_name_en',
+            'address', 'address_kmr', 'address_ar', 'address_en',
+            'bio', 'bio_kmr', 'bio_ar', 'bio_en'
+        ];
+        checkIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', checkFormValidity);
+        });
+        checkFormValidity();
+
+        const form = document.getElementById('profile-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!checkFormValidity()) {
+                    e.preventDefault();
+                    alert('تکایە سەرجەم فێڵدەکان (سۆرانی، بادینی، عەرەبی، ئینگلیزی) پڕبکەرەوە پێش پاشەکەوتکردن!');
+                    return;
                 }
+                var btn = document.getElementById('submit-btn');
+                btn.disabled = true;
+                btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> چاوەڕێ بکە...';
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
             });
         }
     });
@@ -376,13 +425,6 @@
         document.getElementById('youtube_input').style.display = type === 'youtube' ? 'block' : 'none';
         document.getElementById('upload_input').style.display = type === 'uploaded' ? 'block' : 'none';
     }
-
-    document.getElementById('profile-form').addEventListener('submit', function() {
-        var btn = document.getElementById('submit-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> چاوەڕێ بکە...';
-        btn.classList.add('opacity-70', 'cursor-not-allowed');
-    });
 </script>
 
 {{-- Leaflet + OpenStreetMap: no API key, same tiles the Flutter app uses. --}}

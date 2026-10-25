@@ -353,9 +353,7 @@
                 if (data.translations.en) document.getElementById('name_en').value = data.translations.en;
                 if (data.translations.ar) document.getElementById('name_ar').value = data.translations.ar;
                 
-                const addBtn = document.getElementById('add_submit_btn');
-                addBtn.disabled = false;
-                addBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                checkAddServiceValidity();
             }
         });
     }
@@ -383,24 +381,69 @@
                 if (data.translations.en) document.getElementById('edit_name_en').value = data.translations.en;
                 if (data.translations.ar) document.getElementById('edit_name_ar').value = data.translations.ar;
                 
-                const editBtn = document.getElementById('edit_submit_btn');
-                editBtn.disabled = false;
-                editBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                checkEditServiceValidity();
             }
         });
     }
 
-    // Disable submit buttons on input change
-    document.getElementById('name_ckb').addEventListener('input', function() {
+    function checkAddServiceValidity() {
+        const nameCkb = document.getElementById('name_ckb')?.value.trim();
+        const nameKmr = document.getElementById('name_kmr')?.value.trim();
+        const nameEn = document.getElementById('name_en')?.value.trim();
+        const nameAr = document.getElementById('name_ar')?.value.trim();
+        const price = document.getElementById('price')?.value.trim();
         const addBtn = document.getElementById('add_submit_btn');
-        addBtn.disabled = true;
-        addBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        const valid = Boolean(nameCkb && nameKmr && nameEn && nameAr && price);
+        if (addBtn) {
+            addBtn.disabled = !valid;
+            if (!valid) addBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            else addBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        return valid;
+    }
+
+    function checkEditServiceValidity() {
+        const nameCkb = document.getElementById('edit_name_ckb')?.value.trim();
+        const nameKmr = document.getElementById('edit_name_kmr')?.value.trim();
+        const nameEn = document.getElementById('edit_name_en')?.value.trim();
+        const nameAr = document.getElementById('edit_name_ar')?.value.trim();
+        const price = document.getElementById('edit_price')?.value.trim();
+        const editBtn = document.getElementById('edit_submit_btn');
+        const valid = Boolean(nameCkb && nameKmr && nameEn && nameAr && price);
+        if (editBtn) {
+            editBtn.disabled = !valid;
+            if (!valid) editBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            else editBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        return valid;
+    }
+
+    ['name_ckb', 'name_kmr', 'name_en', 'name_ar', 'price'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', checkAddServiceValidity);
     });
 
-    document.getElementById('edit_name_ckb').addEventListener('input', function() {
-        const editBtn = document.getElementById('edit_submit_btn');
-        editBtn.disabled = true;
-        editBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    ['edit_name_ckb', 'edit_name_kmr', 'edit_name_en', 'edit_name_ar', 'edit_price'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', checkEditServiceValidity);
+    });
+
+    // Initial check
+    checkAddServiceValidity();
+
+    // Prevent submission if fields missing
+    document.querySelector('form[action="{{ route('doctor.services.store') }}"]')?.addEventListener('submit', function(e) {
+        if (!checkAddServiceValidity()) {
+            e.preventDefault();
+            alert('تکایە سەرجەم فێڵدەکان (سۆرانی، بادینی، عەرەبی، ئینگلیزی) پڕبکەرەوە پێش پاشەکەوتکردن!');
+        }
+    });
+
+    document.getElementById('edit_form')?.addEventListener('submit', function(e) {
+        if (!checkEditServiceValidity()) {
+            e.preventDefault();
+            alert('تکایە سەرجەم فێڵدەکان (سۆرانی، بادینی، عەرەبی، ئینگلیزی) پڕبکەرەوە پێش پاشەکەوتکردن!');
+        }
     });
 
     // Keep the offer block open when validation bounced the form back.
