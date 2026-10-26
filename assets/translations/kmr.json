@@ -1022,6 +1022,8 @@
   "lab_tests_section_title": "پشکنین و نرخ (فەحس)",
   "lab_tests_section_desc": "دشێی ئەو پشکنینێن د ڕەچەتەیێ دا هەی هەلبژێری یان پشکنینێن دیارکری دەستنیشان بکەی",
   "search_tests_hint": "لێگەڕیان د پشکنینان دا...",
+  "search_lab_or_test_hint": "Lêgerîna taqîgeh an pişknîn (fehs)...",
+  "search_nurse_hint": "Lêgerîna perestar...",
   "selected_tests_count": "پشکنین هاتینە دیارکرن",
   "no_tests_for_lab": "چ پشکنین بۆ ڤێ تاقیگەهێ نەهاتنە دیتن",
   "optional_tests_note": "دشێی پشکنینان دیاربکەی، یان بێ دیارکرن بەردەوام بی دا تاقیگە ژ ڕێکا وێنەیێ ڕەچەتەیێ نرخێ دیاربکەت."

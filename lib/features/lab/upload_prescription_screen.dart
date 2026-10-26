@@ -40,7 +40,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
   bool _isLoadingTests = false;
   List<Map<String, dynamic>> _tests = [];
   final Set<String> _selectedTestIds = {};
-  String _testsSearchQuery = '';
+  String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
   static final List<Map<String, dynamic>> _defaultLabTests = [
@@ -137,6 +137,43 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       }
     }
     return total;
+  }
+
+  bool _testMatchesQuery(Map<String, dynamic> t, String q) {
+    final name = (t['name'] ?? '').toString().toLowerCase();
+    final nameEn = (t['name_en'] ?? '').toString().toLowerCase();
+    final nameAr = (t['name_ar'] ?? '').toString().toLowerCase();
+    final desc = (t['desc'] ?? '').toString().toLowerCase();
+    return name.contains(q) ||
+        nameEn.contains(q) ||
+        nameAr.contains(q) ||
+        desc.contains(q);
+  }
+
+  List<Map<String, dynamic>> get _filteredProviders {
+    if (_searchQuery.trim().isEmpty) return _providers;
+    final q = _searchQuery.toLowerCase().trim();
+
+    final hasMatchingTest = !widget.isNursing &&
+        (_tests.any((t) => _testMatchesQuery(t, q)) ||
+            _defaultLabTests.any((t) => _testMatchesQuery(t, q)));
+
+    return _providers.where((p) {
+      final name = (p['name'] ?? '').toString().toLowerCase();
+      final nameEn = (p['name_en'] ?? '').toString().toLowerCase();
+      final nameAr = (p['name_ar'] ?? '').toString().toLowerCase();
+      final city = (p['city'] ?? p['location'] ?? '').toString().toLowerCase();
+      final specialty =
+          (p['specialty'] ?? p['title'] ?? '').toString().toLowerCase();
+
+      final matchesProvider = name.contains(q) ||
+          nameEn.contains(q) ||
+          nameAr.contains(q) ||
+          city.contains(q) ||
+          specialty.contains(q);
+
+      return matchesProvider || hasMatchingTest;
+    }).toList();
   }
 
   @override
@@ -420,18 +457,98 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     );
   }
 
+  Widget _buildSearchField(bool isDark, Color cardBg, Color borderColor) {
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (val) {
+          setState(() {
+            _searchQuery = val;
+            final fp = _filteredProviders;
+            if (fp.isNotEmpty &&
+                (_selectedProvider == null ||
+                    !fp.any((p) =>
+                        p['id']?.toString() ==
+                        _selectedProvider?['id']?.toString()))) {
+              _selectedProvider = fp.first;
+              if (!widget.isNursing) {
+                _fetchTestsForLab(_selectedProvider!['id']);
+              }
+            }
+          });
+        },
+        style: TextStyle(
+          fontFamily: 'Rabar',
+          fontSize: 13.5,
+          color: isDark ? Colors.white : const Color(0xFF0F172A),
+        ),
+        decoration: InputDecoration(
+          hintText: widget.isNursing
+              ? 'search_nurse_hint'.tr()
+              : 'search_lab_or_test_hint'.tr(),
+          hintStyle: const TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 12.5,
+            color: Color(0xFF94A3B8),
+          ),
+          prefixIcon: const Icon(
+            Iconsax.search_normal_1,
+            size: 18,
+            color: Color(0xFF94A3B8),
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close, size: 16),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = '';
+                    });
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildLabTestsSection(bool isDark, Color cardBg, Color borderColor) {
     final filteredTests = _tests.where((t) {
-      if (_testsSearchQuery.isEmpty) return true;
-      final q = _testsSearchQuery.toLowerCase().trim();
-      final name = (t['name'] ?? '').toString().toLowerCase();
-      final nameEn = (t['name_en'] ?? '').toString().toLowerCase();
-      final nameAr = (t['name_ar'] ?? '').toString().toLowerCase();
-      final desc = (t['desc'] ?? '').toString().toLowerCase();
-      return name.contains(q) ||
-          nameEn.contains(q) ||
-          nameAr.contains(q) ||
-          desc.contains(q);
+      if (_searchQuery.trim().isEmpty) return true;
+      final q = _searchQuery.toLowerCase().trim();
+
+      if (_testMatchesQuery(t, q)) return true;
+
+      final labName =
+          (_selectedProvider?['name'] ?? '').toString().toLowerCase();
+      final labNameEn =
+          (_selectedProvider?['name_en'] ?? '').toString().toLowerCase();
+      final labNameAr =
+          (_selectedProvider?['name_ar'] ?? '').toString().toLowerCase();
+      if (labName.contains(q) ||
+          labNameEn.contains(q) ||
+          labNameAr.contains(q)) {
+        return true;
+      }
+
+      return false;
     }).toList();
 
     final isAllSelected =
@@ -542,60 +659,6 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         ),
 
         const SizedBox(height: 14),
-
-        // Search Box (if tests available)
-        if (_tests.isNotEmpty) ...[
-          Container(
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: borderColor),
-            ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (val) {
-                setState(() {
-                  _testsSearchQuery = val;
-                });
-              },
-              style: TextStyle(
-                fontFamily: 'Rabar',
-                fontSize: 13.5,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
-              decoration: InputDecoration(
-                hintText: 'search_tests_hint'.tr(),
-                hintStyle: const TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 12.5,
-                  color: Color(0xFF94A3B8),
-                ),
-                prefixIcon: const Icon(
-                  Iconsax.search_normal_1,
-                  size: 18,
-                  color: Color(0xFF94A3B8),
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.close, size: 16),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _testsSearchQuery = '';
-                          });
-                        },
-                      )
-                    : null,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
 
         // Loading or List
         if (_isLoadingTests)
@@ -1313,8 +1376,12 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                   ),
                   const SizedBox(height: 14),
 
+                  // ── Unified Top Search Bar (تاقیگە یاخود فحس) ──
+                  _buildSearchField(isDark, cardBg, borderColor),
+                  const SizedBox(height: 14),
+
                   // Provider List (Nurses or Laboratories)
-                  if (_providers.isEmpty)
+                  if (_filteredProviders.isEmpty)
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
@@ -1333,10 +1400,10 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _providers.length,
+                      itemCount: _filteredProviders.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (context, idx) {
-                        final provider = _providers[idx];
+                        final provider = _filteredProviders[idx];
                         final isSelected =
                             _selectedProvider?['id'] == provider['id'];
 

@@ -1025,6 +1025,8 @@
   "lab_tests_section_title": "Laboratory Tests & Pricing",
   "lab_tests_section_desc": "Select the tests written on your prescription or pick the ones you need",
   "search_tests_hint": "Search tests...",
+  "search_lab_or_test_hint": "Search laboratory or test...",
+  "search_nurse_hint": "Search nurse...",
   "selected_tests_count": "tests selected",
   "no_tests_for_lab": "No tests found for this laboratory",
   "optional_tests_note": "You can select tests now, or proceed without selecting for the lab to review your prescription and set the price."
