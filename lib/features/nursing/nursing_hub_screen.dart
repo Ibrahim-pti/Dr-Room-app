@@ -1543,14 +1543,6 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
     final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
     final cart = Provider.of<CartProvider>(context);
 
-    CartItem? selectedStaffItem;
-    for (final item in cart.items) {
-      if (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) {
-        selectedStaffItem = item;
-        break;
-      }
-    }
-
     return Scaffold(
       backgroundColor: bg,
       body: SafeArea(
@@ -1647,26 +1639,11 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       },
                     ),
 
-                    // 2. هەڵبژاردنی ستاف
+                    // 2. نرخی خزمەتگوزارییەکان
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       number: '٢',
-                      title: 'nursing_item_3'.tr(),
-                      subtitle: 'nursing_item_3_desc'.tr(),
-                      icon: Iconsax.people,
-                      color: const Color(0xFF8B5CF6),
-                      badgeText: selectedStaffItem != null
-                          ? (selectedStaffItem.extraData?['staff_name'] ?? 'nursing_selected_service_badge'.tr())
-                          : (_staffList.isNotEmpty ? '${_staffList.length} ${'nursing_staff_count'.tr()}' : null),
-                      onTap: _showStaffSelectionModal,
-                    ),
-
-                    // 3. نرخی خزمەتگوزارییەکان
-                    _buildFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      number: '٣',
                       title: 'nursing_item_4'.tr(),
                       subtitle: 'nursing_item_4_desc'.tr(),
                       icon: Iconsax.tag,
@@ -1675,11 +1652,11 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       onTap: _showPriceListModal,
                     ),
 
-                    // 4. پاکێجی چاودێریکردنی نەخۆش
+                    // 3. پاکێجی چاودێریکردنی نەخۆش
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٤',
+                      number: '٣',
                       title: 'nursing_item_5'.tr(),
                       subtitle: 'nursing_item_5_desc'.tr(),
                       icon: Iconsax.shield_security,
@@ -1690,11 +1667,11 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       onTap: _showCarePackagesModal,
                     ),
 
-                    // 5. ئەرشیفی داواکارییەکانم
+                    // 4. ئەرشیفی داواکارییەکانم
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٥',
+                      number: '٤',
                       title: 'nursing_item_6'.tr(),
                       subtitle: 'nursing_item_6_desc'.tr(),
                       icon: Iconsax.archive_book,
