@@ -271,7 +271,6 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required bool isDark,
   }) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isSelected ? color : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
 
     return GestureDetector(
       onTap: onTap,
@@ -279,14 +278,17 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         height: 120,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: cardBg,
+          color: isSelected
+              ? (isDark ? color.withValues(alpha: 0.16) : color.withValues(alpha: 0.08))
+              : cardBg,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: borderColor, width: isSelected ? 2 : 1),
           boxShadow: [
             BoxShadow(
-              color: isSelected ? color.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: isSelected
+                  ? color.withValues(alpha: 0.15)
+                  : Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+              blurRadius: isSelected ? 12 : 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -297,7 +299,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
+                color: isSelected
+                    ? color.withValues(alpha: 0.22)
+                    : color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 22),
@@ -310,7 +314,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   style: _kStyle(
                     color: isDark ? Colors.white : const Color(0xFF0F172A),
                     fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -319,8 +323,11 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 Text(
                   count,
                   style: _kStyle(
-                    color: const Color(0xFF94A3B8),
+                    color: isSelected
+                        ? (isDark ? color.withValues(alpha: 0.9) : color)
+                        : const Color(0xFF94A3B8),
                     fontSize: 11.5,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               ],
@@ -342,7 +349,6 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required VoidCallback onTap,
   }) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return GestureDetector(
       onTap: onTap,
@@ -352,11 +358,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: borderColor),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
+              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+              blurRadius: 10,
               offset: const Offset(0, 3),
             ),
           ],

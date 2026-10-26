@@ -209,7 +209,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                 ],
               ),
               child: const Icon(
-                Icons.medication_rounded,
+                Icons.document_scanner_rounded,
                 color: Colors.white,
                 size: 18,
               ),
@@ -319,7 +319,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                       border: Border.all(color: primaryColor.withValues(alpha: 0.4), width: 2),
                     ),
                     child: Icon(
-                      Icons.medication_rounded,
+                      Icons.document_scanner_rounded,
                       color: primaryColor,
                       size: 36,
                     ),
@@ -642,7 +642,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.medication_rounded, color: Colors.white, size: 30),
+                  child: const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 30),
                 ),
               const SizedBox(width: 14),
               Expanded(
@@ -693,7 +693,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         _buildMedicalInfoCard(
           title: 'ai_summary_title'.tr(),
           content: res['summary'],
-          icon: Icons.medication_rounded,
+          icon: Icons.document_scanner_rounded,
           iconColor: const Color(0xFF10B981),
           isDark: isDark,
         ),
@@ -990,7 +990,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
-                        Icons.medication_rounded,
+                        Icons.document_scanner_rounded,
                         color: Color(0xFF2563EB),
                         size: 22,
                       ),
