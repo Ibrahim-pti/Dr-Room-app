@@ -14,8 +14,13 @@ import '../../doctors/doctor_details_screen.dart';
 
 class TransactionHistoryView extends StatefulWidget {
   final bool embedded;
+  final String? fixedCategory;
 
-  const TransactionHistoryView({super.key, this.embedded = false});
+  const TransactionHistoryView({
+    super.key,
+    this.embedded = false,
+    this.fixedCategory,
+  });
 
   @override
   State<TransactionHistoryView> createState() => TransactionHistoryViewState();
@@ -42,12 +47,26 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
   @override
   void initState() {
     super.initState();
+    if (widget.fixedCategory != null) {
+      _selectedCategory = widget.fixedCategory!;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<OrderProvider>().fetchOrders();
         context.read<AppointmentProvider>().fetchAppointments();
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(TransactionHistoryView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.fixedCategory != oldWidget.fixedCategory &&
+        widget.fixedCategory != null) {
+      setState(() {
+        _selectedCategory = widget.fixedCategory!;
+      });
+    }
   }
 
   void refresh() {
@@ -113,19 +132,22 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 6),
-            _buildCategoryChips(
-              isDark,
-              completedOrders: completedOrders,
-              completedAppointments: completedAppointments,
-            ),
+            if (widget.fixedCategory == null) ...[
+              const SizedBox(height: 6),
+              _buildCategoryChips(
+                isDark,
+                completedOrders: completedOrders,
+                completedAppointments: completedAppointments,
+              ),
+            ],
             const SizedBox(height: 14),
             Expanded(
               child: filteredItems.isEmpty
                   ? _buildEmptyState(
                       isDark: isDark,
-                      isFiltered:
-                          _selectedCategory != 'all' && allItems.isNotEmpty,
+                      isFiltered: _selectedCategory != 'all' &&
+                          widget.fixedCategory == null &&
+                          allItems.isNotEmpty,
                     )
                   : RefreshIndicator(
                       onRefresh: () async => refresh(),
@@ -642,6 +664,23 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
   }
 
   Widget _buildEmptyState({required bool isDark, required bool isFiltered}) {
+    String emptyTitle;
+    String emptyDesc;
+
+    if (isFiltered) {
+      emptyTitle = 'no_orders_in_filter'.tr();
+      emptyDesc = 'no_orders_in_filter'.tr();
+    } else if (widget.fixedCategory == 'lab') {
+      emptyTitle = 'no_lab_history'.tr();
+      emptyDesc = 'no_lab_history_desc'.tr();
+    } else if (widget.fixedCategory == 'nursing') {
+      emptyTitle = 'no_nursing_orders'.tr();
+      emptyDesc = 'no_transactions_desc'.tr();
+    } else {
+      emptyTitle = 'no_appointments'.tr();
+      emptyDesc = 'no_transactions_desc'.tr();
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) => RefreshIndicator(
         onRefresh: () async => refresh(),
@@ -666,19 +705,19 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                         color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
-                          Iconsax.receipt_2_1,
+                          widget.fixedCategory == 'lab'
+                              ? Iconsax.archive_book
+                              : Iconsax.receipt_2_1,
                           size: 38,
-                          color: Color(0xFF3B82F6),
+                          color: const Color(0xFF3B82F6),
                         ),
                       ),
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      isFiltered
-                          ? 'no_orders_in_filter'.tr()
-                          : 'no_appointments'.tr(),
+                      emptyTitle,
                       textAlign: TextAlign.center,
                       style: _kStyle(
                         color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -688,9 +727,7 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      isFiltered
-                          ? 'no_orders_in_filter'.tr()
-                          : 'no_transactions_desc'.tr(),
+                      emptyDesc,
                       textAlign: TextAlign.center,
                       style: _kStyle(
                         color: const Color(0xFF94A3B8),

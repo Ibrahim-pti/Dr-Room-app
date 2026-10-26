@@ -1026,5 +1026,13 @@
   "search_nurse_hint": "Lêgerîna perestar...",
   "selected_tests_count": "پشکنین هاتینە دیارکرن",
   "no_tests_for_lab": "چ پشکنین بۆ ڤێ تاقیگەهێ نەهاتنە دیتن",
-  "optional_tests_note": "دشێی پشکنینان دیاربکەی، یان بێ دیارکرن بەردەوام بی دا تاقیگە ژ ڕێکا وێنەیێ ڕەچەتەیێ نرخێ دیاربکەت."
+  "optional_tests_note": "دشێی پشکنینان دیاربکەی، یان بێ دیارکرن بەردەوام بی دا تاقیگە ژ ڕێکا وێنەیێ ڕەچەتەیێ نرخێ دیاربکەت.",
+  "no_active_lab_orders": "Tu daxwazên çalak ên taqîgehê nînin",
+  "no_lab_orders": "Tu daxwazên taqîgehê nînin",
+  "no_active_lab_orders_hint": "Dema ku tu daxwaza pişkinîna taqîgehê dikî, li vir xuya dibe",
+  "no_active_nursing_orders": "Tu daxwazên çalak ên perestariyê nînin",
+  "no_nursing_orders": "Tu daxwazên perestariyê nînin",
+  "no_active_nursing_orders_hint": "Dema ku tu daxwaza xizmetguzariya perestariyê dikî, li vir xuya dibe",
+  "no_lab_history": "Tu dîrok an encamên pişkinînên taqîgehê nînin",
+  "no_lab_history_desc": "Encam û daxwazên temambûyî yên taqîgehê li vir têne tomar kirin."
 }

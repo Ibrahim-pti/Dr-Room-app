@@ -5,7 +5,9 @@ import 'widgets/transaction_history_view.dart';
 import '../orders/orders_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
-  const MyRequestsScreen({super.key});
+  final String? fixedCategory;
+
+  const MyRequestsScreen({super.key, this.fixedCategory});
 
   @override
   State<MyRequestsScreen> createState() => MyRequestsScreenState();
@@ -19,10 +21,25 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
 
   int _sectionIndex = 0;
 
-  late final List<Widget> _sections = [
-    OrdersScreen(key: _ordersKey, embedded: true, showOnlyActive: true),
-    TransactionHistoryView(key: _historyKey, embedded: true),
-  ];
+  late final List<Widget> _sections;
+
+  @override
+  void initState() {
+    super.initState();
+    _sections = [
+      OrdersScreen(
+        key: _ordersKey,
+        embedded: true,
+        showOnlyActive: true,
+        fixedCategory: widget.fixedCategory,
+      ),
+      TransactionHistoryView(
+        key: _historyKey,
+        embedded: true,
+        fixedCategory: widget.fixedCategory,
+      ),
+    ];
+  }
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -66,8 +83,34 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    size: 16,
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(
-          'my_orders'.tr(),
+          widget.fixedCategory == 'lab'
+              ? 'lab_item_6'.tr()
+              : (widget.fixedCategory == 'nursing'
+                  ? 'nursing_item_6'.tr()
+                  : 'my_orders'.tr()),
           style: _kStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 18,

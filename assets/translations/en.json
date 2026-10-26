@@ -1029,5 +1029,13 @@
   "search_nurse_hint": "Search nurse...",
   "selected_tests_count": "tests selected",
   "no_tests_for_lab": "No tests found for this laboratory",
-  "optional_tests_note": "You can select tests now, or proceed without selecting for the lab to review your prescription and set the price."
+  "optional_tests_note": "You can select tests now, or proceed without selecting for the lab to review your prescription and set the price.",
+  "no_active_lab_orders": "No active lab requests",
+  "no_lab_orders": "No lab requests",
+  "no_active_lab_orders_hint": "When you request lab tests, they will appear here",
+  "no_active_nursing_orders": "No active nursing requests",
+  "no_nursing_orders": "No nursing requests",
+  "no_active_nursing_orders_hint": "When you request nursing services, they will appear here",
+  "no_lab_history": "No lab test history or results",
+  "no_lab_history_desc": "Completed lab orders and test results will be saved here."
 }

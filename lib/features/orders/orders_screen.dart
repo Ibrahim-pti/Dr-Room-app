@@ -11,11 +11,13 @@ import 'order_details_screen.dart';
 class OrdersScreen extends StatefulWidget {
   final bool embedded;
   final bool showOnlyActive;
+  final String? fixedCategory;
 
   const OrdersScreen({
     super.key,
     this.embedded = false,
     this.showOnlyActive = false,
+    this.fixedCategory,
   });
 
   @override
@@ -80,9 +82,23 @@ class OrdersScreenState extends State<OrdersScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.fixedCategory != null) {
+      _selectedCategory = widget.fixedCategory!;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<OrderProvider>().fetchOrders();
     });
+  }
+
+  @override
+  void didUpdateWidget(OrdersScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.fixedCategory != oldWidget.fixedCategory &&
+        widget.fixedCategory != null) {
+      setState(() {
+        _selectedCategory = widget.fixedCategory!;
+      });
+    }
   }
 
   void refresh() {
@@ -144,8 +160,10 @@ class OrdersScreenState extends State<OrdersScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 6),
-            _buildServiceCategoryChips(isDark, orderProvider),
+            if (widget.fixedCategory == null) ...[
+              const SizedBox(height: 6),
+              _buildServiceCategoryChips(isDark, orderProvider),
+            ],
             const SizedBox(height: 10),
             _buildFilterChips(isDark),
             const SizedBox(height: 14),
@@ -177,8 +195,9 @@ class OrdersScreenState extends State<OrdersScreen> {
     }).toList();
 
     if (orders.isEmpty) {
-      final isFiltered = (_selectedStatus != null || _selectedCategory != 'all') &&
-          orderProvider.orders.isNotEmpty;
+      final isFiltered = (_selectedStatus != null ||
+              (_selectedCategory != 'all' && widget.fixedCategory == null)) &&
+          orderProvider.orders.any((o) => _matchesCategory(o));
       return RefreshIndicator(
         onRefresh: orderProvider.fetchOrders,
         child: _buildEmptyState(
@@ -542,6 +561,31 @@ class OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildEmptyState({required bool isFiltered, required bool isDark}) {
+    String emptyTitle;
+    String emptyHint;
+
+    if (isFiltered) {
+      emptyTitle = 'no_orders_in_filter'.tr();
+      emptyHint = 'no_orders_in_filter'.tr();
+    } else if (widget.fixedCategory == 'lab') {
+      emptyTitle = widget.showOnlyActive
+          ? 'no_active_lab_orders'.tr()
+          : 'no_lab_orders'.tr();
+      emptyHint = 'no_active_lab_orders_hint'.tr();
+    } else if (widget.fixedCategory == 'nursing') {
+      emptyTitle = widget.showOnlyActive
+          ? 'no_active_nursing_orders'.tr()
+          : 'no_nursing_orders'.tr();
+      emptyHint = 'no_active_nursing_orders_hint'.tr();
+    } else {
+      emptyTitle = widget.showOnlyActive
+          ? 'no_active_orders'.tr()
+          : 'no_orders'.tr();
+      emptyHint = widget.showOnlyActive
+          ? 'no_active_orders_hint'.tr()
+          : 'no_orders_hint'.tr();
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -564,19 +608,21 @@ class OrdersScreenState extends State<OrdersScreen> {
                       color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Icon(
-                        Iconsax.receipt_2_1,
+                        widget.fixedCategory == 'lab'
+                            ? Iconsax.d_cube_scan
+                            : (widget.fixedCategory == 'nursing'
+                                ? Iconsax.health
+                                : Iconsax.receipt_2_1),
                         size: 38,
-                        color: Color(0xFF3B82F6),
+                        color: const Color(0xFF3B82F6),
                       ),
                     ),
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    isFiltered
-                        ? 'no_orders_in_filter'.tr()
-                        : (widget.showOnlyActive ? 'no_active_orders'.tr() : 'no_orders'.tr()),
+                    emptyTitle,
                     textAlign: TextAlign.center,
                     style: _kStyle(
                       color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -586,9 +632,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    isFiltered
-                        ? 'no_orders_in_filter'.tr()
-                        : (widget.showOnlyActive ? 'no_active_orders_hint'.tr() : 'no_orders_hint'.tr()),
+                    emptyHint,
                     textAlign: TextAlign.center,
                     style: _kStyle(
                       color: const Color(0xFF94A3B8),
