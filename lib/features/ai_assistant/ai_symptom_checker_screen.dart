@@ -1471,13 +1471,15 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   children: [
                     Icon(Icons.format_list_bulleted_rounded, color: primaryColor, size: 20),
                     const SizedBox(width: 8),
-                    Text(
-                      'ai_details_title'.tr(),
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    Expanded(
+                      child: Text(
+                        'ai_details_title'.tr(),
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
                       ),
                     ),
                   ],
@@ -1713,13 +1715,15 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   child: Icon(icon, color: iconColor, size: 18),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
                   ),
                 ),
               ],
