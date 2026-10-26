@@ -2116,13 +2116,6 @@ class _LabHubScreenState extends State<LabHubScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
     final cart = Provider.of<CartProvider>(context);
-    CartItem? selectedStaffItem;
-    for (final item in cart.items) {
-      if (item.extraData?['type'] == 'staff' || item.id.startsWith('staff_')) {
-        selectedStaffItem = item;
-        break;
-      }
-    }
 
     return Scaffold(
       backgroundColor: bg,
@@ -2269,29 +2262,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       },
                     ),
 
-                    // 2. هەڵبژاردنی ستاف
+                    // 2. نرخی پشکنینەکان لە تاقیگەکان
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       number: '٢',
-                      title: 'lab_item_3'.tr(),
-                      subtitle: 'lab_item_3_desc'.tr(),
-                      icon: Iconsax.people,
-                      color: const Color(0xFF8B5CF6),
-                      badgeText: selectedStaffItem != null
-                          ? (selectedStaffItem.extraData?['staff_name'] ??
-                                'lab_hub_selected'.tr())
-                          : (_staffList.isNotEmpty
-                                ? '${_staffList.length} ${'lab_hub_specialists_count'.tr()}'
-                                : null),
-                      onTap: _showStaffSelectionModal,
-                    ),
-
-                    // 3. نرخی پشکنینەکان لە تاقیگەکان
-                    _buildFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      number: '٣',
                       title: 'lab_item_4'.tr(),
                       subtitle: 'lab_item_4_desc'.tr(),
                       icon: Iconsax.tag,
@@ -2300,11 +2275,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       onTap: _showTestPricesModal,
                     ),
 
-                    // 4. پاکێجی پشکنینەکان لە تاقیگەکان
+                    // 3. پاکێجی پشکنینەکان لە تاقیگەکان
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٤',
+                      number: '٣',
                       title: 'lab_item_5'.tr(),
                       subtitle: 'lab_item_5_desc'.tr(),
                       icon: Iconsax.box_1,
@@ -2315,11 +2290,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       onTap: _showPackagesModal,
                     ),
 
-                    // 5. ئەرشیفی داواکارییەکانم
+                    // 4. ئەرشیفی داواکارییەکانم
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٥',
+                      number: '٤',
                       title: 'lab_item_6'.tr(),
                       subtitle: 'lab_item_6_desc'.tr(),
                       icon: Iconsax.archive_book,
@@ -2334,11 +2309,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       },
                     ),
 
-                    // 6. شیکردنەوەی پشکنینەکانم بە AI
+                    // 5. شیکردنەوەی پشکنینەکانم بە AI
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٦',
+                      number: '٥',
                       title: 'lab_item_7'.tr(),
                       subtitle: 'lab_item_7_desc'.tr(),
                       icon: Icons.auto_awesome_rounded,
