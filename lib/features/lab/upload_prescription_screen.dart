@@ -36,13 +36,212 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
   List<Map<String, dynamic>> _providers = [];
   Map<String, dynamic>? _selectedProvider;
 
+  // Lab Tests State
+  bool _isLoadingTests = false;
+  List<Map<String, dynamic>> _tests = [];
+  final Set<String> _selectedTestIds = {};
+  String _testsSearchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  static final List<Map<String, dynamic>> _defaultLabTests = [
+    {
+      'id': 'cbc',
+      'name': 'پشکنینی گشتی خوێن (CBC)',
+      'name_en': 'Complete Blood Count (CBC)',
+      'name_ar': 'تعداد الدم الكامل (CBC)',
+      'desc': 'شیکاری تەواوی خڕۆکەکانی خوێن و هیمۆگلۆبین',
+      'price': 15000.0,
+    },
+    {
+      'id': 'lipid',
+      'name': 'چەوری خوێن (Lipid Profile)',
+      'name_en': 'Lipid Profile',
+      'name_ar': 'فحص الدهون الشامل',
+      'desc': 'کۆلیسترۆل و چەوری سیانی',
+      'price': 25000.0,
+    },
+    {
+      'id': 'fbs',
+      'name': 'شەکری خوێن (Fasting Blood Sugar)',
+      'name_en': 'Fasting Blood Sugar (FBS)',
+      'name_ar': 'سكر الدم الصائم',
+      'desc': 'پێوانەکردنی ڕێژەی شەکری خوێن بە بێ نان خواردن',
+      'price': 10000.0,
+    },
+    {
+      'id': 'kft',
+      'name': 'پشکنینی گورچیلە (KFT)',
+      'name_en': 'Kidney Function Test (KFT)',
+      'name_ar': 'وظائف الكلى',
+      'desc': 'یوریا و کریاتینین',
+      'price': 25000.0,
+    },
+    {
+      'id': 'lft',
+      'name': 'پشکنینی جگەر (LFT)',
+      'name_en': 'Liver Function Test (LFT)',
+      'name_ar': 'وظائف الكبد',
+      'desc': 'ئەنزیمەکانی جگەر و بیلرۆبین',
+      'price': 30000.0,
+    },
+    {
+      'id': 'vit_d',
+      'name': 'ڤیتامین دی (Vitamin D3)',
+      'name_en': 'Vitamin D3',
+      'name_ar': 'فيتامين د3',
+      'desc': 'پێوانەکردنی ئاستی ڤیتامین D لە لەشدا',
+      'price': 35000.0,
+    },
+    {
+      'id': 'tsh',
+      'name': 'هۆرمۆنی غودە (TSH / Thyroid)',
+      'name_en': 'Thyroid Profile (TSH)',
+      'name_ar': 'هرمون الغدة الدرقية',
+      'desc': 'چالاکی و ڕژانی غودەی دەرەقی',
+      'price': 25000.0,
+    },
+    {
+      'id': 'b12',
+      'name': 'ڤیتامین بی ١٢ (Vitamin B12)',
+      'name_en': 'Vitamin B12',
+      'name_ar': 'فيتامين ب12',
+      'desc': 'پێوانەکردنی ڕێژەی ڤیتامین B12',
+      'price': 30000.0,
+    },
+    {
+      'id': 'gfr',
+      'name': 'پشکنینی گشتی میز (GUE)',
+      'name_en': 'General Urine Exam (GUE)',
+      'name_ar': 'فحص الإدرار العام',
+      'desc': 'شیکاری مایکرۆسکۆپی و کیمیایی میز',
+      'price': 10000.0,
+    },
+    {
+      'id': 'crp',
+      'name': 'پشکنینی هەوکردن (CRP)',
+      'name_en': 'C-Reactive Protein (CRP)',
+      'name_ar': 'فحص بروتين سي التفاعلي',
+      'desc': 'نیشاندەری ڕادەی هەوکردن لە لەشدا',
+      'price': 15000.0,
+    },
+  ];
+
   Color get _themeColor =>
       widget.isNursing ? const Color(0xFF0D9488) : const Color(0xFF2563EB);
+
+  double get _totalTestsPrice {
+    double total = 0.0;
+    for (final t in _tests) {
+      if (_selectedTestIds.contains(t['id'].toString())) {
+        total += (t['price'] as num?)?.toDouble() ?? 0.0;
+      }
+    }
+    return total;
+  }
 
   @override
   void initState() {
     super.initState();
     _fetchProviders();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onProviderSelected(Map<String, dynamic> provider) {
+    if (_selectedProvider?['id'] == provider['id']) return;
+    setState(() {
+      _selectedProvider = provider;
+    });
+    if (!widget.isNursing) {
+      _fetchTestsForLab(provider['id']);
+    }
+  }
+
+  void _toggleTest(String id) {
+    setState(() {
+      if (_selectedTestIds.contains(id)) {
+        _selectedTestIds.remove(id);
+      } else {
+        _selectedTestIds.add(id);
+      }
+    });
+  }
+
+  void _toggleSelectAll() {
+    setState(() {
+      if (_selectedTestIds.length == _tests.length) {
+        _selectedTestIds.clear();
+      } else {
+        _selectedTestIds.addAll(_tests.map((t) => t['id'].toString()));
+      }
+    });
+  }
+
+  Future<void> _fetchTestsForLab(dynamic labId) async {
+    if (widget.isNursing || labId == null) return;
+    setState(() {
+      _isLoadingTests = true;
+      _selectedTestIds.clear();
+      _tests = [];
+    });
+
+    try {
+      // 1. Try to fetch from /labs/$labId
+      final res = await ApiClient.get('/labs/$labId');
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
+        final data = decoded is Map ? (decoded['data'] ?? decoded) : null;
+        if (data != null && data['tests'] is List && (data['tests'] as List).isNotEmpty) {
+          final list = (data['tests'] as List).map((t) => Map<String, dynamic>.from(t)).toList();
+          if (mounted) {
+            setState(() {
+              _tests = list;
+              _isLoadingTests = false;
+            });
+            return;
+          }
+        }
+      }
+
+      // 2. Fallback to /labs/tests filtered by lab_id or all tests
+      final allTestsRes = await ApiClient.get('/labs/tests');
+      if (allTestsRes.statusCode == 200) {
+        final decoded = jsonDecode(allTestsRes.body);
+        final list = decoded is Map && decoded['data'] is List
+            ? (decoded['data'] as List)
+            : (decoded is List ? decoded : []);
+        final parsed = list.map((t) => Map<String, dynamic>.from(t)).toList();
+        final labSpecific = parsed.where((t) => t['lab_id']?.toString() == labId.toString()).toList();
+        final finalTests = labSpecific.isNotEmpty ? labSpecific : parsed;
+        if (finalTests.isNotEmpty && mounted) {
+          setState(() {
+            _tests = finalTests;
+            _isLoadingTests = false;
+          });
+          return;
+        }
+      }
+
+      // 3. Fallback catalogue of standard tests if backend has none configured
+      if (mounted) {
+        setState(() {
+          _tests = _defaultLabTests;
+          _isLoadingTests = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching tests for lab $labId: $e');
+      if (mounted) {
+        setState(() {
+          _tests = _defaultLabTests;
+          _isLoadingTests = false;
+        });
+      }
+    }
   }
 
   Future<void> _fetchProviders() async {
@@ -114,6 +313,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             _providers = list.map((e) => Map<String, dynamic>.from(e)).toList();
             if (_providers.isNotEmpty) {
               _selectedProvider = _providers.first;
+              _fetchTestsForLab(_selectedProvider!['id']);
             }
           }
         }
@@ -217,6 +417,408 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         color: _themeColor,
         size: 26,
       ),
+    );
+  }
+
+  Widget _buildLabTestsSection(bool isDark, Color cardBg, Color borderColor) {
+    final filteredTests = _tests.where((t) {
+      if (_testsSearchQuery.isEmpty) return true;
+      final q = _testsSearchQuery.toLowerCase().trim();
+      final name = (t['name'] ?? '').toString().toLowerCase();
+      final nameEn = (t['name_en'] ?? '').toString().toLowerCase();
+      final nameAr = (t['name_ar'] ?? '').toString().toLowerCase();
+      final desc = (t['desc'] ?? '').toString().toLowerCase();
+      return name.contains(q) ||
+          nameEn.contains(q) ||
+          nameAr.contains(q) ||
+          desc.contains(q);
+    }).toList();
+
+    final isAllSelected =
+        _tests.isNotEmpty && _selectedTestIds.length == _tests.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Header
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Iconsax.health,
+                color: Color(0xFF2563EB),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'lab_tests_section_title'.tr(),
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'lab_tests_section_desc'.tr(),
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 11.5,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (_tests.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: _toggleSelectAll,
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isAllSelected
+                        ? const Color(0xFF2563EB).withValues(alpha: 0.1)
+                        : (isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFF1F5F9)),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isAllSelected
+                          ? const Color(0xFF2563EB).withValues(alpha: 0.4)
+                          : borderColor,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isAllSelected
+                            ? Iconsax.close_circle
+                            : Iconsax.tick_circle,
+                        size: 14,
+                        color: isAllSelected
+                            ? const Color(0xFF2563EB)
+                            : (isDark
+                                ? Colors.white70
+                                : const Color(0xFF475569)),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        isAllSelected ? 'deselect_all'.tr() : 'select_all'.tr(),
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: isAllSelected
+                              ? const Color(0xFF2563EB)
+                              : (isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF475569)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+
+        const SizedBox(height: 14),
+
+        // Search Box (if tests available)
+        if (_tests.isNotEmpty) ...[
+          Container(
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: borderColor),
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (val) {
+                setState(() {
+                  _testsSearchQuery = val;
+                });
+              },
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 13.5,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+              decoration: InputDecoration(
+                hintText: 'search_tests_hint'.tr(),
+                hintStyle: const TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 12.5,
+                  color: Color(0xFF94A3B8),
+                ),
+                prefixIcon: const Icon(
+                  Iconsax.search_normal_1,
+                  size: 18,
+                  color: Color(0xFF94A3B8),
+                ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.close, size: 16),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _testsSearchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // Loading or List
+        if (_isLoadingTests)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 30),
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(
+              color: Color(0xFF2563EB),
+              strokeWidth: 2.5,
+            ),
+          )
+        else if (filteredTests.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Iconsax.health,
+                  size: 36,
+                  color: isDark ? Colors.white24 : Colors.black26,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'no_tests_for_lab'.tr(),
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 13,
+                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          )
+        else ...[
+          // Test Items
+          ...filteredTests.map((test) {
+            final testId = test['id'].toString();
+            final isSelected = _selectedTestIds.contains(testId);
+            final price = (test['price'] as num?)?.toDouble() ?? 0.0;
+            final name = context.localizedField(
+              test,
+              'name',
+              fallback: test['name'] ?? '',
+            );
+            final desc = context.localizedField(
+              test,
+              'desc',
+              fallback: test['desc'] ?? '',
+            );
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? (isDark
+                        ? const Color(0xFF2563EB).withValues(alpha: 0.12)
+                        : const Color(0xFFEFF6FF))
+                    : cardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF2563EB).withValues(alpha: 0.7)
+                      : borderColor,
+                  width: isSelected ? 1.5 : 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isSelected
+                        ? const Color(0xFF2563EB).withValues(alpha: 0.08)
+                        : Colors.black.withValues(
+                            alpha: isDark ? 0.2 : 0.02,
+                          ),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _toggleTest(testId),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(13),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Checkbox
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFF2563EB)
+                                  : borderColor,
+                              width: 1.5,
+                            ),
+                            color: isSelected
+                                ? const Color(0xFF2563EB)
+                                : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 14,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Title & Description
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
+                                ),
+                              ),
+                              if (desc.isNotEmpty) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  desc,
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 11.5,
+                                    color: Color(0xFF64748B),
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Price Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981)
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFF10B981)
+                                  .withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Text(
+                            Currency.format(price),
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0D9488),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
+
+        // Explanatory Note
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF1E293B).withValues(alpha: 0.6)
+                : const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor.withValues(alpha: 0.7)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Iconsax.info_circle,
+                size: 16,
+                color: Color(0xFF3B82F6),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'optional_tests_note'.tr(),
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11.5,
+                    color: Color(0xFF64748B),
+                    height: 1.45,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -411,23 +1013,57 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       );
     } else {
       cart.setServiceType('lab', extraFee: 0.0);
-      cart.addItem(
-        CartItem(
-          id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',
-          name: 'prescription_order_name'.tr(),
-          price: 0.0,
-          quantity: 1,
-          extraData: {
-            'prescription_path': finalPath,
-            'prescription_url': finalUrl,
-            'prescription_image': finalUrl,
-            'lab_id': _selectedProvider!['id'],
-            'lab_name': _selectedProvider!['name'],
-            'lab_user_id': _selectedProvider!['user_id'] ?? _selectedProvider!['id'],
-            'is_prescription': true,
-          },
-        ),
-      );
+      final selectedTests = _tests
+          .where((t) => _selectedTestIds.contains(t['id'].toString()))
+          .toList();
+
+      if (selectedTests.isNotEmpty) {
+        for (final t in selectedTests) {
+          final tPrice = (t['price'] as num?)?.toDouble() ?? 0.0;
+          final tName = context.localizedField(
+            t,
+            'name',
+            fallback: t['name'] ?? 'lab_test'.tr(),
+          );
+          cart.addItem(
+            CartItem(
+              id: 'test_${t['id']}_${DateTime.now().millisecondsSinceEpoch}',
+              name: tName,
+              price: tPrice,
+              quantity: 1,
+              extraData: {
+                'prescription_path': finalPath,
+                'prescription_url': finalUrl,
+                'prescription_image': finalUrl,
+                'lab_id': _selectedProvider!['id'],
+                'lab_name': _selectedProvider!['name'],
+                'lab_user_id': _selectedProvider!['user_id'] ?? _selectedProvider!['id'],
+                'test_id': t['id'],
+                'test_name': tName,
+                'is_prescription': true,
+              },
+            ),
+          );
+        }
+      } else {
+        cart.addItem(
+          CartItem(
+            id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',
+            name: 'prescription_order_name'.tr(),
+            price: 0.0,
+            quantity: 1,
+            extraData: {
+              'prescription_path': finalPath,
+              'prescription_url': finalUrl,
+              'prescription_image': finalUrl,
+              'lab_id': _selectedProvider!['id'],
+              'lab_name': _selectedProvider!['name'],
+              'lab_user_id': _selectedProvider!['user_id'] ?? _selectedProvider!['id'],
+              'is_prescription': true,
+            },
+          ),
+        );
+      }
     }
 
     Navigator.push(
@@ -705,7 +1341,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             _selectedProvider?['id'] == provider['id'];
 
                         return GestureDetector(
-                          onTap: () => setState(() => _selectedProvider = provider),
+                          onTap: () => _onProviderSelected(provider),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.all(14),
@@ -895,11 +1531,17 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                         );
                       },
                     ),
+
+                  // ── 3. Lab Tests Selection Section (فحسەکان و نرخەکان) ──
+                  if (!widget.isNursing && _selectedProvider != null) ...[
+                    const SizedBox(height: 28),
+                    _buildLabTestsSection(isDark, cardBg, borderColor),
+                  ],
                 ],
               ),
             ),
 
-      // ── Bottom Continue Button ──
+      // ── Bottom Continue Button & Summary ──
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: cardBg,
@@ -915,72 +1557,117 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-            child: SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isUploading ? null : _proceedToCheckout,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _themeColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: _isUploading
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!widget.isNursing && _selectedTestIds.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Iconsax.receipt_2,
+                              size: 17,
+                              color: Color(0xFF3B82F6),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'uploading_image_to_server'.tr(),
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.2,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Iconsax.tick_circle,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              'continue_checkout'.tr(),
-                              style: const TextStyle(
+                            const SizedBox(width: 6),
+                            Text(
+                              '${_selectedTestIds.length} ${'selected_tests_count'.tr()}',
+                              style: TextStyle(
                                 fontFamily: 'Rabar',
-                                fontSize: 15,
+                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                height: 1.2,
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
+                          ],
+                        ),
+                        Text(
+                          Currency.format(_totalTestsPrice),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2563EB),
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _isUploading ? null : _proceedToCheckout,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _themeColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-              ),
+                      elevation: 0,
+                    ),
+                    child: _isUploading
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'uploading_image_to_server'.tr(),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  height: 1.2,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Iconsax.tick_circle,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  _selectedTestIds.isNotEmpty && !widget.isNursing
+                                      ? '${'continue_checkout'.tr()} • ${Currency.format(_totalTestsPrice)}'
+                                      : 'continue_checkout'.tr(),
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    height: 1.2,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

@@ -63,18 +63,24 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
 
     return Consumer2<OrderProvider, AppointmentProvider>(
       builder: (context, orderProvider, appointmentProvider, _) {
-        final isLoading = (orderProvider.isLoading && !orderProvider.hasLoadedOnce) ||
-            (appointmentProvider.isLoading && appointmentProvider.appointments.isEmpty);
+        final isLoading =
+            (orderProvider.isLoading && !orderProvider.hasLoadedOnce) ||
+            (appointmentProvider.isLoading &&
+                appointmentProvider.appointments.isEmpty);
 
         if (isLoading) {
           return const ShimmerLoadingList();
         }
 
         // 1. Filter completed/cancelled orders (inactive orders belong to history)
-        final completedOrders = orderProvider.orders.where((o) => !o.status.isActive).toList();
+        final completedOrders = orderProvider.orders
+            .where((o) => !o.status.isActive)
+            .toList();
 
         // 2. Filter completed/cancelled appointments
-        final completedAppointments = appointmentProvider.appointments.where((a) {
+        final completedAppointments = appointmentProvider.appointments.where((
+          a,
+        ) {
           return a.status == AppointmentStatus.completed ||
               a.status == AppointmentStatus.cancelled ||
               a.appointmentDate.isBefore(DateTime.now());
@@ -118,7 +124,8 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
               child: filteredItems.isEmpty
                   ? _buildEmptyState(
                       isDark: isDark,
-                      isFiltered: _selectedCategory != 'all' && allItems.isNotEmpty,
+                      isFiltered:
+                          _selectedCategory != 'all' && allItems.isNotEmpty,
                     )
                   : RefreshIndicator(
                       onRefresh: () async => refresh(),
@@ -133,7 +140,11 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                           if (item.order != null) {
                             return _buildOrderCard(item.order!, index, isDark);
                           } else if (item.appointment != null) {
-                            return _buildAppointmentCard(item.appointment!, index, isDark);
+                            return _buildAppointmentCard(
+                              item.appointment!,
+                              index,
+                              isDark,
+                            );
                           }
                           return const SizedBox.shrink();
                         },
@@ -152,7 +163,9 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
     required List<Appointment> completedAppointments,
   }) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     final totalCount = completedOrders.length + completedAppointments.length;
     final nursingCount = completedOrders.where((o) => o.isNursing).length;
@@ -219,7 +232,10 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
               borderRadius: BorderRadius.circular(16),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? cat.color : cardBg,
                   borderRadius: BorderRadius.circular(16),
@@ -257,21 +273,28 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                       style: _kStyle(
                         color: isSelected
                             ? Colors.white
-                            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+                            : (isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF475569)),
                         fontSize: 13,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w600,
                       ),
                     ),
                     if (cat.count > 0) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? Colors.white.withValues(alpha: 0.25)
                               : (isDark
-                                  ? const Color(0xFF334155)
-                                  : cat.color.withValues(alpha: 0.1)),
+                                    ? const Color(0xFF334155)
+                                    : cat.color.withValues(alpha: 0.1)),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -296,7 +319,9 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
 
   Widget _buildOrderCard(OrderModel order, int index, bool isDark) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -372,13 +397,17 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                         Icon(
                           Iconsax.calendar_1,
                           size: 13,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat('yyyy/MM/dd • hh:mm a').format(order.date),
                           style: _kStyle(
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                             fontSize: 12,
                           ),
                         ),
@@ -413,7 +442,9 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    order.price > 0 ? Currency.format(order.price) : 'free_fee'.tr(),
+                    order.price > 0
+                        ? Currency.format(order.price)
+                        : 'free_fee'.tr(),
                     style: _kStyle(
                       color: const Color(0xFF3B82F6),
                       fontSize: 13.5,
@@ -429,15 +460,23 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
     ).animate(delay: (40 * index).ms).fadeIn().slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildAppointmentCard(Appointment appointment, int index, bool isDark) {
+  Widget _buildAppointmentCard(
+    Appointment appointment,
+    int index,
+    bool isDark,
+  ) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     final image = appointment.doctorImagePath != null
         ? ApiClient.getImageUrl(appointment.doctorImagePath!)
         : 'assets/images/doctor1.png';
 
-    final isKurdish = context.locale.languageCode == 'ckb' || context.locale.languageCode == 'ku';
+    final isKurdish =
+        context.locale.languageCode == 'ckb' ||
+        context.locale.languageCode == 'ku';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -478,25 +517,29 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                 child: Container(
                   width: 50,
                   height: 50,
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFF1F5F9),
                   child: appointment.doctorImagePath != null
                       ? Image.network(
                           image,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
-                            Iconsax.user,
-                            color: Color(0xFF3B82F6),
-                            size: 26,
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Iconsax.user,
+                                color: Color(0xFF3B82F6),
+                                size: 26,
+                              ),
                         )
                       : Image.asset(
                           image,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
-                            Iconsax.user,
-                            color: Color(0xFF3B82F6),
-                            size: 26,
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Iconsax.user,
+                                color: Color(0xFF3B82F6),
+                                size: 26,
+                              ),
                         ),
                 ),
               ),
@@ -534,13 +577,17 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                         Icon(
                           Iconsax.calendar_1,
                           size: 13,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           appointment.formattedDateTime,
                           style: _kStyle(
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                             fontSize: 11.5,
                           ),
                         ),
@@ -557,7 +604,9 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   _buildStatusBadge(
-                    label: isKurdish ? appointment.status.kurdiName : appointment.status.displayName,
+                    label: isKurdish
+                        ? appointment.status.kurdiName
+                        : appointment.status.displayName,
                     color: appointment.status.color,
                   ),
                   const SizedBox(height: 8),
@@ -587,11 +636,7 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
       ),
       child: Text(
         label,
-        style: _kStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
+        style: _kStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -631,7 +676,9 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      isFiltered ? 'no_orders_in_filter'.tr() : 'no_appointments'.tr(),
+                      isFiltered
+                          ? 'no_orders_in_filter'.tr()
+                          : 'no_appointments'.tr(),
                       textAlign: TextAlign.center,
                       style: _kStyle(
                         color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -641,7 +688,9 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      isFiltered ? 'no_orders_in_filter'.tr() : 'no_transactions_desc'.tr(),
+                      isFiltered
+                          ? 'no_orders_in_filter'.tr()
+                          : 'no_transactions_desc'.tr(),
                       textAlign: TextAlign.center,
                       style: _kStyle(
                         color: const Color(0xFF94A3B8),
@@ -666,14 +715,14 @@ class _HistoryItem {
   final Appointment? appointment;
 
   _HistoryItem.order(OrderModel o)
-      : date = o.date,
-        order = o,
-        appointment = null;
+    : date = o.date,
+      order = o,
+      appointment = null;
 
   _HistoryItem.appointment(Appointment a)
-      : date = a.appointmentDate,
-        order = null,
-        appointment = a;
+    : date = a.appointmentDate,
+      order = null,
+      appointment = a;
 }
 
 class _HistoryCategoryOption {

@@ -1019,5 +1019,13 @@
   "category_appointments": "Appointments",
   "no_active_orders": "No active requests",
   "no_active_orders_hint": "When you request a nurse, lab test, or pharmacy, you can track it here",
-  "no_transactions_desc": "All completed requests and appointments will appear here."
+  "no_transactions_desc": "All completed requests and appointments will appear here.",
+  "select_all": "Select All",
+  "deselect_all": "Deselect All",
+  "lab_tests_section_title": "Laboratory Tests & Pricing",
+  "lab_tests_section_desc": "Select the tests written on your prescription or pick the ones you need",
+  "search_tests_hint": "Search tests...",
+  "selected_tests_count": "tests selected",
+  "no_tests_for_lab": "No tests found for this laboratory",
+  "optional_tests_note": "You can select tests now, or proceed without selecting for the lab to review your prescription and set the price."
 }
