@@ -96,41 +96,326 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
       if (picked != null) {
         final imageFile = File(picked.path);
-        setState(() {
-          _scannedImage = imageFile;
-          _isAnalyzing = true;
-          _analysisStep = 1;
-          _scanResult = null;
-        });
+        if (!mounted) return;
+        _showImagePreviewAndNoteDialog(imageFile, source);
+      }
+    } catch (e) {
+      debugPrint('Pick image error: $e');
+    }
+  }
 
-        // Visual step progression while Gemini AI analyzes the image
-        Future.delayed(const Duration(milliseconds: 1200), () {
-          if (mounted && _isAnalyzing) setState(() => _analysisStep = 2);
-        });
+  void _showImagePreviewAndNoteDialog(File initialImage, ImageSource source) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final noteController = TextEditingController();
+    File currentImage = initialImage;
 
-        Future.delayed(const Duration(milliseconds: 2600), () {
-          if (mounted && _isAnalyzing) setState(() => _analysisStep = 3);
-        });
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.12),
+                      blurRadius: 24,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Pull handle
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
 
-        // Call the real Gemini AI Clinical Vision Service with current locale
-        final currentLang = mounted ? context.locale.languageCode : 'ckb';
-        final realResult = await AiClinicalVisionService.instance.analyzeMedicalImage(
-          imageFile: imageFile,
-          mode: _currentMode,
-          language: currentLang,
+                      // Header
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.document_scanner_rounded,
+                              color: Colors.white,
+                              size: 19,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'ai_image_note_title'.tr(),
+                              style: _kStyle(
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            icon: Icon(
+                              Icons.close_rounded,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              size: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Image Preview Box
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Stack(
+                          children: [
+                            Image.file(
+                              currentImage,
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                            Positioned(
+                              top: 10,
+                              right: 10,
+                              child: GestureDetector(
+                                onTap: () async {
+                                  final XFile? rePicked = await _picker.pickImage(
+                                    source: source,
+                                    maxWidth: 1800,
+                                    maxHeight: 1800,
+                                    imageQuality: 88,
+                                  );
+                                  if (rePicked != null) {
+                                    setModalState(() {
+                                      currentImage = File(rePicked.path);
+                                    });
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.65),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.25),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.refresh_rounded, color: Colors.white, size: 14),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'ai_change_image'.tr(),
+                                        style: const TextStyle(
+                                          fontFamily: 'Rabar',
+                                          color: Colors.white,
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Text Input Field at bottom of Image
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: TextField(
+                          controller: noteController,
+                          maxLines: 3,
+                          minLines: 1,
+                          textInputAction: TextInputAction.done,
+                          style: _kStyle(
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            fontSize: 13.5,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'ai_image_note_hint'.tr(),
+                            hintStyle: _kStyle(
+                              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                            prefixIcon: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              child: Icon(
+                                Icons.edit_note_rounded,
+                                color: Color(0xFF3B82F6),
+                                size: 24,
+                              ),
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Disclaimer Banner
+                      _buildDisclaimerBanner(isDark: isDark),
+
+                      const SizedBox(height: 16),
+
+                      // Action Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 13),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: Text(
+                                'ai_cancel'.tr(),
+                                style: _kStyle(
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: GestureDetector(
+                              onTap: () {
+                                final note = noteController.text.trim();
+                                Navigator.pop(ctx);
+                                _startImageAnalysis(
+                                  currentImage,
+                                  userNote: note.isNotEmpty ? note : null,
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 13),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.auto_awesome, color: Colors.white, size: 17),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'ai_analyze_image_btn'.tr(),
+                                      style: _kStyle(
+                                        color: Colors.white,
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
+      },
+    );
+  }
 
-        if (mounted) {
-          realResult['date'] = DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now());
+  Future<void> _startImageAnalysis(File imageFile, {String? userNote}) async {
+    setState(() {
+      _scannedImage = imageFile;
+      _isAnalyzing = true;
+      _analysisStep = 1;
+      _scanResult = null;
+    });
 
-          setState(() {
-            _analysisStep = 3;
-            _isAnalyzing = false;
-            _scanResult = realResult;
-            _userScans.insert(0, realResult);
-          });
-          _saveScans();
-        }
+    // Visual step progression while Gemini AI analyzes the image
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (mounted && _isAnalyzing) setState(() => _analysisStep = 2);
+    });
+
+    Future.delayed(const Duration(milliseconds: 2600), () {
+      if (mounted && _isAnalyzing) setState(() => _analysisStep = 3);
+    });
+
+    try {
+      final currentLang = mounted ? context.locale.languageCode : 'ckb';
+      final realResult = await AiClinicalVisionService.instance.analyzeMedicalImage(
+        imageFile: imageFile,
+        mode: _currentMode,
+        userNote: userNote,
+        language: currentLang,
+      );
+
+      if (mounted) {
+        realResult['date'] = DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now());
+
+        setState(() {
+          _analysisStep = 3;
+          _isAnalyzing = false;
+          _scanResult = realResult;
+          _userScans.insert(0, realResult);
+        });
+        _saveScans();
       }
     } catch (e) {
       debugPrint('Scan error: $e');
@@ -147,6 +432,298 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
       _isAnalyzing = false;
       _analysisStep = 0;
     });
+  }
+
+  Future<void> _performMedicineSearch(String query) async {
+    final cleanQuery = query.trim();
+    if (cleanQuery.isEmpty) return;
+
+    setState(() {
+      _scannedImage = null;
+      _isAnalyzing = true;
+      _analysisStep = 1;
+      _scanResult = null;
+    });
+
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (mounted && _isAnalyzing) setState(() => _analysisStep = 2);
+    });
+
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (mounted && _isAnalyzing) setState(() => _analysisStep = 3);
+    });
+
+    try {
+      final currentLang = mounted ? context.locale.languageCode : 'ckb';
+      final realResult = await AiClinicalVisionService.instance.searchMedicineByName(
+        query: cleanQuery,
+        mode: _currentMode,
+        language: currentLang,
+      );
+
+      if (mounted) {
+        realResult['date'] = DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now());
+
+        setState(() {
+          _analysisStep = 3;
+          _isAnalyzing = false;
+          _scanResult = realResult;
+          _userScans.insert(0, realResult);
+        });
+        _saveScans();
+      }
+    } catch (e) {
+      debugPrint('Medicine search error: $e');
+      if (mounted) {
+        setState(() => _isAnalyzing = false);
+      }
+    }
+  }
+
+  void _showSearchMedicineDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final controller = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
+                  blurRadius: 24,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.medication_liquid_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'ai_search_medicine'.tr(),
+                        style: _kStyle(
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'ai_search_medicine_desc'.tr(),
+                  style: _kStyle(
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // TextField for medicine input
+                Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: TextField(
+                    controller: controller,
+                    autofocus: true,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (value) {
+                      if (value.trim().isNotEmpty) {
+                        Navigator.pop(ctx);
+                        _performMedicineSearch(value.trim());
+                      }
+                    },
+                    style: _kStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      fontSize: 14,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'ai_search_medicine_hint'.tr(),
+                      hintStyle: _kStyle(
+                        color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        fontSize: 12.5,
+                      ),
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF3B82F6), size: 20),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                // Medical Disclaimer inside the Search Dialog
+                _buildDisclaimerBanner(isDark: isDark),
+
+                const SizedBox(height: 18),
+
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: Text(
+                          'ai_cancel'.tr(),
+                          style: _kStyle(
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: GestureDetector(
+                        onTap: () {
+                          final q = controller.text.trim();
+                          if (q.isNotEmpty) {
+                            Navigator.pop(ctx);
+                            _performMedicineSearch(q);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                'ai_search_btn'.tr(),
+                                style: _kStyle(
+                                  color: Colors.white,
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDisclaimerBanner({required bool isDark, EdgeInsetsGeometry? margin}) {
+    return Container(
+      margin: margin,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFFF59E0B).withValues(alpha: 0.12)
+            : const Color(0xFFFEF3C7).withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFF59E0B).withValues(alpha: 0.38),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.health_and_safety_rounded,
+              color: Color(0xFFD97706),
+              size: 19,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'ai_disclaimer_notice'.tr(),
+              style: _kStyle(
+                color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                height: 1.45,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -411,6 +988,84 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             ),
           ],
         ),
+
+        const SizedBox(height: 14),
+
+        // AI Medicine Name Search Action Card
+        GestureDetector(
+          onTap: _showSearchMedicineDialog,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.15 : 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.search_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ai_search_medicine'.tr(),
+                        style: _kStyle(
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'ai_search_medicine_desc'.tr(),
+                        style: _kStyle(
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Medical Disclaimer Notice Banner
+        _buildDisclaimerBanner(isDark: isDark),
       ],
     );
   }
@@ -436,7 +1091,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
       ),
       child: Column(
         children: [
-          // Image Preview with Scanning Laser Line
+          // Image Preview with Scanning Laser Line OR AI Search Animation
           if (_scannedImage != null)
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
@@ -480,6 +1135,48 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     )
                         .animate(onPlay: (controller) => controller.repeat(reverse: true))
                         .moveY(begin: 0, end: 215, duration: 1200.ms, curve: Curves.easeInOut),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF2563EB).withValues(alpha: isDark ? 0.2 : 0.08),
+                    const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.25 : 0.12),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.auto_awesome, color: Color(0xFF3B82F6), size: 30)
+                        .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                        .scale(begin: const Offset(1, 1), end: const Offset(1.15, 1.15), duration: 1000.ms),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'ai_searching'.tr(),
+                    textAlign: TextAlign.center,
+                    style: _kStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -656,7 +1353,71 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+
+        // Medical Disclaimer Notice Banner in Result
+        _buildDisclaimerBanner(isDark: isDark),
+
+        // Patient User Note Card
+        if (res['user_note'] != null && res['user_note'].toString().trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.edit_note_rounded,
+                    color: Color(0xFF3B82F6),
+                    size: 19,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ai_your_note'.tr(),
+                        style: _kStyle(
+                          color: const Color(0xFF3B82F6),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        res['user_note'].toString(),
+                        style: _kStyle(
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          fontSize: 12.5,
+                          height: 1.45,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 14),
 
         // Summary Card (Title text removed as requested)
         _buildMedicalInfoCard(
@@ -725,62 +1486,95 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                 ...((res['markers'] as List).map((m) {
                   final isAbnormal = m['isNormal'] == false;
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF334155).withValues(alpha: 0.6)
+                            : const Color(0xFFE2E8F0),
+                        width: 1,
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            m['name'],
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              m['value'],
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: primaryColor,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: (isAbnormal
-                                        ? const Color(0xFFEF4444)
-                                        : const Color(0xFF10B981))
-                                    .withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
+                            Expanded(
                               child: Text(
-                                m['status'],
+                                (m['name'] ?? '').toString(),
                                 style: TextStyle(
                                   fontFamily: 'Rabar',
-                                  fontSize: 10.5,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: isAbnormal
-                                      ? const Color(0xFFEF4444)
-                                      : const Color(0xFF10B981),
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  height: 1.35,
                                 ),
                               ),
                             ),
+                            if (m['status'] != null &&
+                                m['status'].toString().trim().isNotEmpty) ...[
+                              const SizedBox(width: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: (isAbnormal
+                                          ? const Color(0xFFEF4444)
+                                          : const Color(0xFF10B981))
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  m['status'].toString(),
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: isAbnormal
+                                        ? const Color(0xFFEF4444)
+                                        : const Color(0xFF10B981),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
+                        if (m['value'] != null &&
+                            m['value'].toString().trim().isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: primaryColor.withValues(
+                                alpha: isDark ? 0.12 : 0.06,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              m['value'].toString(),
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? const Color(0xFF93C5FD)
+                                    : const Color(0xFF1D4ED8),
+                                height: 1.45,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   );
@@ -844,6 +1638,39 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        // Secondary Action: Search medicine by name with AI
+        GestureDetector(
+          onTap: _showSearchMedicineDialog,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.search_rounded, color: Color(0xFF3B82F6), size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'ai_search_medicine'.tr(),
+                  style: _kStyle(
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -979,7 +1806,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               child: InkWell(
                 onTap: () {
                   setState(() {
-                    _currentMode = item['mode'];
+                    _currentMode = (item['mode'] ?? 'medicine').toString();
                     _scanResult = item;
                   });
                 },

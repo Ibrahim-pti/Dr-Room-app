@@ -26,10 +26,11 @@ class AiClinicalVisionService {
   ];
 
   /// Analyzes a medical image (Medicine, Pill, Prescription) using Gemini Vision,
-  /// with intelligent fallback to local clinical database if API is unavailable.
+  /// with optional patient user note/question, and intelligent fallback to local clinical database.
   Future<Map<String, dynamic>> analyzeMedicalImage({
     required File imageFile,
     required String mode,
+    String? userNote,
     String language = 'ckb',
   }) async {
     try {
@@ -47,7 +48,7 @@ class AiClinicalVisionService {
 
       // 1. Try Gemini Vision if a valid API key is configured
       if (_geminiApiKey.trim().isNotEmpty) {
-        final prompt = _buildPrompt(mode, language: language);
+        final prompt = _buildPrompt(mode, userNote: userNote, language: language);
 
         for (final model in _models) {
           try {
@@ -60,6 +61,9 @@ class AiClinicalVisionService {
 
             if (result != null) {
               result['mode'] = mode;
+              if (userNote != null && userNote.trim().isNotEmpty) {
+                result['user_note'] = userNote.trim();
+              }
               _normalizeResult(result, mode, language: language);
               return result;
             }
@@ -70,20 +74,266 @@ class AiClinicalVisionService {
       }
 
       // 2. Intelligent Clinical Recognition Engine
-      // Always returns accurate, realistic clinical details matching the medication
-      return getIntelligentMedicineResult(
+      final fallback = getIntelligentMedicineResult(
         imageFile: imageFile,
+        query: userNote,
+        mode: mode,
+        language: language,
+      );
+      if (userNote != null && userNote.trim().isNotEmpty) {
+        fallback['user_note'] = userNote.trim();
+      }
+      return fallback;
+    } catch (e) {
+      debugPrint('AiClinicalVisionService exception: $e');
+      final fallback = getIntelligentMedicineResult(
+        imageFile: imageFile,
+        query: userNote,
+        mode: mode,
+        language: language,
+      );
+      if (userNote != null && userNote.trim().isNotEmpty) {
+        fallback['user_note'] = userNote.trim();
+      }
+      return fallback;
+    }
+  }
+
+  /// Searches and analyzes a medicine or clinical query by name using Gemini AI text model,
+  /// with intelligent fallback to local clinical database.
+  Future<Map<String, dynamic>> searchMedicineByName({
+    required String query,
+    String mode = 'medicine',
+    String language = 'ckb',
+  }) async {
+    try {
+      if (_geminiApiKey.trim().isNotEmpty) {
+        final prompt = _buildSearchPrompt(query, language: language);
+        for (final model in _models) {
+          try {
+            final result = await _callGeminiText(
+              model: model,
+              prompt: prompt,
+            );
+            if (result != null) {
+              result['mode'] = mode;
+              _normalizeResult(result, mode, language: language);
+              return result;
+            }
+          } catch (e) {
+            debugPrint('Error searching medicine with model $model: $e');
+          }
+        }
+      }
+
+      return getIntelligentMedicineResult(
+        query: query,
         mode: mode,
         language: language,
       );
     } catch (e) {
-      debugPrint('AiClinicalVisionService exception: $e');
+      debugPrint('searchMedicineByName exception: $e');
       return getIntelligentMedicineResult(
-        imageFile: imageFile,
+        query: query,
         mode: mode,
         language: language,
       );
     }
+  }
+
+  Future<Map<String, dynamic>?> _callGeminiText({
+    required String model,
+    required String prompt,
+  }) async {
+    final url = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
+    );
+
+    final payload = {
+      'contents': [
+        {
+          'parts': [
+            {'text': prompt},
+          ]
+        }
+      ],
+      'generationConfig': {
+        'response_mime_type': 'application/json',
+        'temperature': 0.15,
+      }
+    };
+
+    final response = await http
+        .post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': _geminiApiKey,
+          },
+          body: jsonEncode(payload),
+        )
+        .timeout(const Duration(seconds: 25));
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      final candidates = jsonResponse['candidates'] as List?;
+      if (candidates != null && candidates.isNotEmpty) {
+        final text =
+            candidates[0]['content']?['parts']?[0]?['text'] as String?;
+        if (text != null && text.trim().isNotEmpty) {
+          return _cleanAndParseJson(text);
+        }
+      }
+    } else {
+      debugPrint('Gemini Text API $model returned HTTP ${response.statusCode}: ${response.body}');
+    }
+
+    return null;
+  }
+
+  String _buildSearchPrompt(String query, {String language = 'ckb'}) {
+    if (language == 'ar') {
+      return '''
+You are the Dr-Room Chief Medical & Clinical AI Specialist (أخصائي الذكاء الاصطناعي الطبي والسريري في دكتور روم).
+Provide a complete, accurate clinical analysis for the medicine, drug, or medical test query: "$query".
+
+Analyze and explain EVERYTHING thoroughly in Arabic (العربية الفصحى):
+1. Title: الاسم التجاري والعلمي الدقيق للدواء أو الفحص.
+2. Category: الفئة الطبية الدوائية أو نوع الفحص (مثال: مسكن ألم وخافض حرارة، مضاد حيوي واسع المجال، فحص وظائف الكبد).
+3. Target Age (الفئة العمرية والجرعة المناسبة): وضح الفئة العمرية المناسبة (مثال: البالغين فوق 18 عاماً، الأطفال فوق سنتين، أو حسب التوجيه الطبي).
+4. Allergies & Contraindications (الحساسية وموانع الاستعمال): بين موانع الاستخدام والحساسية الدوائية ومحاذير الحمل والرضاعة.
+5. Summary: شرح سريري تفصيلي وسلس عن استخدامات الدواء ودواعي استعماله وكيفية عمله.
+6. Markers (المواد الفعالة أو مؤشرات الفحص): اذكر المواد الفعالة والجرعات الشائعة وطريقة التناول.
+7. Recommendations: نصائح وإرشادات طبية واضحة للمريض عند الاستخدام.
+8. Warnings: تحذيرات هامة، الجرعة القصوى، التداخلات الدوائية وموانع الاستعمال.
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "title": "اسم الدواء الدقيق والاسم العلمي",
+  "category": "الفئة الطبية",
+  "confidence": "99.5%",
+  "target_age": "الفئة العمرية المناسبة والجرعات المعتمدة",
+  "allergies": "الحساسية وموانع الاستعمال",
+  "summary": "شرح سريري واضح ومفصل بالعربية",
+  "markers": [
+    {
+      "name": "المادة الفعالة أو المؤشر",
+      "value": "الجرعة أو التركيز الشائع",
+      "status": "عادي / هام",
+      "isNormal": true
+    }
+  ],
+  "recommendations": "إرشادات الاستخدام ونصائح المريض",
+  "warnings": "تحذيرات هامة وتداخلات دوائية"
+}
+''';
+    } else if (language == 'kmr') {
+      return '''
+You are the Dr-Room Chief Medical & Clinical AI Specialist (تایبەتمەندێ باڵایێ ژیرییا دەستکرد بۆ شیکاری و دەستنیشانکرنا نوژداری ل دکتۆر رووم).
+Provide a complete, accurate clinical analysis for the medicine, drug, or medical test query: "$query".
+
+Analyze and explain thoroughly in authentic Badini Kurdish (کوردییا بادینی ب ئەلفوبێیا کوردی-عەرەبی):
+1. Title: ناڤێ زانستی و بازرگانی یێ دەرمانی یان پشکنینێ.
+2. Category: پۆلێنا نوژداری (بۆ نموونە: دەرمانێ دژی ئێشێ و تایێ، دژەبەکتریا، هتد).
+3. Target Age (ژیێ گونجای و دیارکری): ڕوون بکە کا ئەڤ دەرمانە بۆ چ تەمەنەکی یە (بۆ نموونە: مەزنێن سەرووی ١٨ ساڵ، زارۆک، یان ل دیف شیرەتا نوژداری).
+4. Allergies & Contraindications (حەساسییەت و ڕێگریێن نوژداری): دیار بکە کا چ حەساسییەت یان ڕێگری هەینە (بۆ نموونە: حەساسییەت ب دەرمانێن دژی هەوکرنێ، ل دەمێ دووگیانیێ نابیت).
+5. Summary: پوختەیەکا گشتگیر و زانستی ب کوردییا بادینی ل سەر بکارئینانا ڤی دەرمانی و چەوانیا کارکرنا وی.
+6. Markers: پێکهاتەیێن سەرەکی و ژەمێن پێشنیازکری یێن دەرمانی.
+7. Recommendations: شیرەت و ڕێنمایێن بکارئینانێ ب بادینی.
+8. Warnings: هۆشداریێن نوژداری یێن گرنگ ب بادینی.
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "title": "ناڤێ زانستی و فەرمی یێ دەرمانی",
+  "category": "پۆلێنا نوژداری",
+  "confidence": "99.5%",
+  "target_age": "ژیێ گونجای و ڕێنماییێن ژەمێ",
+  "allergies": "حەساسییەت و ڕێگریێن بکارئینانێ",
+  "summary": "پوختەیەکا زانستی و ڕوون ب کوردییا بادینی دەربارەی دەرمانی",
+  "markers": [
+    {
+      "name": "پێکهاتەیا سەرەکی یان ژەم",
+      "value": "بڕ یان چەوانیا بکارئینانێ",
+      "status": "نۆرمال / گرنگ",
+      "isNormal": true
+    }
+  ],
+  "recommendations": "شیرەت و ڕێنمایێن کردارەکی ب بادینی",
+  "warnings": "هۆشداریێن نوژداری یێن گرنگ ب بادینی"
+}
+''';
+    } else if (language == 'en') {
+      return '''
+You are the Dr-Room Chief Medical & Clinical AI Specialist.
+Provide a complete, accurate clinical analysis for the medicine, drug, or medical test query: "$query".
+
+Analyze and explain thoroughly in English:
+1. Title: Brand and generic name of the medicine or test.
+2. Category: Pharmacological or clinical class.
+3. Target Age: Target age group and dosage guidance.
+4. Allergies & Contraindications: Known allergies, contraindications, pregnancy/lactation warnings.
+5. Summary: Comprehensive clinical explanation of how it works and what it is prescribed for.
+6. Markers: Active ingredients, strengths, and administration form.
+7. Recommendations: Clear usage guidelines, timing (with/without food), and precautions.
+8. Warnings: Critical safety warnings, maximum dosages, and drug interactions.
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "title": "Medicine name and generic compound",
+  "category": "Medical Class",
+  "confidence": "99.5%",
+  "target_age": "Recommended age group and dosage considerations",
+  "allergies": "Known allergies and contraindications",
+  "summary": "Clear, professional clinical explanation in English",
+  "markers": [
+    {
+      "name": "Active Ingredient / Dosage Form",
+      "value": "Strength or administration",
+      "status": "Normal / Important",
+      "isNormal": true
+    }
+  ],
+  "recommendations": "Clinical guidelines and administration advice",
+  "warnings": "Important medical precautions and warnings"
+}
+''';
+    }
+
+    // Kurdish (Central Kurdish / Sorani)
+    return '''
+You are Dr-Room Chief Medical & Clinical AI Specialist (پسپۆڕی باڵای شیکاری پزیشکی و تاقیگە و دەرمان لە دکتۆر ڕووم).
+Provide a complete, authentic, and medically accurate analysis for the medicine, drug, or clinical test query: "$query".
+
+Analyze and explain EVERYTHING thoroughly in Central Kurdish (کوردی سۆرانی):
+1. Title: ناوی زانستی و فەرمی دەرمانەکە یان پشکنینەکە (بۆ نموونە: Paracetamol (Panadol) ٥٠٠ ملگم).
+2. Category: پۆلێنی پزیشکی (بۆ نموونە: دەرمانی دژەئازار و تا، دەرمانی دژەهەوکردن، دژەبەکتریا).
+3. Target Age (بۆ تەمەن چەندە): ڕوونی بکەرەوە بۆ چ تەمەنێک گونجاوە (بۆ نموونە: گەورەساڵانی سەرووی ١٢ ساڵ، منداڵان بە شربەت بەپێی کێش، یان هەموو تەمەنێک بە ڕێنمایی پزیشک).
+4. Allergies & Contraindications (هەستیارییەکان و ڕێگرییەکان): هەستیاری بە دەرمانەکە، قەدەغەکراو لە کاتی دووگیانی، کێشەی جگەر یان گورچیلە، هەستیاری پەنیسلین و هتد.
+5. Summary: شیکارییەکی زۆر ورد و تێروتەسەل بە زمانی کوردی سادە کە مانای دەرمانەکە، سوودەکانی، و چۆنیەتی کاریگەرییەکەی بەتەواوی ڕوون دەکاتەوە.
+6. Markers (وردەکاری و ژەمەکان): پێکهاتەی چالاک، بڕی دۆز، کاتی خواردن (بۆ نموونە: پێکهاتەی سەرەکی، ژەمی ڕێگەپێدراو، شێوازی خواردن دوای نان).
+7. Recommendations: ڕاسپاردە و ڕێنمایی پزیشکی و چۆنیەتی بەکارهێنان.
+8. Warnings: هۆشدارییە گرنگەکان، بڕی زۆر، لە کاتی دووگیانی و شیردان، یان تێکەڵکردن لەگەڵ دەرمانی تر.
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "title": "ناوی فەرمی دەرمانەکە و براندەکەی",
+  "category": "پۆلێنی پزیشکی دەرمانەکە",
+  "confidence": "99.5%",
+  "target_age": "بۆ چ تەمەنێکە و ڕێنمایی تەمەن",
+  "allergies": "هەستیارییەکان و ڕێگرییە پزیشکییەکان",
+  "summary": "ڕوونکردنەوەی تەواو و تێروتەسەل بە زمانی کوردی سۆرانی لەسەر دەرمانەکە و بەکارهێنانەکانی",
+  "markers": [
+    {
+      "name": "پێکهاتەی چالاک یان ژەم",
+      "value": "بڕ و چۆنیەتی بەکارهێنان",
+      "status": "ئاسایی / گرنگ",
+      "isNormal": true
+    }
+  ],
+  "recommendations": "ڕاسپاردە و ڕێنمایی پزیشکی بۆ نەخۆش بە کوردی",
+  "warnings": "هۆشدارییە گرنگەکان و تێبینی پزیشکی بە کوردی"
+}
+''';
   }
 
   Future<Map<String, dynamic>?> _callGemini({
@@ -144,7 +394,13 @@ class AiClinicalVisionService {
     return null;
   }
 
-  String _buildPrompt(String mode, {String language = 'ckb'}) {
+  String _buildPrompt(String mode, {String? userNote, String language = 'ckb'}) {
+    final note = userNote?.trim() ?? '';
+    final noteAr = note.isNotEmpty ? '\n\nالملاحظة أو الاستفسار الإضافي من المريض المرفق مع الصورة:\n"$note"\nمهم جداً: أجب على هذا الاستفسار بدقة، وراعِ تفاصيل المريض في الشرح والجرعات والتوصيات والمحاذير.\n' : '';
+    final noteEn = note.isNotEmpty ? '\n\nPATIENT ATTACHED NOTE / QUESTION WITH IMAGE:\n"$note"\nCRITICAL: Address this user inquiry/note directly, and account for it in the summary, target_age, allergies, recommendations, and warnings.\n' : '';
+    final noteKmr = note.isNotEmpty ? '\n\nتێبینی یان پرسیارا نەخۆشی دگەل وێنەی هاتی:\n"$note"\nیا گرنگ: پێدڤیە ب تەمامی بەرسڤا ڤێ پرسیار یان تێبینیێ بدەی و د شرۆڤەکرن و شیرەتان دا ڕەچاو بکەی.\n' : '';
+    final noteCkb = note.isNotEmpty ? '\n\nتێبینی یان پرسیاری نەخۆش کە لەگەڵ وێنەکەدا ناردوویەتی:\n"$note"\nزۆر گرنگە: پێویستە ئەم تێبینی، نیشانە یان پرسیارەی نەخۆش بە تەواوی لەبەرچاو بگریت و ڕاستەوخۆ لەناو پوختە، ڕاسپاردە و هۆشدارییەکانتدا وەڵامی بدەیتەوە.\n' : '';
+
     if (language == 'ar') {
       return '''
 You are the Dr-Room Chief Medical & Clinical AI Specialist (أخصائي الذكاء الاصطناعي الطبي والسريري في دكتور روم).
@@ -164,7 +420,7 @@ Analyze and explain EVERYTHING thoroughly in simplified, professional Arabic:
 6. Markers (المؤشرات والتفاصيل): Extract all key biomarkers / ingredients / findings with their values, reference status ("طبيعي", "مرتفع", "منخفض", "هام"), and isNormal boolean.
 7. Recommendations: Practical medical guidance and next steps.
 8. Warnings: Important clinical precautions and red flags.
-
+$noteAr
 Return ONLY valid JSON matching this exact structure:
 {
   "title": "اسم الفحص أو الدواء أو الوثيقة الطبية",
@@ -221,7 +477,7 @@ Analyze and explain EVERYTHING thoroughly in clear, accessible English:
 6. Markers: Extract all key biomarkers / active ingredients / test items with values, status ("Normal", "High", "Low", "Important"), and isNormal boolean.
 7. Recommendations: Practical clinical advice and actionable guidance for the patient.
 8. Warnings: Important warnings, critical thresholds, and when to seek medical attention.
-
+$noteEn
 Return ONLY valid JSON matching this exact structure:
 {
   "title": "Document, Test or Medicine Name (e.g. Complete Blood Count - CBC)",
@@ -278,7 +534,7 @@ Identify and explain EVERYTHING thoroughly in authentic Badini Kurdish (کورد
 6. Markers (هوورکاری و نیشاندەرێن نوژداری): هەمی پشکنین، پێکهاتە و خاڵێن گرنگ دەربینە دگەل بها و ڕەوشا وان ("نۆرمال", "بلند", "نزم", "گرنگ") و isNormal.
 7. Recommendations: شیرەت و ڕێنمایێن کردارەکی بۆ نەخۆشی ب بادینی.
 8. Warnings: هۆشداری و سەرنجێن گرنگ یێن نوژداری ب بادینی.
-
+$noteKmr
 Return ONLY valid JSON matching this exact structure:
 {
   "title": "ناڤێ پشکنینێ، دەرمانی یان بەڵگەنامەیا نوژداری",
@@ -337,7 +593,7 @@ Analyze and explain EVERYTHING thoroughly in Central Kurdish (کوردی سۆر�
 6. Markers (وردەکاری و نیشاندەرەکان): Extract ALL key tests / ingredients / findings with their values and status (بۆ نموونە: Hemoglobin لەگەڵ بڕ و دۆخی "ئاسایی", WBC لەگەڵ دۆخی "بەرز", یان پێکهاتەی چالاک و دۆز).
 7. Recommendations: Practical advice, next steps, when to consult a doctor.
 8. Warnings: Important health warnings, precautions, critical limits.
-
+$noteCkb
 Return ONLY valid JSON matching this exact structure:
 {
   "title": "ناوی پشکنینەکە یان دەرمانەکە یان بەڵگەنامەکە",
@@ -392,8 +648,17 @@ Critical Rules:
       result['confidence'] = (confRaw ?? '99.0%').toString();
     }
 
-    result['target_age'] = (result['target_age'] ?? (isAr ? 'حسب التوجيه والإشراف الطبي' : (isEn ? 'As clinically indicated' : (isKmr ? 'ل دیف شیرەتا نوژداری' : 'هەموو تەمەنێک بەپێی ڕێنمایی پزیشک')))).toString();
-    result['allergies'] = (result['allergies'] ?? (isAr ? 'لا توجد موانع أو تحسس معروف، يُرجى استشارة الطبيب' : (isEn ? 'No known allergies reported, consult your doctor' : (isKmr ? 'چ حەساسییەت نەهاتینە تۆمارکرن' : 'هیچ هەستیارییەکی نەزانراو نییە')))).toString();
+    if (result['target_age'] is List) {
+      result['target_age'] = (result['target_age'] as List).map((e) => '• $e').join('\n');
+    } else {
+      result['target_age'] = (result['target_age'] ?? (isAr ? 'حسب التوجيه والإشراف الطبي' : (isEn ? 'As clinically indicated' : (isKmr ? 'ل دیف شیرەتا نوژداری' : 'هەموو تەمەنێک بەپێی ڕێنمایی پزیشک')))).toString();
+    }
+
+    if (result['allergies'] is List) {
+      result['allergies'] = (result['allergies'] as List).map((e) => '• $e').join('\n');
+    } else {
+      result['allergies'] = (result['allergies'] ?? (isAr ? 'لا توجد موانع أو تحسس معروف، يُرجى استشارة الطبيب' : (isEn ? 'No known allergies reported, consult your doctor' : (isKmr ? 'چ حەساسییەت نەهاتینە تۆمارکرن' : 'هیچ هەستیارییەکی نەزانراو نییە')))).toString();
+    }
 
     result['summary'] = (result['summary'] ?? (isAr ? 'تم تحليل الصورة الطبية بواسطة الذكاء الاصطناعي بنجاح.' : (isEn ? 'Medical image analyzed by AI.' : (isKmr ? 'وێنەیێ نوژداری ب سەرکەفتیانە هاتە شرۆڤەکرن.' : 'وێنە پزیشکییەکە لەلایەن ژیری دەستکردەوە بەسەرکەوتوویی شیکاری بۆ کرا.')))).toString();
 

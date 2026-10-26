@@ -205,7 +205,6 @@ class _PillScannerScreenState extends State<PillScannerScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool showSuccess = _result != null && _result!['identified'] == true;
     final bool showProblem =
         _errorMessage != null || _notConfidentlyIdentified || _cameraUnavailable;
@@ -517,37 +516,81 @@ class _MedicineNameDialogState extends State<_MedicineNameDialog> {
     return AlertDialog(
       backgroundColor: const Color(0xFF1E293B),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Text(
-        'Medicine name',
-        style: GoogleFonts.poppins(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
+      title: Row(
+        children: [
+          const Icon(Icons.medication_rounded, color: Color(0xFF3B82F6), size: 22),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'ai_search_medicine'.tr(),
+              style: const TextStyle(
+                fontFamily: 'Rabar',
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        textInputAction: TextInputAction.search,
-        onSubmitted: (_) => _submit(),
-        style: GoogleFonts.poppins(color: Colors.white),
-        decoration: InputDecoration(
-          hintText: 'e.g. Paracetamol, Augmentin',
-          hintStyle: GoogleFonts.poppins(color: Colors.white38, fontSize: 14),
-          enabledBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.white24),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            textInputAction: TextInputAction.search,
+            onSubmitted: (_) => _submit(),
+            style: const TextStyle(fontFamily: 'Rabar', color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'ai_search_medicine_hint'.tr(),
+              hintStyle: const TextStyle(fontFamily: 'Rabar', color: Colors.white38, fontSize: 13),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white24),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF3B82F6)),
+              ),
+            ),
           ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF3B82F6)),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.info_outline, color: Color(0xFFF59E0B), size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'ai_disclaimer_notice'.tr(),
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
+                      color: Color(0xFFFCD34D),
+                      fontSize: 11,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(
-            'Cancel',
-            style: GoogleFonts.poppins(color: Colors.white70),
+            'ai_cancel'.tr(),
+            style: const TextStyle(fontFamily: 'Rabar', color: Colors.white70),
           ),
         ),
         ElevatedButton(
@@ -560,8 +603,8 @@ class _MedicineNameDialogState extends State<_MedicineNameDialog> {
             ),
           ),
           child: Text(
-            'Look up',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            'ai_search_btn'.tr(),
+            style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.w600),
           ),
         ),
       ],

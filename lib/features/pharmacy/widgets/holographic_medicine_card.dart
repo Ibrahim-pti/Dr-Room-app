@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class HolographicMedicineCard extends StatelessWidget {
   final String name;
@@ -253,8 +254,9 @@ class HolographicMedicineCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'AI estimate — always confirm with a pharmacist or doctor before use.',
-                        style: GoogleFonts.poppins(
+                        'ai_disclaimer_notice'.tr(),
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
                           color: const Color(0xFFFCD34D),
                           fontSize: 12,
                           height: 1.4,
