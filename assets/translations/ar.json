@@ -1015,5 +1015,9 @@
   "spec_sampling_specialist": "أخصائي سحب العينات",
   "lab_team_dr_room": "فريق دكتور روم لسحب العينات",
   "service_area_erbil_only": "نطاق الخدمة: أربيل فقط",
-  "outside_erbil_warning": "يرجى تحديد موقع داخل حدود أربيل، الخدمة متوفرة حالياً في أربيل فقط"
+  "outside_erbil_warning": "يرجى تحديد موقع داخل حدود أربيل، الخدمة متوفرة حالياً في أربيل فقط",
+  "category_appointments": "المواعيد",
+  "no_active_orders": "لا توجد طلبات نشطة",
+  "no_active_orders_hint": "عندما تطلب ممرضاً أو مختبراً أو صيدلية، ستتمكن من متابعتها هنا",
+  "no_transactions_desc": "ستظهر جميع الطلبات والمواعيد المكتملة هنا."
 }

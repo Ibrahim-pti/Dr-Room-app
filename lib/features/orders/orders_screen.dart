@@ -10,21 +10,35 @@ import 'order_details_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   final bool embedded;
+  final bool showOnlyActive;
 
-  const OrdersScreen({super.key, this.embedded = false});
+  const OrdersScreen({
+    super.key,
+    this.embedded = false,
+    this.showOnlyActive = false,
+  });
 
   @override
   State<OrdersScreen> createState() => OrdersScreenState();
 }
 
 class OrdersScreenState extends State<OrdersScreen> {
-  static const List<OrderStatus?> _filters = [
-    null,
-    OrderStatus.pending,
-    OrderStatus.processing,
-    OrderStatus.completed,
-    OrderStatus.cancelled,
-  ];
+  List<OrderStatus?> get _filters {
+    if (widget.showOnlyActive) {
+      return const [
+        null,
+        OrderStatus.pending,
+        OrderStatus.processing,
+      ];
+    }
+    return const [
+      null,
+      OrderStatus.pending,
+      OrderStatus.processing,
+      OrderStatus.completed,
+      OrderStatus.cancelled,
+    ];
+  }
 
   String _getFilterLabel(OrderStatus? status) {
     if (status == null) return 'all'.tr();
@@ -154,6 +168,9 @@ class OrdersScreenState extends State<OrdersScreen> {
     }
 
     final orders = orderProvider.orders.where((order) {
+      if (widget.showOnlyActive && !order.status.isActive) {
+        return false;
+      }
       final matchesStatus = _selectedStatus == null || order.status == _selectedStatus;
       final matchesCategory = _matchesCategory(order);
       return matchesStatus && matchesCategory;
@@ -186,10 +203,14 @@ class OrdersScreenState extends State<OrdersScreen> {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
-    final totalCount = provider.orders.length;
-    final nursingCount = provider.orders.where((o) => o.isNursing).length;
-    final labCount = provider.orders.where((o) => o.isLab).length;
-    final pharmacyCount = provider.orders.where((o) => o.isPharmacy).length;
+    final baseOrders = widget.showOnlyActive
+        ? provider.orders.where((o) => o.status.isActive).toList()
+        : provider.orders;
+
+    final totalCount = baseOrders.length;
+    final nursingCount = baseOrders.where((o) => o.isNursing).length;
+    final labCount = baseOrders.where((o) => o.isLab).length;
+    final pharmacyCount = baseOrders.where((o) => o.isPharmacy).length;
 
     final categories = [
       _CategoryOption(
@@ -521,49 +542,64 @@ class OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildEmptyState({required bool isFiltered, required bool isDark}) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(
-                  Iconsax.receipt_2_1,
-                  size: 38,
-                  color: Color(0xFF3B82F6),
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: constraints.maxHeight,
+            minWidth: constraints.maxWidth,
+          ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Iconsax.receipt_2_1,
+                        size: 38,
+                        color: Color(0xFF3B82F6),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    isFiltered
+                        ? 'no_orders_in_filter'.tr()
+                        : (widget.showOnlyActive ? 'no_active_orders'.tr() : 'no_orders'.tr()),
+                    textAlign: TextAlign.center,
+                    style: _kStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    isFiltered
+                        ? 'no_orders_in_filter'.tr()
+                        : (widget.showOnlyActive ? 'no_active_orders_hint'.tr() : 'no_orders_hint'.tr()),
+                    textAlign: TextAlign.center,
+                    style: _kStyle(
+                      color: const Color(0xFF94A3B8),
+                      fontSize: 13,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 18),
-            Text(
-              isFiltered ? 'no_orders_in_filter'.tr() : 'no_orders'.tr(),
-              style: _kStyle(
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              isFiltered
-                  ? 'no_orders_in_filter'.tr()
-                  : 'no_orders_hint'.tr(),
-              textAlign: TextAlign.center,
-              style: _kStyle(
-                color: const Color(0xFF94A3B8),
-                fontSize: 13,
-                height: 1.5,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

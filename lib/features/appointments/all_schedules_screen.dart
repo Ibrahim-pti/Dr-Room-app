@@ -368,43 +368,52 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
       builder: (context, constraints) => SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Iconsax.calendar_1, color: Color(0xFF3B82F6), size: 36),
-              ),
-              const SizedBox(height: 18),
-              Text(
-                'no_appointments'.tr(),
-                textAlign: TextAlign.center,
-                style: _kStyle(
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Text(
-                  'no_appointments_desc'.tr(),
-                  textAlign: TextAlign.center,
-                  style: _kStyle(
-                    color: const Color(0xFF94A3B8),
-                    fontSize: 13,
-                    height: 1.5,
+          constraints: BoxConstraints(
+            minHeight: constraints.maxHeight,
+            minWidth: constraints.maxWidth,
+          ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Iconsax.calendar_1, color: Color(0xFF3B82F6), size: 36),
                   ),
-                ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'no_appointments'.tr(),
+                    textAlign: TextAlign.center,
+                    style: _kStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'no_appointments_desc'.tr(),
+                      textAlign: TextAlign.center,
+                      style: _kStyle(
+                        color: const Color(0xFF94A3B8),
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
