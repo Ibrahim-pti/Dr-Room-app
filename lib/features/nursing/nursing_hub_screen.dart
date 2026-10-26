@@ -1680,7 +1680,10 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const MyRequestsScreen()),
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const MyRequestsScreen(fixedCategory: 'nursing'),
+                          ),
                         );
                       },
                     ),

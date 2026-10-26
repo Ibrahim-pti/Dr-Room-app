@@ -2218,7 +2218,8 @@ class _LabHubScreenState extends State<LabHubScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const MyRequestsScreen(),
+                            builder: (_) =>
+                                const MyRequestsScreen(fixedCategory: 'lab'),
                           ),
                         );
                       },
