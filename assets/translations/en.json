@@ -990,5 +990,10 @@
   "category_all": "All Departments",
   "category_nursing": "Nursing",
   "category_lab": "Laboratory",
-  "category_pharmacy": "Pharmacy"
+  "category_pharmacy": "Pharmacy",
+  "staff_new": "New",
+  "free_fee": "Free",
+  "spec_general_care": "General Care",
+  "spec_sampling_specialist": "Sampling Specialist",
+  "lab_team_dr_room": "Dr. Room Sampling Team"
 }

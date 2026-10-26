@@ -26,10 +26,15 @@ class ApiClient {
   static String getImageUrl(String? path) {
     if (path == null || path.trim().isEmpty) return '';
     final trimmed = path.trim();
+    final origin = AppConfig.baseUrl.replaceAll(RegExp(r'/api/?$'), '');
+
+    if (trimmed.contains('localhost') || trimmed.contains('127.0.0.1') || trimmed.contains('10.0.2.2')) {
+      return trimmed.replaceFirst(RegExp(r'^https?://(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\d+)?'), origin);
+    }
+
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
     if (trimmed.startsWith('assets/')) return trimmed;
     
-    final origin = AppConfig.baseUrl.replaceAll(RegExp(r'/api/?$'), '');
     final cleanPath = trimmed.startsWith('/') ? trimmed : '/$trimmed';
     // Handle the case where path already contains /storage
     if (cleanPath.startsWith('/storage')) {

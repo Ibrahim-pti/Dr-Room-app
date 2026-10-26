@@ -990,5 +990,10 @@
   "category_all": "جميع الأقسام",
   "category_nursing": "التمريض",
   "category_lab": "المختبر",
-  "category_pharmacy": "الصيدلية"
+  "category_pharmacy": "الصيدلية",
+  "staff_new": "جديد",
+  "free_fee": "مجاني",
+  "spec_general_care": "رعاية عامة",
+  "spec_sampling_specialist": "أخصائي سحب العينات",
+  "lab_team_dr_room": "فريق دكتور روم لسحب العينات"
 }

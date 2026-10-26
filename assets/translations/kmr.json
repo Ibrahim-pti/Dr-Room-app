@@ -987,5 +987,10 @@
   "category_all": "هەمی بەش",
   "category_nursing": "پەرستاری",
   "category_lab": "تاقیگە",
-  "category_pharmacy": "دەرمانخانە"
+  "category_pharmacy": "دەرمانخانە",
+  "staff_new": "نوو",
+  "free_fee": "بێ بەرامبەر",
+  "spec_general_care": "چاڤدێریا گشتی",
+  "spec_sampling_specialist": "پسپۆرێ وەرگرتنا نموونان",
+  "lab_team_dr_room": "تیما وەرگرتنا نموونان یا دکتۆر رووم"
 }

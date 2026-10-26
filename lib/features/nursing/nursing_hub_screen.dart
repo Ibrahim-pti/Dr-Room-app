@@ -48,6 +48,182 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
     return (item[key] ?? item['${key}_ku'] ?? item['${key}_en'] ?? '').toString();
   }
 
+  String _getStaffName(Map<String, dynamic> staff) {
+    final lang = context.locale.languageCode;
+    String name = '';
+    if (lang == 'ar' && staff['name_ar'] != null && staff['name_ar'].toString().trim().isNotEmpty) {
+      name = staff['name_ar'].toString().trim();
+    } else if (lang == 'en' && staff['name_en'] != null && staff['name_en'].toString().trim().isNotEmpty) {
+      name = staff['name_en'].toString().trim();
+    } else if ((lang == 'ckb' || lang == 'kmr') && staff['name_ku'] != null && staff['name_ku'].toString().trim().isNotEmpty) {
+      name = staff['name_ku'].toString().trim();
+    } else {
+      name = (staff['name'] ?? staff['name_en'] ?? '').toString().trim();
+    }
+
+    if (name.toLowerCase() == 'aesha fatih') {
+      if (lang == 'ar') return 'عائشة فاتح';
+      if (lang == 'ckb' || lang == 'kmr') return 'عائشە فاتیح';
+      return 'Aesha Fatih';
+    }
+
+    if (RegExp(r'^[a-zA-Z\s]+$').hasMatch(name)) {
+      return name
+          .split(' ')
+          .where((w) => w.isNotEmpty)
+          .map((w) => '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+          .join(' ');
+    }
+    return name;
+  }
+
+  String _formatStaffSpecialty(dynamic rawTitle) {
+    final t = (rawTitle ?? '').toString().trim();
+    final lower = t.toLowerCase();
+    if (lower.contains('general care') || lower.contains('چاودێری گشتی') || lower.contains('رعاية عامة')) {
+      return 'spec_general_care'.tr();
+    }
+    if (lower.contains('sampling') || lower.contains('phlebotom') || lower.contains('نموونە') || lower.contains('سحب')) {
+      return 'spec_sampling_specialist'.tr();
+    }
+    if (lower.contains('wound') || lower.contains('برین')) {
+      return 'wound_care'.tr();
+    }
+    if (lower.contains('elderly') || lower.contains('بەساڵاچوو')) {
+      return 'elderly_care'.tr();
+    }
+    if (lower.contains('pediatric') || lower.contains('منداڵ')) {
+      return 'pediatric_care'.tr();
+    }
+    if (lower.contains('icu') || lower.contains('چڕ')) {
+      return 'icu_care'.tr();
+    }
+    if (t.isNotEmpty) {
+      return t;
+    }
+    return 'nursing_verified_nurse'.tr();
+  }
+
+  String _formatStaffCity(dynamic rawCity) {
+    final c = (rawCity ?? '').toString().trim().toLowerCase();
+    if (c.contains('erbil') || c.contains('hewler') || c.contains('هەولێر') || c.contains('أربيل')) {
+      return 'city_erbil'.tr();
+    }
+    if (c.contains('sula') || c.contains('slemani') || c.contains('سلێمانی') || c.contains('السليمانية')) {
+      return 'city_sulaymaniyah'.tr();
+    }
+    if (c.contains('duhok') || c.contains('دهۆک') || c.contains('دهوك')) {
+      return 'city_duhok'.tr();
+    }
+    if (c.contains('kirkuk') || c.contains('کەرکووک') || c.contains('كركوك')) {
+      return 'city_kirkuk'.tr();
+    }
+    if (c.contains('halabja') || c.contains('هەڵەبجە') || c.contains('حلبجة')) {
+      return 'city_halabja'.tr();
+    }
+    return (rawCity ?? '').toString().trim();
+  }
+
+  Widget _buildStaffAvatar(Map<String, dynamic> staff, String? imgUrl, bool isDark) {
+    final hasImage = imgUrl != null && imgUrl.isNotEmpty;
+    final staffName = _getStaffName(staff);
+    final initial = staffName.isNotEmpty ? staffName[0] : 'N';
+
+    return Stack(
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFF0D9488).withValues(alpha: 0.2),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14.5),
+            child: hasImage
+                ? Image.network(
+                    imgUrl,
+                    width: 52,
+                    height: 52,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        width: 52,
+                        height: 52,
+                        color: const Color(0xFF0D9488).withValues(alpha: 0.08),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF0D9488),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (_, _, _) => _buildAvatarPlaceholder(initial, isDark),
+                  )
+                : _buildAvatarPlaceholder(initial, isDark),
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            width: 13,
+            height: 13,
+            decoration: BoxDecoration(
+              color: const Color(0xFF10B981),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAvatarPlaceholder(String initial, bool isDark) {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: const TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _fetchDynamicData() async {
     setState(() => _isLoading = true);
     try {
@@ -346,9 +522,9 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
         item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'));
 
     final fee = (staff['visit_fee'] as num?)?.toDouble() ?? 15000.0;
-    final staffName = _getLocalized(staff, 'name');
-    final staffTitle = _getLocalized(staff, 'title');
-    final staffCity = _getLocalized(staff, 'city');
+    final staffName = _getStaffName(staff);
+    final staffTitle = _formatStaffSpecialty(staff['title']);
+    final staffCity = _formatStaffCity(staff['city']);
 
     cart.setServiceType('nursing', extraFee: fee);
     cart.addItem(CartItem(
@@ -381,6 +557,41 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
             Expanded(
               child: Text(
                 '$staffName ${'nursing_staff_selected_msg'.tr()}',
+                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _removeStaff(Map<String, dynamic> staff) {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    cart.items.removeWhere(
+      (item) =>
+          item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'),
+    );
+    cart.setServiceType('nursing', extraFee: 0.0);
+    setState(() {});
+
+    final staffName = _getStaffName(staff);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF0F172A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        content: Row(
+          children: [
+            const Icon(
+              Icons.remove_circle_outline_rounded,
+              color: Color(0xFFEF4444),
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '$staffName: ${'staff_deselected_msg'.tr()}',
                 style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
               ),
             ),
@@ -533,12 +744,20 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             final filteredStaff = _staffList.where((s) {
-              final q = query.toLowerCase();
-              return (s['name'] ?? '').toString().toLowerCase().contains(q) ||
-                  (s['name_en'] ?? '').toString().toLowerCase().contains(q) ||
-                  (s['name_ar'] ?? '').toString().toLowerCase().contains(q) ||
-                  (s['city'] ?? '').toString().toLowerCase().contains(q) ||
-                  (s['title'] ?? '').toString().toLowerCase().contains(q);
+              final q = query.trim().toLowerCase();
+              if (q.isEmpty) return true;
+              final name = _getStaffName(s).toLowerCase();
+              final rawName = (s['name'] ?? '').toString().toLowerCase();
+              final city = _formatStaffCity(s['city']).toLowerCase();
+              final rawCity = (s['city'] ?? '').toString().toLowerCase();
+              final spec = _formatStaffSpecialty(s['title']).toLowerCase();
+              final rawSpec = (s['title'] ?? '').toString().toLowerCase();
+              return name.contains(q) ||
+                  rawName.contains(q) ||
+                  city.contains(q) ||
+                  rawCity.contains(q) ||
+                  spec.contains(q) ||
+                  rawSpec.contains(q);
             }).toList();
 
             return Container(
@@ -632,137 +851,240 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                                   final imgUrl = staff['image'] != null && staff['image'].toString().isNotEmpty
                                       ? ApiClient.getImageUrl(staff['image'].toString())
                                       : null;
-                                  final localizedStaffName = _getLocalized(staff, 'name');
-                                  final localizedStaffTitle = _getLocalized(staff, 'title');
-                                  final localizedStaffCity = _getLocalized(staff, 'city');
+                                  final localizedStaffName = _getStaffName(staff);
+                                  final localizedStaffTitle = _formatStaffSpecialty(staff['title']);
+                                  final localizedStaffCity = _formatStaffCity(staff['city']);
+                                  final rating = (staff['rating'] as num?)?.toDouble() ?? 0.0;
+                                  final reviews = (staff['reviews'] as num?)?.toInt() ?? 0;
+                                  final isNew = rating <= 0 || reviews <= 0;
+                                  final visitFee = (staff['visit_fee'] as num?)?.toDouble() ?? 0.0;
+                                  final isFree = visitFee <= 0;
 
                                   return Container(
                                     padding: const EdgeInsets.all(14),
                                     decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                                      borderRadius: BorderRadius.circular(18),
+                                      color: isDark
+                                          ? (isSelected ? const Color(0xFF132822) : const Color(0xFF0F172A))
+                                          : (isSelected ? const Color(0xFFF0FDF4) : Colors.white),
+                                      borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
                                         color: isSelected
                                             ? const Color(0xFF10B981)
                                             : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                                        width: isSelected ? 1.5 : 1,
+                                        width: isSelected ? 1.8 : 1,
                                       ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: isSelected
+                                              ? const Color(0xFF10B981).withValues(alpha: 0.12)
+                                              : Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
                                     ),
-                                    child: Row(
+                                    child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(14),
-                                          child: imgUrl != null
-                                              ? Image.network(
-                                                  imgUrl,
-                                                  width: 52,
-                                                  height: 52,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (_, _, _) => Container(
-                                                    width: 52,
-                                                    height: 52,
-                                                    color: const Color(0xFF0D9488).withValues(alpha: 0.1),
-                                                    child: const Icon(Iconsax.profile_circle, color: Color(0xFF0D9488), size: 28),
-                                                  ),
-                                                )
-                                              : Container(
-                                                  width: 52,
-                                                  height: 52,
-                                                  color: const Color(0xFF0D9488).withValues(alpha: 0.1),
-                                                  child: const Icon(Iconsax.profile_circle, color: Color(0xFF0D9488), size: 28),
-                                                ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            _buildStaffAvatar(staff, imgUrl, isDark),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  Expanded(
-                                                    child: Text(
-                                                      localizedStaffName,
-                                                      style: TextStyle(
-                                                        fontFamily: 'Rabar',
-                                                        fontSize: 14.5,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                                  Row(
+                                                    children: [
+                                                      Flexible(
+                                                        child: Text(
+                                                          localizedStaffName,
+                                                          style: TextStyle(
+                                                            fontFamily: 'Rabar',
+                                                            fontSize: 15,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
                                                       ),
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
-                                                    ),
+                                                      const SizedBox(width: 5),
+                                                      const Icon(
+                                                        Icons.verified_rounded,
+                                                        color: Color(0xFF0D9488),
+                                                        size: 16,
+                                                      ),
+                                                    ],
                                                   ),
-                                                  if (localizedStaffCity.isNotEmpty)
-                                                    Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                                      decoration: BoxDecoration(
-                                                        color: const Color(0xFF0D9488).withValues(alpha: 0.08),
-                                                        borderRadius: BorderRadius.circular(6),
+                                                  const SizedBox(height: 3),
+                                                  Text(
+                                                    localizedStaffTitle,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Rabar',
+                                                      fontSize: 12,
+                                                      color: Color(0xFF64748B),
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            if (localizedStaffCity.isNotEmpty)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF0D9488).withValues(alpha: 0.08),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      Iconsax.location,
+                                                      size: 12,
+                                                      color: Color(0xFF0D9488),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      localizedStaffCity,
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Color(0xFF0D9488),
                                                       ),
-                                                      child: Text(
-                                                        localizedStaffCity,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Container(
+                                          height: 1,
+                                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                                  decoration: BoxDecoration(
+                                                    color: isNew
+                                                        ? const Color(0xFF10B981).withValues(alpha: 0.1)
+                                                        : const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        isNew ? Icons.auto_awesome : Icons.star_rounded,
+                                                        size: 13,
+                                                        color: isNew ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        isNew ? 'staff_new'.tr() : '$rating ($reviews)',
+                                                        style: TextStyle(
+                                                          fontFamily: 'Rabar',
+                                                          fontSize: 11,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: isNew ? const Color(0xFF10B981) : const Color(0xFFD97706),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFF0D9488).withValues(alpha: 0.08),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(
+                                                        Iconsax.wallet_3,
+                                                        size: 13,
+                                                        color: Color(0xFF0D9488),
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        isFree
+                                                            ? 'free_fee'.tr()
+                                                            : '${'nursing_visit_fee'.tr()} ${Currency.format(visitFee)}',
                                                         style: const TextStyle(
                                                           fontFamily: 'Rabar',
-                                                          fontSize: 10.5,
+                                                          fontSize: 11,
                                                           fontWeight: FontWeight.bold,
                                                           color: Color(0xFF0D9488),
                                                         ),
                                                       ),
-                                                    ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                localizedStaffTitle.isNotEmpty
-                                                    ? localizedStaffTitle
-                                                    : 'nursing_verified_nurse'.tr(),
-                                                style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Row(
-                                                children: [
-                                                  const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 15),
-                                                  const SizedBox(width: 3),
-                                                  Text(
-                                                    '${staff['rating']} (${staff['reviews']} ${'nursing_reviews'.tr()})',
-                                                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 11, fontWeight: FontWeight.bold),
+                                                    ],
                                                   ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    '${'nursing_visit_fee'.tr()} ${Currency.format(staff['visit_fee'])}',
-                                                    style: const TextStyle(
-                                                      fontFamily: 'Rabar',
-                                                      fontSize: 11,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Color(0xFF10B981),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: isSelected ? const Color(0xFF10B981) : const Color(0xFF0D9488),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                            elevation: 0,
-                                          ),
-                                          onPressed: () {
-                                            Navigator.pop(ctx);
-                                            _selectStaff(staff);
-                                          },
-                                          child: Text(
+                                                ),
+                                              ],
+                                            ),
                                             isSelected
-                                                ? 'nursing_staff_already_selected'.tr()
-                                                : 'nursing_select_service_btn'.tr(),
-                                            style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.bold),
-                                          ),
+                                                ? OutlinedButton.icon(
+                                                    style: OutlinedButton.styleFrom(
+                                                      foregroundColor: const Color(0xFFEF4444),
+                                                      side: const BorderSide(color: Color(0xFFFCA5A5), width: 1.2),
+                                                      backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                      ),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                                    ),
+                                                    onPressed: () {
+                                                      _removeStaff(staff);
+                                                      setModalState(() {});
+                                                    },
+                                                    icon: const Icon(Icons.close_rounded, size: 15, color: Color(0xFFEF4444)),
+                                                    label: Text(
+                                                      'cancel_selection'.tr(),
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Color(0xFFEF4444),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : ElevatedButton.icon(
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: const Color(0xFF0D9488),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                      ),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                                      elevation: 0,
+                                                    ),
+                                                    onPressed: () {
+                                                      _selectStaff(staff);
+                                                      setModalState(() {});
+                                                    },
+                                                    icon: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                                                    label: Text(
+                                                      'nursing_select_service_btn'.tr(),
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        fontSize: 12,
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                          ],
                                         ),
                                       ],
                                     ),
