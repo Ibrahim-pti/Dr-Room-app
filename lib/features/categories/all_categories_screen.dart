@@ -68,10 +68,10 @@ class AllCategoriesScreen extends StatelessWidget {
           ),
           _buildGridCard(
             context,
-            imagePath: 'assets/images/add.png',
-            titleKey: 'cat_ambulance',
-            id: 'ambulance',
-            isActive: true,
+            imagePath: 'assets/images/medicine.png',
+            titleKey: 'cat_pharmacy',
+            id: 'pharmacy',
+            isActive: false,
             delay: 300,
           ),
           _buildGridCard(

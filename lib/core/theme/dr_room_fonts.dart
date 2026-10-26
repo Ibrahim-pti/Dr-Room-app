@@ -25,7 +25,7 @@ class GoogleFonts {
     double? decorationThickness,
   }) {
     String currentLocale = 'current_lang_code'.tr();
-    bool isKurdishOrArabic = currentLocale == 'ckb' || currentLocale == 'ar';
+    bool isKurdishOrArabic = currentLocale == 'ckb' || currentLocale == 'ar' || currentLocale == 'kmr' || currentLocale == 'ku';
     
     if (isKurdishOrArabic) {
       return TextStyle(
@@ -139,7 +139,7 @@ class GoogleFonts {
     double? decorationThickness,
   }) {
     String currentLocale = 'current_lang_code'.tr();
-    bool isKurdishOrArabic = currentLocale == 'ckb' || currentLocale == 'ar';
+    bool isKurdishOrArabic = currentLocale == 'ckb' || currentLocale == 'ar' || currentLocale == 'kmr' || currentLocale == 'ku';
     
     if (isKurdishOrArabic) {
       return TextStyle(
