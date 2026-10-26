@@ -584,6 +584,128 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ],
 
+              // ── Prescription Photo Card (if order is from prescription) ──
+              if (_currentOrder.prescriptionImage != null &&
+                  _currentOrder.prescriptionImage!.trim().isNotEmpty) ...[
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: borderColor),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Iconsax.document_upload,
+                              color: Color(0xFF3B82F6),
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'prescription_photo'.tr(),
+                            style: _kStyle(
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: GestureDetector(
+                          onTap: () {
+                            final provider = ApiClient.getImageProvider(_currentOrder.prescriptionImage);
+                            if (provider == null) return;
+                            showDialog(
+                              context: context,
+                              builder: (_) => Dialog(
+                                backgroundColor: Colors.transparent,
+                                insetPadding: const EdgeInsets.all(16),
+                                child: Stack(
+                                  alignment: Alignment.topRight,
+                                  children: [
+                                    InteractiveViewer(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image(image: provider, fit: BoxFit.contain),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const CircleAvatar(
+                                        backgroundColor: Colors.black54,
+                                        child: Icon(Icons.close, color: Colors.white, size: 20),
+                                      ),
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              Image(
+                                image: ApiClient.getImageProvider(_currentOrder.prescriptionImage)!,
+                                height: 180,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (c, e, s) => Container(
+                                  height: 100,
+                                  alignment: Alignment.center,
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                  child: Text(
+                                    'could_not_load_image'.tr(),
+                                    style: _kStyle(color: const Color(0xFF94A3B8)),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.65),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.zoom_in, color: Colors.white, size: 14),
+                                    SizedBox(width: 4),
+                                    Icon(Iconsax.eye, color: Colors.white, size: 14),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate(delay: 180.ms).fadeIn().slideY(begin: 0.05, end: 0),
+              ],
+
               const SizedBox(height: 20),
 
               // ── Order Information Card ──

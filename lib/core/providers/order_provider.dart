@@ -95,6 +95,7 @@ class OrderModel {
 
   final String? paymentMethod;
   final List<dynamic>? items;
+  final String? prescriptionImage;
 
   /// Set only for orders built locally right after checkout, where the item
   /// names are known and more useful than the generic service name.
@@ -134,6 +135,7 @@ class OrderModel {
     this.assignedPharmacyAvatar,
     this.paymentMethod,
     this.items,
+    this.prescriptionImage,
     this.customTitle,
   });
 
@@ -161,6 +163,32 @@ class OrderModel {
         : null;
 
     final statusLabels = json['status_labels'] is Map ? json['status_labels'] as Map : null;
+
+    final patientDetails = json['patient_details'] is Map ? json['patient_details'] as Map : null;
+    String? rawPrescription = json['prescription_image']?.toString() ??
+        json['prescription_url']?.toString() ??
+        patientDetails?['prescription_image']?.toString() ??
+        patientDetails?['prescription_url']?.toString();
+
+    if (rawPrescription == null || rawPrescription.isEmpty) {
+      final rawItems = json['items'];
+      if (rawItems is List) {
+        for (final it in rawItems) {
+          if (it is Map && it['extra_data'] is Map) {
+            final ex = it['extra_data'] as Map;
+            final p = ex['prescription_image'] ?? ex['prescription_url'] ?? ex['prescription_path'];
+            if (p != null && p.toString().isNotEmpty) {
+              rawPrescription = p.toString();
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    final resolvedPrescription = (rawPrescription != null && rawPrescription.trim().isNotEmpty)
+        ? ApiClient.getImageUrl(rawPrescription.trim())
+        : null;
 
     return OrderModel(
       id: json['id']?.toString() ?? '',
@@ -196,6 +224,7 @@ class OrderModel {
       assignedPharmacyAvatar: resolvedPharmacyAvatar,
       paymentMethod: json['payment_method']?.toString(),
       items: json['items'] is List ? json['items'] : null,
+      prescriptionImage: resolvedPrescription,
     );
   }
 
@@ -207,6 +236,7 @@ class OrderModel {
     String? assignedPharmacyName,
     String? paymentMethod,
     List<dynamic>? items,
+    String? prescriptionImage,
   }) {
     return OrderModel(
       id: id,
@@ -242,6 +272,7 @@ class OrderModel {
       assignedPharmacyAvatar: assignedPharmacyAvatar,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       items: items ?? this.items,
+      prescriptionImage: prescriptionImage ?? this.prescriptionImage,
       customTitle: customTitle,
     );
   }

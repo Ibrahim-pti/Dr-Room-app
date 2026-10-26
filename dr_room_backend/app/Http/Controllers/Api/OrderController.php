@@ -319,6 +319,21 @@ class OrderController extends Controller
             ];
         }
 
+        $patientDetails = $order->patient_details ?? [];
+        if (is_string($patientDetails)) {
+            $patientDetails = json_decode($patientDetails, true) ?? [];
+        }
+        $prescriptionImg = $patientDetails['prescription_image'] ?? $patientDetails['prescription_url'] ?? null;
+        if (!$prescriptionImg && !empty($order->items)) {
+            foreach ($order->items as $item) {
+                $extra = is_array($item->extra_data) ? $item->extra_data : (is_string($item->extra_data) ? json_decode($item->extra_data, true) : []);
+                if (!empty($extra['prescription_url'])) { $prescriptionImg = $extra['prescription_url']; break; }
+                if (!empty($extra['prescription_image'])) { $prescriptionImg = $extra['prescription_image']; break; }
+                if (!empty($extra['prescription_path'])) { $prescriptionImg = $extra['prescription_path']; break; }
+            }
+        }
+        $prescriptionImgUrl = $prescriptionImg ? $this->resolveImageUrl($prescriptionImg) : null;
+
         return [
             'id' => $order->id,
             'patient_id' => $order->patient_id,
@@ -346,6 +361,7 @@ class OrderController extends Controller
             'assigned_nurse' => $assignedNurse,
             'assigned_pharmacy' => $assignedPharmacy,
             'assigned_lab' => $assignedLab,
+            'prescription_image' => $prescriptionImgUrl,
         ];
     }
 

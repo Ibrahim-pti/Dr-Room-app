@@ -398,6 +398,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
       // Find selected staff, nurse, or lab item
       CartItem? staffItem;
       CartItem? labItem;
+      CartItem? prescriptionItem;
       for (final item in context.read<CartProvider>().items) {
         if (item.extraData?['type'] == 'staff' ||
             item.id.startsWith('staff_') ||
@@ -408,9 +409,18 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         if (item.extraData?['lab_id'] != null) {
           labItem = item;
         }
+        if (item.extraData?['is_prescription'] == true ||
+            item.extraData?['prescription_url'] != null ||
+            item.extraData?['prescription_image'] != null ||
+            item.extraData?['prescription_path'] != null) {
+          prescriptionItem = item;
+        }
       }
 
       final effectiveLabName = _labName ?? labItem?.extraData?['lab_name'] ?? staffItem?.extraData?['lab_name'];
+      final prescriptionUrl = prescriptionItem?.extraData?['prescription_url'] ??
+          prescriptionItem?.extraData?['prescription_image'];
+      final prescriptionPath = prescriptionItem?.extraData?['prescription_path'];
 
       final customAddr = _addressController.text.trim();
       final baseLoc = customAddr.isNotEmpty ? customAddr : _locationDetails;
@@ -423,8 +433,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         finalLocation = baseLoc;
       }
 
-      // Save details to CartProvider
-      context.read<CartProvider>().setPatientDetails({
+      final Map<String, dynamic> patientData = {
         'name': _nameController.text.trim(),
         'age': _ageController.text.trim(),
         'phone': _phoneController.text.trim(),
@@ -440,7 +449,21 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         'location': finalLocation,
         'lat': _currentLatLng?.latitude,
         'lng': _currentLatLng?.longitude,
-      });
+      };
+
+      if (prescriptionUrl != null) {
+        patientData['prescription_url'] = prescriptionUrl;
+        patientData['prescription_image'] = prescriptionUrl;
+      }
+      if (prescriptionPath != null) {
+        patientData['prescription_path'] = prescriptionPath;
+      }
+      if (prescriptionItem != null) {
+        patientData['is_prescription'] = true;
+      }
+
+      // Save details to CartProvider
+      context.read<CartProvider>().setPatientDetails(patientData);
 
       Navigator.push(
         context,

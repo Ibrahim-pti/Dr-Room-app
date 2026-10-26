@@ -770,10 +770,23 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
         items = [];
       }
 
-      final prescriptionImage = patientDetails['prescription_image'] ??
-          patientDetails['prescription_url'] ??
-          order['prescription_image'] ??
-          order['prescription_url'];
+      String? prescriptionImage = patientDetails['prescription_image']?.toString() ??
+          patientDetails['prescription_url']?.toString() ??
+          order['prescription_image']?.toString() ??
+          order['prescription_url']?.toString();
+
+      if (prescriptionImage == null || prescriptionImage.isEmpty) {
+        for (final it in items) {
+          if (it is Map && it['extra_data'] is Map) {
+            final extra = it['extra_data'] as Map;
+            final p = extra['prescription_url'] ?? extra['prescription_image'] ?? extra['prescription_path'];
+            if (p != null && p.toString().isNotEmpty) {
+              prescriptionImage = p.toString();
+              break;
+            }
+          }
+        }
+      }
 
       final orderId = order['id'];
       final rawStatus = (order['status'] ?? '').toString().toLowerCase();
