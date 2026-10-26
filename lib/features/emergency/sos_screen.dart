@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/erbil_map_service.dart';
 import '../locator/clinic_locator_screen.dart';
 
 /// Iraq's national ambulance / emergency line.
@@ -254,6 +255,9 @@ class _SosScreenState extends State<SosScreen> {
               : GoogleMap(
                   onMapCreated: (controller) => _mapController = controller,
                   initialCameraPosition: CameraPosition(target: target, zoom: 16),
+                  cameraTargetBounds: ErbilMapService.erbilCameraBounds,
+                  polygons: ErbilMapService.getErbilPolygons(Theme.of(context).brightness == Brightness.dark),
+                  circles: ErbilMapService.getErbilCircles(Theme.of(context).brightness == Brightness.dark),
                   markers: hasLocation
                       ? {
                           Marker(
@@ -280,6 +284,13 @@ class _SosScreenState extends State<SosScreen> {
               onPressed: () => Navigator.pop(context),
             ),
           ),
+        ),
+
+        // Erbil Service Badge
+        PositionedDirectional(
+          top: 54,
+          end: 20,
+          child: ErbilMapService.buildServiceBadge(context),
         ),
 
         if (_locationError != null)

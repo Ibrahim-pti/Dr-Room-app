@@ -13,6 +13,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import '../../core/utils/api_client.dart';
 import '../../core/utils/currency.dart';
+import '../../core/utils/erbil_map_service.dart';
 import 'payment_method_screen.dart';
 
 class CheckoutDetailsScreen extends StatefulWidget {
@@ -143,6 +144,11 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           snippet: _locationDetails,
         ),
         onDragEnd: (LatLng newPosition) {
+          if (!ErbilMapService.isInsideErbil(newPosition)) {
+            ErbilMapService.showOutsideWarning(context);
+            setState(() {});
+            return;
+          }
           setState(() {
             _currentLatLng = newPosition;
           });
@@ -195,18 +201,33 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         ),
       );
 
+      final posLatLng = LatLng(position.latitude, position.longitude);
       if (mounted) {
-        setState(() {
-          _currentLatLng = LatLng(position.latitude, position.longitude);
-        });
-        _mapController?.animateCamera(
-          CameraUpdate.newCameraPosition(
-            CameraPosition(target: _currentLatLng!, zoom: 15.0),
-          ),
-        );
+        if (ErbilMapService.isInsideErbil(posLatLng)) {
+          setState(() {
+            _currentLatLng = posLatLng;
+          });
+          _mapController?.animateCamera(
+            CameraUpdate.newCameraPosition(
+              CameraPosition(target: _currentLatLng!, zoom: 15.0),
+            ),
+          );
+          await _updateAddressFromLatLng(posLatLng);
+        } else {
+          setState(() {
+            _currentLatLng = ErbilMapService.erbilCenter;
+          });
+          _mapController?.animateCamera(
+            CameraUpdate.newCameraPosition(
+              ErbilMapService.erbilCameraPosition,
+            ),
+          );
+          await _updateAddressFromLatLng(ErbilMapService.erbilCenter);
+          if (mounted) {
+            ErbilMapService.showOutsideWarning(context);
+          }
+        }
       }
-
-      await _updateAddressFromLatLng(LatLng(position.latitude, position.longitude));
     } catch (e) {
       if (mounted) {
         if (_locationDetails == 'دیاریکردنی شوێن...') {
@@ -391,6 +412,11 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
     setState(() {
       _hasSubmitted = true;
     });
+
+    if (_currentLatLng != null && !ErbilMapService.isInsideErbil(_currentLatLng!)) {
+      ErbilMapService.showOutsideWarning(context);
+      return;
+    }
 
     final isLab = context.read<CartProvider>().serviceType == 'lab';
 
@@ -813,15 +839,22 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                               },
                               initialCameraPosition: CameraPosition(
                                 target: _currentLatLng ??
-                                    const LatLng(36.1911, 44.0092),
-                                zoom: 15.0,
+                                    ErbilMapService.erbilCenter,
+                                zoom: 14.0,
                               ),
+                              cameraTargetBounds: ErbilMapService.erbilCameraBounds,
+                              polygons: ErbilMapService.getErbilPolygons(isDark),
+                              circles: ErbilMapService.getErbilCircles(isDark),
                               onCameraIdle: () {
                                 if (_currentLatLng != null) {
                                   _updateAddressFromLatLng(_currentLatLng!);
                                 }
                               },
                               onTap: (LatLng location) {
+                                if (!ErbilMapService.isInsideErbil(location)) {
+                                  ErbilMapService.showOutsideWarning(context);
+                                  return;
+                                }
                                 setState(() {
                                   _currentLatLng = location;
                                 });
@@ -845,6 +878,12 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                       () => EagerGestureRecognizer(),
                                     ),
                                   },
+                            ),
+                            // Service Area Badge
+                            PositionedDirectional(
+                              top: 10,
+                              start: 10,
+                              child: ErbilMapService.buildServiceBadge(context),
                             ),
                             // Floating map controls
                             Positioned(

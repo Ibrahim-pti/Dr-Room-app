@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import '../../../../core/utils/erbil_map_service.dart';
 import '../widgets/checkout_step_indicator.dart';
 import 'pharmacy_payment_screen.dart';
 
@@ -77,10 +78,19 @@ class _PharmacyCheckoutScreenState
       Position position = await Geolocator.getCurrentPosition();
       LatLng latLng = LatLng(position.latitude, position.longitude);
 
-      _updateLocation(latLng);
-
-      if (_mapController != null) {
-        _mapController!.animateCamera(CameraUpdate.newLatLngZoom(latLng, 15.0));
+      if (ErbilMapService.isInsideErbil(latLng)) {
+        _updateLocation(latLng);
+        if (_mapController != null) {
+          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(latLng, 15.0));
+        }
+      } else {
+        _updateLocation(ErbilMapService.erbilCenter);
+        if (_mapController != null) {
+          _mapController!.animateCamera(CameraUpdate.newCameraPosition(ErbilMapService.erbilCameraPosition));
+        }
+        if (mounted) {
+          ErbilMapService.showOutsideWarning(context);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -193,6 +203,10 @@ class _PharmacyCheckoutScreenState
 
   void _proceedToPayment() {
     if (_formKey.currentState!.validate()) {
+      if (_selectedLocation != null && !ErbilMapService.isInsideErbil(_selectedLocation!)) {
+        ErbilMapService.showOutsideWarning(context);
+        return;
+      }
       final customAddr = _addressController.text.trim();
       final finalAddress = customAddr.isNotEmpty ? customAddr : _addressText;
 
@@ -426,11 +440,18 @@ class _PharmacyCheckoutScreenState
                             children: [
                               GoogleMap(
                                 initialCameraPosition: CameraPosition(
-                                  target: _selectedLocation ?? const LatLng(36.1911, 44.0092),
-                                  zoom: 15,
+                                  target: _selectedLocation ?? ErbilMapService.erbilCenter,
+                                  zoom: 14,
                                 ),
+                                cameraTargetBounds: ErbilMapService.erbilCameraBounds,
+                                polygons: ErbilMapService.getErbilPolygons(isDark),
+                                circles: ErbilMapService.getErbilCircles(isDark),
                                 onMapCreated: (controller) => _mapController = controller,
                                 onTap: (latLng) {
+                                  if (!ErbilMapService.isInsideErbil(latLng)) {
+                                    ErbilMapService.showOutsideWarning(context);
+                                    return;
+                                  }
                                   _updateLocation(latLng);
                                 },
                                 markers: _selectedLocation != null
@@ -447,6 +468,11 @@ class _PharmacyCheckoutScreenState
                                 gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
                                   Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
                                 },
+                              ),
+                              PositionedDirectional(
+                                top: 10,
+                                start: 10,
+                                child: ErbilMapService.buildServiceBadge(context),
                               ),
                               Positioned(
                                 right: 10,

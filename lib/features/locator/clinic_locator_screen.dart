@@ -7,6 +7,7 @@ import 'package:geocoding/geocoding.dart' as geo;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/erbil_map_service.dart';
 
 /// Iraq's national ambulance / emergency line.
 const String _emergencyNumber = '122';
@@ -221,6 +222,9 @@ class _ClinicLocatorScreenState extends State<ClinicLocatorScreen> {
                 : GoogleMap(
                     onMapCreated: (controller) => _mapController = controller,
                     initialCameraPosition: CameraPosition(target: center, zoom: 13),
+                    cameraTargetBounds: ErbilMapService.erbilCameraBounds,
+                    polygons: ErbilMapService.getErbilPolygons(Theme.of(context).brightness == Brightness.dark),
+                    circles: ErbilMapService.getErbilCircles(Theme.of(context).brightness == Brightness.dark),
                     myLocationEnabled: _userPosition != null,
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: false,
@@ -302,9 +306,15 @@ class _ClinicLocatorScreenState extends State<ClinicLocatorScreen> {
             ),
           ),
 
+          PositionedDirectional(
+            top: 110,
+            start: 20,
+            child: ErbilMapService.buildServiceBadge(context),
+          ),
+
           if (_locationError != null)
             PositionedDirectional(
-              top: 110,
+              top: 155,
               start: 20,
               end: 20,
               child: Container(

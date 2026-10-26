@@ -2355,41 +2355,6 @@ class _LabHubScreenState extends State<LabHubScreen> {
                         );
                       },
                     ),
-
-                    // 7. پوختەی داواکاری و ناردن
-                    _buildFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      number: '٧',
-                      title: 'lab_item_8'.tr(),
-                      subtitle: 'lab_item_8_desc'.tr(),
-                      icon: Iconsax.send_2,
-                      color: const Color(0xFF10B981),
-                      badgeText: cart.items.isNotEmpty
-                          ? '${cart.items.length} ${'lab_hub_items_count'.tr()}'
-                          : null,
-                      onTap: () {
-                        if (cart.items.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFF0F172A),
-                              content: Text(
-                                'lab_hub_select_first'.tr(),
-                                style: const TextStyle(fontFamily: 'Rabar'),
-                              ),
-                            ),
-                          );
-                          _showTestPricesModal();
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const CheckoutDetailsScreen(),
-                            ),
-                          );
-                        }
-                      },
-                    ),
                   ],
                 ),
               ),

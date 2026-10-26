@@ -995,5 +995,7 @@
   "free_fee": "Free",
   "spec_general_care": "General Care",
   "spec_sampling_specialist": "Sampling Specialist",
-  "lab_team_dr_room": "Dr. Room Sampling Team"
+  "lab_team_dr_room": "Dr. Room Sampling Team",
+  "service_area_erbil_only": "Service Area: Erbil Only",
+  "outside_erbil_warning": "Please select a location within Erbil boundaries, service is currently only available in Erbil"
 }

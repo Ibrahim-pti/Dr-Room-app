@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/utils/erbil_map_service.dart';
 
 class LabMapScreen extends StatefulWidget {
   final Map<String, dynamic> lab;
@@ -108,6 +109,9 @@ class _LabMapScreenState extends State<LabMapScreen> {
               target: _targetPoint,
               zoom: 15.5,
             ),
+            cameraTargetBounds: ErbilMapService.erbilCameraBounds,
+            polygons: ErbilMapService.getErbilPolygons(isDark),
+            circles: ErbilMapService.getErbilCircles(isDark),
             markers: _markers,
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
@@ -151,6 +155,9 @@ class _LabMapScreenState extends State<LabMapScreen> {
                     ),
                   ),
                 ),
+
+                // Erbil Service Badge
+                ErbilMapService.buildServiceBadge(context),
 
                 // Recenter Button
                 GestureDetector(

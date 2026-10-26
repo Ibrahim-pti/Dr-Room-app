@@ -995,5 +995,7 @@
   "free_fee": "مجاني",
   "spec_general_care": "رعاية عامة",
   "spec_sampling_specialist": "أخصائي سحب العينات",
-  "lab_team_dr_room": "فريق دكتور روم لسحب العينات"
+  "lab_team_dr_room": "فريق دكتور روم لسحب العينات",
+  "service_area_erbil_only": "نطاق الخدمة: أربيل فقط",
+  "outside_erbil_warning": "يرجى تحديد موقع داخل حدود أربيل، الخدمة متوفرة حالياً في أربيل فقط"
 }

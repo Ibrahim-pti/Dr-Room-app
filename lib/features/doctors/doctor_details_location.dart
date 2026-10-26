@@ -5,6 +5,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/dr_room_fonts.dart';
+import '../../core/utils/erbil_map_service.dart';
 import 'doctor_details_widgets.dart';
 
 /// Location section: Google Maps lite preview + clinic info + open in maps.
@@ -60,6 +61,9 @@ class DoctorDetailsLocation extends StatelessWidget {
                             target: LatLng(latitude!, longitude!),
                             zoom: 15,
                           ),
+                          cameraTargetBounds: ErbilMapService.erbilCameraBounds,
+                          polygons: ErbilMapService.getErbilPolygons(isDark),
+                          circles: ErbilMapService.getErbilCircles(isDark),
                           markers: {
                             Marker(
                               markerId: MarkerId('doctor-$doctorId'),
@@ -70,6 +74,11 @@ class DoctorDetailsLocation extends StatelessWidget {
                           myLocationButtonEnabled: false,
                           liteModeEnabled:
                               true, // static preview, cheap to draw
+                        ),
+                        PositionedDirectional(
+                          top: 10,
+                          start: 10,
+                          child: ErbilMapService.buildServiceBadge(context),
                         ),
                         // Lite mode swallows taps, so the whole preview opens
                         // the real maps app instead.

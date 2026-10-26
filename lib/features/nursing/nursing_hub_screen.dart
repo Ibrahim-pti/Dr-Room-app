@@ -1706,41 +1706,6 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                         );
                       },
                     ),
-
-                    // 6. پوختەی داواکاری و ناردن
-                    _buildFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      number: '٦',
-                      title: 'nursing_item_7'.tr(),
-                      subtitle: 'nursing_item_7_desc'.tr(),
-                      icon: Iconsax.send_2,
-                      color: const Color(0xFF10B981),
-                      badgeText: cart.items.isNotEmpty
-                          ? '${cart.items.length} ${'nursing_available_count'.tr()}'
-                          : null,
-                      onTap: () {
-                        if (cart.items.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFF0F172A),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              content: Text(
-                                'nursing_select_service_first'.tr(),
-                                style: const TextStyle(fontFamily: 'Rabar'),
-                              ),
-                            ),
-                          );
-                          _showPriceListModal();
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const CheckoutDetailsScreen()),
-                          );
-                        }
-                      },
-                    ),
                   ],
                 ),
               ),
