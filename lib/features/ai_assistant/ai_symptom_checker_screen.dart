@@ -658,18 +658,41 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
         const SizedBox(height: 16),
 
-        // Summary Card
+        // Summary Card (Title text removed as requested)
         _buildMedicalInfoCard(
-          title: 'ai_summary_title'.tr(),
           content: res['summary'],
           icon: Icons.document_scanner_rounded,
           iconColor: const Color(0xFF10B981),
           isDark: isDark,
         ),
 
+        // Target Age Card (بۆ تەمەن چەندە)
+        if (res['target_age'] != null && res['target_age'].toString().trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _buildMedicalInfoCard(
+            title: 'ai_target_age_title'.tr(),
+            content: res['target_age'],
+            icon: Icons.people_outline_rounded,
+            iconColor: const Color(0xFF2563EB),
+            isDark: isDark,
+          ),
+        ],
+
+        // Allergies & Contraindications Card (هەستیارییەکان)
+        if (res['allergies'] != null && res['allergies'].toString().trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _buildMedicalInfoCard(
+            title: 'ai_allergies_title'.tr(),
+            content: res['allergies'],
+            icon: Icons.health_and_safety_outlined,
+            iconColor: const Color(0xFFE11D48),
+            isDark: isDark,
+          ),
+        ],
+
         const SizedBox(height: 12),
 
-        // Key Biomarkers / Procedures Breakdown Card
+        // Key Biomarkers / Clinical Details Breakdown Card
         if (res['markers'] != null)
           Container(
             padding: const EdgeInsets.all(16),
@@ -700,6 +723,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                 ),
                 const SizedBox(height: 12),
                 ...((res['markers'] as List).map((m) {
+                  final isAbnormal = m['isNormal'] == false;
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -710,15 +734,18 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          m['name'],
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        Expanded(
+                          child: Text(
+                            m['name'],
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
                           ),
                         ),
+                        const SizedBox(width: 8),
                         Row(
                           children: [
                             Text(
@@ -734,16 +761,21 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                color: (isAbnormal
+                                        ? const Color(0xFFEF4444)
+                                        : const Color(0xFF10B981))
+                                    .withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 m['status'],
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Rabar',
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF10B981),
+                                  color: isAbnormal
+                                      ? const Color(0xFFEF4444)
+                                      : const Color(0xFF10B981),
                                 ),
                               ),
                             ),
@@ -823,7 +855,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
   }
 
   Widget _buildMedicalInfoCard({
-    required String title,
+    String? title,
     required String content,
     required IconData icon,
     required Color iconColor,
@@ -842,36 +874,38 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
+          if (title != null && title.trim().isNotEmpty) ...[
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 18),
                 ),
-                child: Icon(icon, color: iconColor, size: 18),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
           Text(
             content,
             style: TextStyle(
               fontFamily: 'Rabar',
               fontSize: 12.5,
               color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-              height: 1.5,
+              height: 1.55,
             ),
           ),
         ],

@@ -147,190 +147,172 @@ class AiClinicalVisionService {
   String _buildPrompt(String mode, {String language = 'ckb'}) {
     if (language == 'ar') {
       return '''
-You are the Dr-Room AI Medicine & Pharmaceutical Specialist (أخصائي الذكاء الاصطناعي للأدوية والصيدلة في دكتور روم).
-Carefully inspect and analyze the attached photo of a medicine, pill, tablet, blister strip, syrup, capsule, injection, medicine packaging, or medical prescription.
+You are the Dr-Room Chief Medical & Clinical AI Specialist (أخصائي الذكاء الاصطناعي الطبي والسريري في دكتور روم).
+Carefully inspect, read, and analyze ANY medical image provided:
+1. Medical Laboratory Tests & Blood Work (تحاليل الدم CBC، وظائف الكبد والكلى، السكر، الدهون، الهرمونات، البول، وغيرها).
+2. Doctor Prescriptions & Medical Notes (الروشتات الطبية، الوصفات، والتقارير الطبية).
+3. Medicines & Pharmaceuticals (الأدوية، الحبوب، الكبسولات، الشراب، الحقن، المراهم، عبوات الدواء).
+4. Radiology & Medical Scans (الأشعة السينية X-Ray، السونار، الرنين المغناطيسي MRI، تخطيط القلب ECG).
+5. Physical symptoms or clinical observations shown.
 
-Identify and explain the medicine in Arabic (اللغة العربية الفصحى المبسطة):
-1. Identify the exact medicine name (Commercial / Brand name and Generic / Scientific name in Arabic and English, e.g. Panadol Extra / Paracetamol).
-2. Category / Therapeutic class (e.g. مسكن ألم، مضاد حيوي، مضاد حموضة، مضاد حساسية).
-3. Primary uses (دواعي الاستعمال وما يعالجه الدواء).
-4. Dosage, timing & instructions (طريقة الاستخدام والجرعة: متى وكم يؤخذ، قبل الأكل أو بعده).
-5. Active ingredients & strength (المادة الفعالة والتركيز، مثلاً Paracetamol 500mg).
-6. Warnings, precautions & contraindications (التحذيرات وموانع الاستعمال الهامة).
+Analyze and explain EVERYTHING thoroughly in simplified, professional Arabic:
+1. Title: The exact name of the test, medicine, prescription, or report.
+2. Category: Clinical category (e.g. تحليل مختبري • دم, دواء مضاد للالتهاب, تقرير أشعة, وصفة طبية).
+3. Target Age (الفئة العمرية المناسبة): Specify clearly who this applies to (e.g. البالغين فوق 18 سنة، الأطفال، جميع الأعمار حسب إشراف الطبيب).
+4. Allergies & Contraindications (الحساسية والمحاذير): State any known allergies, contraindications, or risk factors (e.g. حساسية البنسلين، مرضى الكلى، الحمل، أو لا توجد).
+5. Summary: Clear, compassionate, detailed medical explanation of what this report / test / medicine is and what the results or instructions mean.
+6. Markers (المؤشرات والتفاصيل): Extract all key biomarkers / ingredients / findings with their values, reference status ("طبيعي", "مرتفع", "منخفض", "هام"), and isNormal boolean.
+7. Recommendations: Practical medical guidance and next steps.
+8. Warnings: Important clinical precautions and red flags.
 
 Return ONLY valid JSON matching this exact structure:
 {
-  "title": "الاسم التجاري والعلمي للدواء (مثال: Amoxicillin • أموكسيسيلين 500mg)",
-  "category": "تصنيف الدواء (مثال: مضاد حيوي • Antibiotic)",
+  "title": "اسم الفحص أو الدواء أو الوثيقة الطبية",
+  "category": "التصنيف الطبي (مثال: فحص مخبري • دم)",
   "confidence": "99.0%",
-  "summary": "ملخص واضح ومبسط باللغة العربية يشرح ما هو هذا الدواء وفائدته وتأثيره",
+  "target_age": "الفئة العمرية المناسبة (مثال: البالغين فوق 18 سنة، أو جميع الأعمار بإشراف طبي)",
+  "allergies": "الحساسية والموانع (مثال: تجنب في حال وجود حساسية للبنسلين، أو لا توجد موانع معروفة)",
+  "summary": "شرح طبي شامل وواضح باللغة العربية يشرح تفاصيل النتائج أو الدواء",
   "markers": [
     {
-      "name": "المادة الفعالة",
-      "value": "اسم المادة مع الجرعة (مثال: Paracetamol 500mg)",
-      "status": "فعال",
-      "isNormal": true
-    },
-    {
-      "name": "الشكل الصيدلاني",
-      "value": "كبسولات / أقراص / شراب / شريط",
-      "status": "عادي",
-      "isNormal": true
-    },
-    {
-      "name": "الجرعة والتوقيت",
-      "value": "مثال: 3 مرات يومياً (كل 8 ساعات)",
-      "status": "إرشادات",
-      "isNormal": true
-    },
-    {
-      "name": "طريقة الاستعمال",
-      "value": "بعد الأكل مع كوب ماء",
-      "status": "هام",
+      "name": "اسم الفحص أو المؤشر أو المكون",
+      "value": "القيمة أو النتيجة",
+      "status": "طبيعي / مرتفع / منخفض / هام",
       "isNormal": true
     }
   ],
-  "recommendations": "إرشادات الاستخدام وكيفية حفظ الدواء في المنزل بالعربية",
-  "warnings": "تحذيرات هامة حول الحساسية، الجرعات الزائدة، أو الحمل بالعربية"
+  "recommendations": "الإرشادات والتوصيات الطبية بالعربية",
+  "warnings": "التحذيرات الطبية الهامة وموانع الاستعمال بالعربية"
 }
 
 Critical Rules:
-- If the image does NOT contain a medicine, pill, blister pack, syrup, medical box, or prescription (for example: flowers, food, cars, animals, random objects):
-  Set "title" to "الصورة ليست دواءً",
+- NEVER refuse a medical image, blood test, prescription, or medical report. You MUST analyze ANY medical image, lab test, prescription, or symptom thoroughly!
+- Only if the image is completely non-medical (e.g. an animal, car, nature, furniture, food):
+  Set "title" to "الوثيقة ليست طبية",
   "category": "تحليل غير معروف",
   "confidence": "0%",
-  "summary": "هذه الصورة لا تحتوي على علبة دواء أو حبوب أو وصفة طبية. يرجى التقاط صورة واضحة لعلبة دواء أو حبوب أو روشتة فقط.",
+  "target_age": "غير محدد",
+  "allergies": "لا توجد",
+  "summary": "هذه الصورة لا تحتوي على وثيقة طبية أو فحص مخبري أو وصفة أو دواء. يرجى التقاط صورة واضحة لفحص أو تقرير طبي أو دواء لنتمكن من تحليله بدقة.",
   "markers": [
-    {"name": "حالة الصورة", "value": "ليست دواء", "status": "مراجعة", "isNormal": false}
+    {"name": "حالة الصورة", "value": "ليست طبية", "status": "مراجعة", "isNormal": false}
   ],
-  "recommendations": "يرجى توجيه الكاميرا نحو علبة أو شريط الدواء والتقاط صورة واضحة.",
-  "warnings": "هذا الماسح مخصص فقط للتعرف على الأدوية وتحليلها."
-- Always write in fluent, warm, accurate Arabic.
+  "recommendations": "يرجى توجيه الكاميرا نحو تقرير الفحص أو الروشتة أو الدواء والتقاط صورة واضحة.",
+  "warnings": "هذا الماسح مخصص لتحليل وتفسير الفحوصات والأدوية والتقارير الطبية."
+- Always write in fluent, professional Arabic.
 - Always ensure "isNormal" is boolean true/false.
 ''';
     } else if (language == 'en') {
       return '''
-You are the Dr-Room AI Medicine & Pharmaceutical Specialist.
-Carefully inspect and analyze the attached photo of a medicine, pill, tablet, blister strip, syrup, capsule, injection, medicine packaging, or medical prescription.
+You are the Dr-Room Chief Medical & Clinical AI Specialist.
+Carefully inspect, read, and analyze ANY medical image provided:
+1. Medical Laboratory Tests & Blood Work (CBC blood tests, metabolic panel, liver/kidney function, urine tests, lipids, hormones, etc.).
+2. Doctor Prescriptions & Clinical Notes (Prescriptions, physician notes, discharge summaries).
+3. Medicines & Pharmaceuticals (Pills, tablets, capsules, syrups, injections, blister packs, medication boxes).
+4. Radiology & Medical Scans (X-Ray, Ultrasound, CT, MRI, ECG).
+5. Physical symptoms or clinical observations.
 
-Identify and explain the medicine in clear, accessible English:
-1. Identify the exact medicine name (Commercial / Brand name and Generic / Scientific name, e.g. Panadol Extra / Paracetamol).
-2. Category / Therapeutic class (e.g. Analgesic, Antibiotic, Antacid, Antihistamine).
-3. Primary uses (Indications and what it treats).
-4. Dosage, timing & instructions (How and when to take, before or after food).
-5. Active ingredients & strength (Active ingredient and dose, e.g. Paracetamol 500mg).
-6. Warnings, precautions & contraindications (Key warnings, who should avoid it, drug interactions).
+Analyze and explain EVERYTHING thoroughly in clear, accessible English:
+1. Title: The exact name of the test, medication, prescription, or document.
+2. Category: Medical classification (e.g. Laboratory Test • Blood, Antibiotic Medication, Radiology Report, Prescription).
+3. Target Age: Specify clearly who this applies to (e.g. Adults 18+, Pediatrics, All age groups under medical supervision).
+4. Allergies & Contraindications: State potential allergies, drug interactions, or contraindications (e.g. Penicillin allergy, avoid in renal failure, safe if no allergies).
+5. Summary: Clear, comprehensive, professional clinical explanation of the findings, results, or medication instructions.
+6. Markers: Extract all key biomarkers / active ingredients / test items with values, status ("Normal", "High", "Low", "Important"), and isNormal boolean.
+7. Recommendations: Practical clinical advice and actionable guidance for the patient.
+8. Warnings: Important warnings, critical thresholds, and when to seek medical attention.
 
 Return ONLY valid JSON matching this exact structure:
 {
-  "title": "Commercial & Scientific name (e.g. Amoxicillin 500mg)",
-  "category": "Medication Class (e.g. Antibiotic • Anti-infective)",
+  "title": "Document, Test or Medicine Name (e.g. Complete Blood Count - CBC)",
+  "category": "Medical Class (e.g. Laboratory Test • Hematology)",
   "confidence": "99.0%",
-  "summary": "A clear, accessible summary explaining what this medicine is, what it does, and how it works",
+  "target_age": "Applicable age group (e.g. Adults 18+, or All ages per doctor instructions)",
+  "allergies": "Allergy warnings and contraindications (e.g. Penicillin allergy, or No known contraindications)",
+  "summary": "Clear, detailed clinical explanation in accessible English",
   "markers": [
     {
-      "name": "Active Ingredient",
-      "value": "Ingredient name with strength (e.g. Paracetamol 500mg)",
-      "status": "Active",
-      "isNormal": true
-    },
-    {
-      "name": "Dosage Form",
-      "value": "Capsule / Tablet / Syrup / Blister pack",
-      "status": "Normal",
-      "isNormal": true
-    },
-    {
-      "name": "Dosage Schedule",
-      "value": "e.g. 3 times daily (every 8 hours)",
-      "status": "Guidance",
-      "isNormal": true
-    },
-    {
-      "name": "Administration",
-      "value": "After meals with water",
-      "status": "Important",
+      "name": "Marker / Test / Ingredient Name",
+      "value": "Value / Result with units",
+      "status": "Normal / High / Low / Important",
       "isNormal": true
     }
   ],
-  "recommendations": "Usage advice and home storage instructions in English",
-  "warnings": "Important warnings regarding allergies, overdose, or pregnancy in English"
+  "recommendations": "Clinical recommendations and guidance in English",
+  "warnings": "Medical warnings and precautions in English"
 }
 
 Critical Rules:
-- If the image does NOT contain a medicine, pill, blister pack, syrup, medical box, or prescription (for example: flowers, food, cars, animals, random objects):
-  Set "title" to "Image is not medication",
+- NEVER refuse a medical image, blood test, prescription, or report. You MUST analyze ANY medical image, lab test, prescription, or symptom thoroughly!
+- Only if the image is completely non-medical (e.g. animal, car, nature, furniture, food):
+  Set "title" to "Image is not medical",
   "category": "Unknown",
   "confidence": "0%",
-  "summary": "This image does not appear to contain a medicine box, pill, or prescription. Please take a clear photo of your medicine or prescription.",
+  "target_age": "Not specified",
+  "allergies": "None",
+  "summary": "This image does not appear to contain a medical document, lab test, prescription, or medication. Please capture a clear image of a medical report, test sheet, or medicine.",
   "markers": [
-    {"name": "Status", "value": "Not medicine", "status": "Review", "isNormal": false}
+    {"name": "Status", "value": "Not medical", "status": "Review", "isNormal": false}
   ],
-  "recommendations": "Please point the camera directly at the medicine packaging or blister pack and ensure good lighting.",
-  "warnings": "This scanner is specifically designed for analyzing medications and prescriptions."
+  "recommendations": "Please point your camera at a lab test, prescription, or medicine package.",
+  "warnings": "This scanner is dedicated to analyzing healthcare documents, tests, and medications."
 - Always write in fluent, professional English.
 - Always ensure "isNormal" is boolean true/false.
 ''';
     } else if (language == 'kmr') {
       return '''
-You are the Dr-Room AI Medicine & Pharmaceutical Specialist (تایبەتمەندێ ژیرییا دەستکرد بۆ دەرمان و حەبان ل دکتۆر رووم).
-Carefully inspect and analyze the attached photo of a medicine, pill, tablet, blister strip, syrup, capsule, injection, medicine packaging, or medical prescription.
+You are the Dr-Room Chief Medical & Clinical AI Specialist (تایبەتمەندێ باڵایێ ژیرییا دەستکرد بۆ شیکاری و دەستنیشانکرنا نوژداری ل دکتۆر رووم).
+Carefully inspect, read, and analyze ANY medical image provided:
+1. پشکنینێن تاقیگەهێ و خوینێ (پشکنینا گشتی یا خوینێ CBC، گورچیلە، جگەر، شەکرە، چەوری، میز، هۆرمۆن و هتد).
+2. ڕەچەتە و نڤیسارێن نوژداری (ڕەچەتە، نڤیسینا نوژداری، ڕاپۆرتا کلینیکی).
+3. دەرمان، حەب، کەپسول، شربەت، دەرزی، مەرهەم و کارتۆنێن دەرمانی.
+4. تیشک و سۆنەر و ڕاپۆرتێن دەستنیشانکرنێ (سۆنەر، تیشکا X-Ray، ڕەنین MRI، هێڵکارییا دلی ECG).
+5. نیشانێن لەشی یان نەخۆشییێن دیارکری.
 
-Identify and explain the medicine in authentic Badini Kurdish (کوردییا بادینی ب ئەلفوبێیا کوردی-عەرەبی):
-1. Identify the exact medicine name (Commercial / Brand name and Generic / Scientific name in Badini and English, e.g. Panadol Extra / Paracetamol).
-2. Category / Therapeutic class (e.g. ئێش شکێن، ئەنتی بایۆتیک، دژی ترشاتیێ، دژی حەساسییەتێ).
-3. Primary uses (بۆ چ دهێتە بکارئینان و چارەسەریا چ دکەت).
-4. Dosage, timing & instructions (چەوانیا بکارئینانێ و ژەم: کەنگی و چەند دهێتە خوارن، بەری نانی یان پشتی نانی).
-5. Active ingredients & strength (پێکهاتەیا چالاک و هێزا وێ بۆ نموونە 500mg).
-6. Warnings, precautions & contraindications (هۆشدارییێن گرنگ، بۆ کێ نابیت، دگەل چ ناهێتە خوارن).
+Identify and explain EVERYTHING thoroughly in authentic Badini Kurdish (کوردییا بادینی ب ئەلفوبێیا کوردی-عەرەبی):
+1. Title: ناڤێ دروست یێ پشکنینێ، دەرمانی، یان بەڵگەنامەیێ.
+2. Category: پۆلێنا نوژداری (بۆ نموونە: پشکنینا تاقیگەهێ • خوین، دەرمانێ دژی هەوکرنێ، ڕاپۆرتا تیشکێ).
+3. Target Age (ژیێ گونجای و دیارکری): ڕوون بکە کا ئەڤ پشکنینە یان دەرمانە بۆ چ تەمەنەکی یە (بۆ نموونە: مەزنێن سەرووی ١٨ ساڵ، زارۆک، یان هەمی ژییان ب ڕێنماییا نوژداری).
+4. Allergies & Contraindications (حەساسییەت و ڕێگریێن نوژداری): دیار بکە کا چ حەساسییەت یان ڕێگری هەینە (بۆ نموونە: حەساسییەت ب پەنسیلینی، ل دەمێ دووگیانیێ نابیت، یان چ مەترسی نینن).
+5. Summary: پوختەیەکا گشتگیر، زانستی و ب زمانەکێ سادە کا ئەڤ پشکنینە یان دەرمانە چ دبێژیت و نەخۆش چ پێدڤیە بزانیت.
+6. Markers (هوورکاری و نیشاندەرێن نوژداری): هەمی پشکنین، پێکهاتە و خاڵێن گرنگ دەربینە دگەل بها و ڕەوشا وان ("نۆرمال", "بلند", "نزم", "گرنگ") و isNormal.
+7. Recommendations: شیرەت و ڕێنمایێن کردارەکی بۆ نەخۆشی ب بادینی.
+8. Warnings: هۆشداری و سەرنجێن گرنگ یێن نوژداری ب بادینی.
 
 Return ONLY valid JSON matching this exact structure:
 {
-  "title": "ناڤێ بازرگانی و زانستی یێ دەرمانی (بۆ نموونە: Amoxicillin • ئامۆکسیسیلین 500mg)",
-  "category": "گرووپێ دەرمانی (بۆ نموونە: دژی هەوکرنێ • Antibiotic)",
+  "title": "ناڤێ پشکنینێ، دەرمانی یان بەڵگەنامەیا نوژداری",
+  "category": "پۆلێنا نوژداری (بۆ نموونە: پشکنینا تاقیگەهێ • خوین)",
   "confidence": "99.0%",
-  "summary": "پوختەیەکا زۆرا ڕوون و ب ساناهی ب زمانێ کوردییێ بادینی کا ئەڤ دەرمانە چییە و بۆ چ باشە و کارتێکرنا وی چییە",
+  "target_age": "ژیێ گونجای (بۆ نموونە: مەزنێن سەرووی ١٨ ساڵ، یان هەمی ژییان ب شیرەتا نوژداری)",
+  "allergies": "حەساسییەت و ڕێگری (بۆ نموونە: حەساسییەت ب دەرمانێن دژی هەوکرنێ، یان چ حەساسییەت نینن)",
+  "summary": "پوختەیەکا زانستی و ڕوون ب کوردییا بادینی دەربارەی ئەنجامان و دۆخێ نوژداری",
   "markers": [
     {
-      "name": "پێکهاتەیا چالاک",
-      "value": "ناڤێ پێکهاتەیێ دگەل دۆزێ (بۆ نموونە: Paracetamol 500mg)",
-      "status": "چالاک",
-      "isNormal": true
-    },
-    {
-      "name": "شێوازێ دەرمانی",
-      "value": "کەپسول / حەب / شلەمەنی / شریت",
-      "status": "نۆرمال",
-      "isNormal": true
-    },
-    {
-      "name": "شێوازێ خوارنێ",
-      "value": "بۆ نموونە: ڕۆژێ ٣ جاران (هەر ٨ دەمژمێران)",
-      "status": "شیرەت",
-      "isNormal": true
-    },
-    {
-      "name": "دەمێ بکارئینانێ",
-      "value": "پشتی خوارنێ دگەل ئاڤەکا زۆر",
-      "status": "گرنگ",
+      "name": "ناڤێ پشکنینێ یان پێکهاتەیێ",
+      "value": "بها یان ئەنجام",
+      "status": "نۆرمال / بلند / نزم / گرنگ",
       "isNormal": true
     }
   ],
-  "recommendations": "شیرەتێن بکارئینانێ و چەوانیا پاراستنا دەرمانی ل ماڵ ب بادینی",
-  "warnings": "هۆشدارییێن گرنگ دەربارەی حەساسییەتێ، ژەما زێدە، یان ژنێن دووگیان ب بادینی"
+  "recommendations": "شیرەت و ڕێنمایێن بکارئینانێ ب بادینی",
+  "warnings": "هۆشداریێن نوژداری یێن گرنگ ب بادینی"
 }
 
 Critical Rules:
-- If the image does NOT contain a medicine, pill, blister pack, syrup, medical box, or prescription:
-  Set "title" to "وێنە نە دەرمانە",
+- چ جاران پشکنینەکا خوینێ، ڕەچەتە یان بەڵگەنامەیەکا نوژداری ڕەت نەکە ب گۆتنا "ئەڤە دەرمان نینە". پێدڤیە هەر وێنەیەکێ نوژداری ب تەمامی شرۆڤە بکەی!
+- تەنها ئەگەر وێنە ب چ ئاوایان نە نوژداری بیت (گیانەوەر، ئۆتۆمبێل، خوارن، کەلوپەل):
+  Set "title" to "بەڵگەنامەیا نوژداری نینە",
   "category": "شرۆڤەکرنا نەدیار",
   "confidence": "0%",
-  "summary": "ئەڤ وێنەیە پاکێت یان حەبا دەرمانی نینە. هیڤیدارین بتنێ وێنەیێ پاکێتێ دەرمانی، حەب یان نڤیسا نوژداری بگری دا کو پێزانینێن دروست بدەینە تە.",
+  "target_age": "نەدیارکری",
+  "allergies": "نینە",
+  "summary": "ئەڤ وێنەیە چ پشکنینێن تاقیگەهێ، ڕەچەتە یان دەرمان نینە. هیڤیدارین وێنەیەکێ ڕوون یێ پشکنینێ، ڕەچەتێ یان دەرمانی بگری دا کو پێزانینێن دروست بدەینە تە.",
   "markers": [
-    {"name": "ڕەوشا وێنەیی", "value": "نە دەرمانە", "status": "پێداچوون", "isNormal": false}
+    {"name": "ڕەوشا وێنەیی", "value": "نە نوژدارییە", "status": "پێداچوون", "isNormal": false}
   ],
-  "recommendations": "تکایە کامێرا خۆ ڕاگرە بەرامبەر پاکێت یان شریتێ دەرمانی و وێنەیەکێ ڕوون بگرە.",
-  "warnings": "ئەڤ سکێنەرە تایبەتە ب نیاسین و شرۆڤەکرنا دەرمان و حەبان."
+  "recommendations": "تکایە کامێرا خۆ ڕاگرە بەرامبەر پشکنینێ، ڕەچەتێ یان دەرمانی و وێنەیەکێ ڕوون بگرە.",
+  "warnings": "ئەڤ سکێنەرە تایبەتە ب شیکارکرنا پشکنین، دەرمان و بەڵگەنامەیێن نوژداری."
 - Always write in fluent, natural Badini Kurdish (کوردییا بادینی).
 - Always ensure "isNormal" is boolean true/false.
 ''';
@@ -338,64 +320,58 @@ Critical Rules:
 
     // Kurdish (Central Kurdish / Sorani)
     return '''
-You are the Dr-Room AI Medicine & Pharmaceutical Specialist (پسپۆڕی زیرەکی دەستکرد بۆ دەرمان و حەب لە دکتۆر رووم).
-Carefully inspect and analyze the attached photo of a medicine, pill, tablet, blister strip, syrup, capsule, injection, medicine packaging, or medical prescription.
+You are Dr-Room Chief Medical & Clinical AI Specialist (پسپۆڕی باڵای شیکاری پزیشکی و تاقیگە و دەرمان لە دکتۆر ڕووم).
+Carefully inspect, read, and analyze ANY medical image provided:
+1. Medical Laboratory Tests & Blood Work (پشکنینی تاقیگە، خوێن CBC، میز، کیمیا، شەکرە، چەوری، هۆرمۆن و هتد).
+2. Doctor Prescriptions & Medical Notes (ڕەچەتەی پزیشک، نوسراو و ڕاپۆرتی کلینیکی).
+3. Medicines, Drugs, Pills & Injections (دەرمان، حەب، کەپسول، شربەت، دەرزی، مەرهەم، وەرەقەی ناو دەرمان).
+4. Medical Scans & Imaging (سۆنەر، تیشک X-Ray، MRI، هێڵکاری دڵ ECG، پشکنینەکانی تر).
+5. Physical health conditions or symptoms shown in the image.
 
-Identify and explain the medicine in Central Kurdish (کوردی سۆرانی):
-1. Identify the exact medicine name (Commercial / Brand name and Generic / Scientific name in Kurdish and English, e.g. Panadol Extra / Paracetamol).
-2. Category / Therapeutic class (e.g. ئازارشکێن، ئەنتی بایۆتیک، دژە ترشەڵۆک، دژە هەستیاری).
-3. Primary uses (بۆچی بەکاردێت و چارەسەری چی دەکات).
-4. Dosage, timing & instructions (چۆنیەتی بەکارهێنان و ژەم: کەی و چەند دەخورێت، پێش نان یان دوای نان).
-5. Active ingredients & strength (پێکهاتەی چالاک و هێزەکەی بۆ نموونە 500mg).
-6. Warnings, precautions & contraindications (هۆشدارییە گرنگەکان، بۆ کێ نابێت، لەگەڵ چی ناخورێت).
+Analyze and explain EVERYTHING thoroughly in Central Kurdish (کوردی سۆرانی):
+1. Title: Exact name of the test, medicine, prescription, or report (بۆ نموونە: پشکنینی گشتی خوێن CBC، یان ناوی دەرمانەکە، یان ڕەچەتەی پزیشکی).
+2. Category: Category (بۆ نموونە: پشکنینی تاقیگە • خوێن، یان دەرمانی دژەهەوکردن، یان ڕاپۆرتی تیشک و سۆنەر).
+3. Target Age (بۆ تەمەن چەندە): Clearly identify which age group this is for, or who it applies to (بۆ نموونە: گەورەساڵانی سەرووی ١٨ ساڵ، منداڵانی سەرووی ٢ ساڵ، یان هەموو تەمەنێک بەپێی ڕێنمایی پزیشک).
+4. Allergies & Contraindications (هەستیارییەکان): State any allergy risks, contraindications, or who should be careful (بۆ نموونە: هەستیاری بە پەنیسلین، لە کاتی دووگیانی نابێت، کێشەی گورچیلە، یان بێ هەستیارییە).
+5. Summary: A thorough, clear, and easy-to-understand medical explanation of what this document / test / medicine is, what the results mean, and what the patient should know.
+6. Markers (وردەکاری و نیشاندەرەکان): Extract ALL key tests / ingredients / findings with their values and status (بۆ نموونە: Hemoglobin لەگەڵ بڕ و دۆخی "ئاسایی", WBC لەگەڵ دۆخی "بەرز", یان پێکهاتەی چالاک و دۆز).
+7. Recommendations: Practical advice, next steps, when to consult a doctor.
+8. Warnings: Important health warnings, precautions, critical limits.
 
 Return ONLY valid JSON matching this exact structure:
 {
-  "title": "ناوی بازرگانی و زانستی دەرمانەکە (بۆ نموونە: Amoxicillin • ئامۆکسیسیلین 500mg)",
-  "category": "گرووپی دەرمانەکە (بۆ نموونە: دژەهەوکردن • Antibiotic)",
+  "title": "ناوی پشکنینەکە یان دەرمانەکە یان بەڵگەنامەکە",
+  "category": "پۆلێنی پزیشکی (بۆ نموونە: پشکنینی تاقیگە • خوێن)",
   "confidence": "99.0%",
-  "summary": "پوختەیەکی زۆر ڕوون و تێگەیشتوو بە زمانی کوردی سادە کە ئەم دەرمانە چییە و بۆچی باشە و کاریگەرییەکەی چییە",
+  "target_age": "بۆ چ تەمەنێکە (بۆ نموونە: سەرووی ١٨ ساڵ، یان هەموو تەمەنێک بەپێی ڕێنمایی)",
+  "allergies": "هەستیارییەکان و مەترسییەکان (بۆ نموونە: هەستیاری بە پەنیسلین، یان نییە)",
+  "summary": "شیکارییەکی زۆر ورد و تێروتەسەل بە زمانی کوردی سادە کە مانای ئەنجامەکان و دۆخەکە بەتەواوی ڕوون دەکاتەوە",
   "markers": [
     {
-      "name": "پێکهاتەی چالاک",
-      "value": "ناوی پێکهاتەکە لەگەڵ دۆز (بۆ نموونە: Paracetamol 500mg)",
-      "status": "چالاک",
-      "isNormal": true
-    },
-    {
-      "name": "شێوازی دەرمان",
-      "value": "کەپسول / حەب / شلەمەنی / شریت",
-      "status": "ئاسایی",
-      "isNormal": true
-    },
-    {
-      "name": "شێوازی خواردن",
-      "value": "بۆ نموونە: ڕۆژی ٣ جار (هەر ٨ کاتژمێر جارێک)",
-      "status": "ڕێنمایی",
-      "isNormal": true
-    },
-    {
-      "name": "کاتی بەکارهێنان",
-      "value": "دوای نان لەگەڵ ئاوی زۆر",
-      "status": "گرنگ",
+      "name": "ناوی پێوەر / فەحس / پێکهاتە",
+      "value": "ئەنجام یان بڕ",
+      "status": "ئاسایی / بەرز / نزم / گرنگ",
       "isNormal": true
     }
   ],
-  "recommendations": "ڕێنمایی بەکارهێنان و چۆنیەتی پاراستنی دەرمانەکە لە ماڵەوە بە کوردی",
-  "warnings": "هۆشداری گرنگ دەربارەی حەساسییەت، ژەمی زیادە، یان ئافرەتی دووگیان بە کوردی"
+  "recommendations": "ڕاسپاردە و ڕێنمایی پزیشکی بە کوردی",
+  "warnings": "هۆشدارییە گرنگەکان و سەرنجی پزیشکی بە کوردی"
 }
 
 Critical Rules:
-- If the image does NOT contain a medicine, pill, blister pack, syrup, medical box, or prescription (for example: flowers, food, cars, animals, random objects):
-  Set "title" to "وێنەکە دەرمان نییە",
-  "category": "شیکاریی نەناسراو",
+- هەرگیز پشکنینی خوێن، ڕەچەتە، یان بەڵگەنامەی پزیشکی ڕەت مەکەرەوە بەوەی بڵێیت 'ئەمە دەرمان نییە'. پێویستە هەر بەڵگەنامە و پشکنینێکی پزیشکی بە تەواوی و بە وردی شیکار بکەیت!
+- تەنها ئەگەر وێنەکە بەهیچ شێوەیەک پەیوەندی بە پزیشکی و تەندروستییەوە نەبوو (ئاژەڵ، سەیارە، خواردن، سروشت، کەلوپەل):
+  Set "title" to "بەڵگەنامەی پزیشکی نییە",
+  "category": "شیکاری نەناسراو",
   "confidence": "0%",
-  "summary": "ئەم وێنەیە پاکەت یان حەبی دەرمان نییە. تکایە تەنها وێنەی پاکەتی دەرمان، حەب یان ڕەچەتەی پزیشکی بگرە بۆ ئەوەی زانیاری وردت پێبدەین.",
+  "target_age": "دیارینەکراو",
+  "allergies": "نییە",
+  "summary": "ئەم وێنەیە هیچ بەڵگەنامەیەکی پزیشکی، پشکنینی تاقیگە، ڕەچەتە یان دەرمان لەخۆناگرێت. تکایە وێنەیەکی ڕوونی پشکنین، ڕەچەتە، یان دەرمان بنێرە تا شیکاری تەواوت پێشکەش بکەین.",
   "markers": [
-    {"name": "دۆخی وێنە", "value": "دەرمان نییە", "status": "پێداچوونەوە", "isNormal": false}
+    {"name": "دۆخی وێنە", "value": "پزیشکی نییە", "status": "پێداچوونەوە", "isNormal": false}
   ],
-  "recommendations": "تکایە کامێراکەت ڕابگرە بەرامبەر پاکەت یان شریتی دەرمانەکە و وێنەیەکی ڕوون بگرە.",
-  "warnings": "ئەم سکانەرە تایبەتە بە ناسینەوە و شیکردنەوەی دەرمان و حەب."
+  "recommendations": "تکایە کامێراکەت ڕابگرە بەرامبەر پەڕەی پشکنین، ڕەچەتە یان دەرمان و وێنەیەکی ڕوون بگرە.",
+  "warnings": "ئەم سکانەرە تایبەتە بە شیکردنەوەی پشکنین، دەرمان و بەڵگەنامە تەندروستییەکان."
 - Always write in fluent, warm, correct Central Kurdish (سۆرانی).
 - Always ensure "isNormal" is boolean true/false.
 ''';
@@ -406,8 +382,9 @@ Critical Rules:
     final isEn = language == 'en';
     final isKmr = language == 'kmr';
 
-    result['title'] = (result['title'] ?? (isAr ? 'تحليل الدواء' : (isEn ? 'Medicine Analysis' : (isKmr ? 'شرۆڤەکرنا دەرمانی' : 'شیکاریی دەرمان')))).toString();
-    result['category'] = (result['category'] ?? (isAr ? 'الأدوية والحبوب' : (isEn ? 'Medication & Pills' : (isKmr ? 'دەرمان و حەب' : 'دەرمان و حەب')))).toString();
+    result['title'] = (result['title'] ?? (isAr ? 'التحليل الطبي' : (isEn ? 'Medical Analysis' : (isKmr ? 'شرۆڤەکرنا نوژداری' : 'شیکاریی پزیشکی')))).toString();
+    result['category'] = (result['category'] ?? (isAr ? 'الخدمات والتقارير الطبية' : (isEn ? 'Clinical & Medical Report' : (isKmr ? 'خزمەت و ڕاپۆرتێن نوژداری' : 'ڕاپۆرت و پشکنینی پزیشکی')))).toString();
+
     final confRaw = result['confidence'];
     if (confRaw is num) {
       result['confidence'] = '${(confRaw > 1.0 ? confRaw : confRaw * 100).toStringAsFixed(1)}%';
@@ -415,7 +392,10 @@ Critical Rules:
       result['confidence'] = (confRaw ?? '99.0%').toString();
     }
 
-    result['summary'] = (result['summary'] ?? (isAr ? 'تم تحليل الدواء بواسطة الذكاء الاصطناعي.' : (isEn ? 'Medication analyzed by AI.' : (isKmr ? 'دەرمان ژ لایێ ژیرییا دەستکرد ڤە هاتە شرۆڤەکرن.' : 'شیکاریی دەرمانەکە لەلایەن ژیری دەستکردەوە ئەنجامدرا.')))).toString();
+    result['target_age'] = (result['target_age'] ?? (isAr ? 'حسب التوجيه والإشراف الطبي' : (isEn ? 'As clinically indicated' : (isKmr ? 'ل دیف شیرەتا نوژداری' : 'هەموو تەمەنێک بەپێی ڕێنمایی پزیشک')))).toString();
+    result['allergies'] = (result['allergies'] ?? (isAr ? 'لا توجد موانع أو تحسس معروف، يُرجى استشارة الطبيب' : (isEn ? 'No known allergies reported, consult your doctor' : (isKmr ? 'چ حەساسییەت نەهاتینە تۆمارکرن' : 'هیچ هەستیارییەکی نەزانراو نییە')))).toString();
+
+    result['summary'] = (result['summary'] ?? (isAr ? 'تم تحليل الصورة الطبية بواسطة الذكاء الاصطناعي بنجاح.' : (isEn ? 'Medical image analyzed by AI.' : (isKmr ? 'وێنەیێ نوژداری ب سەرکەفتیانە هاتە شرۆڤەکرن.' : 'وێنە پزیشکییەکە لەلایەن ژیری دەستکردەوە بەسەرکەوتوویی شیکاری بۆ کرا.')))).toString();
 
     if (result['recommendations'] is List) {
       result['recommendations'] = (result['recommendations'] as List).map((e) => '• $e').join('\n');
