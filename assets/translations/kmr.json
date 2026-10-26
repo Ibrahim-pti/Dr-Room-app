@@ -970,5 +970,15 @@
   "lab_hub_order_package": "داخوازکرنا پاکێجێ",
   "password_english_only": "هیڤیە پەیڤا نهێنی ب پیتێن ئینگلیزی بنڤیسە",
   "account_under_review": "هەژمارا تە ل بن پێداچوونا ئەدمینیدایە. هیڤیە چاڤەڕێ بە.",
-  "account_blocked": "هەژمارا تە هاتیە بلۆک کرن."
+  "account_blocked": "هەژمارا تە هاتیە بلۆک کرن.",
+  "cancel_selection": "پەشیمانبوون",
+  "cancel_selection_title": "پەشیمانبوون ژ داخازیێ",
+  "cancel_selection_confirm": "ئەرێ تو پشتڕاستی ژ هەلوەشاندنا هەمی هەلبژارتنێن خۆ؟",
+  "yes_cancel": "بەڵێ، پەشیمان بووم",
+  "keep_selection": "نەخێر، بەردەوام بە",
+  "selection_cancelled_msg": "هەمی هەلبژارتن ب سەرکەفتی هاتنە هەلوەشاندن",
+  "item_removed_msg": "ژ سەبەتێ هاتە لادان",
+  "selected_services_breakdown": "خزمەتگوزاریێن هەلبژارتی",
+  "cancel_all_selections": "پەشیمانبوون ژ هەمیان",
+  "staff_deselected_msg": "هەلبژارتنا ستافی هاتە هەلوەشاندن"
 }

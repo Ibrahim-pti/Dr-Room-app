@@ -390,7 +390,135 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
     );
   }
 
-
+  void _confirmCancelSelection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.info_outline_rounded,
+                color: Color(0xFFEF4444),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'cancel_selection_title'.tr(),
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'cancel_selection_confirm'.tr(),
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 13,
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            height: 1.5,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'keep_selection'.tr(),
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEF4444),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    final cart = Provider.of<CartProvider>(context, listen: false);
+                    cart.clearCart();
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: const Color(0xFF0F172A),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        content: Row(
+                          children: [
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              color: Color(0xFF10B981),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'selection_cancelled_msg'.tr(),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'yes_cancel'.tr(),
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   // ── 2. Select Specialist Staff Modal (Live from API) ──
   void _showStaffSelectionModal() {
@@ -1316,7 +1444,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                   child: Row(
                     children: [
                       Column(
@@ -1331,7 +1459,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                             Currency.format(cart.total),
                             style: const TextStyle(
                               fontFamily: 'Rabar',
-                              fontSize: 17,
+                              fontSize: 16.5,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF10B981),
                             ),
@@ -1339,11 +1467,44 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                         ],
                       ),
                       const Spacer(),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFEF4444),
+                          side: BorderSide(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                          ),
+                          backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                        ),
+                        onPressed: _confirmCancelSelection,
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          size: 15,
+                          color: Color(0xFFEF4444),
+                        ),
+                        label: Text(
+                          'cancel_selection'.tr(),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFEF4444),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF0D9488),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          elevation: 0,
                         ),
                         onPressed: () {
                           Navigator.push(
@@ -1351,10 +1512,10 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                             MaterialPageRoute(builder: (_) => const CheckoutDetailsScreen()),
                           );
                         },
-                        icon: const Icon(Iconsax.arrow_left_3, size: 16, color: Colors.white),
+                        icon: const Icon(Iconsax.arrow_left_3, size: 15, color: Colors.white),
                         label: Text(
                           'nursing_checkout_action'.tr(),
-                          style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ),
                     ],

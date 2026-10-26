@@ -973,5 +973,15 @@
   "lab_hub_order_package": "Order Package",
   "password_english_only": "Password must be in English letters only",
   "account_under_review": "Your account is under admin review. Please wait.",
-  "account_blocked": "Your account has been blocked."
+  "account_blocked": "Your account has been blocked.",
+  "cancel_selection": "Cancel Selection",
+  "cancel_selection_title": "Cancel Request",
+  "cancel_selection_confirm": "Are you sure you want to cancel and remove all your selections?",
+  "yes_cancel": "Yes, Cancel",
+  "keep_selection": "No, Keep",
+  "selection_cancelled_msg": "All selections have been cancelled",
+  "item_removed_msg": "removed from cart",
+  "selected_services_breakdown": "Selected Services",
+  "cancel_all_selections": "Cancel All",
+  "staff_deselected_msg": "Staff selection was cancelled"
 }

@@ -372,6 +372,480 @@ class _LabHubScreenState extends State<LabHubScreen> {
     );
   }
 
+  void _removeStaff(Map<String, dynamic> staff) {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    cart.items.removeWhere(
+      (item) =>
+          item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'),
+    );
+    cart.setServiceType('lab', extraFee: 0.0);
+    setState(() {});
+
+    final staffName = _getLocalized(staff, 'name');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF0F172A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        content: Row(
+          children: [
+            const Icon(
+              Icons.remove_circle_outline_rounded,
+              color: Color(0xFFEF4444),
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '$staffName: ${'staff_deselected_msg'.tr()}',
+                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _removeTestFromCart(Map<String, dynamic> test) {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    cart.removeItem(test['id'].toString());
+    setState(() {});
+
+    final testName = _getLocalized(test, 'name');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF0F172A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        content: Row(
+          children: [
+            const Icon(
+              Icons.remove_circle_outline_rounded,
+              color: Color(0xFFEF4444),
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '$testName ${'item_removed_msg'.tr()}',
+                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _removePackageFromCart(Map<String, dynamic> pkg) {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    cart.removeItem(pkg['id'].toString());
+    setState(() {});
+
+    final pkgTitle = _getLocalized(pkg, 'title');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF0F172A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        content: Row(
+          children: [
+            const Icon(
+              Icons.remove_circle_outline_rounded,
+              color: Color(0xFFEF4444),
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '$pkgTitle ${'item_removed_msg'.tr()}',
+                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmCancelSelection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.info_outline_rounded,
+                color: Color(0xFFEF4444),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'cancel_selection_title'.tr(),
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'cancel_selection_confirm'.tr(),
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 13,
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            height: 1.5,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'keep_selection'.tr(),
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEF4444),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    final cart = Provider.of<CartProvider>(context, listen: false);
+                    cart.clearCart();
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: const Color(0xFF0F172A),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        content: Row(
+                          children: [
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              color: Color(0xFF10B981),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'selection_cancelled_msg'.tr(),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'yes_cancel'.tr(),
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSelectedItemsModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Consumer<CartProvider>(
+          builder: (context, cart, child) {
+            if (cart.items.isEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (Navigator.canPop(ctx)) {
+                  Navigator.pop(ctx);
+                }
+              });
+              return const SizedBox.shrink();
+            }
+
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.75,
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'selected_services_breakdown'.tr(),
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFFEF4444),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _confirmCancelSelection();
+                        },
+                        icon: const Icon(Icons.close_rounded, size: 16),
+                        label: Text(
+                          'cancel_all_selections'.tr(),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: cart.items.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (context, idx) {
+                        final item = cart.items[idx];
+                        final isStaff = item.extraData?['type'] == 'staff' || item.id.startsWith('staff_');
+                        final isPkg = item.extraData?['type'] == 'package';
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: isStaff
+                                      ? const Color(0xFF8B5CF6).withValues(alpha: 0.12)
+                                      : isPkg
+                                          ? const Color(0xFFEC4899).withValues(alpha: 0.12)
+                                          : const Color(0xFF2563EB).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  isStaff
+                                      ? Iconsax.people
+                                      : isPkg
+                                          ? Iconsax.box_1
+                                          : Iconsax.document_text,
+                                  size: 18,
+                                  color: isStaff
+                                      ? const Color(0xFF8B5CF6)
+                                      : isPkg
+                                          ? const Color(0xFFEC4899)
+                                          : const Color(0xFF2563EB),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.name,
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      Currency.format(item.price),
+                                      style: const TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF10B981),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'cancel_selection'.tr(),
+                                icon: const Icon(
+                                  Icons.close_rounded,
+                                  color: Color(0xFFEF4444),
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  if (isStaff) {
+                                    cart.items.removeWhere((i) => i.id == item.id);
+                                    cart.setServiceType('lab', extraFee: 0.0);
+                                  } else {
+                                    cart.removeItem(item.id);
+                                  }
+                                  setState(() {});
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${'total'.tr()}:',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                        Text(
+                          Currency.format(cart.total),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF10B981),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CheckoutDetailsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Iconsax.arrow_right_3, size: 16, color: Colors.white),
+                      label: Text(
+                        'lab_hub_complete_order'.tr(),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   void _showStaffSelectionModal() {
     showModalBottomSheet(
@@ -683,38 +1157,67 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: isSelected
-                                            ? const Color(0xFF10B981)
-                                            : const Color(0xFF2563EB),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            10,
+                                    isSelected
+                                        ? OutlinedButton.icon(
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: const Color(0xFFEF4444),
+                                              side: const BorderSide(color: Color(0xFFFCA5A5)),
+                                              backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 8,
+                                              ),
+                                            ),
+                                            onPressed: () {
+                                              _removeStaff(staff);
+                                              setModalState(() {});
+                                            },
+                                            icon: const Icon(
+                                              Icons.close_rounded,
+                                              size: 14,
+                                              color: Color(0xFFEF4444),
+                                            ),
+                                            label: Text(
+                                              'cancel_selection'.tr(),
+                                              style: const TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 11.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFFEF4444),
+                                              ),
+                                            ),
+                                          )
+                                        : ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF2563EB),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(
+                                                  10,
+                                                ),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 8,
+                                              ),
+                                              elevation: 0,
+                                            ),
+                                            onPressed: () {
+                                              _selectStaff(staff);
+                                              setModalState(() {});
+                                            },
+                                            child: Text(
+                                              'lab_hub_select'.tr(),
+                                              style: const TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 11.5,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 8,
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      onPressed: () {
-                                        Navigator.pop(ctx);
-                                        _selectStaff(staff);
-                                      },
-                                      child: Text(
-                                        isSelected
-                                            ? '${'lab_hub_selected'.tr()} ✓'
-                                            : 'lab_hub_select'.tr(),
-                                        style: const TextStyle(
-                                          fontFamily: 'Rabar',
-                                          fontSize: 11.5,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
                                   ],
                                 ),
                               );
@@ -865,6 +1368,13 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             itemBuilder: (context, idx) {
                               final t = filteredTests[idx];
                               final localizedTestName = _getLocalized(t, 'name');
+                              final cart = Provider.of<CartProvider>(
+                                context,
+                                listen: false,
+                              );
+                              final isTestInCart = cart.items.any(
+                                (item) => item.id == t['id'].toString(),
+                              );
 
                               return Container(
                                 padding: const EdgeInsets.all(14),
@@ -874,9 +1384,12 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                       : const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                    color: isDark
-                                        ? const Color(0xFF334155)
-                                        : const Color(0xFFE2E8F0),
+                                    color: isTestInCart
+                                        ? const Color(0xFF10B981)
+                                        : (isDark
+                                            ? const Color(0xFF334155)
+                                            : const Color(0xFFE2E8F0)),
+                                    width: isTestInCart ? 1.5 : 1,
                                   ),
                                 ),
                                 child: Row(
@@ -936,18 +1449,35 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                           ),
                                         ),
                                         const SizedBox(width: 6),
-                                        IconButton(
-                                          constraints: const BoxConstraints(),
-                                          padding: const EdgeInsets.all(4),
-                                          icon: const Icon(
-                                            Iconsax.add_circle,
-                                            color: Color(0xFF2563EB),
-                                            size: 22,
-                                          ),
-                                          onPressed: () {
-                                            _addTestToCart(t);
-                                          },
-                                        ),
+                                        isTestInCart
+                                            ? IconButton(
+                                                constraints: const BoxConstraints(),
+                                                padding: const EdgeInsets.all(4),
+                                                tooltip: 'cancel_selection'.tr(),
+                                                icon: const Icon(
+                                                  Icons.remove_circle_rounded,
+                                                  color: Color(0xFFEF4444),
+                                                  size: 22,
+                                                ),
+                                                onPressed: () {
+                                                  _removeTestFromCart(t);
+                                                  setModalState(() {});
+                                                },
+                                              )
+                                            : IconButton(
+                                                constraints: const BoxConstraints(),
+                                                padding: const EdgeInsets.all(4),
+                                                tooltip: 'lab_hub_select'.tr(),
+                                                icon: const Icon(
+                                                  Iconsax.add_circle,
+                                                  color: Color(0xFF2563EB),
+                                                  size: 22,
+                                                ),
+                                                onPressed: () {
+                                                  _addTestToCart(t);
+                                                  setModalState(() {});
+                                                },
+                                              ),
                                       ],
                                     ),
                                   ],
@@ -1100,6 +1630,13 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             itemBuilder: (context, idx) {
                               final pkg = filteredPackages[idx];
                               final localizedTitle = _getLocalized(pkg, 'title');
+                              final cart = Provider.of<CartProvider>(
+                                context,
+                                listen: false,
+                              );
+                              final isPkgInCart = cart.items.any(
+                                (item) => item.id == pkg['id'].toString(),
+                              );
 
                               return Container(
                                 padding: const EdgeInsets.all(16),
@@ -1109,10 +1646,12 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                       : Colors.white,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: (pkg['color'] as Color).withValues(
-                                      alpha: 0.35,
-                                    ),
-                                    width: 1.5,
+                                    color: isPkgInCart
+                                        ? const Color(0xFF10B981)
+                                        : (pkg['color'] as Color).withValues(
+                                            alpha: 0.35,
+                                          ),
+                                    width: isPkgInCart ? 2 : 1.5,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
@@ -1246,32 +1785,75 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                             ),
                                           ],
                                         ),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: pkg['color'],
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 18,
-                                              vertical: 10,
-                                            ),
-                                          ),
-                                          onPressed: () {
-                                            _addPackageToCart(pkg);
-                                            Navigator.pop(ctx);
-                                          },
-                                          child: Text(
-                                            'lab_hub_order_package'.tr(),
-                                            style: const TextStyle(
-                                              fontFamily: 'Rabar',
-                                              fontSize: 13,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
+                                        isPkgInCart
+                                            ? OutlinedButton.icon(
+                                                style: OutlinedButton.styleFrom(
+                                                  foregroundColor:
+                                                      const Color(0xFFEF4444),
+                                                  side: const BorderSide(
+                                                    color: Color(0xFFFCA5A5),
+                                                  ),
+                                                  backgroundColor:
+                                                      const Color(0xFFEF4444)
+                                                          .withValues(
+                                                              alpha: 0.08),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                    horizontal: 14,
+                                                    vertical: 10,
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  _removePackageFromCart(pkg);
+                                                  setModalState(() {});
+                                                },
+                                                icon: const Icon(
+                                                  Icons.close_rounded,
+                                                  size: 16,
+                                                  color: Color(0xFFEF4444),
+                                                ),
+                                                label: Text(
+                                                  'cancel_selection'.tr(),
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 13,
+                                                    fontWeight:
+                                                        FontWeight.bold,
+                                                    color: Color(0xFFEF4444),
+                                                  ),
+                                                ),
+                                              )
+                                            : ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: pkg['color'],
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(12),
+                                                  ),
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 18,
+                                                    vertical: 10,
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  _addPackageToCart(pkg);
+                                                  setModalState(() {});
+                                                },
+                                                child: Text(
+                                                  'lab_hub_order_package'.tr(),
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 13,
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
                                       ],
                                     ),
                                   ],
@@ -1595,43 +2177,94 @@ class _LabHubScreenState extends State<LabHubScreen> {
               child: SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                   child: Row(
                     children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 11.5,
-                              color: Color(0xFF64748B),
-                            ),
+                      InkWell(
+                        onTap: _showSelectedItemsModal,
+                        borderRadius: BorderRadius.circular(10),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 11,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 3),
+                                  const Icon(
+                                    Icons.keyboard_arrow_up_rounded,
+                                    size: 14,
+                                    color: Color(0xFF64748B),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                Currency.format(cart.total),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            Currency.format(cart.total),
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF10B981),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                       const Spacer(),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFEF4444),
+                          side: BorderSide(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                          ),
+                          backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                        ),
+                        onPressed: _confirmCancelSelection,
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          size: 15,
+                          color: Color(0xFFEF4444),
+                        ),
+                        label: Text(
+                          'cancel_selection'.tr(),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFEF4444),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2563EB),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
+                            horizontal: 14,
+                            vertical: 10,
                           ),
+                          elevation: 0,
                         ),
                         onPressed: () {
                           Navigator.push(
@@ -1643,14 +2276,14 @@ class _LabHubScreenState extends State<LabHubScreen> {
                         },
                         icon: const Icon(
                           Iconsax.arrow_right_3,
-                          size: 16,
+                          size: 15,
                           color: Colors.white,
                         ),
                         label: Text(
                           'lab_hub_complete_order'.tr(),
                           style: const TextStyle(
                             fontFamily: 'Rabar',
-                            fontSize: 13.5,
+                            fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),

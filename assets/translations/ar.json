@@ -973,5 +973,15 @@
   "lab_hub_order_package": "طلب الباقة",
   "password_english_only": "يرجى كتابة كلمة المرور بالحروف الإنجليزية فقط",
   "account_under_review": "حسابك قيد مراجعة الإدارة. يرجى الانتظار.",
-  "account_blocked": "تم حظر حسابك."
+  "account_blocked": "تم حظر حسابك.",
+  "cancel_selection": "إلغاء التحديد",
+  "cancel_selection_title": "إلغاء الطلب",
+  "cancel_selection_confirm": "هل أنت متأكد من إلغاء وحذف جميع اختياراتك؟",
+  "yes_cancel": "نعم، إلغاء",
+  "keep_selection": "لا، متابعة",
+  "selection_cancelled_msg": "تم إلغاء جميع الاختيارات بنجاح",
+  "item_removed_msg": "تمت إزالته من السلة",
+  "selected_services_breakdown": "الخدمات المحددة",
+  "cancel_all_selections": "إلغاء الكل",
+  "staff_deselected_msg": "تم إلغاء تحديد الموظف"
 }
