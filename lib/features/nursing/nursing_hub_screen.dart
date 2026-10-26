@@ -732,6 +732,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
   }
 
   // ── 2. Select Specialist Staff Modal (Live from API) ──
+  // ignore: unused_element
   void _showStaffSelectionModal() {
     showModalBottomSheet(
       context: context,

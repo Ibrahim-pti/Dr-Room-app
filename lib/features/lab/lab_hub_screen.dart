@@ -400,65 +400,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
     }
   }
 
-  void _selectStaff(Map<String, dynamic> staff) {
-    final cart = Provider.of<CartProvider>(context, listen: false);
-    // Remove previous staff if any so there is only one assigned staff
-    cart.items.removeWhere(
-      (item) =>
-          item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'),
-    );
 
-    final staffFee = (staff['visit_fee'] as num?)?.toDouble() ?? 0.0;
-    final staffName = _getStaffName(staff);
-    final staffTitle = _formatStaffSpecialty(staff['title']);
-
-    cart.setServiceType(
-      'lab',
-      extraFee: staffFee,
-    );
-    cart.addItem(
-      CartItem(
-        id: 'staff_${staff['id']}',
-        name: '${'lab_hub_home_sample'.tr()} ($staffName)',
-        price: staffFee,
-        quantity: 1,
-        extraData: {
-          'type': 'staff',
-          'staff_id': staff['id'],
-          'nurse_id': staff['nurse_id'],
-          'staff_name': staffName,
-          'staff_title': staffTitle,
-          'lab_id': staff['lab_id'],
-          'lab_name': staff['lab'],
-        },
-      ),
-    );
-    setState(() {});
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF0F172A),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        content: Row(
-          children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              color: Color(0xFF10B981),
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '$staffName ${'lab_hub_staff_selected_msg'.tr()}',
-                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _addTestToCart(Map<String, dynamic> test) {
     final cart = Provider.of<CartProvider>(context, listen: false);
@@ -548,40 +490,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
     );
   }
 
-  void _removeStaff(Map<String, dynamic> staff) {
-    final cart = Provider.of<CartProvider>(context, listen: false);
-    cart.items.removeWhere(
-      (item) =>
-          item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'),
-    );
-    cart.setServiceType('lab', extraFee: 0.0);
-    setState(() {});
 
-    final staffName = _getStaffName(staff);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF0F172A),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        content: Row(
-          children: [
-            const Icon(
-              Icons.remove_circle_outline_rounded,
-              color: Color(0xFFEF4444),
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '$staffName: ${'staff_deselected_msg'.tr()}',
-                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _removeTestFromCart(Map<String, dynamic> test) {
     final cart = Provider.of<CartProvider>(context, listen: false);
@@ -1023,6 +932,12 @@ class _LabHubScreenState extends State<LabHubScreen> {
     );
   }
 
+  // ignore: unused_element
+  void _selectStaff(dynamic staff) {}
+  // ignore: unused_element
+  void _removeStaff(dynamic staff) {}
+
+  // ignore: unused_element
   void _showStaffSelectionModal() {
     showModalBottomSheet(
       context: context,
