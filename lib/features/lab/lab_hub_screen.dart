@@ -2144,7 +2144,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                 ),
               ),
 
-            // ── Main 8 Feature Cards Grid / List ──
+            // ── Main Feature Cards List ──
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _fetchDynamicData,
@@ -2153,7 +2153,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
-                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 16),
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
                   children: [
                     // 1. بارکردنی وێنەی ڕەچەتە
                     _buildFeatureCard(
@@ -2229,7 +2229,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
-                      number: '٥',
+                      number: '۵',
                       title: 'lab_item_7'.tr(),
                       subtitle: 'lab_item_7_desc'.tr(),
                       icon: Icons.auto_awesome_rounded,
@@ -2406,27 +2406,33 @@ class _LabHubScreenState extends State<LabHubScreen> {
     required VoidCallback onTap,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(22),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(
                 color: isDark
                     ? const Color(0xFF334155)
                     : const Color(0xFFE2E8F0),
+                width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
+                  color: color.withValues(alpha: isDark ? 0.12 : 0.05),
+                  blurRadius: 16,
+                  offset: const Offset(0, 5),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
@@ -2434,33 +2440,62 @@ class _LabHubScreenState extends State<LabHubScreen> {
               children: [
                 // Number & Icon Badge
                 Stack(
-                  alignment: Alignment.topLeft,
+                  clipBehavior: Clip.none,
+                  alignment: AlignmentDirectional.topStart,
                   children: [
                     Container(
-                      width: 52,
-                      height: 52,
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(16),
+                        gradient: LinearGradient(
+                          colors: [
+                            color.withValues(alpha: isDark ? 0.22 : 0.14),
+                            color.withValues(alpha: isDark ? 0.10 : 0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: color.withValues(alpha: isDark ? 0.35 : 0.2),
+                          width: 1.2,
+                        ),
                       ),
-                      child: Icon(icon, color: color, size: 24),
+                      child: Icon(icon, color: color, size: 26),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        number,
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    PositionedDirectional(
+                      top: -4,
+                      start: -4,
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF1E293B)
+                                : Colors.white,
+                            width: 2.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: color.withValues(alpha: 0.45),
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          number,
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            height: 1,
+                          ),
                         ),
                       ),
                     ),
@@ -2478,7 +2513,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                               title,
                               style: TextStyle(
                                 fontFamily: 'Rabar',
-                                fontSize: 15,
+                                fontSize: 15.5,
                                 fontWeight: FontWeight.bold,
                                 color: isDark
                                     ? Colors.white
@@ -2489,18 +2524,24 @@ class _LabHubScreenState extends State<LabHubScreen> {
                           if (badgeText != null)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
+                                horizontal: 10,
+                                vertical: 3.5,
                               ),
                               decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(8),
+                                color: color.withValues(
+                                  alpha: isDark ? 0.2 : 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: color.withValues(alpha: 0.25),
+                                  width: 0.8,
+                                ),
                               ),
                               child: Text(
                                 badgeText,
                                 style: TextStyle(
                                   fontFamily: 'Rabar',
-                                  fontSize: 10,
+                                  fontSize: 10.5,
                                   fontWeight: FontWeight.bold,
                                   color: color,
                                 ),
@@ -2508,26 +2549,38 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 4),
                       Text(
                         subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Rabar',
-                          fontSize: 11.5,
-                          color: Color(0xFF64748B),
-                          height: 1.35,
+                          fontSize: 12,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                          height: 1.38,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: isDark
-                      ? const Color(0xFF64748B)
-                      : const Color(0xFF94A3B8),
+                const SizedBox(width: 10),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF334155).withValues(alpha: 0.5)
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 13,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
                 ),
               ],
             ),
