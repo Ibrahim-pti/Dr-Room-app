@@ -983,5 +983,9 @@
   "item_removed_msg": "تمت إزالته من السلة",
   "selected_services_breakdown": "الخدمات المحددة",
   "cancel_all_selections": "إلغاء الكل",
-  "staff_deselected_msg": "تم إلغاء تحديد الموظف"
+  "staff_deselected_msg": "تم إلغاء تحديد الموظف",
+  "category_all": "جميع الأقسام",
+  "category_nursing": "التمريض",
+  "category_lab": "المختبر",
+  "category_pharmacy": "الصيدلية"
 }

@@ -983,5 +983,9 @@
   "item_removed_msg": "removed from cart",
   "selected_services_breakdown": "Selected Services",
   "cancel_all_selections": "Cancel All",
-  "staff_deselected_msg": "Staff selection was cancelled"
+  "staff_deselected_msg": "Staff selection was cancelled",
+  "category_all": "All Departments",
+  "category_nursing": "Nursing",
+  "category_lab": "Laboratory",
+  "category_pharmacy": "Pharmacy"
 }

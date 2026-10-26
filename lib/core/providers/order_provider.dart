@@ -246,12 +246,29 @@ class OrderModel {
     );
   }
 
-  /// Normalised service type, used to pick the icon and the translated name.
-  String get _serviceKey => serviceType.toLowerCase();
+  String get _serviceKey => '$serviceType $customTitle $titleEn $titleCkb $titleAr $titleKmr'.toLowerCase();
 
-  bool get _isLab => _serviceKey.contains('lab');
-  bool get _isNursing => _serviceKey.contains('nurs');
-  bool get _isPharmacy => _serviceKey.contains('pharmac');
+  bool get isLab =>
+      _serviceKey.contains('lab') ||
+      _serviceKey.contains('تاقیگە') ||
+      _serviceKey.contains('مختبر');
+
+  bool get isNursing =>
+      assignedNurseId != null ||
+      assignedNurseName != null ||
+      _serviceKey.contains('nurs') ||
+      _serviceKey.contains('پەرستار') ||
+      _serviceKey.contains('تمريض');
+
+  bool get isPharmacy =>
+      assignedPharmacyName != null ||
+      _serviceKey.contains('pharmac') ||
+      _serviceKey.contains('دەرمان') ||
+      _serviceKey.contains('صيدل');
+
+  bool get _isLab => isLab;
+  bool get _isNursing => isNursing;
+  bool get _isPharmacy => isPharmacy;
 
   /// Context-aware localized title. Prioritizes the active language from BuildContext.
   String localizedTitle(BuildContext context) {

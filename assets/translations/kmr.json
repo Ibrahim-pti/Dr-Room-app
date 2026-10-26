@@ -980,5 +980,9 @@
   "item_removed_msg": "ژ سەبەتێ هاتە لادان",
   "selected_services_breakdown": "خزمەتگوزاریێن هەلبژارتی",
   "cancel_all_selections": "پەشیمانبوون ژ هەمیان",
-  "staff_deselected_msg": "هەلبژارتنا ستافی هاتە هەلوەشاندن"
+  "staff_deselected_msg": "هەلبژارتنا ستافی هاتە هەلوەشاندن",
+  "category_all": "هەمی بەش",
+  "category_nursing": "پەرستاری",
+  "category_lab": "تاقیگە",
+  "category_pharmacy": "دەرمانخانە"
 }

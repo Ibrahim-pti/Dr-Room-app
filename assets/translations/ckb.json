@@ -983,5 +983,9 @@
   "item_removed_msg": "لە سەبەتە لادرا",
   "selected_services_breakdown": "خزمەتگوزارییە هەڵبژێردراوەکان",
   "cancel_all_selections": "پەشیمانبوونەوە لە هەمووی",
-  "staff_deselected_msg": "هەڵبژاردنی ستاف هەڵوەشێنرایەوە"
+  "staff_deselected_msg": "هەڵبژاردنی ستاف هەڵوەشێنرایەوە",
+  "category_all": "هەموو بەشەکان",
+  "category_nursing": "پەرستاری",
+  "category_lab": "تاقیگە",
+  "category_pharmacy": "دەرمانخانە"
 }

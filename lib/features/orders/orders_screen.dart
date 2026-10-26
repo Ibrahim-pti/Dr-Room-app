@@ -32,6 +32,21 @@ class OrdersScreenState extends State<OrdersScreen> {
   }
 
   OrderStatus? _selectedStatus;
+  String _selectedCategory = 'all';
+
+  bool _matchesCategory(OrderModel order) {
+    switch (_selectedCategory) {
+      case 'nursing':
+        return order.isNursing;
+      case 'lab':
+        return order.isLab;
+      case 'pharmacy':
+        return order.isPharmacy;
+      case 'all':
+      default:
+        return true;
+    }
+  }
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -110,52 +125,195 @@ class OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildContent(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 6),
-        _buildFilterChips(isDark),
-        const SizedBox(height: 14),
-        Expanded(
-          child: Consumer<OrderProvider>(
-            builder: (context, orderProvider, child) {
-              if (orderProvider.isLoading && !orderProvider.hasLoadedOnce) {
-                return const ShimmerLoadingList();
-              }
+    return Consumer<OrderProvider>(
+      builder: (context, orderProvider, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 6),
+            _buildServiceCategoryChips(isDark, orderProvider),
+            const SizedBox(height: 10),
+            _buildFilterChips(isDark),
+            const SizedBox(height: 14),
+            Expanded(
+              child: _buildOrdersList(isDark, orderProvider),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-              if (orderProvider.error != null && orderProvider.orders.isEmpty) {
-                return _buildErrorState(orderProvider, isDark);
-              }
+  Widget _buildOrdersList(bool isDark, OrderProvider orderProvider) {
+    if (orderProvider.isLoading && !orderProvider.hasLoadedOnce) {
+      return const ShimmerLoadingList();
+    }
 
-              final orders = _selectedStatus == null
-                  ? orderProvider.orders
-                  : orderProvider.orders
-                      .where((order) => order.status == _selectedStatus)
-                      .toList();
+    if (orderProvider.error != null && orderProvider.orders.isEmpty) {
+      return _buildErrorState(orderProvider, isDark);
+    }
 
-              if (orders.isEmpty) {
-                return RefreshIndicator(
-                  onRefresh: orderProvider.fetchOrders,
-                  child: _buildEmptyState(
-                    isFiltered: _selectedStatus != null && orderProvider.orders.isNotEmpty,
-                    isDark: isDark,
-                  ),
-                );
-              }
+    final orders = orderProvider.orders.where((order) {
+      final matchesStatus = _selectedStatus == null || order.status == _selectedStatus;
+      final matchesCategory = _matchesCategory(order);
+      return matchesStatus && matchesCategory;
+    }).toList();
 
-              return RefreshIndicator(
-                onRefresh: orderProvider.fetchOrders,
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) => _buildOrderCard(orders[index], index, isDark),
-                ),
-              );
-            },
-          ),
+    if (orders.isEmpty) {
+      final isFiltered = (_selectedStatus != null || _selectedCategory != 'all') &&
+          orderProvider.orders.isNotEmpty;
+      return RefreshIndicator(
+        onRefresh: orderProvider.fetchOrders,
+        child: _buildEmptyState(
+          isFiltered: isFiltered,
+          isDark: isDark,
         ),
-      ],
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: orderProvider.fetchOrders,
+      child: ListView.builder(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+        itemCount: orders.length,
+        itemBuilder: (context, index) => _buildOrderCard(orders[index], index, isDark),
+      ),
+    );
+  }
+
+  Widget _buildServiceCategoryChips(bool isDark, OrderProvider provider) {
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+    final totalCount = provider.orders.length;
+    final nursingCount = provider.orders.where((o) => o.isNursing).length;
+    final labCount = provider.orders.where((o) => o.isLab).length;
+    final pharmacyCount = provider.orders.where((o) => o.isPharmacy).length;
+
+    final categories = [
+      _CategoryOption(
+        id: 'all',
+        label: 'category_all'.tr(),
+        icon: Iconsax.element_4,
+        color: const Color(0xFF3B82F6),
+        count: totalCount,
+      ),
+      _CategoryOption(
+        id: 'nursing',
+        label: 'category_nursing'.tr(),
+        icon: Iconsax.health,
+        color: const Color(0xFF10B981),
+        count: nursingCount,
+      ),
+      _CategoryOption(
+        id: 'lab',
+        label: 'category_lab'.tr(),
+        icon: Iconsax.d_cube_scan,
+        color: const Color(0xFF8B5CF6),
+        count: labCount,
+      ),
+      if (pharmacyCount > 0)
+        _CategoryOption(
+          id: 'pharmacy',
+          label: 'category_pharmacy'.tr(),
+          icon: Iconsax.shop,
+          color: const Color(0xFF0D9488),
+          count: pharmacyCount,
+        ),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: categories.map((cat) {
+          final isSelected = _selectedCategory == cat.id;
+
+          return Padding(
+            padding: const EdgeInsetsDirectional.only(end: 8),
+            child: InkWell(
+              onTap: () {
+                if (_selectedCategory != cat.id) {
+                  setState(() => _selectedCategory = cat.id);
+                }
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? cat.color : cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isSelected ? cat.color : borderColor,
+                    width: 1.2,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: cat.color.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      cat.icon,
+                      size: 15,
+                      color: isSelected ? Colors.white : cat.color,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      cat.label,
+                      style: _kStyle(
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      ),
+                    ),
+                    if (cat.count > 0) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.25)
+                              : (isDark
+                                  ? const Color(0xFF334155)
+                                  : cat.color.withValues(alpha: 0.1)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${cat.count}',
+                          style: _kStyle(
+                            color: isSelected ? Colors.white : cat.color,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -442,4 +600,20 @@ class OrdersScreenState extends State<OrdersScreen> {
       ),
     );
   }
+}
+
+class _CategoryOption {
+  final String id;
+  final String label;
+  final IconData icon;
+  final Color color;
+  final int count;
+
+  const _CategoryOption({
+    required this.id,
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.count,
+  });
 }
