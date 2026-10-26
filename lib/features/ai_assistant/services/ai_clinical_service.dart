@@ -19,9 +19,10 @@ class AiClinicalVisionService {
 
   // Vision models to try in order of priority & reliability
   static const List<String> _models = [
-    'gemini-1.5-flash',
-    'gemini-2.0-flash',
-    'gemini-1.5-pro',
+    'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+    'gemini-flash-latest',
   ];
 
   /// Analyzes a medical image (Medicine, Pill, Prescription) using Gemini Vision,
@@ -45,7 +46,7 @@ class AiClinicalVisionService {
       }
 
       // 1. Try Gemini Vision if a valid API key is configured
-      if (_geminiApiKey.startsWith('AIzaSy')) {
+      if (_geminiApiKey.trim().isNotEmpty) {
         final prompt = _buildPrompt(mode, language: language);
 
         for (final model in _models) {
@@ -118,7 +119,10 @@ class AiClinicalVisionService {
     final response = await http
         .post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': _geminiApiKey,
+          },
           body: jsonEncode(payload),
         )
         .timeout(const Duration(seconds: 25));
@@ -404,10 +408,26 @@ Critical Rules:
 
     result['title'] = (result['title'] ?? (isAr ? 'تحليل الدواء' : (isEn ? 'Medicine Analysis' : (isKmr ? 'شرۆڤەکرنا دەرمانی' : 'شیکاریی دەرمان')))).toString();
     result['category'] = (result['category'] ?? (isAr ? 'الأدوية والحبوب' : (isEn ? 'Medication & Pills' : (isKmr ? 'دەرمان و حەب' : 'دەرمان و حەب')))).toString();
-    result['confidence'] = (result['confidence'] ?? '99.0%').toString();
+    final confRaw = result['confidence'];
+    if (confRaw is num) {
+      result['confidence'] = '${(confRaw > 1.0 ? confRaw : confRaw * 100).toStringAsFixed(1)}%';
+    } else {
+      result['confidence'] = (confRaw ?? '99.0%').toString();
+    }
+
     result['summary'] = (result['summary'] ?? (isAr ? 'تم تحليل الدواء بواسطة الذكاء الاصطناعي.' : (isEn ? 'Medication analyzed by AI.' : (isKmr ? 'دەرمان ژ لایێ ژیرییا دەستکرد ڤە هاتە شرۆڤەکرن.' : 'شیکاریی دەرمانەکە لەلایەن ژیری دەستکردەوە ئەنجامدرا.')))).toString();
-    result['recommendations'] = (result['recommendations'] ?? (isAr ? 'يرجى الالتزام بتعليمات الطبيب أو الصيدلي.' : (isEn ? 'Please follow the advice of your doctor or pharmacist.' : (isKmr ? 'هیڤیە ل دیف شیرەتێن نوژداری یان دەرمانسازی بکاربینی.' : 'تکایە بەپێی ڕێنمایی پزیشک یان دەرمانساز بەکاریبهێنە.')))).toString();
-    result['warnings'] = (result['warnings'] ?? (isAr ? 'احفظ الأدوية بعيداً عن متناول الأطفال وفق الإرشادات الطبية.' : (isEn ? 'Keep medications away from children according to medical advice.' : (isKmr ? 'هەر دەرمانەکی پێدڤیە ل دیف شیرەتێن نوژداری و دوور ژ دەستێ زارۆکان بهێتە پاراستن.' : 'هەر دەرمانێک پێویستە بەپێی ڕێنمایی پزیشک و دوور لە دەستی منداڵان دابنرێت.')))).toString();
+
+    if (result['recommendations'] is List) {
+      result['recommendations'] = (result['recommendations'] as List).map((e) => '• $e').join('\n');
+    } else {
+      result['recommendations'] = (result['recommendations'] ?? (isAr ? 'يرجى الالتزام بتعليمات الطبيب أو الصيدلي.' : (isEn ? 'Please follow the advice of your doctor or pharmacist.' : (isKmr ? 'هیڤیە ل دیف شیرەتێن نوژداری یان دەرمانسازی بکاربینی.' : 'تکایە بەپێی ڕێنمایی پزیشک یان دەرمانساز بەکاریبهێنە.')))).toString();
+    }
+
+    if (result['warnings'] is List) {
+      result['warnings'] = (result['warnings'] as List).map((e) => '• $e').join('\n');
+    } else {
+      result['warnings'] = (result['warnings'] ?? (isAr ? 'احفظ الأدوية بعيداً عن متناول الأطفال وفق الإرشادات الطبية.' : (isEn ? 'Keep medications away from children according to medical advice.' : (isKmr ? 'هەر دەرمانەکی پێدڤیە ل دیف شیرەتێن نوژداری و دوور ژ دەستێ زارۆکان بهێتە پاراستن.' : 'هەر دەرمانێک پێویستە بەپێی ڕێنمایی پزیشک و دوور لە دەستی منداڵان دابنرێت.')))).toString();
+    }
 
     final rawMarkers = result['markers'];
     final List<Map<String, dynamic>> normalizedMarkers = [];
@@ -415,8 +435,8 @@ Critical Rules:
       for (final item in rawMarkers) {
         if (item is Map) {
           normalizedMarkers.add({
-            'name': (item['name'] ?? item['test'] ?? item['marker'] ?? (isAr ? 'فحص' : (isEn ? 'Marker' : 'پشکنین'))).toString(),
-            'value': (item['value'] ?? item['result'] ?? '').toString(),
+            'name': (item['name'] ?? item['test'] ?? item['marker'] ?? item['label'] ?? (isAr ? 'فحص' : (isEn ? 'Marker' : 'پشکنین'))).toString(),
+            'value': (item['value'] ?? item['result'] ?? item['detail'] ?? '').toString(),
             'status': (item['status'] ?? (isAr ? 'عادي' : (isEn ? 'Normal' : (isKmr ? 'نۆرمال' : 'ئاسایی')))).toString(),
             'isNormal': item['isNormal'] == true ||
                 item['is_normal'] == true ||
@@ -449,19 +469,27 @@ Critical Rules:
   Map<String, dynamic>? _cleanAndParseJson(String raw) {
     try {
       String clean = raw.trim();
-      if (clean.startsWith('```json')) {
-        clean = clean.substring(7);
-      } else if (clean.startsWith('```')) {
-        clean = clean.substring(3);
+      final startIndex = clean.indexOf('{');
+      final endIndex = clean.lastIndexOf('}');
+      if (startIndex != -1 && endIndex != -1 && endIndex >= startIndex) {
+        clean = clean.substring(startIndex, endIndex + 1);
+      } else {
+        if (clean.startsWith('```json')) {
+          clean = clean.substring(7);
+        } else if (clean.startsWith('```')) {
+          clean = clean.substring(3);
+        }
+        if (clean.endsWith('```')) {
+          clean = clean.substring(0, clean.length - 3);
+        }
+        clean = clean.trim();
       }
-      if (clean.endsWith('```')) {
-        clean = clean.substring(0, clean.length - 3);
-      }
-      clean = clean.trim();
 
       final dynamic parsed = jsonDecode(clean);
       if (parsed is Map<String, dynamic>) {
         return parsed;
+      } else if (parsed is Map) {
+        return Map<String, dynamic>.from(parsed);
       }
     } catch (e) {
       debugPrint('Failed to parse Gemini JSON: $e\nRaw: $raw');

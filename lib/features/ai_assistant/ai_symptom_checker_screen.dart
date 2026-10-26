@@ -160,37 +160,6 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
-        leadingWidth: 64,
-        leading: Navigator.canPop(context)
-            ? Padding(
-                padding: const EdgeInsetsDirectional.only(start: 16),
-                child: Center(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isDark
-                              ? const Color(0xFF334155)
-                              : const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.arrow_back_ios_new,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            : null,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

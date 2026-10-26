@@ -50,7 +50,7 @@ return [
         // An alias rather than a pinned version: Google retires named models
         // ("no longer available to new users") while -latest keeps pointing at
         // the current one.
-        'vision_model' => env('GEMINI_VISION_MODEL', 'gemini-flash-latest'),
+        'vision_model' => env('GEMINI_VISION_MODEL', 'gemini-3.5-flash-lite'),
     ],
 
     // Free key, no credit card: https://console.groq.com
