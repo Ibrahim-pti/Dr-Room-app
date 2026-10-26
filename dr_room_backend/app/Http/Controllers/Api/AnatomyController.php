@@ -77,6 +77,14 @@ class AnatomyController extends Controller
     }
 
     /**
+     * Alias for systems endpoint
+     */
+    public function systems(Request $request): JsonResponse
+    {
+        return $this->organs($request);
+    }
+
+    /**
      * Pulls all 27 Wikipedia summaries in a single concurrent pool. Fetching
      * them one after another took roughly ten seconds; in parallel it is one.
      *
