@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../appointments/all_schedules_screen.dart';
+import 'widgets/transaction_history_view.dart';
 import '../orders/orders_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
@@ -12,15 +12,16 @@ class MyRequestsScreen extends StatefulWidget {
 }
 
 class MyRequestsScreenState extends State<MyRequestsScreen> {
-  final GlobalKey<OrdersScreenState> _ordersKey = GlobalKey<OrdersScreenState>();
-  final GlobalKey<AllSchedulesScreenState> _appointmentsKey =
-      GlobalKey<AllSchedulesScreenState>();
+  final GlobalKey<OrdersScreenState> _ordersKey =
+      GlobalKey<OrdersScreenState>();
+  final GlobalKey<TransactionHistoryViewState> _historyKey =
+      GlobalKey<TransactionHistoryViewState>();
 
   int _sectionIndex = 0;
 
   late final List<Widget> _sections = [
-    OrdersScreen(key: _ordersKey, embedded: true),
-    AllSchedulesScreen(key: _appointmentsKey, embedded: true),
+    OrdersScreen(key: _ordersKey, embedded: true, showOnlyActive: true),
+    TransactionHistoryView(key: _historyKey, embedded: true),
   ];
 
   TextStyle _kStyle({
@@ -42,7 +43,7 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
     if (_sectionIndex == 0) {
       _ordersKey.currentState?.refresh();
     } else {
-      _appointmentsKey.currentState?.refresh();
+      _historyKey.currentState?.refresh();
     }
   }
 
@@ -57,7 +58,9 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -87,7 +90,9 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
 
   Widget _buildSectionSwitch(bool isDark) {
     final bg = isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -100,13 +105,23 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
       child: Row(
         children: [
           _buildSectionButton(0, 'orders_tab'.tr(), Iconsax.hospital, isDark),
-          _buildSectionButton(1, 'my_appointments'.tr(), Iconsax.calendar_1, isDark),
+          _buildSectionButton(
+            1,
+            'my_appointments'.tr(),
+            Iconsax.calendar_1,
+            isDark,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionButton(int index, String label, IconData icon, bool isDark) {
+  Widget _buildSectionButton(
+    int index,
+    String label,
+    IconData icon,
+    bool isDark,
+  ) {
     final isSelected = _sectionIndex == index;
 
     return Expanded(
@@ -137,7 +152,9 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
                 size: 17,
                 color: isSelected
                     ? Colors.white
-                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                    : (isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B)),
               ),
               const SizedBox(width: 8),
               Text(
@@ -145,7 +162,9 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
                 style: _kStyle(
                   color: isSelected
                       ? Colors.white
-                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      : (isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B)),
                   fontSize: 13.5,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),

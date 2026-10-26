@@ -483,7 +483,7 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                       ? Image.network(
                           image,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorBuilder: (context, error, stackTrace) => const Icon(
                             Iconsax.user,
                             color: Color(0xFF3B82F6),
                             size: 26,
@@ -492,7 +492,7 @@ class TransactionHistoryViewState extends State<TransactionHistoryView> {
                       : Image.asset(
                           image,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorBuilder: (context, error, stackTrace) => const Icon(
                             Iconsax.user,
                             color: Color(0xFF3B82F6),
                             size: 26,
