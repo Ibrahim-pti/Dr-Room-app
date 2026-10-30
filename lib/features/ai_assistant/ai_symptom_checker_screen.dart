@@ -737,6 +737,16 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -989,78 +999,80 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           ],
         ),
 
-        const SizedBox(height: 14),
+        if (widget.initialMode != 'lab') ...[
+          const SizedBox(height: 14),
 
-        // AI Medicine Name Search Action Card
-        GestureDetector(
-          onTap: _showSearchMedicineDialog,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
-                width: 1.2,
+          // AI Medicine Name Search Action Card
+          GestureDetector(
+            onTap: _showSearchMedicineDialog,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.15 : 0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.15 : 0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    borderRadius: BorderRadius.circular(14),
+                    child: const Icon(
+                      Icons.search_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.search_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ai_search_medicine'.tr(),
-                        style: _kStyle(
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ai_search_medicine'.tr(),
+                          style: _kStyle(
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'ai_search_medicine_desc'.tr(),
-                        style: _kStyle(
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                          fontSize: 11,
+                        const SizedBox(height: 2),
+                        Text(
+                          'ai_search_medicine_desc'.tr(),
+                          style: _kStyle(
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            fontSize: 11,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                ),
-              ],
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+        ],
 
         const SizedBox(height: 16),
 
@@ -1647,38 +1659,40 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           ),
         ),
 
-        const SizedBox(height: 10),
+        if (widget.initialMode != 'lab') ...[
+          const SizedBox(height: 10),
 
-        // Secondary Action: Search medicine by name with AI
-        GestureDetector(
-          onTap: _showSearchMedicineDialog,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+          // Secondary Action: Search medicine by name with AI
+          GestureDetector(
+            onTap: _showSearchMedicineDialog,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.search_rounded, color: Color(0xFF3B82F6), size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'ai_search_medicine'.tr(),
+                    style: _kStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.search_rounded, color: Color(0xFF3B82F6), size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  'ai_search_medicine'.tr(),
-                  style: _kStyle(
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
           ),
-        ),
+        ],
       ],
     );
   }
