@@ -2021,9 +2021,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              _imageFile == null
-                                  ? 'upload_and_analyze_with_ai'.tr()
-                                  : 'start_ai_analysis_btn'.tr(),
+                              'start_ai_analysis_btn'.tr(),
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontFamily: 'Rabar',
