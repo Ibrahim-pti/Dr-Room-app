@@ -1295,6 +1295,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                     fontFamily: 'Rabar',
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
+                                    height: 1.35,
                                     color: isDark
                                         ? Colors.white
                                         : const Color(0xFF0F172A),
@@ -1604,7 +1605,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                           fontSize: 14.5,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
-                                          height: 1.25,
+                                          height: 1.35,
                                         ),
                                       ),
                                     ),
@@ -1971,7 +1972,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
-                                height: 1.25,
+                                height: 1.35,
                               ),
                             ),
                           ),

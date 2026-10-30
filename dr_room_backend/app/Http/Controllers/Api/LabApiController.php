@@ -236,12 +236,65 @@ class LabApiController extends Controller
             $discount = $t->discount ?: ($lab ? $lab->discount : null);
             $originalPrice = $discount ? round($t->price / (1 - ($discount / 100))) : null;
 
+            $nameLower = strtolower(trim($t->name));
+            $dict = [
+                'cbc' => [
+                    'ku' => 'پشکنینی گشتی خوێن (CBC)',
+                    'en' => 'Complete Blood Count (CBC)',
+                    'ar' => 'فحص الدم الشامل (CBC)',
+                    'kmr' => 'پشکنینا گشتی یا خوینێ (CBC)',
+                ],
+                'esr' => [
+                    'ku' => 'خێرایی نیشتنی خوێن (ESR)',
+                    'en' => 'Erythrocyte Sedimentation Rate (ESR)',
+                    'ar' => 'سرعة ترسيب الدم (ESR)',
+                    'kmr' => 'بلەزیا نیشتنا خوینێ (ESR)',
+                ],
+                'fbs' => [
+                    'ku' => 'شەکرەی بەڕۆژوو (FBS)',
+                    'en' => 'Fasting Blood Sugar (FBS)',
+                    'ar' => 'فحص سكر الدم الصائم (FBS)',
+                    'kmr' => 'شەکرا بڕۆژی (FBS)',
+                ],
+                'hba1c' => [
+                    'ku' => 'شەکرەی سێ مانگی (HbA1c)',
+                    'en' => 'Glycated Hemoglobin (HbA1c)',
+                    'ar' => 'السكر التراكمي (HbA1c)',
+                    'kmr' => 'شەکرا سێ هەیڤی (HbA1c)',
+                ],
+                'lipid profile' => [
+                    'ku' => 'چەوری و کۆلیسترۆڵ (Lipid Profile)',
+                    'en' => 'Lipid Profile',
+                    'ar' => 'تحليل دهون الدم (Lipid Profile)',
+                    'kmr' => 'چەوری و کۆلیسترۆڵ (Lipid Profile)',
+                ],
+                'vitamin d' => [
+                    'ku' => 'پشکنینی ڤیتامین دی (Vitamin D)',
+                    'en' => 'Vitamin D (25-OH)',
+                    'ar' => 'فحص فيتامين د (Vitamin D)',
+                    'kmr' => 'پشکنینا ڤیتامین دی (Vitamin D)',
+                ],
+            ];
+
+            $nameKu = $t->name;
+            $nameEn = (!empty($t->name_en) && strtolower(trim($t->name_en)) !== $nameLower) ? $t->name_en : null;
+            $nameAr = (!empty($t->name_ar) && strtolower(trim($t->name_ar)) !== $nameLower) ? $t->name_ar : null;
+            $nameKmr = (!empty($t->name_kmr) && strtolower(trim($t->name_kmr)) !== $nameLower) ? $t->name_kmr : null;
+
+            if (isset($dict[$nameLower])) {
+                $nameKu = $dict[$nameLower]['ku'];
+                $nameEn = $nameEn ?: $dict[$nameLower]['en'];
+                $nameAr = $nameAr ?: $dict[$nameLower]['ar'];
+                $nameKmr = $nameKmr ?: $dict[$nameLower]['kmr'];
+            }
+
             return [
                 'id' => (string) $t->id,
-                'name' => $t->name,
-                'name_ku' => $t->name,
-                'name_en' => $t->name_en ?? $t->name,
-                'name_ar' => $t->name_ar ?? $t->name,
+                'name' => $nameKu,
+                'name_ku' => $nameKu,
+                'name_en' => $nameEn ?: $t->name,
+                'name_ar' => $nameAr ?: $t->name,
+                'name_kmr' => $nameKmr ?: $nameKu,
                 'price' => (double) $t->price,
                 'original_price' => $originalPrice ? (double) $originalPrice : null,
                 'discount' => $discount ? (int) $discount : null,

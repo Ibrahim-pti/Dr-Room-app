@@ -1980,7 +1980,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                               ),
                                               if (pkg['lab_name'] != null)
                                                 Text(
-                                                  '${'lab_hub_lab_label'.tr()} ${pkg['lab_name']}',
+                                                  '${'lab_hub_lab_label'.tr()} ${_getLocalizedLabName(pkg['lab_name'])}',
                                                   style: const TextStyle(
                                                     fontFamily: 'Rabar',
                                                     fontSize: 11,
