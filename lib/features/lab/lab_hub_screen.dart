@@ -73,6 +73,30 @@ class _LabHubScreenState extends State<LabHubScreen> {
     return name;
   }
 
+  String _getLocalizedLabName(dynamic name) {
+    if (name == null) return '';
+    final str = name.toString().trim();
+    if (str.isEmpty) return '';
+    final lang = context.locale.languageCode;
+    final lower = str.toLowerCase();
+
+    if (lower == 'پرۆفیشنال' || lower == 'professional' || lower == 'بروفيشينال' || lower == 'بروفيشنال') {
+      if (lang == 'en') return 'Professional Lab';
+      if (lang == 'ar') return 'مختبر بروفيشنال';
+      if (lang == 'kmr') return 'تاقیگەها پرۆفیشنال';
+      return 'تاقیگەی پرۆفیشنال';
+    }
+
+    if (lower == 'شاخی' || lower == 'shakhi') {
+      if (lang == 'en') return 'Shakhi Lab';
+      if (lang == 'ar') return 'مختبر شاخي';
+      if (lang == 'kmr') return 'تاقیگەها شاخی';
+      return 'تاقیگەی شاخی';
+    }
+
+    return str;
+  }
+
   String _formatStaffSpecialty(dynamic rawTitle) {
     final t = (rawTitle ?? '').toString().trim();
     final lower = t.toLowerCase();
