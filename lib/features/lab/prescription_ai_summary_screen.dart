@@ -11,7 +11,6 @@ import '../../core/utils/currency.dart';
 import '../../core/utils/localization_extensions.dart';
 import '../checkout/checkout_details_screen.dart';
 import '../ai_assistant/services/ai_clinical_service.dart';
-import 'all_labs_screen.dart';
 
 class NurseServiceItem {
   final String id;
@@ -153,10 +152,10 @@ class _PrescriptionAiSummaryScreenState
     _nurseServices = [
       NurseServiceItem(
         id: 'ampoule_injection',
-        title: 'لێدانی دەرزی (Ampoule)',
-        titleAr: 'حقن إبرة / أمبول (Ampoule)',
-        titleEn: 'Injection / Ampoule Administration',
-        titleKmr: 'لێدانا دەرزیێ (Ampoule)',
+        title: 'لێدانی دەرزی',
+        titleAr: 'حقن إبرة',
+        titleEn: 'Injection',
+        titleKmr: 'لێدانا دەرزیێ',
         subtitle: 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
         cost: 5000.0,
         icon: Icons.vaccines_rounded,
@@ -164,10 +163,10 @@ class _PrescriptionAiSummaryScreenState
       ),
       NurseServiceItem(
         id: 'cannula_iv',
-        title: 'دانانی کانیولا و مەغزی (IV Fluid)',
-        titleAr: 'تركيب كانيولا ومغذي (IV Fluid)',
-        titleEn: 'IV Fluid & Cannula Setup',
-        titleKmr: 'دانانا کانیولا و مەغزی (IV Fluid)',
+        title: 'دانانی کانیولا و مەغزی',
+        titleAr: 'تركيب كانيولا ومغذي',
+        titleEn: 'IV Fluid & Cannula',
+        titleKmr: 'دانانا کانیولا و مەغزی',
         subtitle: 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
         cost: 5000.0,
         icon: Icons.water_drop_rounded,
@@ -177,18 +176,18 @@ class _PrescriptionAiSummaryScreenState
 
     _selfMedications = [
       SelfMedicationItem(
-        title: 'حەب و کەپسول (Tablet)',
-        titleAr: 'حبوب وكبسولات (Tablet)',
+        title: 'حەب و کەپسول',
+        titleAr: 'حبوب وكبسولات',
         titleEn: 'Tablets & Capsules',
-        titleKmr: 'حەب و کەپسول (Tablet)',
+        titleKmr: 'حەب و کەپسول',
         subtitle: 'پێویست بە پەرستار ناکات',
         icon: Icons.medication_rounded,
       ),
       SelfMedicationItem(
-        title: 'شرووب (Syrup)',
-        titleAr: 'شراب طبي (Syrup)',
-        titleEn: 'Medical Syrup',
-        titleKmr: 'شرووب (Syrup)',
+        title: 'شرووب',
+        titleAr: 'شراب طبي',
+        titleEn: 'Syrup',
+        titleKmr: 'شرووب',
         subtitle: 'پێویست بە پەرستار ناکات',
         icon: Icons.liquor_rounded,
       ),
@@ -197,10 +196,10 @@ class _PrescriptionAiSummaryScreenState
     _centerScans = [
       CenterScanItem(
         id: 'ultrasound',
-        title: 'سۆنەر (Ultrasound)',
-        titleAr: 'سونار (Ultrasound)',
-        titleEn: 'Ultrasound Scan',
-        titleKmr: 'سۆنەر (Ultrasound)',
+        title: 'سۆنەر',
+        titleAr: 'سونار',
+        titleEn: 'Ultrasound',
+        titleKmr: 'سۆنەر',
         subtitle: 'پێویست بە سەنتەری تیشک و سۆنەر دەکات',
         subtitleAr: 'يتطلب زيارة مركز الأشعة والسونار',
         subtitleEn: 'Requires Radiology & Ultrasound Center',
@@ -209,10 +208,10 @@ class _PrescriptionAiSummaryScreenState
       ),
       CenterScanItem(
         id: 'chest_xray',
-        title: 'ئەشیعەی سنگی (Chest X-Ray)',
-        titleAr: 'أشعة الصدر (Chest X-Ray)',
-        titleEn: 'Chest X-Ray',
-        titleKmr: 'ئەشیعەیا سنگێ (Chest X-Ray)',
+        title: 'تیشک',
+        titleAr: 'أشعة',
+        titleEn: 'X-Ray',
+        titleKmr: 'تیشک',
         subtitle: 'پێویست بە سەنتەری تیشک دەکات',
         subtitleAr: 'يتطلب زيارة مركز الأشعة والتصوير',
         subtitleEn: 'Requires Radiology & Imaging Center',
@@ -343,15 +342,6 @@ class _PrescriptionAiSummaryScreenState
 
   double get _totalCost {
     return _servicesTotal + _currentTransportFee;
-  }
-
-  void _openNearbyCentersScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const AllLabsScreen(),
-      ),
-    );
   }
 
   void _proceedToCheckout() {
@@ -847,37 +837,6 @@ class _PrescriptionAiSummaryScreenState
                             ),
                           _buildCenterScanRow(_centerScans[i], isDark, lang),
                         ],
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                  color: Color(0xFF0284C7),
-                                  width: 1.5,
-                                ),
-                                foregroundColor: const Color(0xFF0284C7),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                              onPressed: _openNearbyCentersScreen,
-                              icon: const Icon(Icons.calendar_month_rounded,
-                                  size: 18),
-                              label: Text(
-                                'rx_view_nearby_centers_btn'.tr(),
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -1115,27 +1074,29 @@ class _PrescriptionAiSummaryScreenState
               ),
             ),
 
-      // ── Bottom Action Button (Either Nurse Confirmation or Center Booking) ──
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-              blurRadius: 14,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-            child: SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: _hasNurseServices
-                  ? ElevatedButton.icon(
+      // ── Bottom Action Button (Confirm and Call Nurse) ──
+      bottomNavigationBar: !_hasNurseServices
+          ? null
+          : Container(
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                    blurRadius: 14,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0D9488),
                         foregroundColor: Colors.white,
@@ -1157,31 +1118,11 @@ class _PrescriptionAiSummaryScreenState
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    )
-                  : ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0284C7),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      onPressed: _openNearbyCentersScreen,
-                      icon: const Icon(Icons.calendar_month_rounded, size: 20),
-                      label: Text(
-                        'rx_view_nearby_centers_btn'.tr(),
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                     ),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
