@@ -1049,5 +1049,17 @@
   "ai_feature_extract_meds": "استخراج أسماء الأدوية والجرعات بدقة",
   "ai_feature_usage_instructions": "إرشادات الاستخدام والتحذيرات الطبية",
   "ai_feature_instant_results": "تحليل سريع ودقيق خلال ثوانٍ معدودة",
-  "prescription_ready_for_ai": "تم تحديد صورة الوصفة وهي جاهزة للتحليل بالذكاء الاصطناعي"
+  "prescription_ready_for_ai": "تم تحديد صورة الوصفة وهي جاهزة للتحليل بالذكاء الاصطناعي",
+  "rx_summary_title": "ملخص وصفتك الطبية",
+  "rx_verified_badge": "تم التحقق من المعلومات بالذكاء الاصطناعي",
+  "rx_needs_nurse_section": "يتطلب زيارة ممرض:",
+  "rx_self_administered_section": "تتناوله بنفسك (بدون تكلفة):",
+  "rx_service_cost_label": "تكلفة الخدمة:",
+  "rx_no_nurse_needed": "لا يتطلب ممرض",
+  "rx_free_badge": "مجاني",
+  "rx_transport_fee": "أجور تنقل الممرض:",
+  "rx_total_cost": "التكلفة الإجمالية:",
+  "rx_confirm_and_call_nurse": "تأكيد واستدعاء الممرض",
+  "rx_self_use_note": "هذه الأدوية تتناولها بنفسك ولا تضيف أي تكلفة تمريض إلى طلبك.",
+  "rx_analyzing_prescription": "يقوم الذكاء الاصطناعي بتحليل وتصنيف الأدوية والخدمات..."
 }

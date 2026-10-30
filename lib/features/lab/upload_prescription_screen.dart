@@ -11,7 +11,7 @@ import '../../core/utils/currency.dart';
 import '../../core/utils/localization_extensions.dart';
 import '../../core/providers/cart_provider.dart';
 import '../checkout/checkout_details_screen.dart';
-import '../ai_assistant/ai_symptom_checker_screen.dart';
+import 'prescription_ai_summary_screen.dart';
 
 class UploadPrescriptionScreen extends StatefulWidget {
   final String serviceType; // 'lab' or 'nursing'
@@ -1997,18 +1997,46 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                       ),
                       onPressed: () {
                         if (_imageFile == null) {
-                          _pickImage();
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AiSymptomCheckerScreen(
-                                initialMode: widget.serviceType,
-                                initialImage: _imageFile,
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: const Color(0xFFEF4444),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              content: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.info_outline_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'please_upload_image_first'.tr(),
+                                      style: const TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 13.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           );
+                          return;
                         }
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PrescriptionAiSummaryScreen(
+                              prescriptionImage: _imageFile!,
+                              serviceType: widget.serviceType,
+                            ),
+                          ),
+                        );
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,

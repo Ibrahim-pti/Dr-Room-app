@@ -1049,5 +1049,17 @@
   "ai_feature_extract_meds": "Extract medication names & dosages",
   "ai_feature_usage_instructions": "Usage guidelines & precautions",
   "ai_feature_instant_results": "Fast & accurate results in seconds",
-  "prescription_ready_for_ai": "Prescription image is ready for AI analysis"
+  "prescription_ready_for_ai": "Prescription image is ready for AI analysis",
+  "rx_summary_title": "Prescription Summary",
+  "rx_verified_badge": "Information Verified by AI",
+  "rx_needs_nurse_section": "Requires Nurse Visit:",
+  "rx_self_administered_section": "Self-Administered (Free):",
+  "rx_service_cost_label": "Service Cost:",
+  "rx_no_nurse_needed": "No nurse needed",
+  "rx_free_badge": "Free",
+  "rx_transport_fee": "Nurse Transportation Fee:",
+  "rx_total_cost": "Total Cost:",
+  "rx_confirm_and_call_nurse": "Confirm & Call Nurse",
+  "rx_self_use_note": "These medications are taken by yourself and add zero nursing cost to your order.",
+  "rx_analyzing_prescription": "AI is analyzing and categorizing medications and services..."
 }

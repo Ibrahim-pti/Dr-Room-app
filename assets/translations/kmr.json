@@ -1046,5 +1046,17 @@
   "ai_feature_extract_meds": "دەرئینانا ناڤێن دەرمانان و ژەمێن وان",
   "ai_feature_usage_instructions": "ڕێنمایی و چاوانییا بكارئینانێ",
   "ai_feature_instant_results": "شرۆڤەکرنا لەزگین و دروست د چەند چڕکاندا",
-  "prescription_ready_for_ai": "وێنەیێ ڕەچەتەیێ هاتییە دیاریکرن و ئامادەیە بۆ شرۆڤەکرنێ ب AI"
+  "prescription_ready_for_ai": "وێنەیێ ڕەچەتەیێ هاتییە دیاریکرن و ئامادەیە بۆ شرۆڤەکرنێ ب AI",
+  "rx_summary_title": "پوختەیا ڕەچەتەیا تە",
+  "rx_verified_badge": "زانیاری هاتینە پشتڕاستکرن ب AI",
+  "rx_needs_nurse_section": "پێدڤی ب سەرەدانا پەرستاری دکەت:",
+  "rx_self_administered_section": "تۆ بخۆ بكاردئینی (بێ تێچوون):",
+  "rx_service_cost_label": "تێچوونا خزمەتگوزاریێ:",
+  "rx_no_nurse_needed": "پێدڤی ب پەرستاری ناکەت",
+  "rx_free_badge": "بێ تێچوون",
+  "rx_transport_fee": "کرێیا هاتنوچوونا پەرستاری:",
+  "rx_total_cost": "کۆیا گشتی یا تێچوونێ:",
+  "rx_confirm_and_call_nurse": "پەسەندکرن و داخوازکرنا پەرستاری",
+  "rx_self_use_note": "ئەڤ دەرمانە دێ بخۆ بكارئینی و چ تێچوونا پەرستاری ناهێتە سەر داخوازیا تە.",
+  "rx_analyzing_prescription": "ژیرییا دەستکرد مژویلی شرۆڤەکرن و جوداکرنا دەرمان و خزمەتگوزارییانە..."
 }

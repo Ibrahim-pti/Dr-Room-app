@@ -1049,5 +1049,17 @@
   "ai_feature_extract_meds": "دەرهێنانی ناوی دەرمانەکان و بڕی بەکارهێنان",
   "ai_feature_usage_instructions": "ڕێنمایی و چۆنیەتی بەکارهێنانی دروست",
   "ai_feature_instant_results": "شیکردنەوەی خێرا و وورد لە چەند چرکەیەکدا",
-  "prescription_ready_for_ai": "وێنەی ڕەچەتە دیاریکراوە و ئامادەیە بۆ شیکردنەوە بە AI"
+  "prescription_ready_for_ai": "وێنەی ڕەچەتە دیاریکراوە و ئامادەیە بۆ شیکردنەوە بە AI",
+  "rx_summary_title": "پوختەی ڕەچەتەکەت",
+  "rx_verified_badge": "زانیارییەکان بە AI پشتڕاست کراونەتەوە",
+  "rx_needs_nurse_section": "پێویست بە سەردانی پەرستار دەکات:",
+  "rx_self_administered_section": "خۆت بەکاری دەهێنیت (بێ تێچوو):",
+  "rx_service_cost_label": "تێچووی خزمەتگوزاری:",
+  "rx_no_nurse_needed": "پێویست بە پەرستار ناکات",
+  "rx_free_badge": "بێ تێچوو",
+  "rx_transport_fee": "کرێی هاتووچۆی پەرستار:",
+  "rx_total_cost": "کۆی گشتی تێچوو:",
+  "rx_confirm_and_call_nurse": "پەسەندکردن و بانگکردنی پەرستار",
+  "rx_self_use_note": "ئەم دەرمانانە خۆت بەکاریان دەهێنیت و هیچ تێچوویەکی پەرستاری ناخەنە سەر داواکارییەکەت.",
+  "rx_analyzing_prescription": "AI خەریکی شیکردنەوە و جیاکردنەوەی دەرمان و خزمەتگوزارییەکانە..."
 }
