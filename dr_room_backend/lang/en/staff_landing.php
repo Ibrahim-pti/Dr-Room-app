@@ -58,3 +58,4 @@ return [
     'terms' => 'Terms of Service',
     'back_to_main' => 'Back to Main Website',
 ];
+
