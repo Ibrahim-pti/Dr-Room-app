@@ -523,6 +523,18 @@ class _LabHubScreenState extends State<LabHubScreen> {
     );
   }
 
+  void _decrementTestInCart(Map<String, dynamic> test) {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    final id = test['id'].toString();
+    final currentQty = cart.getItemQuantity(id);
+    if (currentQty > 1) {
+      cart.decrementItem(id);
+      setState(() {});
+    } else {
+      _removeTestFromCart(test);
+    }
+  }
+
   void _removePackageFromCart(Map<String, dynamic> pkg) {
     final cart = Provider.of<CartProvider>(context, listen: false);
     cart.removeItem(pkg['id'].toString());
@@ -836,6 +848,74 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                   ],
                                 ),
                               ),
+                              if (!isStaff) ...[
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      InkWell(
+                                        borderRadius: const BorderRadius.horizontal(right: Radius.circular(7)),
+                                        onTap: () {
+                                          cart.decrementItem(item.id);
+                                          setState(() {});
+                                        },
+                                        child: const Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                          child: Icon(
+                                            Icons.remove_rounded,
+                                            size: 15,
+                                            color: Color(0xFFEF4444),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                                        child: Text(
+                                          '${item.quantity}',
+                                          style: const TextStyle(
+                                            fontFamily: 'Rabar',
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF10B981),
+                                          ),
+                                        ),
+                                      ),
+                                      InkWell(
+                                        borderRadius: const BorderRadius.horizontal(left: Radius.circular(7)),
+                                        onTap: () {
+                                          cart.addItem(
+                                            CartItem(
+                                              id: item.id,
+                                              name: item.name,
+                                              price: item.price,
+                                              quantity: 1,
+                                              extraData: item.extraData,
+                                            ),
+                                          );
+                                          setState(() {});
+                                        },
+                                        child: const Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                          child: Icon(
+                                            Icons.add_rounded,
+                                            size: 15,
+                                            color: Color(0xFF2563EB),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                              ],
                               IconButton(
                                 tooltip: 'cancel_selection'.tr(),
                                 icon: const Icon(
@@ -1528,9 +1608,9 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                 context,
                                 listen: false,
                               );
-                              final isTestInCart = cart.items.any(
-                                (item) => item.id == t['id'].toString(),
-                              );
+                              final testId = t['id'].toString();
+                              final itemQty = cart.getItemQuantity(testId);
+                              final isTestInCart = itemQty > 0;
 
                               return Container(
                                 padding: const EdgeInsets.all(14),
@@ -1604,21 +1684,64 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 6),
+                                        const SizedBox(width: 8),
                                         isTestInCart
-                                            ? IconButton(
-                                                constraints: const BoxConstraints(),
-                                                padding: const EdgeInsets.all(4),
-                                                tooltip: 'cancel_selection'.tr(),
-                                                icon: const Icon(
-                                                  Icons.remove_circle_rounded,
-                                                  color: Color(0xFFEF4444),
-                                                  size: 22,
+                                            ? Container(
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(
+                                                    color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                                                    width: 1,
+                                                  ),
                                                 ),
-                                                onPressed: () {
-                                                  _removeTestFromCart(t);
-                                                  setModalState(() {});
-                                                },
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    InkWell(
+                                                      borderRadius: const BorderRadius.horizontal(right: Radius.circular(9)),
+                                                      onTap: () {
+                                                        _decrementTestInCart(t);
+                                                        setModalState(() {});
+                                                      },
+                                                      child: const Padding(
+                                                        padding: EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                                                        child: Icon(
+                                                          Icons.remove_rounded,
+                                                          size: 16,
+                                                          color: Color(0xFFEF4444),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                                                      child: Text(
+                                                        '$itemQty',
+                                                        style: const TextStyle(
+                                                          fontFamily: 'Rabar',
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Color(0xFF10B981),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    InkWell(
+                                                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(9)),
+                                                      onTap: () {
+                                                        _addTestToCart(t);
+                                                        setModalState(() {});
+                                                      },
+                                                      child: const Padding(
+                                                        padding: EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                                                        child: Icon(
+                                                          Icons.add_rounded,
+                                                          size: 16,
+                                                          color: Color(0xFF2563EB),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               )
                                             : IconButton(
                                                 constraints: const BoxConstraints(),
@@ -1627,7 +1750,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                                                 icon: const Icon(
                                                   Iconsax.add_circle,
                                                   color: Color(0xFF2563EB),
-                                                  size: 22,
+                                                  size: 24,
                                                 ),
                                                 onPressed: () {
                                                   _addTestToCart(t);
@@ -1655,28 +1778,46 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       ),
                       child: Row(
                         children: [
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 11,
-                                  color: Color(0xFF64748B),
-                                ),
+                          InkWell(
+                            onTap: _showSelectedItemsModal,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 11,
+                                          color: Color(0xFF64748B),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      const Icon(
+                                        Icons.keyboard_arrow_up_rounded,
+                                        size: 14,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    Currency.format(cart.total),
+                                    style: const TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF10B981),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                Currency.format(cart.total),
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF10B981),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                           const Spacer(),
                           OutlinedButton.icon(
@@ -2144,28 +2285,46 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       ),
                       child: Row(
                         children: [
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 11,
-                                  color: Color(0xFF64748B),
-                                ),
+                          InkWell(
+                            onTap: _showSelectedItemsModal,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 11,
+                                          color: Color(0xFF64748B),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      const Icon(
+                                        Icons.keyboard_arrow_up_rounded,
+                                        size: 14,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    Currency.format(cart.total),
+                                    style: const TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF10B981),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                Currency.format(cart.total),
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF10B981),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                           const Spacer(),
                           OutlinedButton.icon(
@@ -2256,7 +2415,6 @@ class _LabHubScreenState extends State<LabHubScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
-    final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
       backgroundColor: bg,
@@ -2480,143 +2638,6 @@ class _LabHubScreenState extends State<LabHubScreen> {
         ),
       ),
 
-      // ── Bottom Cart Floater if Cart has items ──
-      bottomNavigationBar: cart.items.isNotEmpty
-          ? Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-                  child: Row(
-                    children: [
-                      InkWell(
-                        onTap: _showSelectedItemsModal,
-                        borderRadius: BorderRadius.circular(10),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
-                                    style: const TextStyle(
-                                      fontFamily: 'Rabar',
-                                      fontSize: 11,
-                                      color: Color(0xFF64748B),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 3),
-                                  const Icon(
-                                    Icons.keyboard_arrow_up_rounded,
-                                    size: 14,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                Currency.format(cart.total),
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF10B981),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFEF4444),
-                          side: BorderSide(
-                            color: const Color(0xFFEF4444).withValues(alpha: 0.35),
-                          ),
-                          backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 10,
-                          ),
-                        ),
-                        onPressed: _confirmCancelSelection,
-                        icon: const Icon(
-                          Icons.close_rounded,
-                          size: 15,
-                          color: Color(0xFFEF4444),
-                        ),
-                        label: Text(
-                          'cancel_selection'.tr(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFEF4444),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          elevation: 0,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const CheckoutDetailsScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(
-                          Iconsax.arrow_right_3,
-                          size: 15,
-                          color: Colors.white,
-                        ),
-                        label: Text(
-                          'lab_hub_continue'.tr(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-          : null,
     );
   }
 

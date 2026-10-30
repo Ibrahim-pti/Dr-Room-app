@@ -26,7 +26,7 @@ class CartItem {
 
 class CartProvider extends ChangeNotifier {
   String? _serviceType; // 'lab', 'pharmacy', 'nursing'
-  List<CartItem> _items = [];
+  final List<CartItem> _items = [];
   double _extraFee = 0.0;
   
   // Patient details stored temporarily during checkout
@@ -69,6 +69,50 @@ class CartProvider extends ChangeNotifier {
   void removeItem(String id) {
     _items.removeWhere((item) => item.id == id);
     notifyListeners();
+  }
+
+  int getItemQuantity(String id) {
+    final index = _items.indexWhere((i) => i.id == id);
+    if (index >= 0) {
+      return _items[index].quantity;
+    }
+    return 0;
+  }
+
+  void updateQuantity(String id, int quantity) {
+    final index = _items.indexWhere((i) => i.id == id);
+    if (index >= 0) {
+      if (quantity <= 0) {
+        _items.removeAt(index);
+      } else {
+        _items[index] = CartItem(
+          id: _items[index].id,
+          name: _items[index].name,
+          price: _items[index].price,
+          quantity: quantity,
+          extraData: _items[index].extraData,
+        );
+      }
+      notifyListeners();
+    }
+  }
+
+  void decrementItem(String id) {
+    final index = _items.indexWhere((i) => i.id == id);
+    if (index >= 0) {
+      if (_items[index].quantity > 1) {
+        _items[index] = CartItem(
+          id: _items[index].id,
+          name: _items[index].name,
+          price: _items[index].price,
+          quantity: _items[index].quantity - 1,
+          extraData: _items[index].extraData,
+        );
+      } else {
+        _items.removeAt(index);
+      }
+      notifyListeners();
+    }
   }
 
   void setPatientDetails(Map<String, dynamic> details) {
