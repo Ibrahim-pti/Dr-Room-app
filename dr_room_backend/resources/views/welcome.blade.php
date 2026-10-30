@@ -120,6 +120,12 @@
         body {
             font-family: 'Noto Kufi Arabic', 'Plus Jakarta Sans', sans-serif;
             -webkit-font-smoothing: antialiased;
+            line-height: 1.75;
+        }
+
+        /* Kurdish & Arabic Typography: Prevent letters from colliding */
+        html[dir="rtl"], [dir="rtl"], [dir="rtl"] * {
+            letter-spacing: 0 !important;
         }
 
         .gradient-text {
@@ -127,6 +133,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
+            padding: 0.1em 0;
         }
 
         .phone-bezel {
@@ -168,8 +175,8 @@
                 <a href="/" class="flex-shrink-0 flex items-center gap-3 group">
                     <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl border border-slate-200 group-hover:scale-105 transition-transform duration-200 object-contain p-1 bg-white">
                     <div class="flex flex-col">
-                        <span class="text-xl font-black text-slate-900 tracking-tight leading-none">Dr<span class="text-[#1e60eb]">Room</span></span>
-                        <span class="text-[10px] text-slate-400 font-semibold mt-1 leading-none hidden sm:block">{{ __('landing.subtitle') }}</span>
+                        <span class="text-xl font-black text-slate-900 leading-tight">Dr<span class="text-[#1e60eb]">Room</span></span>
+                        <span class="text-[10px] text-slate-400 font-semibold mt-1 leading-normal hidden sm:block">{{ __('landing.subtitle') }}</span>
                     </div>
                 </a>
 
@@ -277,7 +284,7 @@
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                     </span>
-                    <h3 class="text-xs sm:text-sm font-black text-slate-800 tracking-tight">
+                    <h3 class="text-xs sm:text-sm font-black text-slate-800 leading-normal">
                         {{ __('landing.registered_labs') }}
                     </h3>
                     <span class="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -327,7 +334,7 @@
                     </div>
 
                     <!-- Headline with Kurdish Typography -->
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] font-black text-slate-900 flex flex-col gap-4 sm:gap-5 md:gap-6 mb-6 tracking-tight leading-[1.5]">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-black text-slate-900 flex flex-col gap-4 sm:gap-6 md:gap-7 mb-8 leading-[1.6]">
                         <span class="block">{{ __('landing.hero_title_1') }}</span>
                         <span class="block py-1 sm:py-2">
                             <span class="gradient-text">{{ __('landing.hero_title_2') }}</span>
@@ -336,7 +343,7 @@
                     </h1>
                     
                     <!-- Description -->
-                    <p class="text-base sm:text-lg text-slate-600 mb-8 max-w-xl leading-relaxed font-medium">
+                    <p class="text-base sm:text-lg text-slate-600 mb-8 max-w-xl leading-[1.85] font-medium">
                         {{ __('landing.hero_desc') }}
                     </p>
 
@@ -345,18 +352,18 @@
                         <!-- Google Play Button -->
                         <a href="#download" @click.prevent="showDownloadModal = true" class="flex-1 bg-slate-950 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-medium transition flex items-center justify-center gap-3 group border border-slate-800">
                             <svg class="w-6 h-6 text-emerald-400 flex-shrink-0 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a2.023 2.023 0 01-.61-1.45V3.264c0-.56.22-1.07.609-1.45zm11.602 11.602L18.49 10.13a2.012 2.012 0 000-3.26l-3.279-3.286-4.526 4.526 4.526 4.526zm-9.336 9.336l9.336-9.336-3.818-3.818-9.845 9.845c.87.87 2.37.87 4.327 3.309zm9.336-18.672L5.875 3.416C3.918 5.855 2.418 5.855 1.548 6.725l9.845 9.845 3.818-3.818z"/></svg>
-                            <div class="text-start leading-tight">
-                                <div class="text-[10px] text-slate-400 font-normal">{{ __('landing.download_android') }}</div>
-                                <div class="text-sm font-extrabold">{{ __('landing.android') }}</div>
+                            <div class="text-start flex flex-col gap-0.5">
+                                <div class="text-[10px] text-slate-400 font-normal leading-normal">{{ __('landing.download_android') }}</div>
+                                <div class="text-sm font-extrabold leading-normal">{{ __('landing.android') }}</div>
                             </div>
                         </a>
                         
                         <!-- iOS App Store Button -->
                         <a href="#download" @click.prevent="showDownloadModal = true" class="flex-1 bg-[#1e60eb] hover:bg-blue-700 text-white px-5 py-3.5 rounded-2xl font-medium transition border border-blue-500 flex items-center justify-center gap-3 group">
                             <svg class="w-6 h-6 flex-shrink-0 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 1.01-2.85-.9.04-2.03.62-2.68 1.38-.58.67-.99 1.74-.96 2.81 1.01.08 2.01-.59 2.63-1.34z"/></svg>
-                            <div class="text-start leading-tight">
-                                <div class="text-[10px] text-blue-200 font-normal">{{ __('landing.download_ios') }}</div>
-                                <div class="text-sm font-extrabold">{{ __('landing.ios') }}</div>
+                            <div class="text-start flex flex-col gap-0.5">
+                                <div class="text-[10px] text-blue-200 font-normal leading-normal">{{ __('landing.download_ios') }}</div>
+                                <div class="text-sm font-extrabold leading-normal">{{ __('landing.ios') }}</div>
                             </div>
                         </a>
                     </div>
@@ -370,9 +377,9 @@
                         <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#1e60eb] flex items-center justify-center text-lg font-bold border border-blue-100">
                             🩺
                         </div>
-                        <div>
-                            <div class="text-[11px] font-black text-slate-900">ڕاوێژی پزیشکی بەخۆڕایی</div>
-                            <div class="text-[10px] text-[#1e60eb] font-bold">Free Virtual Consultation</div>
+                        <div class="flex flex-col gap-1">
+                            <div class="text-[11px] font-black text-slate-900 leading-normal">ڕاوێژی پزیشکی بەخۆڕایی</div>
+                            <div class="text-[10px] text-[#1e60eb] font-bold leading-normal">Free Virtual Consultation</div>
                         </div>
                     </div>
 
@@ -381,9 +388,9 @@
                         <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg font-bold border border-purple-100">
                             🤖
                         </div>
-                        <div>
-                            <div class="text-[11px] font-black text-slate-900">سکانەری زیرەکی دەرمان</div>
-                            <div class="text-[10px] text-purple-600 font-bold">دروستی ٩٩.٤٪ بە کامێرای ئەپ</div>
+                        <div class="flex flex-col gap-1">
+                            <div class="text-[11px] font-black text-slate-900 leading-normal">سکانەری زیرەکی دەرمان</div>
+                            <div class="text-[10px] text-purple-600 font-bold leading-normal">دروستی ٩٩.٤٪ بە کامێرای ئەپ</div>
                         </div>
                     </div>
 
@@ -405,9 +412,9 @@
     <section id="services" class="py-20 bg-white border-b border-slate-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <div class="mb-12">
+            <div class="mb-14">
                 <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">{{ __('landing.our_services') }}</span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-3 tracking-tight">{{ __('landing.our_services') }}</h2>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 leading-[1.5]">{{ __('landing.our_services') }}</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -418,8 +425,8 @@
                         <div class="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             🧪
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.lab_tests') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.lab_desc') }}</p>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.lab_tests') }}</h3>
+                        <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.lab_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-sky-50 text-sky-700 border border-sky-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.available_home') }}</span>
@@ -432,8 +439,8 @@
                         <div class="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             👩‍⚕️
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.nursing') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.nursing_desc') }}</p>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.nursing') }}</h3>
+                        <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.nursing_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-teal-50 text-teal-700 border border-teal-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.fast_booking') }}</span>
@@ -446,8 +453,8 @@
                         <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#1e60eb] border border-blue-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             👨‍⚕️
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.doctor') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.doctor_desc') }}</p>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.doctor') }}</h3>
+                        <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.doctor_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-blue-50 text-blue-700 border border-blue-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.fast_booking') }}</span>
@@ -460,8 +467,8 @@
                         <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             💊
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.pharmacy') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.pharmacy_desc') }}</p>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.pharmacy') }}</h3>
+                        <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.pharmacy_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-rose-50 text-rose-700 border border-rose-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.instant_delivery') }}</span>
@@ -474,8 +481,8 @@
                         <div class="w-14 h-14 rounded-2xl bg-cyan-50 text-cyan-600 border border-cyan-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             🩻
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.xray') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.xray_desc') }}</p>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.xray') }}</h3>
+                        <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.xray_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-cyan-50 text-cyan-700 border border-cyan-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.available_home') }}</span>
@@ -488,8 +495,8 @@
                         <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             📰
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-2">{{ __('landing.health_news') }}</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">{{ __('landing.health_news_desc') }}</p>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.health_news') }}</h3>
+                        <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.health_news_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
                         <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-extrabold px-3 py-1 rounded-xl">{{ __('landing.latest_articles') }}</span>
@@ -507,11 +514,11 @@
                 <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
                     {{ __('landing.app_showcase_tag') }}
                 </span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-3 tracking-tight">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5]">
                     <span>{{ __('landing.app_showcase_title') }}</span>
                     <span class="gradient-text">{{ __('landing.app_showcase_title_2') }}</span>
                 </h2>
-                <p class="text-slate-600 text-sm sm:text-base font-medium leading-relaxed">
+                <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.85]">
                     {{ __('landing.app_showcase_desc') }}
                 </p>
             </div>
@@ -558,10 +565,10 @@
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 text-[#1e60eb] text-xs font-black mb-4 border border-blue-200">
                             <span>🧪</span> {{ __('landing.screen_labs_tab') }}
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.5]">
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
                             {{ __('landing.screen_labs_title') }}
                         </h3>
-                        <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                        <p class="text-slate-600 text-sm sm:text-base leading-[1.85] mb-6 font-medium">
                             {{ __('landing.screen_labs_desc') }}
                         </p>
                         <div class="space-y-3">
@@ -593,10 +600,10 @@
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 text-[#1e60eb] text-xs font-black mb-4 border border-blue-200">
                             <span>👩‍⚕️</span> {{ __('landing.screen_nursing_tab') }}
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.5]">
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
                             {{ __('landing.screen_nursing_title') }}
                         </h3>
-                        <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                        <p class="text-slate-600 text-sm sm:text-base leading-[1.85] mb-6 font-medium">
                             {{ __('landing.screen_nursing_desc') }}
                         </p>
                         <div class="space-y-3">
@@ -628,10 +635,10 @@
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 text-[#1e60eb] text-xs font-black mb-4 border border-blue-200">
                             <span>📰</span> {{ __('landing.screen_firstaid_tab') }}
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.5]">
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
                             {{ __('landing.screen_firstaid_title') }}
                         </h3>
-                        <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                        <p class="text-slate-600 text-sm sm:text-base leading-[1.85] mb-6 font-medium">
                             {{ __('landing.screen_firstaid_desc') }}
                         </p>
                         <div class="space-y-3">
@@ -663,10 +670,10 @@
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-50 text-purple-700 text-xs font-black mb-4 border border-purple-200">
                             <span>🤖</span> سکانەری زیرەکی دەرمان
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.5]">
+                        <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
                             ناسینەوەی خێرای دەرمان و ڕەچەتە بە زیرەکی دەستکرد
                         </h3>
-                        <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                        <p class="text-slate-600 text-sm sm:text-base leading-[1.85] mb-6 font-medium">
                             تەنها کامێرای مۆبایلەکەت بگرە لە پاکەتی هەر دەرمانێک، ئەپەکە دەستبەجێ ناوی زانستی، بەکارهێنان و ڕێنمایی پزیشکی بە زمانی کوردی پێت دەڵێت.
                         </p>
                         <div class="space-y-3">
@@ -707,12 +714,12 @@
                 <div class="w-full lg:w-1/2">
                     <div class="text-[#1e60eb] font-extrabold tracking-wider text-xs mb-3 uppercase bg-blue-50 px-3.5 py-1.5 rounded-full inline-block border border-blue-200">{{ __('landing.about_tag') }}</div>
                     
-                    <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight leading-[1.3]">
+                    <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-5 leading-[1.5]">
                         <span>{{ __('landing.quality_care') }}</span>
                         <span class="gradient-text">{{ __('landing.can_trust') }}</span>
                     </h2>
                     
-                    <p class="text-slate-600 text-sm sm:text-base mb-8 leading-relaxed font-medium">
+                    <p class="text-slate-600 text-sm sm:text-base mb-8 leading-[1.85] font-medium">
                         {{ __('landing.about_desc') }}
                     </p>
 
@@ -722,8 +729,8 @@
                             <div class="w-12 h-12 bg-blue-50 text-[#1e60eb] rounded-2xl flex items-center justify-center text-2xl mb-4 border border-blue-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 🛡️
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2 tracking-tight">{{ __('landing.verified_prof') }}</h4>
-                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">{{ __('landing.verified_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-snug">{{ __('landing.verified_prof') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.verified_desc') }}</p>
                         </div>
 
                         <!-- Pillar 2 -->
@@ -731,8 +738,8 @@
                             <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-emerald-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 ⚡
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2 tracking-tight">{{ __('landing.fast_reliable') }}</h4>
-                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">{{ __('landing.fast_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-snug">{{ __('landing.fast_reliable') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.fast_desc') }}</p>
                         </div>
 
                         <!-- Pillar 3 -->
@@ -740,8 +747,8 @@
                             <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-purple-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 📱
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2 tracking-tight">{{ __('landing.easy_booking') }}</h4>
-                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">{{ __('landing.easy_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-snug">{{ __('landing.easy_booking') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.easy_desc') }}</p>
                         </div>
 
                         <!-- Pillar 4 -->
@@ -749,8 +756,8 @@
                             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-amber-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 🔒
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2 tracking-tight">{{ __('landing.secure_pay') }}</h4>
-                            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">{{ __('landing.secure_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-snug">{{ __('landing.secure_pay') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.secure_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -766,8 +773,8 @@
             <div class="flex flex-col lg:flex-row items-center justify-between gap-6 py-4">
                 <div>
                     <span class="text-blue-400 font-extrabold text-xs uppercase tracking-wider bg-blue-900/60 px-3 py-1 rounded-full border border-blue-500/30">{{ __('landing.staff_banner_tag') }}</span>
-                    <h3 class="text-xl sm:text-2xl font-black mt-3 mb-2">{{ __('landing.staff_banner_title') }}</h3>
-                    <p class="text-slate-400 text-xs sm:text-sm max-w-2xl leading-relaxed">{{ __('landing.staff_banner_desc') }}</p>
+                    <h3 class="text-xl sm:text-2xl font-black mt-3 mb-3 leading-[1.5]">{{ __('landing.staff_banner_title') }}</h3>
+                    <p class="text-slate-400 text-xs sm:text-sm max-w-2xl leading-[1.8]">{{ __('landing.staff_banner_desc') }}</p>
                 </div>
                 <a href="/staff" class="bg-[#1e60eb] hover:bg-blue-600 text-white font-extrabold text-xs sm:text-sm px-6 py-3.5 rounded-xl border border-blue-400 transition flex items-center gap-2 flex-shrink-0 active:scale-95">
                     <span>{{ __('landing.staff_banner_btn') }}</span>
@@ -785,23 +792,23 @@
                     <!-- Download CTA Side -->
                     <div class="w-full lg:w-3/5 p-8 sm:p-12 lg:p-14 text-white">
                         <span class="text-blue-200 font-extrabold text-xs uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full border border-white/20 mb-3 inline-block">دابەزاندنی ئەپڵیکەیشن</span>
-                        <h3 class="text-2xl sm:text-3xl lg:text-4xl font-black mb-3 leading-[1.4]">{{ __('landing.download_drroom') }}</h3>
-                        <p class="text-blue-100 text-sm sm:text-base max-w-md mb-8 leading-relaxed font-medium">{{ __('landing.get_best_exp') }}</p>
+                        <h3 class="text-2xl sm:text-3xl lg:text-4xl font-black mb-4 leading-[1.5]">{{ __('landing.download_drroom') }}</h3>
+                        <p class="text-blue-100 text-sm sm:text-base max-w-md mb-8 leading-[1.85] font-medium">{{ __('landing.get_best_exp') }}</p>
                         
                         <div class="flex flex-wrap gap-3">
                             <button @click="showDownloadModal = true" class="bg-black text-white px-5 py-3 rounded-2xl flex items-center gap-3 hover:bg-slate-900 transition border border-slate-800 active:scale-95">
                                 <svg class="w-6 h-6 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a2.023 2.023 0 01-.61-1.45V3.264c0-.56.22-1.07.609-1.45zm11.602 11.602L18.49 10.13a2.012 2.012 0 000-3.26l-3.279-3.286-4.526 4.526 4.526 4.526zm-9.336 9.336l9.336-9.336-3.818-3.818-9.845 9.845c.87.87 2.37.87 4.327 3.309zm9.336-18.672L5.875 3.416C3.918 5.855 2.418 5.855 1.548 6.725l9.845 9.845 3.818-3.818z"/></svg>
-                                <div class="text-start leading-tight">
-                                    <div class="text-[9px] text-slate-400 font-normal">{{ __('landing.get_on') }}</div>
-                                    <div class="text-xs font-extrabold">{{ __('landing.google_play') }}</div>
+                                <div class="text-start flex flex-col gap-0.5">
+                                    <div class="text-[9px] text-slate-400 font-normal leading-normal">{{ __('landing.get_on') }}</div>
+                                    <div class="text-xs font-extrabold leading-normal">{{ __('landing.google_play') }}</div>
                                 </div>
                             </button>
                             
                             <button @click="showDownloadModal = true" class="bg-black text-white px-5 py-3 rounded-2xl flex items-center gap-3 hover:bg-slate-900 transition border border-slate-800 active:scale-95">
                                 <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 1.01-2.85-.9.04-2.03.62-2.68 1.38-.58.67-.99 1.74-.96 2.81 1.01.08 2.01-.59 2.63-1.34z"/></svg>
-                                <div class="text-start leading-tight">
-                                    <div class="text-[9px] text-slate-400 font-normal">{{ __('landing.download_on') }}</div>
-                                    <div class="text-xs font-extrabold">{{ __('landing.app_store') }}</div>
+                                <div class="text-start flex flex-col gap-0.5">
+                                    <div class="text-[9px] text-slate-400 font-normal leading-normal">{{ __('landing.download_on') }}</div>
+                                    <div class="text-xs font-extrabold leading-normal">{{ __('landing.app_store') }}</div>
                                 </div>
                             </button>
                         </div>
@@ -824,30 +831,30 @@
             
             <div class="max-w-3xl mx-auto mb-14">
                 <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">{{ __('landing.how_works_title') }}</span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-3 mb-3 tracking-tight">{{ __('landing.how_works_title') }}</h2>
-                <p class="text-slate-600 text-sm sm:text-base font-medium">{{ __('landing.how_works_desc') }}</p>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5]">{{ __('landing.how_works_title') }}</h2>
+                <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.8]">{{ __('landing.how_works_desc') }}</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Step 1 -->
                 <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#1e60eb] font-black text-xl flex items-center justify-center mb-5 border border-blue-100">1</div>
-                    <h4 class="font-black text-slate-900 text-base mb-2">{{ __('landing.step_1') }}</h4>
-                    <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">{{ __('landing.step_1_desc') }}</p>
+                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-snug">{{ __('landing.step_1') }}</h4>
+                    <p class="text-slate-500 text-xs sm:text-sm leading-[1.8]">{{ __('landing.step_1_desc') }}</p>
                 </div>
                 
                 <!-- Step 2 -->
                 <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-2xl bg-[#1e60eb] text-white font-black text-xl flex items-center justify-center mb-5 border border-blue-600">2</div>
-                    <h4 class="font-black text-slate-900 text-base mb-2">{{ __('landing.step_2') }}</h4>
-                    <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">{{ __('landing.step_2_desc') }}</p>
+                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-snug">{{ __('landing.step_2') }}</h4>
+                    <p class="text-slate-500 text-xs sm:text-sm leading-[1.8]">{{ __('landing.step_2_desc') }}</p>
                 </div>
                 
                 <!-- Step 3 -->
                 <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 font-black text-xl flex items-center justify-center mb-5 border border-emerald-100">3</div>
-                    <h4 class="font-black text-slate-900 text-base mb-2">{{ __('landing.step_3') }}</h4>
-                    <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">{{ __('landing.step_3_desc') }}</p>
+                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-snug">{{ __('landing.step_3') }}</h4>
+                    <p class="text-slate-500 text-xs sm:text-sm leading-[1.8]">{{ __('landing.step_3_desc') }}</p>
                 </div>
             </div>
         </div>
@@ -858,8 +865,8 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">{{ __('landing.faq_title') }}</span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-3 mb-3 tracking-tight">{{ __('landing.faq_title') }}</h2>
-                <p class="text-slate-600 text-sm sm:text-base font-medium">{{ __('landing.faq_desc') }}</p>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5]">{{ __('landing.faq_title') }}</h2>
+                <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.8]">{{ __('landing.faq_desc') }}</p>
             </div>
             
             <div class="space-y-3">
@@ -869,7 +876,7 @@
                         <span>{{ __('landing.faq_1_q') }}</span>
                         <svg class="w-5 h-5 text-blue-600 transform transition-transform" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
-                    <p x-show="expanded" x-transition class="mt-3 text-slate-600 text-xs sm:text-sm leading-relaxed border-t border-slate-200/70 pt-3">{{ __('landing.faq_1_a') }}</p>
+                    <p x-show="expanded" x-transition class="mt-3 text-slate-600 text-xs sm:text-sm leading-[1.85] border-t border-slate-200/70 pt-3">{{ __('landing.faq_1_a') }}</p>
                 </div>
 
                 <!-- FAQ Item 2 -->
@@ -878,7 +885,7 @@
                         <span>{{ __('landing.faq_2_q') }}</span>
                         <svg class="w-5 h-5 text-blue-600 transform transition-transform" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
-                    <p x-show="expanded" x-transition class="mt-3 text-slate-600 text-xs sm:text-sm leading-relaxed border-t border-slate-200/70 pt-3" style="display: none;">{{ __('landing.faq_2_a') }}</p>
+                    <p x-show="expanded" x-transition class="mt-3 text-slate-600 text-xs sm:text-sm leading-[1.85] border-t border-slate-200/70 pt-3" style="display: none;">{{ __('landing.faq_2_a') }}</p>
                 </div>
 
                 <!-- FAQ Item 3 -->
@@ -887,7 +894,7 @@
                         <span>{{ __('landing.faq_3_q') }}</span>
                         <svg class="w-5 h-5 text-blue-600 transform transition-transform" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
-                    <p x-show="expanded" x-transition class="mt-3 text-slate-600 text-xs sm:text-sm leading-relaxed border-t border-slate-200/70 pt-3" style="display: none;">{{ __('landing.faq_3_a') }}</p>
+                    <p x-show="expanded" x-transition class="mt-3 text-slate-600 text-xs sm:text-sm leading-[1.85] border-t border-slate-200/70 pt-3" style="display: none;">{{ __('landing.faq_3_a') }}</p>
                 </div>
 
                 <!-- FAQ Item 4 -->
@@ -896,7 +903,7 @@
                         <span>{{ __('landing.faq_4_q') }}</span>
                         <svg class="w-5 h-5 text-blue-600 transform transition-transform" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
-                    <p x-show="expanded" x-transition class="mt-3 text-slate-600 text-xs sm:text-sm leading-relaxed border-t border-slate-200/70 pt-3" style="display: none;">{{ __('landing.faq_4_a') }}</p>
+                    <p x-show="expanded" x-transition class="mt-3 text-slate-600 text-xs sm:text-sm leading-[1.85] border-t border-slate-200/70 pt-3" style="display: none;">{{ __('landing.faq_4_a') }}</p>
                 </div>
             </div>
         </div>
@@ -912,8 +919,8 @@
                     <div class="flex items-center gap-3 mb-4">
                         <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-10 h-10 rounded-2xl border border-slate-200 p-1 object-contain">
                         <div>
-                            <div class="text-xl font-black text-slate-900 leading-none">Dr<span class="text-[#1e60eb]">Room</span></div>
-                            <p class="text-[10px] font-semibold text-slate-400 mt-1 leading-none">{{ __('landing.subtitle') }}</p>
+                            <div class="text-xl font-black text-slate-900 leading-tight">Dr<span class="text-[#1e60eb]">Room</span></div>
+                            <p class="text-[10px] font-semibold text-slate-400 mt-1 leading-normal">{{ __('landing.subtitle') }}</p>
                         </div>
                     </div>
                     
