@@ -123,17 +123,22 @@
             line-height: 1.75;
         }
 
-        /* Kurdish & Arabic Typography: Prevent letters from colliding */
+        /* Kurdish & Arabic Typography: Prevent letters from colliding and clipping */
         html[dir="rtl"], [dir="rtl"], [dir="rtl"] * {
             letter-spacing: 0 !important;
         }
 
+        /* Prevent Kurdish descenders and dots from getting chopped off */
+        h1, h2, h3, h4, h5, h6, p, span, a, button {
+            overflow: visible;
+        }
+
         .gradient-text {
-            background: linear-gradient(135deg, #1652f0 0%, #1e60eb 60%, #0284c7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #1e60eb !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            -webkit-background-clip: initial !important;
             display: inline-block;
-            padding: 0.1em 0;
         }
 
         .phone-bezel {
@@ -337,7 +342,7 @@
                     <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-black text-slate-900 flex flex-col gap-4 sm:gap-6 md:gap-7 mb-8 leading-[1.6]">
                         <span class="block">{{ __('landing.hero_title_1') }}</span>
                         <span class="block py-1 sm:py-2">
-                            <span class="gradient-text">{{ __('landing.hero_title_2') }}</span>
+                            <span class="text-[#1e60eb] inline-block overflow-visible pb-1">{{ __('landing.hero_title_2') }}</span>
                         </span>
                         <span class="block text-slate-950">{{ __('landing.hero_title_3') }}</span>
                     </h1>
@@ -425,7 +430,7 @@
                         <div class="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             🧪
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.lab_tests') }}</h3>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-normal overflow-visible pb-0.5">{{ __('landing.lab_tests') }}</h3>
                         <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.lab_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
@@ -439,7 +444,7 @@
                         <div class="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             👩‍⚕️
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.nursing') }}</h3>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-normal overflow-visible pb-0.5">{{ __('landing.nursing') }}</h3>
                         <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.nursing_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
@@ -453,7 +458,7 @@
                         <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#1e60eb] border border-blue-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             👨‍⚕️
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.doctor') }}</h3>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-normal overflow-visible pb-0.5">{{ __('landing.doctor') }}</h3>
                         <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.doctor_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
@@ -467,7 +472,7 @@
                         <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             💊
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.pharmacy') }}</h3>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-normal overflow-visible pb-0.5">{{ __('landing.pharmacy') }}</h3>
                         <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.pharmacy_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
@@ -481,7 +486,7 @@
                         <div class="w-14 h-14 rounded-2xl bg-cyan-50 text-cyan-600 border border-cyan-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             🩻
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.xray') }}</h3>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-normal overflow-visible pb-0.5">{{ __('landing.xray') }}</h3>
                         <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.xray_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
@@ -495,7 +500,7 @@
                         <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-3xl mb-5 group-hover:scale-105 transition-transform">
                             📰
                         </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-snug">{{ __('landing.health_news') }}</h3>
+                        <h3 class="text-lg font-black text-slate-900 mb-3 leading-normal overflow-visible pb-0.5">{{ __('landing.health_news') }}</h3>
                         <p class="text-slate-600 text-sm leading-[1.8] mb-6">{{ __('landing.health_news_desc') }}</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100 flex items-center">
@@ -516,7 +521,7 @@
                 </span>
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5]">
                     <span>{{ __('landing.app_showcase_title') }}</span>
-                    <span class="gradient-text">{{ __('landing.app_showcase_title_2') }}</span>
+                    <span class="text-[#1e60eb] inline-block overflow-visible pb-0.5">{{ __('landing.app_showcase_title_2') }}</span>
                 </h2>
                 <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.85]">
                     {{ __('landing.app_showcase_desc') }}
@@ -716,7 +721,7 @@
                     
                     <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-5 leading-[1.5]">
                         <span>{{ __('landing.quality_care') }}</span>
-                        <span class="gradient-text">{{ __('landing.can_trust') }}</span>
+                        <span class="text-[#1e60eb] inline-block overflow-visible pb-0.5">{{ __('landing.can_trust') }}</span>
                     </h2>
                     
                     <p class="text-slate-600 text-sm sm:text-base mb-8 leading-[1.85] font-medium">
@@ -729,7 +734,7 @@
                             <div class="w-12 h-12 bg-blue-50 text-[#1e60eb] rounded-2xl flex items-center justify-center text-2xl mb-4 border border-blue-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 🛡️
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-snug">{{ __('landing.verified_prof') }}</h4>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.verified_prof') }}</h4>
                             <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.verified_desc') }}</p>
                         </div>
 
@@ -738,7 +743,7 @@
                             <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-emerald-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 ⚡
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-snug">{{ __('landing.fast_reliable') }}</h4>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.fast_reliable') }}</h4>
                             <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.fast_desc') }}</p>
                         </div>
 
@@ -747,7 +752,7 @@
                             <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-purple-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 📱
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-snug">{{ __('landing.easy_booking') }}</h4>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.easy_booking') }}</h4>
                             <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.easy_desc') }}</p>
                         </div>
 
@@ -756,7 +761,7 @@
                             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-amber-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 🔒
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-snug">{{ __('landing.secure_pay') }}</h4>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.secure_pay') }}</h4>
                             <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.secure_desc') }}</p>
                         </div>
                     </div>
@@ -839,21 +844,21 @@
                 <!-- Step 1 -->
                 <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#1e60eb] font-black text-xl flex items-center justify-center mb-5 border border-blue-100">1</div>
-                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-snug">{{ __('landing.step_1') }}</h4>
+                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.step_1') }}</h4>
                     <p class="text-slate-500 text-xs sm:text-sm leading-[1.8]">{{ __('landing.step_1_desc') }}</p>
                 </div>
                 
                 <!-- Step 2 -->
                 <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-2xl bg-[#1e60eb] text-white font-black text-xl flex items-center justify-center mb-5 border border-blue-600">2</div>
-                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-snug">{{ __('landing.step_2') }}</h4>
+                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.step_2') }}</h4>
                     <p class="text-slate-500 text-xs sm:text-sm leading-[1.8]">{{ __('landing.step_2_desc') }}</p>
                 </div>
                 
                 <!-- Step 3 -->
                 <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 font-black text-xl flex items-center justify-center mb-5 border border-emerald-100">3</div>
-                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-snug">{{ __('landing.step_3') }}</h4>
+                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.step_3') }}</h4>
                     <p class="text-slate-500 text-xs sm:text-sm leading-[1.8]">{{ __('landing.step_3_desc') }}</p>
                 </div>
             </div>
