@@ -1041,5 +1041,9 @@
   "tab_select_lab": "دیاریکرنا تاقیگەهێ",
   "ai_prescription_title": "شرۆڤەکرنا زیرەک یا ڕەچەتێ ب AI",
   "ai_prescription_desc": "وێنەیێ ڕەچەتێ باربکە دا ژیرییا دەستکرد دەرمان و ڕێنمایان بۆ تە شرۆڤە بکەت.",
-  "start_ai_analysis_btn": "شرۆڤەکرنا ڕەچەتێ ب AI"
+  "start_ai_analysis_btn": "شرۆڤەکرنا ڕەچەتێ ب AI",
+  "upload_and_analyze_with_ai": "هەلبژارتنا وێنەی و شرۆڤەکرن ب AI",
+  "ai_feature_extract_meds": "دەرئینانا ناڤێن دەرمانان و ژەمێن وان",
+  "ai_feature_usage_instructions": "ڕێنمایی و چاوانییا بكارئینانێ",
+  "ai_feature_instant_results": "شرۆڤەکرنا لەزگین و دروست د چەند چڕکاندا"
 }

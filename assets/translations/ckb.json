@@ -1044,5 +1044,9 @@
   "tab_select_lab": "دیاریکردنی تاقیگە",
   "ai_prescription_title": "شیکردنەوەی زیرەکی ڕەچەتە بە AI",
   "ai_prescription_desc": "وێنەی ڕەچەتەکەت باربکە تا ژیری دەستکرد ناو و زانیاری دەرمانەکان و ڕێنماییەکانت بۆ شیکار بکات.",
-  "start_ai_analysis_btn": "شیکردنەوەی ڕەچەتە بە AI"
+  "start_ai_analysis_btn": "شیکردنەوەی ڕەچەتە بە AI",
+  "upload_and_analyze_with_ai": "هەڵبژاردنی وێنە و شیکردنەوە بە AI",
+  "ai_feature_extract_meds": "دەرهێنانی ناوی دەرمانەکان و بڕی بەکارهێنان",
+  "ai_feature_usage_instructions": "ڕێنمایی و چۆنیەتی بەکارهێنانی دروست",
+  "ai_feature_instant_results": "شیکردنەوەی خێرا و وورد لە چەند چرکەیەکدا"
 }

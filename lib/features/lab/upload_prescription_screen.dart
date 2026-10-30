@@ -459,6 +459,39 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     );
   }
 
+  Widget _buildAiFeatureRow(IconData icon, String text, bool isDark) {
+    return Row(
+      children: [
+        Container(
+          width: 26,
+          height: 26,
+          decoration: BoxDecoration(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: const Color(0xFF7C3AED),
+            size: 14,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+              height: 1.3,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSearchField(bool isDark, Color cardBg, Color borderColor) {
     return Container(
       decoration: BoxDecoration(
@@ -1506,20 +1539,21 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 18),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 48,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF7C3AED),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                elevation: 0,
-                              ),
-                              onPressed: () {
+                          const SizedBox(height: 16),
+
+                          // Bullet points of AI analysis features
+                          _buildAiFeatureRow(Icons.medication_rounded, 'ai_feature_extract_meds'.tr(), isDark),
+                          const SizedBox(height: 8),
+                          _buildAiFeatureRow(Icons.menu_book_rounded, 'ai_feature_usage_instructions'.tr(), isDark),
+                          const SizedBox(height: 8),
+                          _buildAiFeatureRow(Icons.offline_bolt_rounded, 'ai_feature_instant_results'.tr(), isDark),
+
+                          const SizedBox(height: 20),
+
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
                                 if (_imageFile == null) {
                                   _pickImage();
                                 } else {
@@ -1534,15 +1568,47 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                   );
                                 }
                               },
-                              icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-                              label: Text(
-                                _imageFile == null
-                                    ? 'tap_to_capture_or_upload'.tr()
-                                    : 'start_ai_analysis_btn'.tr(),
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                              borderRadius: BorderRadius.circular(16),
+                              child: Ink(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.auto_awesome_rounded,
+                                      size: 19,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        _imageFile == null
+                                            ? 'upload_and_analyze_with_ai'.tr()
+                                            : 'start_ai_analysis_btn'.tr(),
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          height: 1.25,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -1864,12 +1930,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF7C3AED),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -1890,16 +1955,27 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                           );
                         }
                       },
-                      icon: const Icon(Icons.auto_awesome_rounded, size: 20),
-                      label: Text(
-                        _imageFile == null
-                            ? 'tap_to_capture_or_upload'.tr()
-                            : 'start_ai_analysis_btn'.tr(),
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.auto_awesome_rounded, size: 20, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              _imageFile == null
+                                  ? 'upload_and_analyze_with_ai'.tr()
+                                  : 'start_ai_analysis_btn'.tr(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 1.25,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

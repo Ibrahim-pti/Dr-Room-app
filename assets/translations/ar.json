@@ -1044,5 +1044,9 @@
   "tab_select_lab": "تحديد المختبر",
   "ai_prescription_title": "التحليل الذكي للوصفة بالذكاء الاصطناعي",
   "ai_prescription_desc": "ارفع صورة الوصفة ليقوم الذكاء الاصطناعي باستخراج الأدوية والجرعات والإرشادات الطبية.",
-  "start_ai_analysis_btn": "تحليل الوصفة بالذكاء الاصطناعي"
+  "start_ai_analysis_btn": "تحليل الوصفة بالذكاء الاصطناعي",
+  "upload_and_analyze_with_ai": "اختيار صورة والتحليل بالذكاء الاصطناعي",
+  "ai_feature_extract_meds": "استخراج أسماء الأدوية والجرعات بدقة",
+  "ai_feature_usage_instructions": "إرشادات الاستخدام والتحذيرات الطبية",
+  "ai_feature_instant_results": "تحليل سريع ودقيق خلال ثوانٍ معدودة"
 }

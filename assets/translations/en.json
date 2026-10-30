@@ -1044,5 +1044,9 @@
   "tab_select_lab": "Select Lab",
   "ai_prescription_title": "AI Smart Prescription Analysis",
   "ai_prescription_desc": "Upload your prescription image to let AI extract medications, dosages, and medical instructions.",
-  "start_ai_analysis_btn": "Analyze Prescription with AI"
+  "start_ai_analysis_btn": "Analyze Prescription with AI",
+  "upload_and_analyze_with_ai": "Select Image & Analyze with AI",
+  "ai_feature_extract_meds": "Extract medication names & dosages",
+  "ai_feature_usage_instructions": "Usage guidelines & precautions",
+  "ai_feature_instant_results": "Fast & accurate results in seconds"
 }
