@@ -2034,6 +2034,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             builder: (_) => PrescriptionAiSummaryScreen(
                               prescriptionImage: _imageFile!,
                               serviceType: widget.serviceType,
+                              availableProviders: _providers,
+                              initialSelectedProvider: _selectedProvider,
                             ),
                           ),
                         );

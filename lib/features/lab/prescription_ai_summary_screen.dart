@@ -1,10 +1,14 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../../core/providers/cart_provider.dart';
+import '../../core/utils/api_client.dart';
 import '../../core/utils/currency.dart';
+import '../../core/utils/localization_extensions.dart';
 import '../checkout/checkout_details_screen.dart';
 import '../ai_assistant/services/ai_clinical_service.dart';
 
@@ -67,11 +71,15 @@ class SelfMedicationItem {
 class PrescriptionAiSummaryScreen extends StatefulWidget {
   final File prescriptionImage;
   final String serviceType;
+  final List<Map<String, dynamic>>? availableProviders;
+  final Map<String, dynamic>? initialSelectedProvider;
 
   const PrescriptionAiSummaryScreen({
     super.key,
     required this.prescriptionImage,
     this.serviceType = 'nursing',
+    this.availableProviders,
+    this.initialSelectedProvider,
   });
 
   @override
@@ -82,15 +90,20 @@ class PrescriptionAiSummaryScreen extends StatefulWidget {
 class _PrescriptionAiSummaryScreenState
     extends State<PrescriptionAiSummaryScreen> {
   bool _isAnalyzing = true;
+  bool _isLoadingNurses = false;
   final double _transportFee = 3000.0;
 
   List<NurseServiceItem> _nurseServices = [];
   List<SelfMedicationItem> _selfMedications = [];
 
+  List<Map<String, dynamic>> _nurses = [];
+  Map<String, dynamic>? _selectedNurse;
+
   @override
   void initState() {
     super.initState();
     _initDefaultItems();
+    _initNurses();
     _analyzePrescriptionWithAi();
   }
 
@@ -140,11 +153,91 @@ class _PrescriptionAiSummaryScreenState
     ];
   }
 
+  void _initNurses() {
+    if (widget.availableProviders != null &&
+        widget.availableProviders!.isNotEmpty) {
+      _nurses = List<Map<String, dynamic>>.from(widget.availableProviders!);
+      _selectedNurse = widget.initialSelectedProvider ?? _nurses.first;
+    } else {
+      _fetchNurses();
+    }
+  }
+
+  Future<void> _fetchNurses() async {
+    setState(() => _isLoadingNurses = true);
+    try {
+      List<dynamic> rawStaff = [];
+      final nursesRes = await ApiClient.get('/nurses');
+      if (nursesRes.statusCode == 200) {
+        final decoded = jsonDecode(nursesRes.body);
+        if (decoded is Map &&
+            decoded['nurses'] is List &&
+            (decoded['nurses'] as List).isNotEmpty) {
+          rawStaff = decoded['nurses'] as List;
+        } else if (decoded is Map &&
+            decoded['data'] is List &&
+            (decoded['data'] as List).isNotEmpty) {
+          rawStaff = decoded['data'] as List;
+        }
+      }
+
+      if (rawStaff.isEmpty) {
+        final staffRes = await ApiClient.get('/labs/staff');
+        if (staffRes.statusCode == 200) {
+          final decoded = jsonDecode(staffRes.body);
+          if (decoded is Map &&
+              decoded['data'] is List &&
+              (decoded['data'] as List).isNotEmpty) {
+            rawStaff = decoded['data'] as List;
+          }
+        }
+      }
+
+      if (rawStaff.isNotEmpty && mounted) {
+        setState(() {
+          _nurses = rawStaff.map((e) {
+            final s = Map<String, dynamic>.from(e);
+            return {
+              'id': s['id'].toString(),
+              'nurse_id': s['nurse_id']?.toString() ?? s['id'].toString(),
+              'name': s['name'] ?? '',
+              'name_en': s['name_en'] ?? s['name'] ?? '',
+              'name_ar': s['name_ar'] ?? s['name'] ?? '',
+              'title':
+                  s['title'] ?? s['specialty'] ?? 'nursing_verified_nurse'.tr(),
+              'title_en':
+                  s['title_en'] ?? s['specialty_en'] ?? 'Specialist Nurse',
+              'title_ar': s['title_ar'] ?? s['specialty_ar'] ?? 'ممرض معتمد',
+              'specialty':
+                  s['specialty'] ?? s['title'] ?? 'nursing_verified_nurse'.tr(),
+              'specialty_en':
+                  s['specialty_en'] ?? s['title_en'] ?? 'Specialist Nurse',
+              'specialty_ar':
+                  s['specialty_ar'] ?? s['title_ar'] ?? 'ممرض معتمد',
+              'city': s['city'] ?? '',
+              'rating': (s['rating'] as num?)?.toDouble() ?? 5.0,
+              'image': s['image'] ?? s['profile_image'] ?? s['image_path'],
+            };
+          }).toList();
+
+          if (_nurses.isNotEmpty && _selectedNurse == null) {
+            _selectedNurse = _nurses.first;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching nurses in summary: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingNurses = false);
+      }
+    }
+  }
+
   Future<void> _analyzePrescriptionWithAi() async {
     try {
       final currentLang = context.locale.languageCode;
-      final result =
-          await AiClinicalVisionService.instance.analyzeMedicalImage(
+      await AiClinicalVisionService.instance.analyzeMedicalImage(
         imageFile: widget.prescriptionImage,
         mode: 'medicine',
         userNote:
@@ -153,15 +246,6 @@ class _PrescriptionAiSummaryScreenState
             '2. Oral tablets, capsules, syrups taken by patient with zero fee.',
         language: currentLang,
       );
-
-      if (!mounted) return;
-
-      // If specific items detected, update titles with actual detected names
-      final activeIngredients = result['active_ingredient']?.toString() ?? '';
-      if (activeIngredients.isNotEmpty && activeIngredients.length > 3) {
-        // AI found specific clinical details
-        debugPrint('Prescription AI detected: $activeIngredients');
-      }
     } catch (e) {
       debugPrint('AI analysis completed with structured defaults: $e');
     } finally {
@@ -208,15 +292,38 @@ class _PrescriptionAiSummaryScreenState
       return;
     }
 
+    if (_selectedNurse == null && _nurses.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: Text(
+            'rx_please_select_nurse'.tr(),
+            style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
+          ),
+        ),
+      );
+      return;
+    }
+
     final cart = context.read<CartProvider>();
     cart.clearCart();
     cart.setServiceType('nursing', extraFee: _currentTransportFee);
+
+    final staffName = _selectedNurse?['name'] ?? '';
+    final staffId = _selectedNurse?['id'];
+    final nurseId = _selectedNurse?['nurse_id'] ?? staffId;
+    final staffTitle =
+        _selectedNurse?['specialty'] ?? _selectedNurse?['title'];
 
     for (final s in selected) {
       cart.addItem(
         CartItem(
           id: 'rx_${s.id}_${DateTime.now().millisecondsSinceEpoch}',
-          name: s.getLocalizedTitle(context.locale.languageCode),
+          name: '${s.getLocalizedTitle(context.locale.languageCode)} ($staffName)',
           price: s.cost,
           quantity: 1,
           extraData: {
@@ -224,6 +331,10 @@ class _PrescriptionAiSummaryScreenState
             'is_prescription': true,
             'service_type': 'nursing',
             'transport_fee': _currentTransportFee,
+            'staff_id': staffId,
+            'nurse_id': nurseId,
+            'staff_name': staffName,
+            'staff_title': staffTitle,
           },
         ),
       );
@@ -589,9 +700,108 @@ class _PrescriptionAiSummaryScreenState
                     ),
                   ),
 
+                  const SizedBox(height: 24),
+
+                  // ── 4. Select Nurse Section (👩‍⚕️ دەستنیشانکردنی پەرستار) ──
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Iconsax.user,
+                              color: Color(0xFF0D9488),
+                              size: 17,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'rx_select_nurse_section'.tr(),
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_selectedNurse != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'selected'.tr(),
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0D9488),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'rx_select_nurse_hint'.tr(),
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (_isLoadingNurses)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Color(0xFF0D9488),
+                        ),
+                      ),
+                    )
+                  else if (_nurses.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'no_staff_available'.tr(),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 13,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Column(
+                      children: _nurses.map((nurse) {
+                        return _buildNurseCard(nurse, isDark, borderColor, cardBg);
+                      }).toList(),
+                    ),
+
                   const SizedBox(height: 22),
 
-                  // ── 4. Transportation & Pricing Summary ──
+                  // ── 5. Transportation & Pricing Summary ──
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -726,6 +936,194 @@ class _PrescriptionAiSummaryScreenState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildNurseCard(Map<String, dynamic> nurse, bool isDark,
+      Color borderColor, Color cardBg) {
+    final isSelected = _selectedNurse?['id'] == nurse['id'];
+    final themeColor = const Color(0xFF0D9488);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            setState(() {
+              _selectedNurse = nurse;
+            });
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected ? themeColor : borderColor,
+                width: isSelected ? 1.8 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isSelected
+                      ? themeColor.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                _buildNurseAvatar(nurse, isDark, themeColor),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.localizedField(
+                          nurse,
+                          'name',
+                          fallback: nurse['name'] ?? '',
+                        ),
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              context.localizedField(
+                                nurse,
+                                'specialty',
+                                fallback: nurse['title'] ??
+                                    'nursing_verified_nurse'.tr(),
+                              ),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (nurse['city'] != null &&
+                              nurse['city'].toString().isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            const Icon(
+                              Iconsax.location,
+                              size: 11,
+                              color: Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              nurse['city'].toString(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 11,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? themeColor
+                        : (isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFE2E8F0)),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      isSelected ? Icons.check_rounded : null,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNurseAvatar(
+      Map<String, dynamic> nurse, bool isDark, Color themeColor) {
+    final imageRaw =
+        nurse['image'] ?? nurse['profile_image'] ?? nurse['image_path'];
+    final String imagePath =
+        (imageRaw != null && imageRaw.toString().trim().isNotEmpty)
+            ? imageRaw.toString().trim()
+            : '';
+
+    Widget avatarWidget;
+    if (imagePath.startsWith('assets/')) {
+      avatarWidget = Image.asset(
+        imagePath,
+        width: 46,
+        height: 46,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            _buildFallbackAvatar(isDark, themeColor),
+      );
+    } else if (imagePath.isNotEmpty) {
+      avatarWidget = Image.network(
+        ApiClient.getImageUrl(imagePath),
+        width: 46,
+        height: 46,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            _buildFallbackAvatar(isDark, themeColor),
+      );
+    } else {
+      avatarWidget = _buildFallbackAvatar(isDark, themeColor);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: 46,
+        height: 46,
+        child: avatarWidget,
+      ),
+    );
+  }
+
+  Widget _buildFallbackAvatar(bool isDark, Color themeColor) {
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        color: themeColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(
+        Iconsax.user,
+        color: themeColor,
+        size: 24,
       ),
     );
   }

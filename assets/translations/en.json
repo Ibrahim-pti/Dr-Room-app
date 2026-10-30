@@ -1061,5 +1061,8 @@
   "rx_total_cost": "Total Cost:",
   "rx_confirm_and_call_nurse": "Confirm & Call Nurse",
   "rx_self_use_note": "These medications are taken by yourself and add zero nursing cost to your order.",
-  "rx_analyzing_prescription": "AI is analyzing and categorizing medications and services..."
+  "rx_analyzing_prescription": "AI is analyzing and categorizing medications and services...",
+  "rx_select_nurse_section": "Select Nurse:",
+  "rx_select_nurse_hint": "Choose your preferred nurse to administer your prescription",
+  "rx_please_select_nurse": "Please select a nurse first"
 }
