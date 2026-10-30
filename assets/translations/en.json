@@ -1064,5 +1064,8 @@
   "rx_analyzing_prescription": "AI is analyzing and categorizing medications and services...",
   "rx_select_nurse_section": "Select Nurse:",
   "rx_select_nurse_hint": "Choose your preferred nurse to administer your prescription",
-  "rx_please_select_nurse": "Please select a nurse first"
+  "rx_please_select_nurse": "Please select a nurse first",
+  "rx_needs_center_section": "Requires Center Visit (Outside Home):",
+  "rx_view_nearby_centers_btn": "View Nearby Centers / Book Appointment",
+  "rx_center_explanation_note": "These scans cannot be performed at home and require visiting a medical imaging center. Their costs are separated from home nursing."
 }

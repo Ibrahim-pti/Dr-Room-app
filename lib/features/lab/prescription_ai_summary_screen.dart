@@ -11,6 +11,7 @@ import '../../core/utils/currency.dart';
 import '../../core/utils/localization_extensions.dart';
 import '../checkout/checkout_details_screen.dart';
 import '../ai_assistant/services/ai_clinical_service.dart';
+import 'all_labs_screen.dart';
 
 class NurseServiceItem {
   final String id;
@@ -68,6 +69,46 @@ class SelfMedicationItem {
   }
 }
 
+class CenterScanItem {
+  final String id;
+  final String title;
+  final String titleAr;
+  final String titleEn;
+  final String titleKmr;
+  final String subtitle;
+  final String subtitleAr;
+  final String subtitleEn;
+  final String subtitleKmr;
+  final IconData icon;
+
+  CenterScanItem({
+    required this.id,
+    required this.title,
+    required this.titleAr,
+    required this.titleEn,
+    required this.titleKmr,
+    required this.subtitle,
+    required this.subtitleAr,
+    required this.subtitleEn,
+    required this.subtitleKmr,
+    required this.icon,
+  });
+
+  String getLocalizedTitle(String lang) {
+    if (lang == 'ar') return titleAr;
+    if (lang == 'en') return titleEn;
+    if (lang == 'kmr') return titleKmr;
+    return title;
+  }
+
+  String getLocalizedSubtitle(String lang) {
+    if (lang == 'ar') return subtitleAr;
+    if (lang == 'en') return subtitleEn;
+    if (lang == 'kmr') return subtitleKmr;
+    return subtitle;
+  }
+}
+
 class PrescriptionAiSummaryScreen extends StatefulWidget {
   final File prescriptionImage;
   final String serviceType;
@@ -95,6 +136,7 @@ class _PrescriptionAiSummaryScreenState
 
   List<NurseServiceItem> _nurseServices = [];
   List<SelfMedicationItem> _selfMedications = [];
+  List<CenterScanItem> _centerScans = [];
 
   List<Map<String, dynamic>> _nurses = [];
   Map<String, dynamic>? _selectedNurse;
@@ -149,6 +191,33 @@ class _PrescriptionAiSummaryScreenState
         titleKmr: 'شرووب (Syrup)',
         subtitle: 'پێویست بە پەرستار ناکات',
         icon: Icons.liquor_rounded,
+      ),
+    ];
+
+    _centerScans = [
+      CenterScanItem(
+        id: 'ultrasound',
+        title: 'سۆنەر (Ultrasound)',
+        titleAr: 'سونار (Ultrasound)',
+        titleEn: 'Ultrasound Scan',
+        titleKmr: 'سۆنەر (Ultrasound)',
+        subtitle: 'پێویست بە سەنتەری تیشک و سۆنەر دەکات',
+        subtitleAr: 'يتطلب زيارة مركز الأشعة والسونار',
+        subtitleEn: 'Requires Radiology & Ultrasound Center',
+        subtitleKmr: 'پێدڤی ب سەنتەرێ تیشک و سۆنەرێ دکەت',
+        icon: Icons.health_and_safety_rounded,
+      ),
+      CenterScanItem(
+        id: 'chest_xray',
+        title: 'ئەشیعەی سنگی (Chest X-Ray)',
+        titleAr: 'أشعة الصدر (Chest X-Ray)',
+        titleEn: 'Chest X-Ray',
+        titleKmr: 'ئەشیعەیا سنگێ (Chest X-Ray)',
+        subtitle: 'پێویست بە سەنتەری تیشک دەکات',
+        subtitleAr: 'يتطلب زيارة مركز الأشعة والتصوير',
+        subtitleEn: 'Requires Radiology & Imaging Center',
+        subtitleKmr: 'پێدڤی ب سەنتەرێ تیشکێ دکەت',
+        icon: Icons.radio_button_checked_rounded,
       ),
     ];
   }
@@ -243,7 +312,8 @@ class _PrescriptionAiSummaryScreenState
         userNote:
             'Extract all prescription medications and split clearly into: '
             '1. Injections/IV fluids requiring nurse administration. '
-            '2. Oral tablets, capsules, syrups taken by patient with zero fee.',
+            '2. Oral tablets, capsules, syrups taken by patient with zero fee. '
+            '3. Radiology scans, ultrasound, or laboratory investigations requiring center visit.',
         language: currentLang,
       );
     } catch (e) {
@@ -254,6 +324,8 @@ class _PrescriptionAiSummaryScreenState
       }
     }
   }
+
+  bool get _hasNurseServices => _nurseServices.isNotEmpty;
 
   double get _servicesTotal {
     return _nurseServices
@@ -271,6 +343,15 @@ class _PrescriptionAiSummaryScreenState
 
   double get _totalCost {
     return _servicesTotal + _currentTransportFee;
+  }
+
+  void _openNearbyCentersScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AllLabsScreen(),
+      ),
+    );
   }
 
   void _proceedToCheckout() {
@@ -540,68 +621,73 @@ class _PrescriptionAiSummaryScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 22),
-
-                  // ── 2. Requires Nurse Visit Section (⚕️ پێویست بە سەردانی پەرستار دەکات) ──
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.medical_services_rounded,
-                          color: Color(0xFFEF4444),
-                          size: 17,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'rx_needs_nurse_section'.tr(),
-                        style: TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
-                        width: 1.4,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF7C3AED)
-                              .withValues(alpha: isDark ? 0.2 : 0.04),
-                          blurRadius: 12,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
+                  // ── 2. Requires Nurse Visit Section (Only if nurse medications exist) ──
+                  if (_hasNurseServices) ...[
+                    const SizedBox(height: 22),
+                    Row(
                       children: [
-                        for (int i = 0; i < _nurseServices.length; i++) ...[
-                          if (i > 0)
-                            Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: borderColor,
-                            ),
-                          _buildNurseServiceRow(_nurseServices[i], isDark, lang),
-                        ],
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color:
+                                const Color(0xFFEF4444).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.medical_services_rounded,
+                            color: Color(0xFFEF4444),
+                            size: 17,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'rx_needs_nurse_section'.tr(),
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
+                          ),
+                        ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 10),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
+                          width: 1.4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF7C3AED)
+                                .withValues(alpha: isDark ? 0.2 : 0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          for (int i = 0; i < _nurseServices.length; i++) ...[
+                            if (i > 0)
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: borderColor,
+                              ),
+                            _buildNurseServiceRow(
+                                _nurseServices[i], isDark, lang),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 22),
 
@@ -702,141 +788,163 @@ class _PrescriptionAiSummaryScreenState
 
                   const SizedBox(height: 24),
 
-                  // ── 4. Select Nurse Section (👩‍⚕️ دەستنیشانکردنی پەرستار) ──
+                  // ── 4. Requires Center Visit Section (🏥 پێویست بە سەردانی سەنتەر دەکات - دەرەوەی ماڵ) ──
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0D9488).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Iconsax.user,
-                              color: Color(0xFF0D9488),
-                              size: 17,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'rx_select_nurse_section'.tr(),
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                            ),
-                          ),
-                        ],
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.local_hospital_rounded,
+                          color: Color(0xFF0284C7),
+                          size: 17,
+                        ),
                       ),
-                      if (_selectedNurse != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0D9488).withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'selected'.tr(),
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0D9488),
-                            ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'rx_needs_center_section'.tr(),
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'rx_select_nurse_hint'.tr(),
-                    style: const TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 12,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
 
-                  if (_isLoadingNurses)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: Color(0xFF0D9488),
-                        ),
-                      ),
-                    )
-                  else if (_nurses.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: cardBg,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: borderColor),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'no_staff_available'.tr(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 13,
-                            color: Color(0xFF94A3B8),
-                          ),
-                        ),
-                      ),
-                    )
-                  else
-                    Column(
-                      children: _nurses.map((nurse) {
-                        return _buildNurseCard(nurse, isDark, borderColor, cardBg);
-                      }).toList(),
-                    ),
-
-                  const SizedBox(height: 22),
-
-                  // ── 5. Transportation & Pricing Summary ──
                   Container(
-                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: cardBg,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: borderColor),
+                      border: Border.all(
+                        color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                        width: 1.4,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0284C7)
+                              .withValues(alpha: isDark ? 0.2 : 0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Text(
-                                  '🚕 ',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                Text(
-                                  'rx_transport_fee'.tr(),
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 13.5,
-                                    color: isDark
-                                        ? const Color(0xFF94A3B8)
-                                        : const Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
+                        for (int i = 0; i < _centerScans.length; i++) ...[
+                          if (i > 0)
+                            Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: borderColor,
                             ),
+                          _buildCenterScanRow(_centerScans[i], isDark, lang),
+                        ],
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: Color(0xFF0284C7),
+                                  width: 1.5,
+                                ),
+                                foregroundColor: const Color(0xFF0284C7),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              onPressed: _openNearbyCentersScreen,
+                              icon: const Icon(Icons.calendar_month_rounded,
+                                  size: 18),
+                              label: Text(
+                                'rx_view_nearby_centers_btn'.tr(),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Center explanation notice (Separate from home nursing)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0284C7).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          color: Color(0xFF0284C7),
+                          size: 17,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'rx_center_explanation_note'.tr(),
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 12,
+                              color: isDark
+                                  ? const Color(0xFF38BDF8)
+                                  : const Color(0xFF0284C7),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ── 5. Select Nurse Section (👩‍⚕️ دەستنیشانکردنی پەرستار - Only if nurse services exist) ──
+                  if (_hasNurseServices) ...[
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0D9488)
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Iconsax.user,
+                                color: Color(0xFF0D9488),
+                                size: 17,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Text(
-                              Currency.format(_currentTransportFee),
+                              'rx_select_nurse_section'.tr(),
                               style: TextStyle(
                                 fontFamily: 'Rabar',
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: isDark
                                     ? Colors.white
@@ -845,53 +953,169 @@ class _PrescriptionAiSummaryScreenState
                             ),
                           ],
                         ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: Divider(height: 1),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Text(
-                                  '💰 ',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                Text(
-                                  'rx_total_cost'.tr(),
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ],
+                        if (_selectedNurse != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0D9488)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            Text(
-                              Currency.format(_totalCost),
+                            child: Text(
+                              'selected'.tr(),
                               style: const TextStyle(
                                 fontFamily: 'Rabar',
-                                fontSize: 17,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF0D9488),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'rx_select_nurse_hint'.tr(),
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    if (_isLoadingNurses)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            color: Color(0xFF0D9488),
+                          ),
+                        ),
+                      )
+                    else if (_nurses.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'no_staff_available'.tr(),
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 13,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      Column(
+                        children: _nurses.map((nurse) {
+                          return _buildNurseCard(
+                              nurse, isDark, borderColor, cardBg);
+                        }).toList(),
+                      ),
+
+                    const SizedBox(height: 22),
+
+                    // ── 6. Nurse Transportation & Home Pricing Summary ──
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text(
+                                    '🚕 ',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  Text(
+                                    'rx_transport_fee'.tr(),
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 13.5,
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                Currency.format(_currentTransportFee),
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: Divider(height: 1),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text(
+                                    '💰 ',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  Text(
+                                    'rx_total_cost'.tr(),
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                Currency.format(_totalCost),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0D9488),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 16),
                 ],
               ),
             ),
 
-      // ── Bottom Large Confirmation Button (🚑 پەسەندکردن و بانگکردنی پەرستار) ──
+      // ── Bottom Action Button (Either Nurse Confirmation or Center Booking) ──
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: cardBg,
@@ -910,29 +1134,50 @@ class _PrescriptionAiSummaryScreenState
             child: SizedBox(
               width: double.infinity,
               height: 54,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D9488),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                onPressed: _proceedToCheckout,
-                icon: const Text(
-                  '🚑',
-                  style: TextStyle(fontSize: 18),
-                ),
-                label: Text(
-                  'rx_confirm_and_call_nurse'.tr(),
-                  style: const TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              child: _hasNurseServices
+                  ? ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D9488),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: _proceedToCheckout,
+                      icon: const Text(
+                        '🚑',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      label: Text(
+                        'rx_confirm_and_call_nurse'.tr(),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  : ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0284C7),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: _openNearbyCentersScreen,
+                      icon: const Icon(Icons.calendar_month_rounded, size: 20),
+                      label: Text(
+                        'rx_view_nearby_centers_btn'.tr(),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
             ),
           ),
         ),
@@ -1261,6 +1506,83 @@ class _PrescriptionAiSummaryScreenState
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF10B981),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCenterScanRow(
+      CenterScanItem item, bool isDark, String lang) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              item.icon,
+              color: const Color(0xFF0284C7),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.getLocalizedTitle(lang),
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  item.getLocalizedSubtitle(lang),
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11.5,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.business_rounded,
+                  size: 13,
+                  color: Color(0xFF0284C7),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'cat_lab'.tr(),
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0284C7),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
