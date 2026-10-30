@@ -152,6 +152,25 @@ return [
     'screen_firstaid_f2' => 'Stay updated with the latest medical news & discoveries',
     'screen_firstaid_f3' => 'Dedicated categories for common conditions & prevention',
 
+    // AI Scanner Screen Showcase
+    'screen_aiscan_tab' => 'AI Medicine Scanner',
+    'screen_aiscan_badge' => 'AI Medicine Scanner',
+    'screen_aiscan_title' => 'Instant Medicine & Prescription Recognition via AI',
+    'screen_aiscan_desc' => 'Simply point your camera at any medicine packaging or prescription; the app instantly provides generic names, dosage instructions, and clinical precautions.',
+    'screen_aiscan_f1' => 'Scan medicine packages or handwritten doctor prescriptions',
+    'screen_aiscan_f2' => 'Clear dosage schedule, meal timing, and usage guidance',
+    'screen_aiscan_f3' => 'Smart drug-to-drug interaction warnings & allergy alerts',
+
+    // Hero Floating Badges & Action Tags
+    'free_consultation' => 'Free Virtual Consultation',
+    'free_consultation_sub' => 'With Certified Specialists',
+    'ai_scanner_pill' => 'AI Medicine Scanner',
+    'ai_scanner_pill_acc' => '99.4% Accuracy with App Camera',
+    'verified_badge' => '✓ Verified',
+    'login' => 'Login',
+    'staff_login' => 'Staff Portal Login',
+    'download_app_tag' => 'Download Application',
+
     // Testimonials
     'testimonials' => 'What Our Patients Say',
     'test_desc' => 'Real stories and reviews from patients across Kurdistan',

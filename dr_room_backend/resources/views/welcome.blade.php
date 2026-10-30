@@ -241,7 +241,7 @@
                 <div class="xl:hidden flex items-center gap-2">
                     <a href="/staff" class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200 flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <span>ستاف</span>
+                        <span>{{ __('landing.staff_short') }}</span>
                     </a>
                     <button @click="mobileMenuOpen = !mobileMenuOpen" class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 hover:text-slate-900 focus:outline-none">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -263,7 +263,7 @@
                 <a href="#faq" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-sm">{{ __('landing.faq') }}</a>
                 <a href="/staff" class="block px-4 py-2.5 text-blue-700 font-extrabold bg-blue-50 rounded-xl text-sm border border-blue-200 flex items-center justify-between">
                     <span>{{ __('landing.staff_portal') }}</span>
-                    <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-md">چوونەژوورەوە</span>
+                    <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-md">{{ __('landing.login') }}</span>
                 </a>
                 
                 <!-- Mobile Language Selector -->
@@ -313,7 +313,7 @@
                                     {{ $resolveLabName($labUser) }}
                                 </span>
                                 <span class="text-[10px] bg-blue-50 text-blue-600 font-bold px-1.5 py-0.5 rounded-md border border-blue-100">
-                                    ✓ باوەڕپێکراو
+                                    {{ __('landing.verified_badge') }}
                                 </span>
                             </div>
                         @endforeach
@@ -383,8 +383,8 @@
                             🩺
                         </div>
                         <div class="flex flex-col gap-1">
-                            <div class="text-[11px] font-black text-slate-900 leading-normal">ڕاوێژی پزیشکی بەخۆڕایی</div>
-                            <div class="text-[10px] text-[#1e60eb] font-bold leading-normal">Free Virtual Consultation</div>
+                            <div class="text-[11px] font-black text-slate-900 leading-normal">{{ __('landing.free_consultation') }}</div>
+                            <div class="text-[10px] text-[#1e60eb] font-bold leading-normal">{{ __('landing.free_consultation_sub') }}</div>
                         </div>
                     </div>
 
@@ -394,8 +394,8 @@
                             🤖
                         </div>
                         <div class="flex flex-col gap-1">
-                            <div class="text-[11px] font-black text-slate-900 leading-normal">سکانەری زیرەکی دەرمان</div>
-                            <div class="text-[10px] text-purple-600 font-bold leading-normal">دروستی ٩٩.٤٪ بە کامێرای ئەپ</div>
+                            <div class="text-[11px] font-black text-slate-900 leading-normal">{{ __('landing.ai_scanner_pill') }}</div>
+                            <div class="text-[10px] text-purple-600 font-bold leading-normal">{{ __('landing.ai_scanner_pill_acc') }}</div>
                         </div>
                     </div>
 
@@ -551,7 +551,7 @@
                 <!-- Tab 4: AI Scanner -->
                 <button @click="activeTab = 'aiscan'" :class="activeTab === 'aiscan' ? 'bg-purple-600 text-white border-purple-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
                     <span>🤖</span>
-                    <span>سکانەری زیرەکی AI</span>
+                    <span>{{ __('landing.screen_aiscan_tab') }}</span>
                 </button>
             </div>
 
@@ -673,26 +673,26 @@
                     </div>
                     <div class="w-full lg:w-1/2">
                         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-50 text-purple-700 text-xs font-black mb-4 border border-purple-200">
-                            <span>🤖</span> سکانەری زیرەکی دەرمان
+                            <span>🤖</span> {{ __('landing.screen_aiscan_badge') }}
                         </div>
                         <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mb-4 leading-[1.6]">
-                            ناسینەوەی خێرای دەرمان و ڕەچەتە بە زیرەکی دەستکرد
+                            {{ __('landing.screen_aiscan_title') }}
                         </h3>
                         <p class="text-slate-600 text-sm sm:text-base leading-[1.85] mb-6 font-medium">
-                            تەنها کامێرای مۆبایلەکەت بگرە لە پاکەتی هەر دەرمانێک، ئەپەکە دەستبەجێ ناوی زانستی، بەکارهێنان و ڕێنمایی پزیشکی بە زمانی کوردی پێت دەڵێت.
+                            {{ __('landing.screen_aiscan_desc') }}
                         </p>
                         <div class="space-y-3">
                             <div class="flex items-center gap-3 p-3 rounded-2xl bg-purple-50/70 border border-purple-200">
                                 <div class="w-8 h-8 rounded-xl bg-purple-500 text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">📷</div>
-                                <span class="text-xs sm:text-sm font-bold text-purple-950">سکانکردنی وێنەی پاکەتی دەرمان یان ڕەچەتەی پزیشک</span>
+                                <span class="text-xs sm:text-sm font-bold text-purple-950">{{ __('landing.screen_aiscan_f1') }}</span>
                             </div>
                             <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200">
                                 <div class="w-8 h-8 rounded-xl bg-blue-100 text-[#1e60eb] flex items-center justify-center font-bold flex-shrink-0 text-sm">💡</div>
-                                <span class="text-xs sm:text-sm font-bold text-slate-900">ڕوونکردنەوەی ژەمەکان و کاتی وەرگرتنی دەرمان بە کوردی</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-900">{{ __('landing.screen_aiscan_f2') }}</span>
                             </div>
                             <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200">
                                 <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold flex-shrink-0 text-sm">✓</div>
-                                <span class="text-xs sm:text-sm font-bold text-slate-900">هۆشداریکردنەوە لە کارلێکی دەرمانەکان پێکەوە</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-900">{{ __('landing.screen_aiscan_f3') }}</span>
                             </div>
                         </div>
                     </div>
@@ -796,7 +796,7 @@
                 <div class="flex flex-col lg:flex-row items-center justify-between">
                     <!-- Download CTA Side -->
                     <div class="w-full lg:w-3/5 p-8 sm:p-12 lg:p-14 text-white">
-                        <span class="text-blue-200 font-extrabold text-xs uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full border border-white/20 mb-3 inline-block">دابەزاندنی ئەپڵیکەیشن</span>
+                        <span class="text-blue-200 font-extrabold text-xs uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full border border-white/20 mb-3 inline-block">{{ __('landing.download_app_tag') }}</span>
                         <h3 class="text-2xl sm:text-3xl lg:text-4xl font-black mb-4 leading-[1.5]">{{ __('landing.download_drroom') }}</h3>
                         <p class="text-blue-100 text-sm sm:text-base max-w-md mb-8 leading-[1.85] font-medium">{{ __('landing.get_best_exp') }}</p>
                         
@@ -997,7 +997,7 @@
                 <div class="flex gap-6">
                     <a href="/privacy-policy" class="text-blue-600 font-bold hover:underline transition">{{ __('landing.privacy') }}</a>
                     <a href="/privacy-policy" class="hover:text-slate-600 transition">{{ __('landing.terms') }}</a>
-                    <a href="/staff/login" class="text-blue-600 font-bold hover:underline transition">چوونەژوورەوەی ستاف</a>
+                    <a href="/staff/login" class="text-blue-600 font-bold hover:underline transition">{{ __('landing.staff_login') }}</a>
                 </div>
             </div>
         </div>
