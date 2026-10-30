@@ -327,9 +327,9 @@
                     </div>
 
                     <!-- Headline with Kurdish Typography -->
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] font-black text-slate-900 flex flex-col gap-2.5 mb-6 tracking-tight leading-[1.35]">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] font-black text-slate-900 flex flex-col gap-4 sm:gap-5 md:gap-6 mb-6 tracking-tight leading-[1.5]">
                         <span class="block">{{ __('landing.hero_title_1') }}</span>
-                        <span class="block">
+                        <span class="block py-1 sm:py-2">
                             <span class="gradient-text">{{ __('landing.hero_title_2') }}</span>
                         </span>
                         <span class="block text-slate-950">{{ __('landing.hero_title_3') }}</span>

@@ -56,12 +56,12 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success
-              ? 'appointment_cancelled_success'.tr()
-              : 'cancel_failed'.tr(),
+          success ? 'appointment_cancelled_success'.tr() : 'cancel_failed'.tr(),
           style: _kStyle(color: Colors.white),
         ),
-        backgroundColor: success ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+        backgroundColor: success
+            ? const Color(0xFF10B981)
+            : const Color(0xFFEF4444),
       ),
     );
   }
@@ -74,7 +74,9 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
     if (widget.embedded) return content;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -120,7 +122,9 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
         return RefreshIndicator(
           onRefresh: () => provider.fetchAppointments(),
           child: ListView.builder(
-            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
             itemCount: appointments.length,
             itemBuilder: (context, index) =>
@@ -131,9 +135,15 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
     );
   }
 
-  Widget _buildAppointmentCard(Appointment appointment, int index, bool isDark) {
+  Widget _buildAppointmentCard(
+    Appointment appointment,
+    int index,
+    bool isDark,
+  ) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     final image = appointment.doctorImagePath != null
         ? ApiClient.getImageUrl(appointment.doctorImagePath!)
@@ -179,7 +189,10 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                     height: 52,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.2), width: 2),
+                      border: Border.all(
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                        width: 2,
+                      ),
                     ),
                     clipBehavior: Clip.hardEdge,
                     child: appointment.doctorImagePath != null
@@ -187,10 +200,11 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                             image,
                             fit: BoxFit.cover,
                             alignment: Alignment.topCenter,
-                            errorBuilder: (context, error, stack) => Image.asset(
-                              'assets/images/doctor1.png',
-                              fit: BoxFit.cover,
-                            ),
+                            errorBuilder: (context, error, stack) =>
+                                Image.asset(
+                                  'assets/images/doctor1.png',
+                                  fit: BoxFit.cover,
+                                ),
                           )
                         : Image.asset(
                             image,
@@ -206,7 +220,9 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                         Text(
                           appointment.doctorName,
                           style: _kStyle(
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                             fontSize: 15.5,
                             fontWeight: FontWeight.bold,
                           ),
@@ -217,7 +233,10 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                         Text(
                           appointment.doctorSpecialty,
                           style: _kStyle(
-                            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                            color:
+                                (Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B)),
                             fontSize: 12.5,
                           ),
                           maxLines: 1,
@@ -232,9 +251,14 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
               ),
               const SizedBox(height: 14),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: borderColor),
                 ),
@@ -243,12 +267,18 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Iconsax.calendar_1, size: 16, color: Color(0xFF3B82F6)),
+                        const Icon(
+                          Iconsax.calendar_1,
+                          size: 16,
+                          color: Color(0xFF3B82F6),
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           appointment.formattedDate,
                           style: _kStyle(
-                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF475569),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -257,12 +287,18 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                     ),
                     Row(
                       children: [
-                        const Icon(Iconsax.clock, size: 16, color: Color(0xFF3B82F6)),
+                        const Icon(
+                          Iconsax.clock,
+                          size: 16,
+                          color: Color(0xFF3B82F6),
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           appointment.formattedTime,
                           style: _kStyle(
-                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF475569),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -281,7 +317,9 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                         onPressed: () => _cancelAppointment(appointment),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: borderColor),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 10),
                         ),
                         child: Text(
@@ -309,7 +347,11 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                             ),
                           );
                         },
-                        icon: const Icon(Iconsax.people, color: Colors.white, size: 16),
+                        icon: const Icon(
+                          Iconsax.people,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                         label: Text(
                           'چوونەژوورەوە',
                           style: _kStyle(
@@ -321,7 +363,9 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF3B82F6),
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 10),
                         ),
                       ),
@@ -354,11 +398,7 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
       ),
       child: Text(
         isKurdish ? status.kurdiName : status.displayName,
-        style: _kStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
+        style: _kStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -386,7 +426,11 @@ class AllSchedulesScreenState extends State<AllSchedulesScreen> {
                       color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Iconsax.calendar_1, color: Color(0xFF3B82F6), size: 36),
+                    child: const Icon(
+                      Iconsax.calendar_1,
+                      color: Color(0xFF3B82F6),
+                      size: 36,
+                    ),
                   ),
                   const SizedBox(height: 18),
                   Text(
