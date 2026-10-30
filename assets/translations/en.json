@@ -1048,5 +1048,6 @@
   "upload_and_analyze_with_ai": "Select Image & Analyze with AI",
   "ai_feature_extract_meds": "Extract medication names & dosages",
   "ai_feature_usage_instructions": "Usage guidelines & precautions",
-  "ai_feature_instant_results": "Fast & accurate results in seconds"
+  "ai_feature_instant_results": "Fast & accurate results in seconds",
+  "prescription_ready_for_ai": "Prescription image is ready for AI analysis"
 }

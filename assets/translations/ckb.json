@@ -1048,5 +1048,6 @@
   "upload_and_analyze_with_ai": "هەڵبژاردنی وێنە و شیکردنەوە بە AI",
   "ai_feature_extract_meds": "دەرهێنانی ناوی دەرمانەکان و بڕی بەکارهێنان",
   "ai_feature_usage_instructions": "ڕێنمایی و چۆنیەتی بەکارهێنانی دروست",
-  "ai_feature_instant_results": "شیکردنەوەی خێرا و وورد لە چەند چرکەیەکدا"
+  "ai_feature_instant_results": "شیکردنەوەی خێرا و وورد لە چەند چرکەیەکدا",
+  "prescription_ready_for_ai": "وێنەی ڕەچەتە دیاریکراوە و ئامادەیە بۆ شیکردنەوە بە AI"
 }

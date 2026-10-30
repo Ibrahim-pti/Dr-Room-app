@@ -16,10 +16,7 @@ import '../ai_assistant/ai_symptom_checker_screen.dart';
 class UploadPrescriptionScreen extends StatefulWidget {
   final String serviceType; // 'lab' or 'nursing'
 
-  const UploadPrescriptionScreen({
-    super.key,
-    this.serviceType = 'lab',
-  });
+  const UploadPrescriptionScreen({super.key, this.serviceType = 'lab'});
 
   bool get isNursing => serviceType == 'nursing';
 
@@ -156,7 +153,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     if (_searchQuery.trim().isEmpty) return _providers;
     final q = _searchQuery.toLowerCase().trim();
 
-    final hasMatchingTest = !widget.isNursing &&
+    final hasMatchingTest =
+        !widget.isNursing &&
         (_tests.any((t) => _testMatchesQuery(t, q)) ||
             _defaultLabTests.any((t) => _testMatchesQuery(t, q)));
 
@@ -165,10 +163,12 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       final nameEn = (p['name_en'] ?? '').toString().toLowerCase();
       final nameAr = (p['name_ar'] ?? '').toString().toLowerCase();
       final city = (p['city'] ?? p['location'] ?? '').toString().toLowerCase();
-      final specialty =
-          (p['specialty'] ?? p['title'] ?? '').toString().toLowerCase();
+      final specialty = (p['specialty'] ?? p['title'] ?? '')
+          .toString()
+          .toLowerCase();
 
-      final matchesProvider = name.contains(q) ||
+      final matchesProvider =
+          name.contains(q) ||
           nameEn.contains(q) ||
           nameAr.contains(q) ||
           city.contains(q) ||
@@ -234,8 +234,12 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
         final data = decoded is Map ? (decoded['data'] ?? decoded) : null;
-        if (data != null && data['tests'] is List && (data['tests'] as List).isNotEmpty) {
-          final list = (data['tests'] as List).map((t) => Map<String, dynamic>.from(t)).toList();
+        if (data != null &&
+            data['tests'] is List &&
+            (data['tests'] as List).isNotEmpty) {
+          final list = (data['tests'] as List)
+              .map((t) => Map<String, dynamic>.from(t))
+              .toList();
           if (mounted) {
             setState(() {
               _tests = list;
@@ -254,7 +258,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             ? (decoded['data'] as List)
             : (decoded is List ? decoded : []);
         final parsed = list.map((t) => Map<String, dynamic>.from(t)).toList();
-        final labSpecific = parsed.where((t) => t['lab_id']?.toString() == labId.toString()).toList();
+        final labSpecific = parsed
+            .where((t) => t['lab_id']?.toString() == labId.toString())
+            .toList();
         final finalTests = labSpecific.isNotEmpty ? labSpecific : parsed;
         if (finalTests.isNotEmpty && mounted) {
           setState(() {
@@ -292,9 +298,13 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         final nursesRes = await ApiClient.get('/nurses');
         if (nursesRes.statusCode == 200) {
           final decoded = jsonDecode(nursesRes.body);
-          if (decoded is Map && decoded['nurses'] is List && (decoded['nurses'] as List).isNotEmpty) {
+          if (decoded is Map &&
+              decoded['nurses'] is List &&
+              (decoded['nurses'] as List).isNotEmpty) {
             rawStaff = decoded['nurses'] as List;
-          } else if (decoded is Map && decoded['data'] is List && (decoded['data'] as List).isNotEmpty) {
+          } else if (decoded is Map &&
+              decoded['data'] is List &&
+              (decoded['data'] as List).isNotEmpty) {
             rawStaff = decoded['data'] as List;
           }
         }
@@ -303,7 +313,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
           final staffRes = await ApiClient.get('/labs/staff');
           if (staffRes.statusCode == 200) {
             final decoded = jsonDecode(staffRes.body);
-            if (decoded is Map && decoded['data'] is List && (decoded['data'] as List).isNotEmpty) {
+            if (decoded is Map &&
+                decoded['data'] is List &&
+                (decoded['data'] as List).isNotEmpty) {
               rawStaff = decoded['data'] as List;
             }
           }
@@ -312,7 +324,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         if (rawStaff.isNotEmpty) {
           _providers = rawStaff.map((e) {
             final s = Map<String, dynamic>.from(e);
-            final fee = (s['fee'] as num?)?.toDouble() ??
+            final fee =
+                (s['fee'] as num?)?.toDouble() ??
                 (s['visit_fee'] as num?)?.toDouble() ??
                 15000.0;
             return {
@@ -321,12 +334,17 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
               'name': s['name'] ?? '',
               'name_en': s['name_en'] ?? s['name'] ?? '',
               'name_ar': s['name_ar'] ?? s['name'] ?? '',
-              'title': s['title'] ?? s['specialty'] ?? 'nursing_verified_nurse'.tr(),
-              'title_en': s['title_en'] ?? s['specialty_en'] ?? 'Specialist Nurse',
+              'title':
+                  s['title'] ?? s['specialty'] ?? 'nursing_verified_nurse'.tr(),
+              'title_en':
+                  s['title_en'] ?? s['specialty_en'] ?? 'Specialist Nurse',
               'title_ar': s['title_ar'] ?? s['specialty_ar'] ?? 'ممرض معتمد',
-              'specialty': s['specialty'] ?? s['title'] ?? 'nursing_verified_nurse'.tr(),
-              'specialty_en': s['specialty_en'] ?? s['title_en'] ?? 'Specialist Nurse',
-              'specialty_ar': s['specialty_ar'] ?? s['title_ar'] ?? 'ممرض معتمد',
+              'specialty':
+                  s['specialty'] ?? s['title'] ?? 'nursing_verified_nurse'.tr(),
+              'specialty_en':
+                  s['specialty_en'] ?? s['title_en'] ?? 'Specialist Nurse',
+              'specialty_ar':
+                  s['specialty_ar'] ?? s['title_ar'] ?? 'ممرض معتمد',
               'city': s['city'] ?? '',
               'city_en': s['city_en'] ?? s['city'] ?? '',
               'city_ar': s['city_ar'] ?? s['city'] ?? '',
@@ -369,13 +387,24 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
   String _formatCity(dynamic cityRaw) {
     final city = cityRaw?.toString().trim() ?? '';
     final lower = city.toLowerCase();
-    if (lower == 'erbil' || lower == 'hawler' || lower == 'hewler' || lower == 'هەولێر' || lower == 'أربيل') {
+    if (lower == 'erbil' ||
+        lower == 'hawler' ||
+        lower == 'hewler' ||
+        lower == 'هەولێر' ||
+        lower == 'أربيل') {
       return 'city_erbil'.tr();
     }
-    if (lower == 'sulaymaniyah' || lower == 'slemany' || lower == 'slemani' || lower == 'سلێمانی' || lower == 'السليمانية') {
+    if (lower == 'sulaymaniyah' ||
+        lower == 'slemany' ||
+        lower == 'slemani' ||
+        lower == 'سلێمانی' ||
+        lower == 'السليمانية') {
       return 'city_sulaymaniyah'.tr();
     }
-    if (lower == 'duhok' || lower == 'dohuk' || lower == 'دهۆک' || lower == 'دهوك') {
+    if (lower == 'duhok' ||
+        lower == 'dohuk' ||
+        lower == 'دهۆک' ||
+        lower == 'دهوك') {
       return 'city_duhok'.tr();
     }
     if (lower == 'kirkuk' || lower == 'کەرکووک' || lower == 'كركوك') {
@@ -388,11 +417,14 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
   }
 
   Widget _buildProviderAvatar(Map<String, dynamic> provider, bool isDark) {
-    final imageRaw = provider['image'] ?? provider['profile_image'] ?? provider['image_path'];
+    final imageRaw =
+        provider['image'] ??
+        provider['profile_image'] ??
+        provider['image_path'];
     final String imagePath =
         (imageRaw != null && imageRaw.toString().trim().isNotEmpty)
-            ? imageRaw.toString().trim()
-            : '';
+        ? imageRaw.toString().trim()
+        : '';
 
     Widget imageWidget;
     if (imagePath.startsWith('assets/')) {
@@ -435,11 +467,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
-      child: SizedBox(
-        width: 52,
-        height: 52,
-        child: imageWidget,
-      ),
+      child: SizedBox(width: 52, height: 52, child: imageWidget),
     );
   }
 
@@ -469,11 +497,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: const Color(0xFF7C3AED),
-            size: 14,
-          ),
+          child: Icon(icon, color: const Color(0xFF7C3AED), size: 14),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -514,9 +538,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             final fp = _filteredProviders;
             if (fp.isNotEmpty &&
                 (_selectedProvider == null ||
-                    !fp.any((p) =>
-                        p['id']?.toString() ==
-                        _selectedProvider?['id']?.toString()))) {
+                    !fp.any(
+                      (p) =>
+                          p['id']?.toString() ==
+                          _selectedProvider?['id']?.toString(),
+                    ))) {
               _selectedProvider = fp.first;
               if (!widget.isNursing) {
                 _fetchTestsForLab(_selectedProvider!['id']);
@@ -571,12 +597,15 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
       if (_testMatchesQuery(t, q)) return true;
 
-      final labName =
-          (_selectedProvider?['name'] ?? '').toString().toLowerCase();
-      final labNameEn =
-          (_selectedProvider?['name_en'] ?? '').toString().toLowerCase();
-      final labNameAr =
-          (_selectedProvider?['name_ar'] ?? '').toString().toLowerCase();
+      final labName = (_selectedProvider?['name'] ?? '')
+          .toString()
+          .toLowerCase();
+      final labNameEn = (_selectedProvider?['name_en'] ?? '')
+          .toString()
+          .toLowerCase();
+      final labNameAr = (_selectedProvider?['name_ar'] ?? '')
+          .toString()
+          .toLowerCase();
       if (labName.contains(q) ||
           labNameEn.contains(q) ||
           labNameAr.contains(q)) {
@@ -648,8 +677,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     color: isAllSelected
                         ? const Color(0xFF2563EB).withValues(alpha: 0.1)
                         : (isDark
-                            ? const Color(0xFF334155)
-                            : const Color(0xFFF1F5F9)),
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFF1F5F9)),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: isAllSelected
@@ -668,8 +697,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                         color: isAllSelected
                             ? const Color(0xFF2563EB)
                             : (isDark
-                                ? Colors.white70
-                                : const Color(0xFF475569)),
+                                  ? Colors.white70
+                                  : const Color(0xFF475569)),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -681,8 +710,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                           color: isAllSelected
                               ? const Color(0xFF2563EB)
                               : (isDark
-                                  ? Colors.white70
-                                  : const Color(0xFF475569)),
+                                    ? Colors.white70
+                                    : const Color(0xFF475569)),
                         ),
                       ),
                     ],
@@ -756,8 +785,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? (isDark
-                        ? const Color(0xFF2563EB).withValues(alpha: 0.12)
-                        : const Color(0xFFEFF6FF))
+                          ? const Color(0xFF2563EB).withValues(alpha: 0.12)
+                          : const Color(0xFFEFF6FF))
                     : cardBg,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
@@ -770,9 +799,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                   BoxShadow(
                     color: isSelected
                         ? const Color(0xFF2563EB).withValues(alpha: 0.08)
-                        : Colors.black.withValues(
-                            alpha: isDark ? 0.2 : 0.02,
-                          ),
+                        : Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -855,12 +882,14 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981)
-                                .withValues(alpha: 0.1),
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: const Color(0xFF10B981)
-                                  .withValues(alpha: 0.25),
+                              color: const Color(
+                                0xFF10B981,
+                              ).withValues(alpha: 0.25),
                             ),
                           ),
                           child: Text(
@@ -953,11 +982,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     color: _themeColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    Iconsax.gallery,
-                    color: _themeColor,
-                    size: 22,
-                  ),
+                  child: Icon(Iconsax.gallery, color: _themeColor, size: 22),
                 ),
                 title: Text(
                   'choose_gallery'.tr(),
@@ -1007,9 +1032,23 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         imageQuality: 85,
       );
       if (image != null) {
+        final pickedFile = File(image.path);
         setState(() {
-          _imageFile = File(image.path);
+          _imageFile = pickedFile;
         });
+
+        // If currently on AI tab, immediately switch to AI analysis screen
+        if (_selectedTab == 0 && mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AiSymptomCheckerScreen(
+                initialMode: widget.serviceType,
+                initialImage: pickedFile,
+              ),
+            ),
+          );
+        }
       }
     }
   }
@@ -1102,10 +1141,12 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             'prescription_image': finalUrl,
             'is_prescription': true,
             'type': 'nursing_prescription',
-            'nurse_id': _selectedProvider!['nurse_id'] ?? _selectedProvider!['id'],
+            'nurse_id':
+                _selectedProvider!['nurse_id'] ?? _selectedProvider!['id'],
             'staff_id': _selectedProvider!['id'],
             'staff_name': staffName,
-            'staff_title': _selectedProvider!['specialty'] ?? _selectedProvider!['title'],
+            'staff_title':
+                _selectedProvider!['specialty'] ?? _selectedProvider!['title'],
           },
         ),
       );
@@ -1135,7 +1176,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                 'prescription_image': finalUrl,
                 'lab_id': _selectedProvider!['id'],
                 'lab_name': _selectedProvider!['name'],
-                'lab_user_id': _selectedProvider!['user_id'] ?? _selectedProvider!['id'],
+                'lab_user_id':
+                    _selectedProvider!['user_id'] ?? _selectedProvider!['id'],
                 'test_id': t['id'],
                 'test_name': tName,
                 'is_prescription': true,
@@ -1156,7 +1198,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
               'prescription_image': finalUrl,
               'lab_id': _selectedProvider!['id'],
               'lab_name': _selectedProvider!['name'],
-              'lab_user_id': _selectedProvider!['user_id'] ?? _selectedProvider!['id'],
+              'lab_user_id':
+                  _selectedProvider!['user_id'] ?? _selectedProvider!['id'],
               'is_prescription': true,
             },
           ),
@@ -1212,9 +1255,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         ),
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(color: _themeColor),
-            )
+          ? Center(child: CircularProgressIndicator(color: _themeColor))
           : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
@@ -1356,10 +1397,14 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     height: 50,
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      color: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        color: isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFE2E8F0),
                       ),
                     ),
                     child: Row(
@@ -1377,7 +1422,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                 boxShadow: _selectedTab == 0
                                     ? [
                                         BoxShadow(
-                                          color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                                          color: const Color(
+                                            0xFF7C3AED,
+                                          ).withValues(alpha: 0.3),
                                           blurRadius: 8,
                                           offset: const Offset(0, 2),
                                         ),
@@ -1394,7 +1441,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                       size: 17,
                                       color: _selectedTab == 0
                                           ? Colors.white
-                                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                          : (isDark
+                                                ? const Color(0xFF94A3B8)
+                                                : const Color(0xFF64748B)),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
@@ -1405,7 +1454,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                         fontWeight: FontWeight.bold,
                                         color: _selectedTab == 0
                                             ? Colors.white
-                                            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                            : (isDark
+                                                  ? const Color(0xFF94A3B8)
+                                                  : const Color(0xFF64748B)),
                                       ),
                                     ),
                                   ],
@@ -1427,7 +1478,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                 boxShadow: _selectedTab == 1
                                     ? [
                                         BoxShadow(
-                                          color: _themeColor.withValues(alpha: 0.3),
+                                          color: _themeColor.withValues(
+                                            alpha: 0.3,
+                                          ),
                                           blurRadius: 8,
                                           offset: const Offset(0, 2),
                                         ),
@@ -1440,11 +1493,15 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
-                                      widget.isNursing ? Iconsax.people : Iconsax.hospital,
+                                      widget.isNursing
+                                          ? Iconsax.people
+                                          : Iconsax.hospital,
                                       size: 17,
                                       color: _selectedTab == 1
                                           ? Colors.white
-                                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                          : (isDark
+                                                ? const Color(0xFF94A3B8)
+                                                : const Color(0xFF64748B)),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
@@ -1457,7 +1514,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                         fontWeight: FontWeight.bold,
                                         color: _selectedTab == 1
                                             ? Colors.white
-                                            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                            : (isDark
+                                                  ? const Color(0xFF94A3B8)
+                                                  : const Color(0xFF64748B)),
                                       ),
                                     ),
                                   ],
@@ -1480,12 +1539,16 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                         color: cardBg,
                         borderRadius: BorderRadius.circular(22),
                         border: Border.all(
-                          color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
+                          color: const Color(
+                            0xFF7C3AED,
+                          ).withValues(alpha: 0.25),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7C3AED).withValues(alpha: isDark ? 0.2 : 0.05),
+                            color: const Color(
+                              0xFF7C3AED,
+                            ).withValues(alpha: isDark ? 0.2 : 0.05),
                             blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
@@ -1501,7 +1564,10 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                 height: 44,
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
-                                    colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                                    colors: [
+                                      Color(0xFF8B5CF6),
+                                      Color(0xFF7C3AED),
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -1522,7 +1588,9 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                         fontFamily: 'Rabar',
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                        color: isDark
+                                            ? Colors.white
+                                            : const Color(0xFF0F172A),
                                       ),
                                     ),
                                     const SizedBox(height: 2),
@@ -1543,77 +1611,63 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                           const SizedBox(height: 16),
 
                           // Bullet points of AI analysis features
-                          _buildAiFeatureRow(Icons.medication_rounded, 'ai_feature_extract_meds'.tr(), isDark),
+                          _buildAiFeatureRow(
+                            Icons.medication_rounded,
+                            'ai_feature_extract_meds'.tr(),
+                            isDark,
+                          ),
                           const SizedBox(height: 8),
-                          _buildAiFeatureRow(Icons.menu_book_rounded, 'ai_feature_usage_instructions'.tr(), isDark),
+                          _buildAiFeatureRow(
+                            Icons.menu_book_rounded,
+                            'ai_feature_usage_instructions'.tr(),
+                            isDark,
+                          ),
                           const SizedBox(height: 8),
-                          _buildAiFeatureRow(Icons.offline_bolt_rounded, 'ai_feature_instant_results'.tr(), isDark),
+                          _buildAiFeatureRow(
+                            Icons.offline_bolt_rounded,
+                            'ai_feature_instant_results'.tr(),
+                            isDark,
+                          ),
 
-                          const SizedBox(height: 20),
-
-                          Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                if (_imageFile == null) {
-                                  _pickImage();
-                                } else {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => AiSymptomCheckerScreen(
-                                        initialMode: widget.serviceType,
-                                        initialImage: _imageFile,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              child: Ink(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.auto_awesome_rounded,
-                                      size: 19,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Flexible(
-                                      child: Text(
-                                        _imageFile == null
-                                            ? 'upload_and_analyze_with_ai'.tr()
-                                            : 'start_ai_analysis_btn'.tr(),
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontFamily: 'Rabar',
-                                          fontSize: 14.5,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          height: 1.35,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                          if (_imageFile != null) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.25),
                                 ),
                               ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle_rounded,
+                                    color: Color(0xFF10B981),
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'prescription_ready_for_ai'.tr(),
+                                      style: const TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF10B981),
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -1622,302 +1676,312 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.isNursing
-                                ? 'select_nurse_step'.tr()
-                                : 'select_lab_step'.tr(),
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F172A),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            widget.isNursing
-                                ? 'select_nurse_subtitle'.tr()
-                                : 'select_lab_subtitle'.tr(),
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (_selectedProvider != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF10B981,
-                            ).withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'selected'.tr(),
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? const Color(0xFF34D399)
-                                  : const Color(0xFF059669),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-
-                  // ── Unified Top Search Bar (تاقیگە یاخود فحس) ──
-                  _buildSearchField(isDark, cardBg, borderColor),
-                  const SizedBox(height: 14),
-
-                  // Provider List (Nurses or Laboratories)
-                  if (_filteredProviders.isEmpty)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Text(
-                          widget.isNursing
-                              ? 'no_nurses_found'.tr()
-                              : 'no_labs_found'.tr(),
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            color: isDark ? Colors.white60 : Colors.black54,
-                          ),
-                        ),
-                      ),
-                    )
-                  else
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _filteredProviders.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
-                      itemBuilder: (context, idx) {
-                        final provider = _filteredProviders[idx];
-                        final isSelected =
-                            _selectedProvider?['id'] == provider['id'];
-
-                        return GestureDetector(
-                          onTap: () => _onProviderSelected(provider),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? (isDark
-                                      ? _themeColor.withValues(alpha: 0.12)
-                                      : _themeColor.withValues(alpha: 0.05))
-                                  : cardBg,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isSelected
-                                    ? _themeColor.withValues(alpha: 0.55)
-                                    : borderColor,
-                                width: isSelected ? 1.5 : 1,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.isNursing
+                                  ? 'select_nurse_step'.tr()
+                                  : 'select_lab_step'.tr(),
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isSelected
-                                      ? _themeColor.withValues(alpha: 0.08)
-                                      : Colors.black.withValues(
-                                          alpha: isDark ? 0.2 : 0.02,
-                                        ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
                             ),
-                            child: Row(
-                              children: [
-                                _buildProviderAvatar(provider, isDark),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        context.localizedField(
-                                          provider,
-                                          'name',
-                                          fallback: widget.isNursing
-                                              ? (provider['name'] ?? '')
-                                              : 'cat_lab'.tr(),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.isNursing
+                                  ? 'select_nurse_subtitle'.tr()
+                                  : 'select_lab_subtitle'.tr(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_selectedProvider != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF10B981,
+                              ).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'selected'.tr(),
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? const Color(0xFF34D399)
+                                    : const Color(0xFF059669),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // ── Unified Top Search Bar (تاقیگە یاخود فحس) ──
+                    _buildSearchField(isDark, cardBg, borderColor),
+                    const SizedBox(height: 14),
+
+                    // Provider List (Nurses or Laboratories)
+                    if (_filteredProviders.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Text(
+                            widget.isNursing
+                                ? 'no_nurses_found'.tr()
+                                : 'no_labs_found'.tr(),
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              color: isDark ? Colors.white60 : Colors.black54,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _filteredProviders.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        itemBuilder: (context, idx) {
+                          final provider = _filteredProviders[idx];
+                          final isSelected =
+                              _selectedProvider?['id'] == provider['id'];
+
+                          return GestureDetector(
+                            onTap: () => _onProviderSelected(provider),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? (isDark
+                                          ? _themeColor.withValues(alpha: 0.12)
+                                          : _themeColor.withValues(alpha: 0.05))
+                                    : cardBg,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? _themeColor.withValues(alpha: 0.55)
+                                      : borderColor,
+                                  width: isSelected ? 1.5 : 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isSelected
+                                        ? _themeColor.withValues(alpha: 0.08)
+                                        : Colors.black.withValues(
+                                            alpha: isDark ? 0.2 : 0.02,
+                                          ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  _buildProviderAvatar(provider, isDark),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          context.localizedField(
+                                            provider,
+                                            'name',
+                                            fallback: widget.isNursing
+                                                ? (provider['name'] ?? '')
+                                                : 'cat_lab'.tr(),
+                                          ),
+                                          style: TextStyle(
+                                            fontFamily: 'Rabar',
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: isDark
+                                                ? Colors.white
+                                                : const Color(0xFF0F172A),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        style: TextStyle(
-                                          fontFamily: 'Rabar',
-                                          fontSize: 14.5,
-                                          fontWeight: FontWeight.bold,
-                                          color: isDark
-                                              ? Colors.white
-                                              : const Color(0xFF0F172A),
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          if (widget.isNursing) ...[
-                                            Flexible(
-                                              child: Text(
-                                                context.localizedField(
-                                                  provider,
-                                                  'specialty',
-                                                  fallback: provider['title'] ??
-                                                      'nursing_verified_nurse'.tr(),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            if (widget.isNursing) ...[
+                                              Flexible(
+                                                child: Text(
+                                                  context.localizedField(
+                                                    provider,
+                                                    'specialty',
+                                                    fallback:
+                                                        provider['title'] ??
+                                                        'nursing_verified_nurse'
+                                                            .tr(),
+                                                  ),
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 12,
+                                                    color: Color(0xFF64748B),
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              if (provider['city'] != null &&
+                                                  provider['city']
+                                                      .toString()
+                                                      .isNotEmpty) ...[
+                                                const SizedBox(width: 6),
+                                                const Icon(
+                                                  Iconsax.location,
+                                                  size: 11,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  _formatCity(provider['city']),
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 11,
+                                                    color: Color(0xFF64748B),
+                                                  ),
+                                                ),
+                                              ],
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 7,
+                                                      vertical: 2,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(
+                                                    0xFF0D9488,
+                                                  ).withValues(alpha: 0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  Currency.format(
+                                                    provider['fee'] ?? 15000,
+                                                  ),
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFF0D9488),
+                                                  ),
+                                                ),
+                                              ),
+                                            ] else ...[
+                                              const Icon(
+                                                Iconsax.location,
+                                                size: 13,
+                                                color: Color(0xFF64748B),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                _formatCity(
+                                                  provider['city'] ??
+                                                      provider['location'],
                                                 ),
                                                 style: const TextStyle(
                                                   fontFamily: 'Rabar',
                                                   fontSize: 12,
                                                   color: Color(0xFF64748B),
                                                 ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                            ),
-                                            if (provider['city'] != null &&
-                                                provider['city'].toString().isNotEmpty) ...[
-                                              const SizedBox(width: 6),
+                                              const SizedBox(width: 12),
                                               const Icon(
-                                                Iconsax.location,
-                                                size: 11,
-                                                color: Color(0xFF64748B),
+                                                Icons.star_rounded,
+                                                color: Color(0xFFF59E0B),
+                                                size: 14,
                                               ),
-                                              const SizedBox(width: 2),
+                                              const SizedBox(width: 3),
                                               Text(
-                                                _formatCity(provider['city']),
+                                                '${provider['rating'] ?? 4.8}',
                                                 style: const TextStyle(
                                                   fontFamily: 'Rabar',
-                                                  fontSize: 11,
-                                                  color: Color(0xFF64748B),
+                                                  fontSize: 11.5,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                             ],
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 7,
-                                                vertical: 2,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF0D9488)
-                                                    .withValues(alpha: 0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                              child: Text(
-                                                Currency.format(
-                                                  provider['fee'] ?? 15000,
-                                                ),
-                                                style: const TextStyle(
-                                                  fontFamily: 'Rabar',
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF0D9488),
-                                                ),
-                                              ),
-                                            ),
-                                          ] else ...[
-                                            const Icon(
-                                              Iconsax.location,
-                                              size: 13,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              _formatCity(
-                                                provider['city'] ??
-                                                    provider['location'],
-                                              ),
-                                              style: const TextStyle(
-                                                fontFamily: 'Rabar',
-                                                fontSize: 12,
-                                                color: Color(0xFF64748B),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            const Icon(
-                                              Icons.star_rounded,
-                                              color: Color(0xFFF59E0B),
-                                              size: 14,
-                                            ),
-                                            const SizedBox(width: 3),
-                                            Text(
-                                              '${provider['rating'] ?? 4.8}',
-                                              style: const TextStyle(
-                                                fontFamily: 'Rabar',
-                                                fontSize: 11.5,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
                                           ],
-                                        ],
-                                      ),
-                                    ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  width: 22,
-                                  height: 22,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? _themeColor
+                                            : borderColor,
+                                        width: 1.5,
+                                      ),
                                       color: isSelected
                                           ? _themeColor
-                                          : borderColor,
-                                      width: 1.5,
+                                          : Colors.transparent,
                                     ),
-                                    color: isSelected
-                                        ? _themeColor
-                                        : Colors.transparent,
+                                    child: isSelected
+                                        ? const Icon(
+                                            Icons.check,
+                                            size: 14,
+                                            color: Colors.white,
+                                          )
+                                        : null,
                                   ),
-                                  child: isSelected
-                                      ? const Icon(
-                                          Icons.check,
-                                          size: 14,
-                                          color: Colors.white,
-                                        )
-                                      : null,
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
 
-                  // ── 3. Lab Tests Selection Section (فحسەکان و نرخەکان) ──
-                  if (!widget.isNursing && _selectedProvider != null) ...[
-                    const SizedBox(height: 28),
-                    _buildLabTestsSection(isDark, cardBg, borderColor),
+                    // ── 3. Lab Tests Selection Section (فحسەکان و نرخەکان) ──
+                    if (!widget.isNursing && _selectedProvider != null) ...[
+                      const SizedBox(height: 28),
+                      _buildLabTestsSection(isDark, cardBg, borderColor),
+                    ],
                   ],
                 ],
-              ],
+              ),
             ),
-          ),
 
       // ── Bottom Action Button (AI Analysis / Staff Checkout) ──
       bottomNavigationBar: _selectedTab == 0
           ? Container(
               decoration: BoxDecoration(
                 color: cardBg,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
@@ -1935,7 +1999,10 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF7C3AED),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -1959,7 +2026,11 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.auto_awesome_rounded, size: 20, color: Colors.white),
+                          const Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
@@ -1986,133 +2057,141 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
           : Container(
               decoration: BoxDecoration(
                 color: cardBg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
-              blurRadius: 12,
-              offset: const Offset(0, -3),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (!widget.isNursing && _selectedTestIds.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Iconsax.receipt_2,
-                              size: 17,
-                              color: Color(0xFF3B82F6),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              '${_selectedTestIds.length} ${'selected_tests_count'.tr()}',
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!widget.isNursing && _selectedTestIds.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Iconsax.receipt_2,
+                                    size: 17,
+                                    color: Color(0xFF3B82F6),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '${_selectedTestIds.length} ${'selected_tests_count'.tr()}',
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          Currency.format(_totalTestsPrice),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2563EB),
+                              Text(
+                                Currency.format(_totalTestsPrice),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ],
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isUploading ? null : _proceedToCheckout,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _themeColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isUploading
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'uploading_image_to_server'.tr(),
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  height: 1.2,
-                                ),
-                              ),
-                            ],
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Iconsax.tick_circle,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  _selectedTestIds.isNotEmpty && !widget.isNursing
-                                      ? '${'continue_checkout'.tr()} • ${Currency.format(_totalTestsPrice)}'
-                                      : 'continue_checkout'.tr(),
-                                  style: const TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    height: 1.2,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _isUploading ? null : _proceedToCheckout,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _themeColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
                           ),
+                          child: _isUploading
+                              ? Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'uploading_image_to_server'.tr(),
+                                      style: const TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Iconsax.tick_circle,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        _selectedTestIds.isNotEmpty &&
+                                                !widget.isNursing
+                                            ? '${'continue_checkout'.tr()} • ${Currency.format(_totalTestsPrice)}'
+                                            : 'continue_checkout'.tr(),
+                                        style: const TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          height: 1.2,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

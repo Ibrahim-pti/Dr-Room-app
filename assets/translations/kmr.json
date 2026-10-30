@@ -1045,5 +1045,6 @@
   "upload_and_analyze_with_ai": "هەلبژارتنا وێنەی و شرۆڤەکرن ب AI",
   "ai_feature_extract_meds": "دەرئینانا ناڤێن دەرمانان و ژەمێن وان",
   "ai_feature_usage_instructions": "ڕێنمایی و چاوانییا بكارئینانێ",
-  "ai_feature_instant_results": "شرۆڤەکرنا لەزگین و دروست د چەند چڕکاندا"
+  "ai_feature_instant_results": "شرۆڤەکرنا لەزگین و دروست د چەند چڕکاندا",
+  "prescription_ready_for_ai": "وێنەیێ ڕەچەتەیێ هاتییە دیاریکرن و ئامادەیە بۆ شرۆڤەکرنێ ب AI"
 }
