@@ -1036,19 +1036,6 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         setState(() {
           _imageFile = pickedFile;
         });
-
-        // If currently on AI tab, immediately switch to AI analysis screen
-        if (_selectedTab == 0 && mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AiSymptomCheckerScreen(
-                initialMode: widget.serviceType,
-                initialImage: pickedFile,
-              ),
-            ),
-          );
-        }
       }
     }
   }
