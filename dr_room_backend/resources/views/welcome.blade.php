@@ -120,7 +120,7 @@
         body {
             font-family: 'Noto Kufi Arabic', 'Plus Jakarta Sans', sans-serif;
             -webkit-font-smoothing: antialiased;
-            line-height: 1.75;
+            line-height: 1.8;
         }
 
         /* Kurdish & Arabic Typography: Prevent letters from colliding and clipping */
@@ -128,9 +128,23 @@
             letter-spacing: 0 !important;
         }
 
-        /* Prevent Kurdish descenders and dots from getting chopped off */
+        /* Prevent Kurdish descenders and dots (ڵ, پ, ێ, ۆ, ژ, چ, ڕ) from getting chopped off */
         h1, h2, h3, h4, h5, h6, p, span, a, button {
             overflow: visible;
+        }
+
+        /* Ample line height and padding for Kurdish/Arabic script */
+        [dir="rtl"] h1 {
+            line-height: 1.65 !important;
+        }
+        [dir="rtl"] h2 {
+            line-height: 1.6 !important;
+        }
+        [dir="rtl"] h3, [dir="rtl"] h4 {
+            line-height: 1.55 !important;
+        }
+        [dir="rtl"] p {
+            line-height: 1.9 !important;
         }
 
         .gradient-text {
@@ -139,6 +153,8 @@
             -webkit-text-fill-color: initial !important;
             -webkit-background-clip: initial !important;
             display: inline-block;
+            overflow: visible !important;
+            padding-bottom: 4px;
         }
 
         .phone-bezel {
@@ -327,33 +343,33 @@
     <!-- Hero Section (Matches App's Crisp Aesthetic, Live Mobile Mockup, Zero Shadows) -->
     <section class="{{ $approvedLabs->count() >= 5 ? 'pt-10 md:pt-14' : 'pt-28 md:pt-32' }} pb-16 md:pb-24 bg-white relative overflow-hidden border-b border-slate-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-14">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 xl:gap-20">
                 
                 <!-- Hero Left / Content -->
                 <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
                     
                     <!-- App Tag Pill -->
-                    <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-200/80 text-[#1e60eb] px-4 py-1.5 rounded-full text-xs font-extrabold mb-6">
+                    <div class="inline-flex items-center gap-2.5 bg-blue-50 border border-blue-200/80 text-[#1e60eb] px-4 py-2 rounded-full text-xs font-extrabold mb-6 lg:mb-8">
                         <span class="w-2 h-2 rounded-full bg-[#1e60eb]"></span>
                         <span>{{ __('landing.hero_badge') }}</span>
                     </div>
 
                     <!-- Headline with Kurdish Typography -->
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-black text-slate-900 flex flex-col gap-4 sm:gap-6 md:gap-7 mb-8 leading-[1.6]">
-                        <span class="block">{{ __('landing.hero_title_1') }}</span>
-                        <span class="block py-1 sm:py-2">
-                            <span class="text-[#1e60eb] inline-block overflow-visible pb-1">{{ __('landing.hero_title_2') }}</span>
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] xl:text-[48px] font-black text-slate-900 flex flex-col gap-5 sm:gap-6 lg:gap-7 mb-8 lg:mb-10 leading-[1.6] lg:leading-[1.65]">
+                        <span class="block py-1">{{ __('landing.hero_title_1') }}</span>
+                        <span class="block py-1">
+                            <span class="text-[#1e60eb] inline-block overflow-visible py-1">{{ __('landing.hero_title_2') }}</span>
                         </span>
-                        <span class="block text-slate-950">{{ __('landing.hero_title_3') }}</span>
+                        <span class="block text-slate-950 py-1">{{ __('landing.hero_title_3') }}</span>
                     </h1>
                     
                     <!-- Description -->
-                    <p class="text-base sm:text-lg text-slate-600 mb-8 max-w-xl leading-[1.85] font-medium">
+                    <p class="text-base sm:text-lg lg:text-xl text-slate-600 mb-8 lg:mb-10 max-w-xl leading-[1.9] lg:leading-[2.0] font-medium">
                         {{ __('landing.hero_desc') }}
                     </p>
 
                     <!-- App Store Action Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-3.5 w-full justify-center lg:justify-start max-w-md">
+                    <div class="flex flex-col sm:flex-row gap-4 w-full justify-center lg:justify-start max-w-md">
                         <!-- Google Play Button -->
                         <a href="#download" @click.prevent="showDownloadModal = true" class="flex-1 bg-slate-950 hover:bg-black text-white px-5 py-3.5 rounded-2xl font-medium transition flex items-center justify-center gap-3 group border border-slate-800">
                             <svg class="w-6 h-6 text-emerald-400 flex-shrink-0 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a2.023 2.023 0 01-.61-1.45V3.264c0-.56.22-1.07.609-1.45zm11.602 11.602L18.49 10.13a2.012 2.012 0 000-3.26l-3.279-3.286-4.526 4.526 4.526 4.526zm-9.336 9.336l9.336-9.336-3.818-3.818-9.845 9.845c.87.87 2.37.87 4.327 3.309zm9.336-18.672L5.875 3.416C3.918 5.855 2.418 5.855 1.548 6.725l9.845 9.845 3.818-3.818z"/></svg>
@@ -414,15 +430,15 @@
     </section>
 
     <!-- Core Services Section (Replicating Mobile App Categories, Zero Shadows) -->
-    <section id="services" class="py-20 bg-white border-b border-slate-100">
+    <section id="services" class="py-20 lg:py-28 bg-white border-b border-slate-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <div class="mb-14">
+            <div class="mb-12 lg:mb-16">
                 <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">{{ __('landing.our_services') }}</span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 leading-[1.5]">{{ __('landing.our_services') }}</h2>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 leading-[1.5] pb-1">{{ __('landing.our_services') }}</h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                 
                 <!-- Service 1: Lab Tests -->
                 <div class="bg-white hover:bg-slate-50/70 rounded-3xl p-7 border border-slate-200 hover:border-blue-400 transition-all flex flex-col justify-between group">
@@ -512,54 +528,54 @@
     </section>
 
     <!-- In-App Interactive Screens Showcase (Tabs matching the Mobile App UI) -->
-    <section id="app-screens" class="py-20 bg-white border-b border-slate-100" x-data="{ activeTab: 'labs' }">
+    <section id="app-screens" class="py-20 lg:py-28 bg-white border-b border-slate-100" x-data="{ activeTab: 'labs' }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <div class="text-center max-w-3xl mx-auto mb-12">
+            <div class="text-center max-w-3xl mx-auto mb-12 lg:mb-16">
                 <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
                     {{ __('landing.app_showcase_tag') }}
                 </span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5]">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5] pb-1">
                     <span>{{ __('landing.app_showcase_title') }}</span>
                     <span class="text-[#1e60eb] inline-block overflow-visible pb-0.5">{{ __('landing.app_showcase_title_2') }}</span>
                 </h2>
-                <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.85]">
+                <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.85] lg:leading-[2.0]">
                     {{ __('landing.app_showcase_desc') }}
                 </p>
             </div>
 
             <!-- Tab Switcher Navigation (Clean, Flat, Border-based) -->
-            <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mb-12">
+            <div class="flex flex-wrap justify-center gap-2.5 sm:gap-4 mb-12 lg:mb-16">
                 <!-- Tab 1: Labs -->
-                <button @click="activeTab = 'labs'" :class="activeTab === 'labs' ? 'bg-[#1e60eb] text-white border-blue-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
+                <button @click="activeTab = 'labs'" :class="activeTab === 'labs' ? 'bg-[#1e60eb] text-white border-blue-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
                     <span>🧪</span>
                     <span>{{ __('landing.screen_labs_tab') }}</span>
                 </button>
 
                 <!-- Tab 2: Nursing -->
-                <button @click="activeTab = 'nursing'" :class="activeTab === 'nursing' ? 'bg-[#1e60eb] text-white border-blue-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
+                <button @click="activeTab = 'nursing'" :class="activeTab === 'nursing' ? 'bg-[#1e60eb] text-white border-blue-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
                     <span>👩‍⚕️</span>
                     <span>{{ __('landing.screen_nursing_tab') }}</span>
                 </button>
 
                 <!-- Tab 3: Health News & Information -->
-                <button @click="activeTab = 'firstaid'" :class="activeTab === 'firstaid' ? 'bg-[#1e60eb] text-white border-blue-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
+                <button @click="activeTab = 'firstaid'" :class="activeTab === 'firstaid' ? 'bg-[#1e60eb] text-white border-blue-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
                     <span>📰</span>
                     <span>{{ __('landing.screen_firstaid_tab') }}</span>
                 </button>
 
                 <!-- Tab 4: AI Scanner -->
-                <button @click="activeTab = 'aiscan'" :class="activeTab === 'aiscan' ? 'bg-purple-600 text-white border-purple-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
+                <button @click="activeTab = 'aiscan'" :class="activeTab === 'aiscan' ? 'bg-purple-600 text-white border-purple-600' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'" class="px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl font-black text-xs sm:text-sm transition-colors border flex items-center gap-2">
                     <span>🤖</span>
                     <span>{{ __('landing.screen_aiscan_tab') }}</span>
                 </button>
             </div>
 
             <!-- Tab Content Presentation (Card with Flat Border) -->
-            <div class="bg-slate-50 rounded-3xl p-6 sm:p-10 lg:p-12 border border-slate-200">
+            <div class="bg-slate-50 rounded-3xl p-6 sm:p-10 lg:p-14 border border-slate-200">
                 
                 <!-- CONTENT 1: Medical Laboratories Screen -->
-                <div x-show="activeTab === 'labs'" x-transition class="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
+                <div x-show="activeTab === 'labs'" x-transition class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
                     <div class="w-full lg:w-1/2 flex justify-center">
                         <div class="w-[260px] sm:w-[290px] h-[530px] sm:h-[580px] rounded-[3.2rem] phone-bezel overflow-hidden relative">
                             <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-900 rounded-full z-20"></div>
@@ -703,9 +719,9 @@
     </section>
 
     <!-- Why Choose Us Section (Pillars with Flat Borders) -->
-    <section id="why-us" class="py-20 bg-slate-50 border-b border-slate-200">
+    <section id="why-us" class="py-20 lg:py-28 bg-slate-50 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+            <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16 xl:gap-20">
                 
                 <!-- Phone Mockup Side -->
                 <div class="w-full lg:w-1/2 flex justify-center select-none">
@@ -719,50 +735,50 @@
                 <div class="w-full lg:w-1/2">
                     <div class="text-[#1e60eb] font-extrabold tracking-wider text-xs mb-3 uppercase bg-blue-50 px-3.5 py-1.5 rounded-full inline-block border border-blue-200">{{ __('landing.about_tag') }}</div>
                     
-                    <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-5 leading-[1.5]">
+                    <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-5 leading-[1.5] pb-1">
                         <span>{{ __('landing.quality_care') }}</span>
                         <span class="text-[#1e60eb] inline-block overflow-visible pb-0.5">{{ __('landing.can_trust') }}</span>
                     </h2>
                     
-                    <p class="text-slate-600 text-sm sm:text-base mb-8 leading-[1.85] font-medium">
+                    <p class="text-slate-600 text-sm sm:text-base mb-8 leading-[1.85] lg:leading-[1.95] font-medium">
                         {{ __('landing.about_desc') }}
                     </p>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <!-- Pillar 1 -->
-                        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
+                        <div class="bg-white rounded-3xl p-5 sm:p-6 lg:p-7 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
                             <div class="w-12 h-12 bg-blue-50 text-[#1e60eb] rounded-2xl flex items-center justify-center text-2xl mb-4 border border-blue-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 🛡️
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.verified_prof') }}</h4>
-                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.verified_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-1">{{ __('landing.verified_prof') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.85] font-medium">{{ __('landing.verified_desc') }}</p>
                         </div>
 
                         <!-- Pillar 2 -->
-                        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
+                        <div class="bg-white rounded-3xl p-5 sm:p-6 lg:p-7 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
                             <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-emerald-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 ⚡
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.fast_reliable') }}</h4>
-                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.fast_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-1">{{ __('landing.fast_reliable') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.85] font-medium">{{ __('landing.fast_desc') }}</p>
                         </div>
 
                         <!-- Pillar 3 -->
-                        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
+                        <div class="bg-white rounded-3xl p-5 sm:p-6 lg:p-7 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
                             <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-purple-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 📱
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.easy_booking') }}</h4>
-                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.easy_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-1">{{ __('landing.easy_booking') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.85] font-medium">{{ __('landing.easy_desc') }}</p>
                         </div>
 
                         <!-- Pillar 4 -->
-                        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
+                        <div class="bg-white rounded-3xl p-5 sm:p-6 lg:p-7 border border-slate-200 hover:border-blue-400 hover:bg-slate-50/60 transition-all flex flex-col justify-start h-full group">
                             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-4 border border-amber-100 group-hover:scale-105 transition-transform flex-shrink-0">
                                 🔒
                             </div>
-                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.secure_pay') }}</h4>
-                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.8] font-medium">{{ __('landing.secure_desc') }}</p>
+                            <h4 class="font-black text-slate-900 text-sm sm:text-base mb-2.5 leading-normal overflow-visible pb-1">{{ __('landing.secure_pay') }}</h4>
+                            <p class="text-slate-600 text-xs sm:text-sm leading-[1.85] font-medium">{{ __('landing.secure_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -790,15 +806,15 @@
     </section>
 
     <!-- App Download Section (Flat, Crisp Container, Zero Shadow) -->
-    <section id="download" class="py-20 bg-white border-b border-slate-100">
+    <section id="download" class="py-20 lg:py-28 bg-white border-b border-slate-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-[#1e60eb] rounded-3xl overflow-hidden border border-blue-500">
                 <div class="flex flex-col lg:flex-row items-center justify-between">
                     <!-- Download CTA Side -->
-                    <div class="w-full lg:w-3/5 p-8 sm:p-12 lg:p-14 text-white">
-                        <span class="text-blue-200 font-extrabold text-xs uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full border border-white/20 mb-3 inline-block">{{ __('landing.download_app_tag') }}</span>
-                        <h3 class="text-2xl sm:text-3xl lg:text-4xl font-black mb-4 leading-[1.5]">{{ __('landing.download_drroom') }}</h3>
-                        <p class="text-blue-100 text-sm sm:text-base max-w-md mb-8 leading-[1.85] font-medium">{{ __('landing.get_best_exp') }}</p>
+                    <div class="w-full lg:w-3/5 p-8 sm:p-12 lg:p-16 text-white">
+                        <span class="text-blue-200 font-extrabold text-xs uppercase tracking-wider bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 mb-3.5 inline-block">{{ __('landing.download_app_tag') }}</span>
+                        <h3 class="text-2xl sm:text-3xl lg:text-4xl font-black mb-4 leading-[1.5] pb-1">{{ __('landing.download_drroom') }}</h3>
+                        <p class="text-blue-100 text-sm sm:text-base max-w-md mb-8 leading-[1.85] lg:leading-[1.95] font-medium">{{ __('landing.get_best_exp') }}</p>
                         
                         <div class="flex flex-wrap gap-3">
                             <button @click="showDownloadModal = true" class="bg-black text-white px-5 py-3 rounded-2xl flex items-center gap-3 hover:bg-slate-900 transition border border-slate-800 active:scale-95">
@@ -831,50 +847,50 @@
     </section>
 
     <!-- How It Works Section (Flat Step Cards) -->
-    <section id="how-it-works" class="py-20 bg-slate-50 border-b border-slate-200">
+    <section id="how-it-works" class="py-20 lg:py-28 bg-slate-50 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             
-            <div class="max-w-3xl mx-auto mb-14">
+            <div class="max-w-3xl mx-auto mb-14 lg:mb-18">
                 <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">{{ __('landing.how_works_title') }}</span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5]">{{ __('landing.how_works_title') }}</h2>
-                <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.8]">{{ __('landing.how_works_desc') }}</p>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5] pb-1">{{ __('landing.how_works_title') }}</h2>
+                <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.85] lg:leading-[1.95]">{{ __('landing.how_works_desc') }}</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                 <!-- Step 1 -->
-                <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col items-center">
+                <div class="bg-white rounded-3xl p-7 lg:p-8 border border-slate-200 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#1e60eb] font-black text-xl flex items-center justify-center mb-5 border border-blue-100">1</div>
-                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.step_1') }}</h4>
-                    <p class="text-slate-500 text-xs sm:text-sm leading-[1.8]">{{ __('landing.step_1_desc') }}</p>
+                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-normal overflow-visible pb-1">{{ __('landing.step_1') }}</h4>
+                    <p class="text-slate-500 text-xs sm:text-sm leading-[1.85]">{{ __('landing.step_1_desc') }}</p>
                 </div>
                 
                 <!-- Step 2 -->
-                <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col items-center">
+                <div class="bg-white rounded-3xl p-7 lg:p-8 border border-slate-200 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-2xl bg-[#1e60eb] text-white font-black text-xl flex items-center justify-center mb-5 border border-blue-600">2</div>
-                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.step_2') }}</h4>
-                    <p class="text-slate-500 text-xs sm:text-sm leading-[1.8]">{{ __('landing.step_2_desc') }}</p>
+                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-normal overflow-visible pb-1">{{ __('landing.step_2') }}</h4>
+                    <p class="text-slate-500 text-xs sm:text-sm leading-[1.85]">{{ __('landing.step_2_desc') }}</p>
                 </div>
                 
                 <!-- Step 3 -->
-                <div class="bg-white rounded-3xl p-7 border border-slate-200 flex flex-col items-center">
+                <div class="bg-white rounded-3xl p-7 lg:p-8 border border-slate-200 flex flex-col items-center">
                     <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 font-black text-xl flex items-center justify-center mb-5 border border-emerald-100">3</div>
-                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-normal overflow-visible pb-0.5">{{ __('landing.step_3') }}</h4>
-                    <p class="text-slate-500 text-xs sm:text-sm leading-[1.8]">{{ __('landing.step_3_desc') }}</p>
+                    <h4 class="font-black text-slate-900 text-base mb-2.5 leading-normal overflow-visible pb-1">{{ __('landing.step_3') }}</h4>
+                    <p class="text-slate-500 text-xs sm:text-sm leading-[1.85]">{{ __('landing.step_3_desc') }}</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- FAQ Section (Flat Expandable Accordions) -->
-    <section id="faq" class="py-20 bg-white border-b border-slate-100">
+    <section id="faq" class="py-20 lg:py-28 bg-white border-b border-slate-100">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
+            <div class="text-center mb-12 lg:mb-16">
                 <span class="text-[#1e60eb] font-extrabold text-xs uppercase tracking-wider bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">{{ __('landing.faq_title') }}</span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5]">{{ __('landing.faq_title') }}</h2>
-                <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.8]">{{ __('landing.faq_desc') }}</p>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mt-4 mb-4 leading-[1.5] pb-1">{{ __('landing.faq_title') }}</h2>
+                <p class="text-slate-600 text-sm sm:text-base font-medium leading-[1.85] lg:leading-[1.95]">{{ __('landing.faq_desc') }}</p>
             </div>
             
-            <div class="space-y-3">
+            <div class="space-y-4">
                 <!-- FAQ Item 1 -->
                 <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200" x-data="{ expanded: true }">
                     <button @click="expanded = !expanded" class="flex justify-between items-center w-full text-start font-black text-slate-900 text-sm sm:text-base focus:outline-none">
