@@ -40,12 +40,15 @@ Route::prefix('staff')->group(function () {
     Route::get('/status', [StaffAuthController::class, 'status'])->name('staff.status')->middleware('auth');
 
     Route::get('/{locale?}', function ($locale = null) {
-        if ($locale && in_array($locale, ['en', 'ar', 'ckb', 'kmr'])) {
-            session()->put('locale', $locale);
-            app()->setLocale($locale);
-        } elseif (request()->has('lang') && in_array(request('lang'), ['en', 'ar', 'ckb', 'kmr'])) {
-            session()->put('locale', request('lang'));
-            app()->setLocale(request('lang'));
+        $chosen = $locale
+            ?? (request()->has('lang') ? request('lang') : null)
+            ?? (session()->has('locale') ? session('locale') : 'ckb');
+
+        if (in_array($chosen, ['en', 'ar', 'ckb', 'kmr'])) {
+            session()->put('locale', $chosen);
+            app()->setLocale($chosen);
+        } else {
+            app()->setLocale('ckb');
         }
         return view('auth.landing');
     })->name('staff.landing')->where('locale', 'en|ar|ckb|kmr');
