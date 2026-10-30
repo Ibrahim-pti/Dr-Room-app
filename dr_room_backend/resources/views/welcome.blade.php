@@ -348,12 +348,6 @@
                 <!-- Hero Left / Content -->
                 <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
                     
-                    <!-- App Tag Pill -->
-                    <div class="inline-flex items-center gap-2.5 bg-blue-50 border border-blue-200/80 text-[#1e60eb] px-4 py-2 rounded-full text-xs font-extrabold mb-6 lg:mb-8">
-                        <span class="w-2 h-2 rounded-full bg-[#1e60eb]"></span>
-                        <span>{{ __('landing.hero_badge') }}</span>
-                    </div>
-
                     <!-- Headline with Kurdish Typography -->
                     <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] xl:text-[48px] font-black text-slate-900 flex flex-col gap-5 sm:gap-6 lg:gap-7 mb-8 lg:mb-10 leading-[1.6] lg:leading-[1.65]">
                         <span class="block py-1">{{ __('landing.hero_title_1') }}</span>
