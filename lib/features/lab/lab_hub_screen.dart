@@ -913,7 +913,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       },
                       icon: const Icon(Iconsax.arrow_right_3, size: 16, color: Colors.white),
                       label: Text(
-                        'lab_hub_complete_order'.tr(),
+                        'lab_hub_continue'.tr(),
                         style: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13.5,
@@ -1399,6 +1399,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
 
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final cart = Provider.of<CartProvider>(context);
             final filteredTests = _testsList.where((t) {
               final q = query.toLowerCase();
               return (t['name'] ?? '').toString().toLowerCase().contains(q) ||
@@ -1641,6 +1642,118 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             },
                           ),
                   ),
+                  if (cart.items.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 11,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                              Text(
+                                Currency.format(cart.total),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFEF4444),
+                              side: BorderSide(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                              ),
+                              backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 9,
+                              ),
+                            ),
+                            onPressed: () {
+                              _confirmCancelSelection();
+                              setModalState(() {});
+                            },
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              size: 15,
+                              color: Color(0xFFEF4444),
+                            ),
+                            label: Text(
+                              'cancel_selection'.tr(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFEF4444),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 9,
+                              ),
+                              elevation: 0,
+                            ),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CheckoutDetailsScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Iconsax.arrow_right_3,
+                              size: 15,
+                              color: Colors.white,
+                            ),
+                            label: Text(
+                              'lab_hub_continue'.tr(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             );
@@ -1661,6 +1774,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
 
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final cart = Provider.of<CartProvider>(context);
             final filteredPackages = _packagesList.where((p) {
               final q = query.toLowerCase();
               return (p['title'] ?? '').toString().toLowerCase().contains(q) ||
@@ -2017,6 +2131,118 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             },
                           ),
                   ),
+                  if (cart.items.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 11,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                              Text(
+                                Currency.format(cart.total),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFEF4444),
+                              side: BorderSide(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                              ),
+                              backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 9,
+                              ),
+                            ),
+                            onPressed: () {
+                              _confirmCancelSelection();
+                              setModalState(() {});
+                            },
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              size: 15,
+                              color: Color(0xFFEF4444),
+                            ),
+                            label: Text(
+                              'cancel_selection'.tr(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFEF4444),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 9,
+                              ),
+                              elevation: 0,
+                            ),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CheckoutDetailsScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Iconsax.arrow_right_3,
+                              size: 15,
+                              color: Colors.white,
+                            ),
+                            label: Text(
+                              'lab_hub_continue'.tr(),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             );
@@ -2376,7 +2602,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                           color: Colors.white,
                         ),
                         label: Text(
-                          'lab_hub_complete_order'.tr(),
+                          'lab_hub_continue'.tr(),
                           style: const TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 12.5,
