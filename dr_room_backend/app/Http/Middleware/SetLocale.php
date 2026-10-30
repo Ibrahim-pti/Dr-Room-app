@@ -15,14 +15,18 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->header('Accept-Language')
-            ?? $request->query('lang')
-            ?? ($request->hasSession() && session()->has('locale') ? session()->get('locale') : null);
+        $locale = $request->query('lang')
+            ?? ($request->hasSession() && session()->has('locale') ? session()->get('locale') : null)
+            ?? $request->header('Accept-Language');
 
         if ($locale) {
             $primary = strtolower(trim(explode('-', explode(',', $locale)[0])[0]));
             if (in_array($primary, ['ckb', 'kmr', 'bdn', 'ku', 'ar', 'en'])) {
-                app()->setLocale($primary === 'ku' ? 'ckb' : ($primary === 'bdn' ? 'kmr' : $primary));
+                $target = $primary === 'ku' ? 'ckb' : ($primary === 'bdn' ? 'kmr' : $primary);
+                app()->setLocale($target);
+                if ($request->hasSession()) {
+                    session()->put('locale', $target);
+                }
             }
         }
 
