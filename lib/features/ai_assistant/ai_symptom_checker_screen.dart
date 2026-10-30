@@ -11,8 +11,13 @@ import 'services/ai_clinical_service.dart';
 
 class AiSymptomCheckerScreen extends StatefulWidget {
   final String? initialMode; // 'lab' or 'nursing'
+  final File? initialImage;
 
-  const AiSymptomCheckerScreen({super.key, this.initialMode});
+  const AiSymptomCheckerScreen({
+    super.key,
+    this.initialMode,
+    this.initialImage,
+  });
 
   @override
   State<AiSymptomCheckerScreen> createState() => _AiSymptomCheckerScreenState();
@@ -68,6 +73,13 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
     super.initState();
     _currentMode = 'medicine';
     _loadScans();
+    if (widget.initialImage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _startImageAnalysis(widget.initialImage!);
+        }
+      });
+    }
   }
 
   TextStyle _kStyle({

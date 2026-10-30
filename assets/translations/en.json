@@ -1038,5 +1038,11 @@
   "no_nursing_orders": "No nursing requests",
   "no_active_nursing_orders_hint": "When you request nursing services, they will appear here",
   "no_lab_history": "No lab test history or results",
-  "no_lab_history_desc": "Completed lab orders and test results will be saved here."
+  "no_lab_history_desc": "Completed lab orders and test results will be saved here.",
+  "tab_ai_analysis": "AI Analysis",
+  "tab_select_staff": "Select Staff",
+  "tab_select_lab": "Select Lab",
+  "ai_prescription_title": "AI Smart Prescription Analysis",
+  "ai_prescription_desc": "Upload your prescription image to let AI extract medications, dosages, and medical instructions.",
+  "start_ai_analysis_btn": "Analyze Prescription with AI"
 }

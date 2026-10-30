@@ -1035,5 +1035,11 @@
   "no_nursing_orders": "Tu daxwazên perestariyê nînin",
   "no_active_nursing_orders_hint": "Dema ku tu daxwaza xizmetguzariya perestariyê dikî, li vir xuya dibe",
   "no_lab_history": "Tu dîrok an encamên pişkinînên taqîgehê nînin",
-  "no_lab_history_desc": "Encam û daxwazên temambûyî yên taqîgehê li vir têne tomar kirin."
+  "no_lab_history_desc": "Encam û daxwazên temambûyî yên taqîgehê li vir têne tomar kirin.",
+  "tab_ai_analysis": "شرۆڤەکرن ب AI",
+  "tab_select_staff": "دیاریکرنا ستافی",
+  "tab_select_lab": "دیاریکرنا تاقیگەهێ",
+  "ai_prescription_title": "شرۆڤەکرنا زیرەک یا ڕەچەتێ ب AI",
+  "ai_prescription_desc": "وێنەیێ ڕەچەتێ باربکە دا ژیرییا دەستکرد دەرمان و ڕێنمایان بۆ تە شرۆڤە بکەت.",
+  "start_ai_analysis_btn": "شرۆڤەکرنا ڕەچەتێ ب AI"
 }

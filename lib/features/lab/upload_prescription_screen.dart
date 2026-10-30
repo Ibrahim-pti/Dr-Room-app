@@ -11,6 +11,7 @@ import '../../core/utils/currency.dart';
 import '../../core/utils/localization_extensions.dart';
 import '../../core/providers/cart_provider.dart';
 import '../checkout/checkout_details_screen.dart';
+import '../ai_assistant/ai_symptom_checker_screen.dart';
 
 class UploadPrescriptionScreen extends StatefulWidget {
   final String serviceType; // 'lab' or 'nursing'
@@ -33,6 +34,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
   bool _isLoading = true;
   bool _isUploading = false;
+  int _selectedTab = 0; // 0: AI Analysis, 1: Select Staff / Lab
   List<Map<String, dynamic>> _providers = [];
   Map<String, dynamic>? _selectedProvider;
 
@@ -1313,12 +1315,246 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 22),
 
-                  // ── 2. Select Provider (Nurse or Lab) ──
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                  // ── Mode Switcher Tabs (شیکردنەوە بە AI / دیاریکردنی ستاف) ──
+                  Container(
+                    height: 50,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedTab = 0),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              decoration: BoxDecoration(
+                                color: _selectedTab == 0
+                                    ? const Color(0xFF7C3AED)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: _selectedTab == 0
+                                    ? [
+                                        BoxShadow(
+                                          color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.auto_awesome_rounded,
+                                      size: 17,
+                                      color: _selectedTab == 0
+                                          ? Colors.white
+                                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'tab_ai_analysis'.tr(),
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: _selectedTab == 0
+                                            ? Colors.white
+                                            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedTab = 1),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              decoration: BoxDecoration(
+                                color: _selectedTab == 1
+                                    ? _themeColor
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: _selectedTab == 1
+                                    ? [
+                                        BoxShadow(
+                                          color: _themeColor.withValues(alpha: 0.3),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      widget.isNursing ? Iconsax.people : Iconsax.hospital,
+                                      size: 17,
+                                      color: _selectedTab == 1
+                                          ? Colors.white
+                                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      widget.isNursing
+                                          ? 'tab_select_staff'.tr()
+                                          : 'tab_select_lab'.tr(),
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: _selectedTab == 1
+                                            ? Colors.white
+                                            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ── AI Analysis Tab View ──
+                  if (_selectedTab == 0) ...[
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF7C3AED).withValues(alpha: isDark ? 0.2 : 0.05),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.auto_awesome_rounded,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'ai_prescription_title'.tr(),
+                                      style: TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'ai_prescription_desc'.tr(),
+                                      style: const TextStyle(
+                                        fontFamily: 'Rabar',
+                                        fontSize: 12,
+                                        color: Color(0xFF64748B),
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF7C3AED),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: () {
+                                if (_imageFile == null) {
+                                  _pickImage();
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AiSymptomCheckerScreen(
+                                        initialMode: widget.serviceType,
+                                        initialImage: _imageFile,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                              label: Text(
+                                _imageFile == null
+                                    ? 'tap_to_capture_or_upload'.tr()
+                                    : 'start_ai_analysis_btn'.tr(),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    // ── 2. Select Provider (Nurse or Lab) ──
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1605,13 +1841,74 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                     _buildLabTestsSection(isDark, cardBg, borderColor),
                   ],
                 ],
-              ),
+              ],
             ),
+          ),
 
-      // ── Bottom Continue Button & Summary ──
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: cardBg,
+      // ── Bottom Action Button (AI Analysis / Staff Checkout) ──
+      bottomNavigationBar: _selectedTab == 0
+          ? Container(
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7C3AED),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        if (_imageFile == null) {
+                          _pickImage();
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AiSymptomCheckerScreen(
+                                initialMode: widget.serviceType,
+                                initialImage: _imageFile,
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.auto_awesome_rounded, size: 20),
+                      label: Text(
+                        _imageFile == null
+                            ? 'tap_to_capture_or_upload'.tr()
+                            : 'start_ai_analysis_btn'.tr(),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : Container(
+              decoration: BoxDecoration(
+                color: cardBg,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           boxShadow: [
             BoxShadow(
