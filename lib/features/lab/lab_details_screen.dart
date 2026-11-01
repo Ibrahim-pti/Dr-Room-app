@@ -769,43 +769,68 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   }
 
   Widget _buildActionButtons() {
-    return _buildActionButton(
-      icon: Icons.star_rate_rounded,
-      label: 'rating'.tr(),
-      color: const Color(0xFFD97706),
-      bgColor: const Color(0xFFFEF3C7),
-      onTap: _showReviewBottomSheet,
-    );
-  }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final double rawRating =
+        double.tryParse(_labData['rating']?.toString() ?? '0') ?? 0.0;
+    final String rating = rawRating > 0 ? rawRating.toStringAsFixed(1) : '5.0';
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required Color bgColor,
-    required VoidCallback onTap,
-  }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: _showReviewBottomSheet,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
         decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 20),
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.star_rounded,
+                color: Color(0xFFD97706),
+                size: 16,
+              ),
+            ),
             const SizedBox(width: 8),
             Text(
-              label,
+              'rating'.tr(),
               style: _kStyle(
-                color: color,
-                fontSize: 13.5,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                '$rating ★',
+                style: _kStyle(
+                  color: const Color(0xFFB45309),
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -921,28 +946,27 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(7),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
               Iconsax.document_text_1,
               color: color,
-              size: 18,
+              size: 17,
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              _tr('same_day_result', context),
-              style: _kStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
+          const SizedBox(width: 8),
+          Text(
+            _tr('same_day_result', context),
+            style: _kStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
           ),
         ],
