@@ -907,83 +907,46 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   }
 
   Widget _buildHighlightFeatures() {
-    final highlights = [
-      {
-        'icon': Iconsax.document_text_1,
-        'title': _tr('same_day_result', context),
-        'desc': 'خێرا و مۆدێرن',
-        'color': const Color(0xFF3B82F6),
-      },
-      {
-        'icon': Iconsax.home_2,
-        'title': _tr('home_sample', context),
-        'desc': 'بەردەستە',
-        'color': const Color(0xFF10B981),
-      },
-    ];
+    const color = Color(0xFF3B82F6);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Row(
-      children: highlights.map((h) {
-        final color = h['color'] as Color;
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 3),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
-              color: (Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF1E293B)
-                  : Colors.white),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE2E8F0),
-              ),
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(h['icon'] as IconData, color: color, size: 17),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        h['title'] as String,
-                        style: _kStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : const Color(0xFF0F172A),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        h['desc'] as String,
-                        style: _kStyle(
-                          fontSize: 10,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            child: const Icon(
+              Iconsax.document_text_1,
+              color: color,
+              size: 18,
             ),
           ),
-        );
-      }).toList(),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _tr('same_day_result', context),
+              style: _kStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
