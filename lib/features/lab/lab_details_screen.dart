@@ -10,7 +10,7 @@ import '../../core/utils/localization_extensions.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/providers/cart_provider.dart';
-import '../checkout/checkout_details_screen.dart';
+import '../pharmacy/screens/cart_screen.dart';
 
 class LabDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> lab;
@@ -2578,7 +2578,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const CheckoutDetailsScreen(),
+                  builder: (context) => const CartScreen(),
                 ),
               );
             },
@@ -2594,7 +2594,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  _tr('continue_btn', context),
+                  'view_cart'.tr(),
                   style: _kStyle(
                     color: Colors.white,
                     fontSize: 15,

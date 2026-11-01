@@ -9,7 +9,7 @@ import '../../core/providers/cart_provider.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/utils/currency.dart';
 import '../../core/utils/localization_extensions.dart';
-import '../checkout/checkout_details_screen.dart';
+import '../pharmacy/screens/cart_screen.dart';
 import '../ai_assistant/services/ai_clinical_service.dart';
 
 class NurseServiceItem {
@@ -381,7 +381,6 @@ class _PrescriptionAiSummaryScreenState
     }
 
     final cart = context.read<CartProvider>();
-    cart.clearCart();
     cart.setServiceType('nursing', extraFee: _currentTransportFee);
 
     final staffName = _selectedNurse?['name'] ?? '';
@@ -414,7 +413,7 @@ class _PrescriptionAiSummaryScreenState
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const CheckoutDetailsScreen(),
+        builder: (_) => const CartScreen(),
       ),
     );
   }

@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../checkout/checkout_details_screen.dart';
+import '../pharmacy/screens/cart_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/cart_provider.dart';
@@ -377,7 +377,7 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const CheckoutDetailsScreen(),
+                                  builder: (context) => const CartScreen(),
                                 ),
                               );
                             }
@@ -391,7 +391,7 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
                         elevation: 0,
                       ),
                       child: Text(
-                        'continue_btn'.tr(),
+                        'view_cart'.tr(),
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

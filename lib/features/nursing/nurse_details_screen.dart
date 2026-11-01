@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:provider/provider.dart';
 import '../../core/providers/cart_provider.dart';
-import '../checkout/checkout_details_screen.dart';
+import '../pharmacy/screens/cart_screen.dart';
 import '../../core/utils/api_client.dart';
 import 'nurse_reviews_screen.dart';
 
@@ -1497,7 +1497,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const CheckoutDetailsScreen(),
+                            builder: (_) => const CartScreen(),
                           ),
                         );
                       },
@@ -1602,7 +1602,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const CheckoutDetailsScreen(),
+                  builder: (_) => const CartScreen(),
                 ),
               );
             },

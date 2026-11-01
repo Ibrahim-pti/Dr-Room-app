@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import 'package:dr_room/core/theme/dr_room_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../checkout/checkout_details_screen.dart';
+import '../pharmacy/screens/cart_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/cart_provider.dart';
 import '../../core/utils/currency.dart';
@@ -186,7 +187,7 @@ class _SelectTestsScreenState extends State<SelectTestsScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const CheckoutDetailsScreen(),
+                                  builder: (context) => const CartScreen(),
                                 ),
                               );
                             }
@@ -200,7 +201,7 @@ class _SelectTestsScreenState extends State<SelectTestsScreen> {
                         elevation: 0,
                       ),
                       child: Text(
-                        'Continue',
+                        'view_cart'.tr(),
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

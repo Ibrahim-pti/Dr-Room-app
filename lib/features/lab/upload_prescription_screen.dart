@@ -10,7 +10,7 @@ import '../../core/utils/api_client.dart';
 import '../../core/utils/currency.dart';
 import '../../core/utils/localization_extensions.dart';
 import '../../core/providers/cart_provider.dart';
-import '../checkout/checkout_details_screen.dart';
+import '../pharmacy/screens/cart_screen.dart';
 import 'prescription_ai_summary_screen.dart';
 
 class UploadPrescriptionScreen extends StatefulWidget {
@@ -1196,7 +1196,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const CheckoutDetailsScreen()),
+      MaterialPageRoute(builder: (context) => const CartScreen()),
     );
   }
 

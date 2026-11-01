@@ -7,11 +7,11 @@ import 'package:provider/provider.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/providers/cart_provider.dart';
 import '../../core/utils/currency.dart';
-import '../checkout/checkout_details_screen.dart';
 import '../requests/my_requests_screen.dart';
 import '../ai_assistant/ai_symptom_checker_screen.dart';
 import 'upload_prescription_screen.dart';
 import 'all_labs_screen.dart';
+import '../pharmacy/screens/cart_screen.dart';
 
 class LabHubScreen extends StatefulWidget {
   const LabHubScreen({super.key});
@@ -720,6 +720,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
     );
   }
 
+  // ignore: unused_element
   void _showSelectedItemsModal() {
     showModalBottomSheet(
       context: context,
@@ -1011,12 +1012,12 @@ class _LabHubScreenState extends State<LabHubScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const CheckoutDetailsScreen(),
+                            builder: (_) => const CartScreen(),
                           ),
                         );
                       },
                       child: Text(
-                        'lab_hub_continue'.tr(),
+                        'view_cart'.tr(),
                         style: const TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 13.5,
@@ -2400,133 +2401,113 @@ class _LabHubScreenState extends State<LabHubScreen> {
         ),
       ),
 
-      // ── Bottom Cart Floater if Cart has items ──
+      // ── Talabat-style Floating Cart Bar ──
       bottomNavigationBar: cart.items.isNotEmpty
-          ? Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-                  child: Row(
-                    children: [
-                      InkWell(
-                        onTap: _showSelectedItemsModal,
-                        borderRadius: BorderRadius.circular(10),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          child: Column(
+          ? SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CartScreen()),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                        begin: Alignment.centerRight,
+                        end: Alignment.centerLeft,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.38),
+                          blurRadius: 18,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        // Cart count pill badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '${cart.items.length} ${'lab_hub_selected_services'.tr()}',
-                                    style: const TextStyle(
-                                      fontFamily: 'Rabar',
-                                      fontSize: 11,
-                                      color: Color(0xFF64748B),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 3),
-                                  const Icon(
-                                    Icons.keyboard_arrow_up_rounded,
-                                    size: 14,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ],
-                              ),
+                              const Icon(Iconsax.shopping_cart, size: 16, color: Color(0xFF2563EB)),
+                              const SizedBox(width: 5),
                               Text(
-                                Currency.format(cart.total),
+                                '${cart.items.length}',
                                 style: const TextStyle(
                                   fontFamily: 'Rabar',
-                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF10B981),
+                                  fontSize: 13.5,
+                                  color: Color(0xFF2563EB),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const Spacer(),
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFEF4444),
-                          side: BorderSide(
-                            color: const Color(0xFFEF4444).withValues(alpha: 0.35),
-                          ),
-                          backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 10,
-                          ),
-                        ),
-                        onPressed: _confirmCancelSelection,
-                        icon: const Icon(
-                          Icons.close_rounded,
-                          size: 15,
-                          color: Color(0xFFEF4444),
-                        ),
-                        label: Text(
-                          'cancel_selection'.tr(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFEF4444),
+                        const SizedBox(width: 12),
+                        // Title and subtitle
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'view_cart'.tr(),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                '${cart.items.length} ${'cart_services_count'.tr()}',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 11.5,
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          elevation: 0,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const CheckoutDetailsScreen(),
+                        // Total price + chevron arrow
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              Currency.format(cart.total),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          );
-                        },
-                        child: Text(
-                          'lab_hub_continue'.tr(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

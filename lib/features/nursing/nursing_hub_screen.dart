@@ -7,9 +7,9 @@ import 'package:provider/provider.dart';
 import '../../core/providers/cart_provider.dart';
 import '../../core/utils/currency.dart';
 import '../../core/utils/api_client.dart';
-import '../checkout/checkout_details_screen.dart';
 import '../lab/upload_prescription_screen.dart';
 import '../requests/my_requests_screen.dart';
+import '../pharmacy/screens/cart_screen.dart';
 
 
 class NursingHubScreen extends StatefulWidget {
@@ -601,6 +601,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
     );
   }
 
+  // ignore: unused_element
   void _confirmCancelSelection() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
@@ -1695,98 +1696,113 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
         ),
       ),
 
-      // ── Bottom Cart Floater ──
+      // ── Talabat-style Floating Cart Bar ──
       bottomNavigationBar: cart.items.isNotEmpty
-          ? Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-                  child: Row(
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${cart.items.length} ${'nursing_selected_services_count'.tr()}',
-                            style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
-                          ),
-                          Text(
-                            Currency.format(cart.total),
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 16.5,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF10B981),
-                            ),
-                          ),
-                        ],
+          ? SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CartScreen()),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
+                        begin: Alignment.centerRight,
+                        end: Alignment.centerLeft,
                       ),
-                      const Spacer(),
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFEF4444),
-                          side: BorderSide(
-                            color: const Color(0xFFEF4444).withValues(alpha: 0.35),
-                          ),
-                          backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
-                          shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0D9488).withValues(alpha: 0.38),
+                          blurRadius: 18,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        // Cart count pill badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 10,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Iconsax.shopping_cart, size: 16, color: Color(0xFF0D9488)),
+                              const SizedBox(width: 5),
+                              Text(
+                                '${cart.items.length}',
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13.5,
+                                  color: Color(0xFF0D9488),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        onPressed: _confirmCancelSelection,
-                        icon: const Icon(
-                          Icons.close_rounded,
-                          size: 15,
-                          color: Color(0xFFEF4444),
-                        ),
-                        label: Text(
-                          'cancel_selection'.tr(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFEF4444),
+                        const SizedBox(width: 12),
+                        // Title and subtitle
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'view_cart'.tr(),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                '${cart.items.length} ${'cart_services_count'.tr()}',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 11.5,
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0D9488),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          elevation: 0,
+                        // Total price + chevron arrow
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              Currency.format(cart.total),
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                          ],
                         ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const CheckoutDetailsScreen()),
-                          );
-                        },
-                        icon: const Icon(Iconsax.arrow_left_3, size: 15, color: Colors.white),
-                        label: Text(
-                          'nursing_checkout_action'.tr(),
-                          style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
