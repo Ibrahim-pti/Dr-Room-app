@@ -29,6 +29,7 @@ import 'features/setup/health_profile_screen.dart';
 import 'features/setup/medical_history_screen.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/services/connectivity_service.dart';
+import 'core/services/service_fee_service.dart';
 import 'core/widgets/no_internet_widget.dart';
 
 /// Lets code without a BuildContext (notably [ApiClient]) drive navigation.
@@ -38,6 +39,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await PushNotificationService.instance.init();
+  await ServiceFeeService.instance.init();
   ConnectivityService.instance.initialize();
 
   // A rejected token used to fail silently on every subsequent call. Now it

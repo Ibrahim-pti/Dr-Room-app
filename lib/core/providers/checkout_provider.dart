@@ -52,6 +52,7 @@ class CheckoutProvider extends ChangeNotifier {
         'service_type': cart.serviceType ?? 'General',
         'subtotal': cart.subtotal,
         'extra_fee': cart.extraFee,
+        'service_fee': cart.serviceFee,
         'total_price': cart.total,
         'payment_method': _selectedPaymentMethod,
         'transaction_reference': transactionReference,

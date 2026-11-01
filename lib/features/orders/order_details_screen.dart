@@ -786,6 +786,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         isDark: isDark,
                       ),
                     ],
+                    if (_currentOrder.serviceFee != null) ...[
+                      const Divider(
+                        height: 24,
+                        thickness: 1,
+                        color: Color(0xFFF1F5F9),
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'service_fee'.tr(),
+                        _currentOrder.serviceFee == 0
+                            ? 'service_fee_free'.tr()
+                            : '${NumberFormat('#,###').format(_currentOrder.serviceFee)} ${'currency_iqd'.tr()}',
+                        isDark: isDark,
+                      ),
+                    ],
                     const Divider(
                       height: 24,
                       thickness: 1,

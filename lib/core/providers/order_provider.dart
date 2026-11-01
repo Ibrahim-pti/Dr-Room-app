@@ -96,6 +96,7 @@ class OrderModel {
   final String? paymentMethod;
   final List<dynamic>? items;
   final String? prescriptionImage;
+  final double? serviceFee;
 
   /// Set only for orders built locally right after checkout, where the item
   /// names are known and more useful than the generic service name.
@@ -136,6 +137,7 @@ class OrderModel {
     this.paymentMethod,
     this.items,
     this.prescriptionImage,
+    this.serviceFee,
     this.customTitle,
   });
 
@@ -225,6 +227,7 @@ class OrderModel {
       paymentMethod: json['payment_method']?.toString(),
       items: json['items'] is List ? json['items'] : null,
       prescriptionImage: resolvedPrescription,
+      serviceFee: double.tryParse(json['service_fee']?.toString() ?? ''),
     );
   }
 
@@ -237,6 +240,7 @@ class OrderModel {
     String? paymentMethod,
     List<dynamic>? items,
     String? prescriptionImage,
+    double? serviceFee,
   }) {
     return OrderModel(
       id: id,
@@ -273,6 +277,7 @@ class OrderModel {
       paymentMethod: paymentMethod ?? this.paymentMethod,
       items: items ?? this.items,
       prescriptionImage: prescriptionImage ?? this.prescriptionImage,
+      serviceFee: serviceFee ?? this.serviceFee,
       customTitle: customTitle,
     );
   }

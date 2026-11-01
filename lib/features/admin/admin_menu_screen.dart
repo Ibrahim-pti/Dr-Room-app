@@ -13,6 +13,7 @@ import 'admin_banners_screen.dart';
 import 'admin_notifications_screen.dart';
 import 'admin_emergency_screen.dart';
 import 'admin_app_bar.dart';
+import 'admin_service_fee_screen.dart';
 
 class AdminMenuScreen extends StatefulWidget {
   const AdminMenuScreen({super.key});
@@ -103,6 +104,14 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'icon': Iconsax.wallet_3,
             'color': const Color(0xFF059669),
             'screen': const AdminTransactionsScreen(),
+          },
+          {
+            'title': 'کرێی خزمەتگوزاری (Service Fee)',
+            'permission': AdminPermissions.manageContent,
+            'subtitle': 'دیاریکردنی کرێی داواکارییەکان یان کردنی بە خۆڕایی',
+            'icon': Iconsax.receipt_item,
+            'color': const Color(0xFF2563EB),
+            'screen': const AdminServiceFeeScreen(),
           },
         ],
       },

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../providers/cart_provider.dart';
 import '../../../core/utils/api_client.dart';
 import '../../../core/services/rasedi_payment_service.dart';
+import '../../../core/services/service_fee_service.dart';
 import '../../checkout/rasedi_checkout_screen.dart';
 import '../widgets/checkout_step_indicator.dart';
 
@@ -38,13 +40,16 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
     final cartState = ref.read(cartProvider);
     if (cartState.items.isEmpty || cartState.pharmacy == null) return;
 
+    final serviceFee = ServiceFeeService.instance.currentFee;
+    final finalTotal = cartState.total + serviceFee;
+
     final gateway = RasediPaymentService.mapMethodToGateway(_selectedPaymentMethod);
     String? transactionRef;
 
     if (gateway != null) {
       final result = await RasediCheckoutScreen.startPayment(
         context,
-        amount: cartState.total,
+        amount: finalTotal,
         title: 'DrRoom - داواکاری دەرمانخانە',
         description: cartState.items.map((item) => item.medication.name).join('، '),
         gateway: gateway,
@@ -74,7 +79,8 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
         'service_type': 'pharmacy',
         'subtotal': cartState.subtotal,
         'extra_fee': cartState.pharmacy!.deliveryFee,
-        'total_price': cartState.total,
+        'service_fee': serviceFee,
+        'total_price': finalTotal,
         'payment_method': _selectedPaymentMethod,
         'transaction_reference': transactionRef,
         'payment_status': transactionRef != null ? 'paid' : 'pending',
@@ -224,6 +230,8 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final cartState = ref.watch(cartProvider);
+    final serviceFee = ServiceFeeService.instance.currentFee;
+    final totalWithFee = cartState.total + serviceFee;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
@@ -271,7 +279,7 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('${cartState.total.toInt()}', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: const Color(0xFF2563EB))),
+                          Text('${totalWithFee.toInt()}', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: const Color(0xFF2563EB))),
                           const SizedBox(width: 4),
                           Padding(
                             padding: const EdgeInsets.only(bottom: 4),
@@ -326,6 +334,40 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
                             Text('${cartState.pharmacy?.deliveryFee.toInt() ?? 0} IQD', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: const Color(0xFF111827))),
                           ],
                         ),
+                        if (ServiceFeeService.instance.isEnabled) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text('service_fee'.tr(), style: GoogleFonts.inter(color: Colors.grey)),
+                                  if (ServiceFeeService.instance.note.isNotEmpty) ...[
+                                    const SizedBox(width: 4),
+                                    Tooltip(
+                                      message: ServiceFeeService.instance.note,
+                                      child: const Icon(Icons.info_outline, size: 14, color: Colors.grey),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              if (ServiceFeeService.instance.isFree || serviceFee == 0)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDCFCE7),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'service_fee_free'.tr(),
+                                    style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 12, color: const Color(0xFF15803D)),
+                                  ),
+                                )
+                              else
+                                Text('${serviceFee.toInt()} IQD', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: const Color(0xFF111827))),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -342,7 +384,7 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Total Amount', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: const Color(0xFF111827))),
-                            Text('${cartState.total.toInt()} IQD', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 18, color: const Color(0xFF2563EB))),
+                            Text('${totalWithFee.toInt()} IQD', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 18, color: const Color(0xFF2563EB))),
                           ],
                         ),
                       ],

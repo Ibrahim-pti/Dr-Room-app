@@ -8,6 +8,7 @@ import '../../../core/utils/api_client.dart';
 import '../../../core/providers/cart_provider.dart' as core_cart;
 import '../providers/cart_provider.dart' as pharmacy_cart;
 import '../../checkout/checkout_details_screen.dart';
+import '../../../core/services/service_fee_service.dart';
 import 'pharmacy_checkout_screen.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
@@ -308,7 +309,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         (hasCore ? coreCart.subtotal : 0.0);
     final double extraFee = (hasPharmacy ? (pharmacyCartState.pharmacy?.deliveryFee ?? 0.0) : 0.0) +
         (hasCore ? coreCart.extraFee : 0.0);
-    final double grandTotal = subtotal + extraFee;
+    final serviceFeeModel = ServiceFeeService.instance.feeModel;
+    final double serviceFee = isEmpty ? 0.0 : ServiceFeeService.instance.currentFee;
+    final double grandTotal = subtotal + extraFee + serviceFee;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
@@ -822,6 +825,57 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                             ),
                           ],
                         ),
+                        if (serviceFeeModel.isEnabled && !isEmpty) ...[
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'service_fee'.tr(),
+                                    style: _kStyle(
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                      fontSize: 13.5,
+                                    ),
+                                  ),
+                                  if (serviceFeeModel.note != null && serviceFeeModel.note!.isNotEmpty) ...[
+                                    const SizedBox(width: 5),
+                                    Tooltip(
+                                      message: serviceFeeModel.note!,
+                                      child: const Icon(Icons.info_outline, size: 14, color: Color(0xFF94A3B8)),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              if (serviceFeeModel.isFree || serviceFee == 0)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'service_fee_free'.tr(),
+                                    style: _kStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF10B981),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Text(
+                                  '${NumberFormat('#,###').format(serviceFee.toInt())} ${'currency_iqd'.tr()}',
+                                  style: _kStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
                         if (extraFee > 0) ...[
                           const SizedBox(height: 10),
                           Row(

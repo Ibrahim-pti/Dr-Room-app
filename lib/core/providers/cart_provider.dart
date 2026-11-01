@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/service_fee_service.dart';
 
 class CartItem {
   final String id;
@@ -56,6 +57,7 @@ class CartProvider extends ChangeNotifier {
 
   CartProvider() {
     _loadFromStorage();
+    ServiceFeeService.instance.addListener(notifyListeners);
   }
 
   Future<void> _loadFromStorage() async {
@@ -131,7 +133,9 @@ class CartProvider extends ChangeNotifier {
     return _items.fold(0, (total, item) => total + (item.price * item.quantity));
   }
 
-  double get total => subtotal + _extraFee;
+  double get serviceFee => _items.isEmpty ? 0.0 : ServiceFeeService.instance.currentFee;
+
+  double get total => subtotal + _extraFee + serviceFee;
 
   void setServiceType(String type, {double extraFee = 0.0}) {
     _serviceType = type;

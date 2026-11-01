@@ -7,6 +7,7 @@ import 'order_success_screen.dart';
 import '../../core/providers/order_provider.dart';
 import '../../core/providers/checkout_provider.dart';
 import '../../core/providers/cart_provider.dart';
+import '../../core/services/service_fee_service.dart';
 import '../../core/services/rasedi_payment_service.dart';
 import 'rasedi_checkout_screen.dart';
 
@@ -233,6 +234,17 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                       '${NumberFormat('#,###').format(cartProvider.subtotal)} د.ع',
                                       false,
                                     ),
+                                    if (ServiceFeeService.instance.feeModel.isEnabled) ...[
+                                      const SizedBox(height: 14),
+                                      _buildSummaryRow(
+                                        Iconsax.receipt_item,
+                                        'service_fee'.tr(),
+                                        ServiceFeeService.instance.isFree
+                                            ? 'service_fee_free'.tr()
+                                            : '${NumberFormat('#,###').format(cartProvider.serviceFee.toInt())} د.ع',
+                                        false,
+                                      ),
+                                    ],
                                     if (cartProvider.extraFee > 0) ...[
                                       const SizedBox(height: 14),
                                       _buildSummaryRow(
@@ -442,6 +454,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                   customTitle: itemsStr.isEmpty ? null : itemsStr,
                                   status: transactionRef != null ? OrderStatus.processing : OrderStatus.pending,
                                   price: cartProvider.total,
+                                  serviceFee: cartProvider.serviceFee,
                                   date: DateTime.now(),
                                 ));
 
