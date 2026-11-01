@@ -2496,7 +2496,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      ElevatedButton.icon(
+                      ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2563EB),
                           shape: RoundedRectangleBorder(
@@ -2516,12 +2516,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             ),
                           );
                         },
-                        icon: const Icon(
-                          Iconsax.arrow_right_3,
-                          size: 15,
-                          color: Colors.white,
-                        ),
-                        label: Text(
+                        child: Text(
                           'lab_hub_continue'.tr(),
                           style: const TextStyle(
                             fontFamily: 'Rabar',
