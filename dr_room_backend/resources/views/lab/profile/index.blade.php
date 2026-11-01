@@ -58,14 +58,8 @@
                 </div>
             </div>
 
-            <!-- Contact & Settings -->
+            <!-- Settings -->
             <div class="space-y-4">
-                <div>
-                    <label for="phone" class="block text-sm font-medium text-slate-700 mb-2">ژمارە مۆبایل <span class="text-red-500">*</span></label>
-                    <input type="text" id="phone" name="phone" value="{{ old('phone', $user->phone) }}" required dir="ltr"
-                        class="w-full text-right px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
-                    @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
                 <div>
                     <label for="city" class="block text-sm font-medium text-slate-700 mb-2">شار</label>
                     <select id="city" name="city" class="w-full px-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700">
@@ -175,27 +169,7 @@
             </div>
         </div>
 
-        <!-- Map -->
-        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 mt-6">
-            <h3 class="text-sm font-semibold text-slate-800 mb-4">شوێنی سەر نەخشە</h3>
-            <input type="hidden" id="latitude" name="latitude" value="{{ old('latitude', $lab?->latitude) }}">
-            <input type="hidden" id="longitude" name="longitude" value="{{ old('longitude', $lab?->longitude) }}">
-            <div id="map" class="w-full h-72 rounded-xl border border-slate-200 z-0" style="min-height: 300px;"></div>
-            <p class="text-xs text-slate-500 mt-2">کرتە لەسەر نەخشەکە بکە بۆ دیاریکردنی شوێنی تاقیگە.</p>
 
-            <div class="flex flex-wrap items-center gap-3 mt-3">
-                <button type="button" onclick="useMyLocation()"
-                    class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors text-sm font-medium">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    شوێنی ئێستام
-                </button>
-                <button type="button" onclick="clearLocation()"
-                    class="px-4 py-2 bg-slate-50 text-slate-500 rounded-xl hover:bg-slate-100 transition-colors text-sm font-medium">
-                    سڕینەوەی شوێن
-                </button>
-                <span id="coords_label" class="text-xs text-slate-400" dir="ltr"></span>
-            </div>
-        </div>
 
         <!-- Submit -->
         <div class="pt-6 border-t border-slate-100 flex flex-wrap items-center gap-4">
@@ -212,97 +186,10 @@
 @endsection
 
 @section('scripts')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
 <script>
-let map, marker;
-const defaultLat = 36.1911; // Erbil
-const defaultLng = 44.0092;
-
-function initLabMap() {
-    const latInput = document.getElementById('latitude');
-    const lngInput = document.getElementById('longitude');
-    
-    let curLat = parseFloat(latInput.value) || defaultLat;
-    let curLng = parseFloat(lngInput.value) || defaultLng;
-    const hasInitialCoords = Boolean(latInput.value && lngInput.value);
-
-    map = L.map('map').setView([curLat, curLng], hasInitialCoords ? 15 : 12);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    if (hasInitialCoords) {
-        setMarker(curLat, curLng);
-    }
-
-    map.on('click', function(e) {
-        setMarker(e.latlng.lat, e.latlng.lng);
-    });
-    
-    setTimeout(() => map.invalidateSize(), 500);
-}
-
-function setMarker(lat, lng) {
-    if (marker) {
-        marker.setLatLng([lat, lng]);
-    } else {
-        marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-        marker.on('dragend', function(e) {
-            const pos = e.target.getLatLng();
-            updateCoords(pos.lat, pos.lng);
-        });
-    }
-    updateCoords(lat, lng);
-}
-
-function updateCoords(lat, lng) {
-    document.getElementById('latitude').value = lat.toFixed(6);
-    document.getElementById('longitude').value = lng.toFixed(6);
-    const label = document.getElementById('coords_label');
-    if (label) {
-        label.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    }
-}
-
-function clearLocation() {
-    if (marker) {
-        map.removeLayer(marker);
-        marker = null;
-    }
-    document.getElementById('latitude').value = '';
-    document.getElementById('longitude').value = '';
-    const label = document.getElementById('coords_label');
-    if (label) {
-        label.textContent = '';
-    }
-}
-
-function useMyLocation() {
-    if (!navigator.geolocation) {
-        alert('گەڕان بەدوای شوێن لە وێبگەڕەکەت پشتگیری ناکرێت.');
-        return;
-    }
-    navigator.geolocation.getCurrentPosition(
-        function(pos) {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            map.setView([lat, lng], 15);
-            setMarker(lat, lng);
-        },
-        function() {
-            alert('نەتوانرا شوێنی ئێستات بدۆزرێتەوە.');
-        },
-        { enableHighAccuracy: true }
-    );
-}
-
 function checkFormValidity() {
     const requiredIds = [
         'name', 'name_kmr', 'name_ar', 'name_en',
-        'phone',
         'location', 'location_kmr', 'location_ar', 'location_en',
         'about_us', 'about_us_kmr', 'about_us_ar', 'about_us_en'
     ];
@@ -332,7 +219,6 @@ function checkFormValidity() {
 function initValidation() {
     const ids = [
         'name', 'name_kmr', 'name_ar', 'name_en',
-        'phone',
         'location', 'location_kmr', 'location_ar', 'location_en',
         'about_us', 'about_us_kmr', 'about_us_ar', 'about_us_en'
     ];
@@ -356,9 +242,8 @@ function initValidation() {
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { initLabMap(); initValidation(); });
+    document.addEventListener('DOMContentLoaded', () => { initValidation(); });
 } else {
-    initLabMap();
     initValidation();
 }
 

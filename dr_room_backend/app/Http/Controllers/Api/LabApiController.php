@@ -45,7 +45,6 @@ class LabApiController extends Controller
                 'name_ar' => $user->name_ar ?? $user->name,
                 'name_en' => $user->name_en ?? $user->name,
                 'name_kmr' => $user->name_kmr ?? ($lab ? $lab->name_kmr : null) ?? $user->name,
-                'phone' => $user->phone,
                 'profile_image' => $imageUrl,
                 'image' => $imageUrl,
                 'city' => $lab ? ($lab->city ?? 'Erbil') : 'Erbil',
@@ -154,7 +153,6 @@ class LabApiController extends Controller
             'name_en' => $user->name_en ?? $user->name,
             'name_kmr' => $user->name_kmr ?? ($lab ? $lab->name_kmr : null) ?? $user->name,
             'email' => $user->email,
-            'phone' => $user->phone,
             'profile_image' => $image,
             'image' => $image,
             'images' => [
@@ -180,8 +178,6 @@ class LabApiController extends Controller
             'about_us_ar' => $lab ? $lab->about_us_ar : 'مختبر طبي متطور يقدم أدق الفحوصات الطبية بأحدث الأجهزة والكوادر المتخصصة.',
             'about_us_en' => $lab ? $lab->about_us_en : 'Advanced medical diagnostic laboratory providing highly accurate and fast test results.',
             'about_us_kmr' => $lab ? $lab->about_us_kmr : null,
-            'latitude' => $lab && $lab->latitude ? $lab->latitude : '36.1911',
-            'longitude' => $lab && $lab->longitude ? $lab->longitude : '44.0092',
             'packages' => $packages,
             'tests' => ($lab && $lab->tests && $lab->tests->isNotEmpty()) ? $lab->tests->map(function($t) use ($discount) {
                 $disc = $t->discount ?? ($discount ? $discount : null);

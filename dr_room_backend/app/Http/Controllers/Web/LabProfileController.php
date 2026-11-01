@@ -24,7 +24,7 @@ class LabProfileController extends Controller
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'name_ar' => 'nullable|string|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => 'nullable|string|max:20',
             'city' => 'nullable|string|max:100',
             'location' => 'nullable|string|max:255',
             'location_en' => 'nullable|string|max:255',
@@ -41,16 +41,18 @@ class LabProfileController extends Controller
             'image' => 'nullable|image|max:5120',
         ]);
 
-        $user->update([
+        $userData = [
             'name' => $request->name,
             'name_en' => $request->name_en,
             'name_ar' => $request->name_ar,
             'name_kmr' => $request->name_kmr,
-            'phone' => $request->phone,
-        ]);
+        ];
+        if ($request->filled('phone')) {
+            $userData['phone'] = $request->phone;
+        }
+        $user->update($userData);
 
         $updateData = [
-            'phone' => $request->phone,
             'city' => $request->city ?? 'Erbil',
             'location' => $request->location,
             'location_en' => $request->location_en,
@@ -63,10 +65,11 @@ class LabProfileController extends Controller
             'about_us_en' => $request->about_us_en,
             'about_us_ar' => $request->about_us_ar,
             'about_us_kmr' => $request->about_us_kmr,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
             'home_sample_collection' => $request->has('home_sample_collection') ? true : false,
         ];
+        if ($request->filled('phone')) {
+            $updateData['phone'] = $request->phone;
+        }
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('lab_images', 'public');

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/utils/localization_extensions.dart';
@@ -12,7 +11,6 @@ import 'package:provider/provider.dart';
 
 import '../../core/providers/cart_provider.dart';
 import '../checkout/checkout_details_screen.dart';
-import 'lab_map_screen.dart';
 
 class LabDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> lab;
@@ -300,31 +298,10 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     }
   }
 
-  void _makePhoneCall(String? phone) async {
-    final rawPhone = phone ?? _labData['phone']?.toString() ?? '07505556677';
-    final cleanPhone = rawPhone.replaceAll(RegExp(r'[^0-9+]'), '');
-    final Uri url = Uri.parse('tel:$cleanPhone');
-    try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(url);
-      }
-    } catch (e) {
-      debugPrint('Error making call: $e');
-    }
-  }
 
-  void _openMap() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => LabMapScreen(lab: _labData)),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final String name = context.localizedField(
       _labData,
       'name',
@@ -792,38 +769,12 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   }
 
   Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildActionButton(
-            icon: Iconsax.call,
-            label: _tr('call', context),
-            color: const Color(0xFF3B82F6),
-            bgColor: const Color(0xFFEFF6FF),
-            onTap: () => _makePhoneCall(null),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildActionButton(
-            icon: Iconsax.map,
-            label: _tr('directions', context),
-            color: const Color(0xFF8B5CF6),
-            bgColor: const Color(0xFFF5F3FF),
-            onTap: _openMap,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildActionButton(
-            icon: Icons.star_rate_rounded,
-            label: 'rating'.tr(),
-            color: const Color(0xFFD97706),
-            bgColor: const Color(0xFFFEF3C7),
-            onTap: _showReviewBottomSheet,
-          ),
-        ),
-      ],
+    return _buildActionButton(
+      icon: Icons.star_rate_rounded,
+      label: 'rating'.tr(),
+      color: const Color(0xFFD97706),
+      bgColor: const Color(0xFFFEF3C7),
+      onTap: _showReviewBottomSheet,
     );
   }
 
@@ -837,21 +788,23 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 9),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
-        child: Column(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(height: 3),
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
             Text(
               label,
               style: _kStyle(
                 color: color,
-                fontSize: 11.5,
+                fontSize: 13.5,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -2373,8 +2326,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                           'name',
                           fallback: 'cat_lab'.tr(),
                         ),
-                        'lab_lat': _labData['latitude'],
-                        'lab_lng': _labData['longitude'],
                         'lab_location': _labData['location'] ?? _labData['address'],
                         'type': test['type'],
                       },
