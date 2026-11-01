@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../core/services/service_fee_service.dart';
 import '../../core/theme/app_colors.dart';
 import 'admin_app_bar.dart';
@@ -23,6 +24,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
   late TextEditingController _discountAmountController;
   late TextEditingController _noteController;
   bool _isSaving = false;
+  bool _isLoadingBackend = false;
 
   final List<double> _presets = [1000, 1500, 2000, 2500, 3000, 5000];
   final List<double> _discountPercentPresets = [25, 50, 75, 100];
@@ -47,6 +49,11 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
   void initState() {
     super.initState();
     final model = ServiceFeeService.instance.feeModel;
+    _populateFromModel(model);
+    _loadFromBackend();
+  }
+
+  void _populateFromModel(ServiceFeeModel model) {
     _isEnabled = model.isEnabled;
     _isFree = model.isFree;
     _hasDiscount = model.hasDiscount;
@@ -62,8 +69,32 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
       text: model.discountAmount > 0 ? model.discountAmount.toInt().toString() : '500',
     );
     _noteController = TextEditingController(
-      text: model.note ?? 'کرێی خزمەتگوزاری سیستەم و چاودێری کوالێتی',
+      text: model.note ?? 'service_fee_default_note'.tr(),
     );
+  }
+
+  Future<void> _loadFromBackend() async {
+    setState(() => _isLoadingBackend = true);
+    final freshModel = await ServiceFeeService.instance.fetchRemoteConfig();
+    if (!mounted) return;
+
+    if (freshModel != null) {
+      setState(() {
+        _isEnabled = freshModel.isEnabled;
+        _isFree = freshModel.isFree;
+        _hasDiscount = freshModel.hasDiscount;
+        _discountType = (freshModel.discountAmount > 0 && freshModel.discountPercent == 0) ? 'fixed' : 'percent';
+        _amountController.text = freshModel.amount > 0 ? freshModel.amount.toInt().toString() : '1000';
+        _discountPercentController.text = freshModel.discountPercent > 0 ? freshModel.discountPercent.toInt().toString() : '50';
+        _discountAmountController.text = freshModel.discountAmount > 0 ? freshModel.discountAmount.toInt().toString() : '500';
+        if (freshModel.note != null && freshModel.note!.isNotEmpty) {
+          _noteController.text = freshModel.note!;
+        }
+        _isLoadingBackend = false;
+      });
+    } else {
+      setState(() => _isLoadingBackend = false);
+    }
   }
 
   @override
@@ -139,7 +170,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
               const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
               const SizedBox(width: 10),
               Text(
-                'گۆڕانکارییەکانی کرێی خزمەتگوزاری پاشەکەوت کران',
+                'service_fee_saved_success'.tr(),
                 style: _rabar(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ],
@@ -157,7 +188,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
               const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
               const SizedBox(width: 10),
               Text(
-                'هەڵە لە پاشەکەوتکردن، تکایە دووبارە هەوڵبدەرەوە',
+                'service_fee_saved_error'.tr(),
                 style: _rabar(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ],
@@ -172,12 +203,13 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final currency = 'currency_iqd'.tr();
 
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       appBar: AdminAppBar(
-        title: 'ڕێکخستنی کرێی خزمەتگوزاری',
-        subtitle: 'دیاریکردنی کرێی داواکارییەکان بۆ بەکارهێنەران',
+        title: 'service_fee_settings_title'.tr(),
+        subtitle: 'service_fee_settings_desc'.tr(),
         icon: Iconsax.receipt_item,
         iconColor: const Color(0xFF2563EB),
         iconBackgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.1),
@@ -189,6 +221,32 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_isLoadingBackend)
+              Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2563EB)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'دابەزاندنی زانیارییەکان لە باکێندەوە...',
+                        style: _rabar(fontSize: 12.5, color: const Color(0xFF2563EB), fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             // ── Section 1: Main Status Card ──
             Container(
               padding: const EdgeInsets.all(18),
@@ -226,7 +284,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'چالاککردنی کرێی خزمەتگوزاری',
+                          'service_fee_enable_title'.tr(),
                           style: _rabar(
                             fontSize: 15.5,
                             fontWeight: FontWeight.bold,
@@ -236,8 +294,8 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                         const SizedBox(height: 4),
                         Text(
                           _isEnabled
-                              ? 'کرێی خزمەتگوزاری لەسەر هەموو داواکارییەکان کارایە'
-                              : 'سیستەمی کرێی خزمەتگوزاری لەسەر ئەپەکە ناچالاکە',
+                              ? 'service_fee_active_desc'.tr()
+                              : 'service_fee_inactive_desc'.tr(),
                           style: _rabar(
                             fontSize: 12.5,
                             color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -262,7 +320,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
             // ── Section 2: Fee Mode (Free vs Custom Price) ──
             if (_isEnabled) ...[
               Text(
-                'جۆری کرێیەکە',
+                'service_fee_type_title'.tr(),
                 style: _rabar(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -302,7 +360,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'دیاریکردنی نرخ',
+                              'service_fee_custom_price'.tr(),
                               style: _rabar(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -313,7 +371,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              'نرخی دیاریکراو بە دینار',
+                              'service_fee_custom_price_sub'.tr(),
                               style: _rabar(
                                 fontSize: 11.5,
                                 color: !_isFree
@@ -357,7 +415,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'خۆڕایی (Free)',
+                              'service_fee_free'.tr(),
                               style: _rabar(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -368,7 +426,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              '٠ د.ع (بێ بەرامبەر)',
+                              'service_fee_free_sub'.tr(),
                               style: _rabar(
                                 fontSize: 11.5,
                                 color: _isFree
@@ -389,7 +447,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
               // ── Section 3: Preset Price Chips (if not free) ──
               if (!_isFree) ...[
                 Text(
-                  'نرخە ئامادەکراوەکان',
+                  'service_fee_presets'.tr(),
                   style: _rabar(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -424,7 +482,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                           ),
                         ),
                         child: Text(
-                          '${NumberFormat('#,###').format(preset.toInt())} د.ع',
+                          '${NumberFormat('#,###').format(preset.toInt())} $currency',
                           style: _rabar(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
@@ -442,7 +500,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
 
                 // ── Section 4: Custom Price Input ──
                 Text(
-                  'بڕی کرێی خزمەتگوزاری (بە دیناری عێراقی)',
+                  'service_fee_amount_label'.tr(),
                   style: _rabar(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -472,14 +530,14 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                       suffixIcon: Padding(
                         padding: const EdgeInsets.all(14),
                         child: Text(
-                          'د.ع',
+                          currency,
                           style: _rabar(
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF2563EB),
                           ),
                         ),
                       ),
-                      hintText: 'بۆ نموونە: 1000',
+                      hintText: '1000',
                       hintStyle: _rabar(color: const Color(0xFF94A3B8)),
                     ),
                   ),
@@ -531,7 +589,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'داشکاندنی کرێی خزمەتگوزاری',
+                                  'service_fee_discount_title'.tr(),
                                   style: _rabar(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -540,7 +598,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'داشکاندن بە ڕێژەی سەدی (%) یان بڕی نەختینە',
+                                  'service_fee_discount_desc'.tr(),
                                   style: _rabar(
                                     fontSize: 12,
                                     color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -594,7 +652,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        'ڕێژەی سەدی (%)',
+                                        'discount_percent_tab'.tr(),
                                         style: _rabar(
                                           fontSize: 13,
                                           fontWeight: FontWeight.bold,
@@ -628,7 +686,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        'بڕی دیاریکراو (د.ع)',
+                                        'discount_fixed_tab'.tr(),
                                         style: _rabar(
                                           fontSize: 13,
                                           fontWeight: FontWeight.bold,
@@ -650,7 +708,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                         // If percentage discount
                         if (_discountType == 'percent') ...[
                           Text(
-                            'ڕێژەی داشکاندن بە سەدی (%)',
+                            'discount_percent_label'.tr(),
                             style: _rabar(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -678,7 +736,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    '%${pct.toInt()} ${pct == 100 ? '(خۆڕایی)' : ''}',
+                                    '%${pct.toInt()} ${pct == 100 ? "(${'service_fee_free'.tr()})" : ''}',
                                     style: _rabar(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.bold,
@@ -720,7 +778,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                                     ),
                                   ),
                                 ),
-                                hintText: 'بۆ نموونە: 50',
+                                hintText: '50',
                                 hintStyle: _rabar(color: const Color(0xFF94A3B8)),
                               ),
                             ),
@@ -728,7 +786,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                         ] else ...[
                           // If fixed amount discount
                           Text(
-                            'بڕی داشکاندن بە دینار (د.ع)',
+                            'discount_fixed_label'.tr(),
                             style: _rabar(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -756,7 +814,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    '${NumberFormat('#,###').format(amt.toInt())} د.ع',
+                                    '${NumberFormat('#,###').format(amt.toInt())} $currency',
                                     style: _rabar(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.bold,
@@ -791,14 +849,14 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                                 suffixIcon: Padding(
                                   padding: const EdgeInsets.all(14),
                                   child: Text(
-                                    'د.ع',
+                                    currency,
                                     style: _rabar(
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFFF59E0B),
                                     ),
                                   ),
                                 ),
-                                hintText: 'بۆ نموونە: 500',
+                                hintText: '500',
                                 hintStyle: _rabar(color: const Color(0xFF94A3B8)),
                               ),
                             ),
@@ -820,7 +878,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'بڕی داشکاندن: -${NumberFormat('#,###').format(_discountValue.toInt())} د.ع | کرێی دوای داشکاندن: ${NumberFormat('#,###').format(_effectiveAmount.toInt())} د.ع',
+                                  '${'discount_summary_prefix'.tr()} -${NumberFormat('#,###').format(_discountValue.toInt())} $currency | ${'discount_summary_after'.tr()} ${NumberFormat('#,###').format(_effectiveAmount.toInt())} $currency',
                                   style: _rabar(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -841,7 +899,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
 
               // ── Section 5: Note / Description for Customer ──
               Text(
-                'ڕوونکردنەوە بۆ کڕیار (تێبینی ژێر خزمەتگوزاری)',
+                'service_fee_explanation'.tr(),
                 style: _rabar(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -866,7 +924,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     border: InputBorder.none,
                     prefixIcon: const Icon(Iconsax.info_circle, color: Color(0xFF64748B), size: 20),
-                    hintText: 'وەک: کرێی خزمەتگوزاری سیستەم و چاودێری کوالێتی',
+                    hintText: 'service_fee_default_note'.tr(),
                     hintStyle: _rabar(color: const Color(0xFF94A3B8)),
                   ),
                 ),
@@ -880,12 +938,14 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
               children: [
                 const Icon(Iconsax.eye, size: 18, color: Color(0xFF2563EB)),
                 const SizedBox(width: 8),
-                Text(
-                  'پێشبینینی ڕاستەوخۆ (لای کڕیار لە سەبەتەدا چۆن دەردەکەوێت):',
-                  style: _rabar(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                Expanded(
+                  child: Text(
+                    'live_preview_title'.tr(),
+                    style: _rabar(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
                   ),
                 ),
               ],
@@ -912,14 +972,14 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'کۆی نرخ',
+                        'items_subtotal'.tr(),
                         style: _rabar(
                           fontSize: 13.5,
                           color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                         ),
                       ),
                       Text(
-                        '10,000 د.ع',
+                        '${NumberFormat('#,###').format(10000)} $currency',
                         style: _rabar(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -936,7 +996,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                       Row(
                         children: [
                           Text(
-                            'کرێی خزمەتگوزاری',
+                            'service_fee'.tr(),
                             style: _rabar(
                               fontSize: 13.5,
                               color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -950,7 +1010,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                       ),
                       if (!_isEnabled)
                         Text(
-                          'ناچالاک کراوە',
+                          'service_fee_disabled_badge'.tr(),
                           style: _rabar(
                             fontSize: 13,
                             color: const Color(0xFF94A3B8),
@@ -966,8 +1026,8 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                           ),
                           child: Text(
                             _hasDiscount && _baseAmount > 0
-                                ? 'خۆڕایی (داشکاندنی ٪١٠٠)'
-                                : 'خۆڕایی (Free)',
+                                ? 'service_fee_100_free_badge'.tr()
+                                : 'service_fee_free'.tr(),
                             style: _rabar(
                               fontSize: 12.5,
                               fontWeight: FontWeight.bold,
@@ -988,7 +1048,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              '${NumberFormat('#,###').format(_effectiveAmount.toInt())} د.ع',
+                              '${NumberFormat('#,###').format(_effectiveAmount.toInt())} $currency',
                               style: _rabar(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -1017,7 +1077,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                         )
                       else
                         Text(
-                          '${NumberFormat('#,###').format(_baseAmount.toInt())} د.ع',
+                          '${NumberFormat('#,###').format(_baseAmount.toInt())} $currency',
                           style: _rabar(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -1035,7 +1095,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'کۆی گشتی',
+                        'total_price'.tr(),
                         style: _rabar(
                           fontSize: 15.5,
                           fontWeight: FontWeight.bold,
@@ -1043,7 +1103,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                         ),
                       ),
                       Text(
-                        '${NumberFormat('#,###').format((10000 + _effectiveAmount).toInt())} د.ع',
+                        '${NumberFormat('#,###').format((10000 + _effectiveAmount).toInt())} $currency',
                         style: _rabar(
                           fontSize: 16.5,
                           fontWeight: FontWeight.bold,
@@ -1083,7 +1143,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                           const Icon(Icons.save_rounded, color: Colors.white, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'پاشەکەوتکردنی گۆڕانکارییەکان',
+                            'save_changes'.tr(),
                             style: _rabar(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

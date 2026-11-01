@@ -137,13 +137,13 @@ class ServiceFeeService extends ChangeNotifier {
       notifyListeners();
 
       // Attempt to synchronize with backend if available
-      _fetchRemoteConfig();
+      fetchRemoteConfig();
     } catch (e) {
       debugPrint('ServiceFeeService init error: $e');
     }
   }
 
-  Future<void> _fetchRemoteConfig() async {
+  Future<ServiceFeeModel?> fetchRemoteConfig() async {
     try {
       final res = await ApiClient.get('/admin/service-fee');
       if (res.statusCode == 200) {
@@ -154,11 +154,13 @@ class ServiceFeeService extends ChangeNotifier {
           notifyListeners();
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(_storageKey, jsonEncode(_feeModel.toJson()));
+          return _feeModel;
         }
       }
     } catch (_) {
       // Offline or endpoint not yet deployed; SharedPreferences handles it.
     }
+    return _feeModel;
   }
 
   Future<bool> updateFee(ServiceFeeModel newModel) async {
