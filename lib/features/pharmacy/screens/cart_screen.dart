@@ -29,7 +29,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
-      height: height,
+      height: height ?? 1.35,
+      leadingDistribution: TextLeadingDistribution.even,
     );
   }
 
@@ -872,30 +873,26 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
-                          height: 52,
+                          height: 54,
                           child: ElevatedButton(
                             onPressed: () => _proceedToCheckout(coreCart, pharmacyCartState),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF3B82F6),
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               elevation: 0,
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'complete_purchase'.tr(),
-                                  style: _kStyle(
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
-                              ],
+                            child: Text(
+                              'complete_purchase'.tr(),
+                              textAlign: TextAlign.center,
+                              style: _kStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 1.35,
+                              ),
                             ),
                           ),
                         ),

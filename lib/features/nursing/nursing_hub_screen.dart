@@ -1729,31 +1729,6 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                     ),
                     child: Row(
                       children: [
-                        // Cart count pill badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Iconsax.shopping_cart, size: 16, color: Color(0xFF0D9488)),
-                              const SizedBox(width: 5),
-                              Text(
-                                '${cart.items.length}',
-                                style: const TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13.5,
-                                  color: Color(0xFF0D9488),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
                         // Title and subtitle
                         Expanded(
                           child: Column(
