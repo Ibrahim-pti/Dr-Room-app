@@ -77,4 +77,28 @@ class Pharmacy {
       bio: json['bio'],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'name_ar': nameAr,
+        'name_en': nameEn,
+        'email': email,
+        'phone': phone,
+        'address': address,
+        'location': location,
+        'city': city,
+        'profile_image': profileImage,
+        'gallery_images': galleryImages,
+        'delivery_fee': deliveryFee,
+        'delivery_time': deliveryTime,
+        'rating': rating,
+        'total_reviews': totalReviews,
+        'is_open': isOpen,
+        'is_verified': isVerified,
+        'facebook_url': facebookUrl,
+        'latitude': latitude,
+        'longitude': longitude,
+        'bio': bio,
+      };
 }

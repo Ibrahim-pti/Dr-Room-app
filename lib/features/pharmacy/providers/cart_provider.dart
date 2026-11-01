@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/medication_model.dart';
 import '../models/pharmacy_model.dart';
 
@@ -16,6 +19,22 @@ class CartItem {
   }) : unitPrice = unitPrice ?? medication.price;
 
   double get totalPrice => unitPrice * quantity;
+
+  Map<String, dynamic> toJson() => {
+        'medication': medication.toJson(),
+        'quantity': quantity,
+        'unit': unit,
+        'unit_price': unitPrice,
+      };
+
+  factory CartItem.fromJson(Map<String, dynamic> json) {
+    return CartItem(
+      medication: Medication.fromJson(Map<String, dynamic>.from(json['medication'])),
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      unit: json['unit']?.toString() ?? 'پاکەت',
+      unitPrice: (json['unit_price'] as num?)?.toDouble(),
+    );
+  }
 }
 
 class CartState {
@@ -43,7 +62,51 @@ class CartState {
 }
 
 class CartNotifier extends StateNotifier<CartState> {
-  CartNotifier() : super(CartState());
+  static const String _storageKey = 'dr_room_pharmacy_cart_v1';
+
+  CartNotifier() : super(CartState()) {
+    _loadFromStorage();
+  }
+
+  Future<void> _loadFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final dataStr = prefs.getString(_storageKey);
+      if (dataStr != null && dataStr.isNotEmpty) {
+        final decoded = jsonDecode(dataStr);
+        if (decoded is Map) {
+          Pharmacy? pharmacy;
+          if (decoded['pharmacy'] != null) {
+            pharmacy = Pharmacy.fromJson(Map<String, dynamic>.from(decoded['pharmacy']));
+          }
+          final itemsList = <CartItem>[];
+          if (decoded['items'] is List) {
+            for (final raw in decoded['items']) {
+              if (raw is Map) {
+                itemsList.add(CartItem.fromJson(Map<String, dynamic>.from(raw)));
+              }
+            }
+          }
+          state = CartState(pharmacy: pharmacy, items: itemsList);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading pharmacy cart: $e');
+    }
+  }
+
+  Future<void> _saveToStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final data = {
+        'pharmacy': state.pharmacy?.toJson(),
+        'items': state.items.map((e) => e.toJson()).toList(),
+      };
+      await prefs.setString(_storageKey, jsonEncode(data));
+    } catch (e) {
+      debugPrint('Error saving pharmacy cart: $e');
+    }
+  }
 
   void setPharmacy(Pharmacy pharmacy) {
     if (state.pharmacy?.id != pharmacy.id) {
@@ -52,6 +115,7 @@ class CartNotifier extends StateNotifier<CartState> {
     } else {
       state = state.copyWith(pharmacy: pharmacy);
     }
+    _saveToStorage();
   }
 
   void addItem(
@@ -87,6 +151,7 @@ class CartNotifier extends StateNotifier<CartState> {
         ],
       );
     }
+    _saveToStorage();
   }
 
   void removeItem(int medicationId, {String? unit}) {
@@ -97,6 +162,7 @@ class CartNotifier extends StateNotifier<CartState> {
       return item.medication.id != medicationId;
     }).toList();
     state = state.copyWith(items: updatedItems);
+    _saveToStorage();
   }
 
   void updateQuantity(int medicationId, int quantity, {String? unit}) {
@@ -118,10 +184,12 @@ class CartNotifier extends StateNotifier<CartState> {
     }).toList();
 
     state = state.copyWith(items: updatedItems);
+    _saveToStorage();
   }
 
   void clearCart() {
     state = CartState(pharmacy: state.pharmacy, items: []);
+    _saveToStorage();
   }
 }
 

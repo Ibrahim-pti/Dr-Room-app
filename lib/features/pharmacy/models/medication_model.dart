@@ -90,4 +90,25 @@ class Medication {
       imageUrl: json['image_url'] ?? json['image_path'],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'name_ar': nameAr,
+        'name_en': nameEn,
+        'category': category,
+        'category_ar': categoryAr,
+        'category_en': categoryEn,
+        'description': description,
+        'description_ar': descriptionAr,
+        'description_en': descriptionEn,
+        'price': price,
+        'original_price': originalPrice,
+        'discount_percent': discountPercent,
+        'badge': badge,
+        'dosage_form': dosageForm,
+        'stock': stock,
+        'requires_prescription': requiresPrescription,
+        'image_url': imageUrl,
+      };
 }

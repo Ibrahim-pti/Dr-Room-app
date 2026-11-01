@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CartItem {
   final String id;
@@ -24,16 +26,78 @@ class CartItem {
         'quantity': quantity,
         'extra_data': extraData,
       };
+
+  factory CartItem.fromJson(Map<String, dynamic> json) {
+    return CartItem(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      extraData: json['extra_data'] is Map<String, dynamic>
+          ? json['extra_data'] as Map<String, dynamic>
+          : (json['extra_data'] is Map
+              ? Map<String, dynamic>.from(json['extra_data'])
+              : null),
+    );
+  }
 }
 
 class CartProvider extends ChangeNotifier {
+  static const String _storageKey = 'dr_room_core_cart_items_v1';
+  static const String _serviceTypeKey = 'dr_room_core_cart_service_type_v1';
+  static const String _extraFeeKey = 'dr_room_core_cart_extra_fee_v1';
+
   String? _serviceType; // 'lab', 'pharmacy', 'nursing'
   final List<CartItem> _items = [];
   double _extraFee = 0.0;
-  
+
   // Patient details stored temporarily during checkout
   Map<String, dynamic>? _patientDetails;
-  
+
+  CartProvider() {
+    _loadFromStorage();
+  }
+
+  Future<void> _loadFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final itemsStr = prefs.getString(_storageKey);
+      _serviceType = prefs.getString(_serviceTypeKey);
+      _extraFee = prefs.getDouble(_extraFeeKey) ?? 0.0;
+
+      if (itemsStr != null && itemsStr.isNotEmpty) {
+        final decoded = jsonDecode(itemsStr);
+        if (decoded is List) {
+          _items.clear();
+          for (final raw in decoded) {
+            if (raw is Map) {
+              _items.add(CartItem.fromJson(Map<String, dynamic>.from(raw)));
+            }
+          }
+        }
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading cart from storage: $e');
+    }
+  }
+
+  Future<void> _saveToStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final data = _items.map((e) => e.toJson()).toList();
+      await prefs.setString(_storageKey, jsonEncode(data));
+      if (_serviceType != null) {
+        await prefs.setString(_serviceTypeKey, _serviceType!);
+      } else {
+        await prefs.remove(_serviceTypeKey);
+      }
+      await prefs.setDouble(_extraFeeKey, _extraFee);
+    } catch (e) {
+      debugPrint('Error saving cart to storage: $e');
+    }
+  }
+
   String? get serviceType => _serviceType;
   List<CartItem> get items => _items;
   double get extraFee => _extraFee;
@@ -73,6 +137,7 @@ class CartProvider extends ChangeNotifier {
     _serviceType = type;
     _extraFee = extraFee;
     notifyListeners();
+    _saveToStorage();
   }
 
   void addItem(CartItem item) {
@@ -90,11 +155,13 @@ class CartProvider extends ChangeNotifier {
       _items.add(item);
     }
     notifyListeners();
+    _saveToStorage();
   }
 
   void removeItem(String id) {
     _items.removeWhere((item) => item.id == id);
     notifyListeners();
+    _saveToStorage();
   }
 
   int getItemQuantity(String id) {
@@ -120,6 +187,7 @@ class CartProvider extends ChangeNotifier {
         );
       }
       notifyListeners();
+      _saveToStorage();
     }
   }
 
@@ -138,6 +206,7 @@ class CartProvider extends ChangeNotifier {
         _items.removeAt(index);
       }
       notifyListeners();
+      _saveToStorage();
     }
   }
 
@@ -152,5 +221,6 @@ class CartProvider extends ChangeNotifier {
     _extraFee = 0.0;
     _patientDetails = null;
     notifyListeners();
+    _saveToStorage();
   }
 }

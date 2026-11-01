@@ -1107,7 +1107,6 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     if (!mounted) return;
 
     final cart = context.read<CartProvider>();
-    cart.clearCart();
 
     final finalUrl = uploadedUrl ?? _imageFile?.path;
     final finalPath = uploadedPath ?? _imageFile?.path;
