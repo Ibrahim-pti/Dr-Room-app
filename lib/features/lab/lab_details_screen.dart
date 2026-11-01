@@ -2547,7 +2547,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
               // Populate cart provider with selected lab tests
               final cart = Provider.of<CartProvider>(context, listen: false);
-              cart.clearCart();
               cart.setServiceType('lab', extraFee: 0.0);
               for (final test in _tests) {
                 if (_selectedTestIds.contains(test['id'])) {

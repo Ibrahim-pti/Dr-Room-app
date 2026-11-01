@@ -173,8 +173,7 @@ class _SelectTestsScreenState extends State<SelectTestsScreen> {
                       onPressed: selectedCount > 0
                           ? () {
                               final cart = context.read<CartProvider>();
-                              cart.clearCart();
-                              cart.setServiceType('Lab Tests', extraFee: 5000.0);
+                              cart.setServiceType('lab', extraFee: 5000.0);
                               
                               for (var t in _tests.where((t) => t['selected'])) {
                                 cart.addItem(CartItem(

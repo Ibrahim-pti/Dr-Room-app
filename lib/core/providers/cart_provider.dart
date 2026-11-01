@@ -15,6 +15,8 @@ class CartItem {
     this.extraData,
   });
 
+  double get totalPrice => price * quantity;
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
@@ -36,6 +38,30 @@ class CartProvider extends ChangeNotifier {
   List<CartItem> get items => _items;
   double get extraFee => _extraFee;
   Map<String, dynamic>? get patientDetails => _patientDetails;
+
+  int get totalItems => _items.fold(0, (sum, item) => sum + item.quantity);
+
+  String get effectiveServiceType {
+    if (_serviceType != null && _serviceType!.trim().isNotEmpty) {
+      final st = _serviceType!.toLowerCase();
+      if (st.contains('lab')) return 'lab';
+      if (st.contains('nurs')) return 'nursing';
+      if (st.contains('pharm')) return 'pharmacy';
+      return _serviceType!;
+    }
+    final hasLab = _items.any((i) =>
+        i.extraData?['type'] == 'test' ||
+        i.extraData?['type'] == 'package' ||
+        i.extraData?['lab_id'] != null ||
+        i.extraData?['lab_name'] != null);
+    final hasNursing = _items.any((i) =>
+        i.extraData?['type'] == 'nursing_service' ||
+        i.extraData?['nurse_id'] != null ||
+        i.id.startsWith('nurse_'));
+    if (hasLab && !hasNursing) return 'lab';
+    if (hasNursing && !hasLab) return 'nursing';
+    return hasLab ? 'lab' : (hasNursing ? 'nursing' : 'lab');
+  }
 
   double get subtotal {
     return _items.fold(0, (total, item) => total + (item.price * item.quantity));

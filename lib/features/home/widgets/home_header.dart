@@ -4,7 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import 'package:provider/provider.dart' as provider_pkg;
 import '../../../core/utils/api_client.dart';
+import '../../../core/providers/cart_provider.dart' as core_cart;
 import '../../pharmacy/providers/cart_provider.dart';
 import '../../pharmacy/screens/cart_screen.dart';
 import '../../notifications/notifications_screen.dart';
@@ -168,6 +170,8 @@ class HomeHeader extends StatelessWidget {
                         Consumer(
                           builder: (context, ref, child) {
                             final cartState = ref.watch(cartProvider);
+                            final coreCart = provider_pkg.Provider.of<core_cart.CartProvider>(context);
+                            final totalCount = cartState.totalItems + coreCart.totalItems;
                             return GestureDetector(
                               onTap: () {
                                 Navigator.push(
@@ -188,7 +192,7 @@ class HomeHeader extends StatelessWidget {
                                     ),
                                     child: const Icon(Iconsax.shopping_cart, color: Colors.white, size: 20),
                                   ),
-                                  if (cartState.totalItems > 0)
+                                  if (totalCount > 0)
                                     PositionedDirectional(
                                       top: 6,
                                       end: 6,
@@ -199,7 +203,7 @@ class HomeHeader extends StatelessWidget {
                                           shape: BoxShape.circle,
                                         ),
                                         child: Text(
-                                          cartState.totalItems.toString(),
+                                          totalCount.toString(),
                                           style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
                                         ),
                                       ),

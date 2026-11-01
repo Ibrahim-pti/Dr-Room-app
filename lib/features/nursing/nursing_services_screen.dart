@@ -356,8 +356,7 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
                       onPressed: selectedCount > 0
                           ? () {
                               final cart = context.read<CartProvider>();
-                              cart.clearCart();
-                              cart.setServiceType('Nursing Services', extraFee: 0.0);
+                              cart.setServiceType('nursing', extraFee: 0.0);
                               
                               final chosenNurseId = widget.nurse?['id'] ?? widget.nurseId;
 

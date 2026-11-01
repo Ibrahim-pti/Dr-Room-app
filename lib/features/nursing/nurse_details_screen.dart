@@ -1486,8 +1486,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     GestureDetector(
                       onTap: () {
                         final cart = context.read<CartProvider>();
-                        cart.clearCart();
-                        cart.setServiceType('Nursing Services', extraFee: 0.0);
+                        cart.setServiceType('nursing', extraFee: 0.0);
                         cart.addItem(CartItem(
                           id: 'nurse_${nurseId ?? 1}_srv_$idx',
                           name: '$nurseName ($sName)',
@@ -1586,8 +1585,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
           GestureDetector(
             onTap: () {
               final cart = context.read<CartProvider>();
-              cart.clearCart();
-              cart.setServiceType('Nursing Services', extraFee: 0.0);
+              cart.setServiceType('nursing', extraFee: 0.0);
 
               final nurseName = nurse['user'] != null ? nurse['user']['name'] : (nurse['name'] ?? 'پەرستاری ماڵەوە');
               final nurseSpecialty = nurse['specialty'] ?? 'پەرستاری فریاکەوتن و برینپێچی';
