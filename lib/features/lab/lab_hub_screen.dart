@@ -997,7 +997,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                   const SizedBox(height: 14),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2563EB),
                         shape: RoundedRectangleBorder(
@@ -1015,8 +1015,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
                           ),
                         );
                       },
-                      icon: const Icon(Iconsax.arrow_right_3, size: 16, color: Colors.white),
-                      label: Text(
+                      child: Text(
                         'lab_hub_continue'.tr(),
                         style: const TextStyle(
                           fontFamily: 'Rabar',
