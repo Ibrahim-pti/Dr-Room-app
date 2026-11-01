@@ -240,8 +240,12 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                         Iconsax.receipt_item,
                                         'service_fee'.tr(),
                                         ServiceFeeService.instance.isFree
-                                            ? 'service_fee_free'.tr()
-                                            : '${NumberFormat('#,###').format(cartProvider.serviceFee.toInt())} د.ع',
+                                            ? (ServiceFeeService.instance.hasDiscount && ServiceFeeService.instance.feeModel.amount > 0
+                                                ? 'خۆڕایی (داشکاندنی ٪١٠٠)'
+                                                : 'service_fee_free'.tr())
+                                            : (ServiceFeeService.instance.hasDiscount
+                                                ? '${NumberFormat('#,###').format(cartProvider.serviceFee.toInt())} د.ع (داشکاندن)'
+                                                : '${NumberFormat('#,###').format(cartProvider.serviceFee.toInt())} د.ع'),
                                         false,
                                       ),
                                     ],

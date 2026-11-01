@@ -856,13 +856,55 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    'service_fee_free'.tr(),
+                                    serviceFeeModel.hasDiscount && serviceFeeModel.amount > 0
+                                        ? 'خۆڕایی (داشکاندنی ٪١٠٠)'
+                                        : 'service_fee_free'.tr(),
                                     style: _kStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFF10B981),
                                     ),
                                   ),
+                                )
+                              else if (serviceFeeModel.hasDiscount && serviceFeeModel.discountValue > 0)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      NumberFormat('#,###').format(serviceFeeModel.amount.toInt()),
+                                      style: _kStyle(
+                                        fontSize: 12,
+                                        color: const Color(0xFF94A3B8),
+                                      ).copyWith(decoration: TextDecoration.lineThrough),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${NumberFormat('#,###').format(serviceFee.toInt())} ${'currency_iqd'.tr()}',
+                                      style: _kStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: const Color(0xFF10B981),
+                                      ),
+                                    ),
+                                    if (serviceFeeModel.discountPercent > 0) ...[
+                                      const SizedBox(width: 5),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFEF3C7),
+                                          borderRadius: BorderRadius.circular(5),
+                                        ),
+                                        child: Text(
+                                          '%${serviceFeeModel.discountPercent.toInt()}-',
+                                          style: _kStyle(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFFD97706),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 )
                               else
                                 Text(

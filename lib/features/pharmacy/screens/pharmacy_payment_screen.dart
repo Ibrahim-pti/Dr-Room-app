@@ -359,9 +359,30 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    'service_fee_free'.tr(),
+                                    ServiceFeeService.instance.hasDiscount && ServiceFeeService.instance.feeModel.amount > 0
+                                        ? 'خۆڕایی (داشکاندنی ٪١٠٠)'
+                                        : 'service_fee_free'.tr(),
                                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 12, color: const Color(0xFF15803D)),
                                   ),
+                                )
+                              else if (ServiceFeeService.instance.hasDiscount)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${ServiceFeeService.instance.originalFee.toInt()}',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${serviceFee.toInt()} IQD',
+                                      style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: const Color(0xFF10B981)),
+                                    ),
+                                  ],
                                 )
                               else
                                 Text('${serviceFee.toInt()} IQD', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: const Color(0xFF111827))),

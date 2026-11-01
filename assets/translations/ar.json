@@ -710,6 +710,7 @@
   "complete_purchase": "إتمام الطلب",
   "service_fee": "رسوم الخدمة",
   "service_fee_free": "مجاني",
+  "service_fee_discount": "خصم رسوم الخدمة",
   "service_fee_settings_title": "إعدادات رسوم الخدمة",
   "service_fee_settings_desc": "تحديد رسوم الخدمة للطلبات أو جعلها مجانية",
   "service_fee_explanation": "شرح رسوم الخدمة",
