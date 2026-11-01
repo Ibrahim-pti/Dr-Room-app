@@ -293,6 +293,34 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         if (isKurdish) return 'د.ع';
         if (isArabic) return 'د.ع';
         return 'IQD';
+      case 'rating':
+        if (isKurdish) return 'هەڵسەنگاندن';
+        if (isArabic) return 'التقييم';
+        return 'Rating';
+      case 'reviews':
+        if (isKurdish) return 'هەڵسەنگاندن';
+        if (isArabic) return 'تقييم';
+        return 'Reviews';
+      case 'available_tests_short':
+        if (isKurdish) return 'پشکنینی بەردەست';
+        if (isArabic) return 'فحوصات متاحة';
+        return 'Available Tests';
+      case 'same_day_short':
+        if (isKurdish) return 'هەمان ڕۆژ';
+        if (isArabic) return 'نفس اليوم';
+        return 'Same Day';
+      case 'fast_service':
+        if (isKurdish) return 'خزمەتگوزاری خێرا';
+        if (isArabic) return 'خدمة سريعة';
+        return 'Fast Service';
+      case 'verified_lab':
+        if (isKurdish) return 'باوەڕپێکراو';
+        if (isArabic) return 'مختبر معتمد';
+        return 'Verified Lab';
+      case 'medical_lab':
+        if (isKurdish) return 'تاقیگەی پزیشکی';
+        if (isArabic) return 'مختبر طبي';
+        return 'Medical Lab';
       default:
         return key.tr();
     }
@@ -310,16 +338,13 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     final String location = context.localizedField(
       _labData,
       'location',
-      fallback: context.localizedField(_labData, 'address', fallback: ''),
+      fallback: context.localizedField(_labData, 'address', fallback: _labData['city'] ?? ''),
     );
     final double rawRating = double.tryParse(_labData['rating']?.toString() ?? '0') ?? 0.0;
     final String rating = rawRating > 0 ? rawRating.toStringAsFixed(1) : '5.0';
+    final int reviewsCount = int.tryParse(_labData['reviews']?.toString() ?? '') ?? _reviews.length;
     final discount = _labData['discount'];
-    final String openingHours = context.localizedField(
-      _labData,
-      'opening_hours',
-      fallback: '08:00 AM - 10:00 PM',
-    );
+    final String profileImage = (_labData['profile_image'] ?? _labData['image'] ?? '').toString();
     final String aboutUs = context.localizedField(
       _labData,
       'about_us',
@@ -347,23 +372,24 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 _buildHeroBanner(discount),
                 const SizedBox(height: 12),
 
-                // ── 2. Lab Main Identity Card ──
-                _buildIdentityCard(name, location, rating, openingHours),
-                const SizedBox(height: 10),
-
-                // ── 3. Quick Action Buttons (Call, Directions) ──
-                _buildActionButtons(),
+                // ── 2. Unified Master Profile Card (Centered Logo, Name, Chips & Integrated Stats) ──
+                _buildMasterProfileCard(
+                  name: name,
+                  location: location,
+                  profileImage: profileImage,
+                  rating: rating,
+                  reviewsCount: reviewsCount,
+                  discount: discount,
+                ),
                 const SizedBox(height: 14),
 
-                // ── 4. Segmented Tab Bar (ناساندن / پشکنینەکان / ئۆفەر و پاکێج) ──
+                // ── 3. Segmented Tab Bar (ناساندن / پشکنینەکان / ئۆفەر و پاکێج) ──
                 _buildTabsHeader(),
                 const SizedBox(height: 14),
 
                 // ── 5. Dynamic Tab Content ──
                 if (_selectedTabIndex == 0) ...[
-                  // 📋 تاب ١: ناساندن و تایبەتمەندییەکان
-                  _buildHighlightFeatures(),
-                  const SizedBox(height: 12),
+                  // 📋 تاب ١: ناساندن
                   _buildAboutSection(aboutUs),
                   const SizedBox(height: 14),
                   _buildVideoSection(),
@@ -667,98 +693,440 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     ).animate().fadeIn(duration: 400.ms).scaleXY(begin: 0.98);
   }
 
-  Widget _buildIdentityCard(
-    String name,
-    String location,
-    String rating,
-    String hours,
-  ) {
+  Widget _buildMasterProfileCard({
+    required String name,
+    required String location,
+    required String profileImage,
+    required String rating,
+    required int reviewsCount,
+    dynamic discount,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final resolvedImg = ApiClient.getImageUrl(profileImage);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E293B)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFF334155)
-              : const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Name Centered
+          // ── 1. Centered Lab Avatar with Verified Badge ──
+          Center(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 66,
+                  height: 66,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFEFF6FF),
+                    border: Border.all(
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
+                      width: 1.8,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: resolvedImg.isNotEmpty &&
+                            resolvedImg.startsWith('http')
+                        ? Image.network(
+                            resolvedImg,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => const Icon(
+                              Iconsax.hospital,
+                              color: Color(0xFF3B82F6),
+                              size: 32,
+                            ),
+                          )
+                        : (resolvedImg.isNotEmpty
+                            ? Image.asset(
+                                resolvedImg,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const Icon(
+                                  Iconsax.hospital,
+                                  color: Color(0xFF3B82F6),
+                                  size: 32,
+                                ),
+                              )
+                            : const Icon(
+                                Iconsax.hospital,
+                                color: Color(0xFF3B82F6),
+                                size: 32,
+                              )),
+                  ),
+                ),
+                Positioned(
+                  bottom: -2,
+                  right: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(2.5),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.verified_rounded,
+                      color: Color(0xFF3B82F6),
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // ── 2. Centered Lab Name ──
           Text(
             name,
             textAlign: TextAlign.center,
             style: _kStyle(
-              fontSize: 18,
+              fontSize: 19.5,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : const Color(0xFF0F172A),
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6),
 
-          // Location & Rating Centered Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
+          const SizedBox(height: 8),
+
+          // ── 3. Centered Info Badges (Location, Verified Lab & Discount) ──
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              const Icon(Iconsax.location, color: Color(0xFF3B82F6), size: 14),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  location,
-                  style: _kStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFFCBD5E1)
-                        : const Color(0xFF475569),
-                    fontSize: 12,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
+              // Location Badge
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2.5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(6),
+                  color: isDark
+                      ? const Color(0xFF0F172A).withValues(alpha: 0.6)
+                      : const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                    width: 0.8,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.star_rounded,
-                      color: Color(0xFFD97706),
-                      size: 13,
+                      Iconsax.location,
+                      color: Color(0xFF3B82F6),
+                      size: 13.5,
                     ),
-                    const SizedBox(width: 2.5),
+                    const SizedBox(width: 4.5),
                     Text(
-                      rating,
+                      location.isNotEmpty ? location : 'cat_lab'.tr(),
                       style: _kStyle(
-                        color: const Color(0xFFB45309),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF3B82F6),
                       ),
                     ),
                   ],
+                ),
+              ),
+
+              // Verified Lab Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF0F172A).withValues(alpha: 0.6)
+                      : const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.verified_rounded,
+                      color: Color(0xFF10B981),
+                      size: 13.5,
+                    ),
+                    const SizedBox(width: 4.5),
+                    Text(
+                      _tr('verified_lab', context),
+                      style: _kStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF047857),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Discount Badge (if exists)
+              if (discount != null &&
+                  (discount is num ? discount > 0 : discount.toString().isNotEmpty))
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.local_offer_rounded,
+                        color: Color(0xFFD97706),
+                        size: 12.5,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '%$discount ${_tr('discount', context)}',
+                        style: _kStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFB45309),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // ── 4. Subtle Divider ──
+          Container(
+            height: 1,
+            color: isDark
+                ? const Color(0xFF334155).withValues(alpha: 0.5)
+                : const Color(0xFFF1F5F9),
+          ),
+
+          const SizedBox(height: 12),
+
+          // ── 5. Quick Stats Integrated Inside ──
+          Row(
+            children: [
+              // Rating Stat Card
+              Expanded(
+                child: GestureDetector(
+                  onTap: _showReviewBottomSheet,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF0F172A).withValues(alpha: 0.5)
+                          : const Color(0xFFFEF3C7).withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: const Color(0xFFF59E0B).withValues(alpha: 0.25),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.star_rounded,
+                              color: Color(0xFFF59E0B),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              rating,
+                              style: _kStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2.5),
+                        Text(
+                          reviewsCount > 0
+                              ? '$reviewsCount ${_tr('reviews', context)}'
+                              : _tr('rating', context),
+                          style: _kStyle(
+                            fontSize: 10.5,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Tests Count Stat Card
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedTabIndex = 1;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF0F172A).withValues(alpha: 0.5)
+                          : const Color(0xFFEFF6FF).withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Iconsax.health,
+                              color: Color(0xFF3B82F6),
+                              size: 15,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${_tests.length}',
+                              style: _kStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2.5),
+                        Text(
+                          _tr('available_tests_short', context),
+                          style: _kStyle(
+                            fontSize: 10.5,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Same Day Result Stat Card
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF0F172A).withValues(alpha: 0.5)
+                        : const Color(0xFFECFDF5).withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Iconsax.document_text_1,
+                            color: Color(0xFF10B981),
+                            size: 15,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              _tr('same_day_short', context),
+                              style: _kStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2.5),
+                      Text(
+                        _tr('same_day_result', context),
+                        style: _kStyle(
+                          fontSize: 10.5,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -766,77 +1134,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         ],
       ),
     ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05);
-  }
-
-  Widget _buildActionButtons() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final double rawRating =
-        double.tryParse(_labData['rating']?.toString() ?? '0') ?? 0.0;
-    final String rating = rawRating > 0 ? rawRating.toStringAsFixed(1) : '5.0';
-
-    return GestureDetector(
-      onTap: _showReviewBottomSheet,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.star_rounded,
-                color: Color(0xFFD97706),
-                size: 16,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'rating'.tr(),
-              style: _kStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                '$rating ★',
-                style: _kStyle(
-                  color: const Color(0xFFB45309),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildTabsHeader() {
@@ -931,48 +1228,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     );
   }
 
-  Widget _buildHighlightFeatures() {
-    const color = Color(0xFF3B82F6);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Iconsax.document_text_1,
-              color: color,
-              size: 17,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            _tr('same_day_result', context),
-            style: _kStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAboutSection(String aboutUs) {
     return Container(
