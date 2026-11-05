@@ -666,74 +666,51 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Column(
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: borderColor),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: borderColor),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          item.quantity > 1 ? Icons.remove : Iconsax.trash,
+                                          size: 15,
+                                          color: item.quantity > 1 ? null : const Color(0xFFEF4444),
+                                        ),
+                                        onPressed: () {
+                                          ref.read(pharmacy_cart.cartProvider.notifier).updateQuantity(
+                                                item.medication.id,
+                                                item.quantity - 1,
+                                                unit: item.unit,
+                                              );
+                                        },
+                                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                        padding: EdgeInsets.zero,
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(
-                                              item.quantity > 1 ? Icons.remove : Iconsax.trash,
-                                              size: 15,
-                                              color: item.quantity > 1 ? null : const Color(0xFFEF4444),
-                                            ),
-                                            onPressed: () {
-                                              ref.read(pharmacy_cart.cartProvider.notifier).updateQuantity(
-                                                    item.medication.id,
-                                                    item.quantity - 1,
-                                                    unit: item.unit,
-                                                  );
-                                            },
-                                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                            padding: EdgeInsets.zero,
-                                          ),
-                                          Text(
-                                            '${item.quantity}',
-                                            style: _kStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13,
-                                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.add, size: 15),
-                                            onPressed: () => ref.read(pharmacy_cart.cartProvider.notifier).updateQuantity(
-                                                  item.medication.id,
-                                                  item.quantity + 1,
-                                                  unit: item.unit,
-                                                ),
-                                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                            padding: EdgeInsets.zero,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    InkWell(
-                                      onTap: () => ref.read(pharmacy_cart.cartProvider.notifier).removeItem(
-                                            item.medication.id,
-                                            unit: item.unit,
-                                          ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                                        child: Text(
-                                          'remove'.tr(),
-                                          style: _kStyle(
-                                            fontSize: 11,
-                                            color: const Color(0xFFEF4444),
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                      Text(
+                                        '${item.quantity}',
+                                        style: _kStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: isDark ? Colors.white : const Color(0xFF0F172A),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      IconButton(
+                                        icon: const Icon(Icons.add, size: 15),
+                                        onPressed: () => ref.read(pharmacy_cart.cartProvider.notifier).updateQuantity(
+                                              item.medication.id,
+                                              item.quantity + 1,
+                                              unit: item.unit,
+                                            ),
+                                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                        padding: EdgeInsets.zero,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
