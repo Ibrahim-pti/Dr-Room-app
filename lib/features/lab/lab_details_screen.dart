@@ -322,6 +322,26 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         if (isKurdish) return 'تاقیگەی پزیشکی';
         if (isArabic) return 'مختبر طبي';
         return 'Medical Lab';
+      case 'high_quality':
+        if (isKurdish) return 'کوالیتی بەرز';
+        if (isArabic) return 'جودة عالية';
+        return 'High Quality';
+      case 'fast_in_time':
+        if (isKurdish) return 'خێرایی لە کات';
+        if (isArabic) return 'دقة وسرعة';
+        return 'Fast Service';
+      case 'tab_about':
+        if (isKurdish) return 'ناساندن';
+        if (isArabic) return 'التعريف';
+        return 'About';
+      case 'tab_tests':
+        if (isKurdish) return 'پشکنینەکان';
+        if (isArabic) return 'الفحوصات';
+        return 'Tests';
+      case 'tab_packages':
+        if (isKurdish) return 'ئۆفەر و پاکێج';
+        if (isArabic) return 'العروض والباقات';
+        return 'Offers & Packages';
       default:
         return key.tr();
     }
@@ -850,7 +870,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             name,
             textAlign: TextAlign.center,
             style: _kStyle(
-              fontSize: 19.5,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
@@ -858,123 +878,45 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             overflow: TextOverflow.ellipsis,
           ),
 
-          const SizedBox(height: 8),
-
-          // ── 3. Centered Info Badges (Location, Verified Lab & Discount) ──
-          Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              // Location Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF0F172A).withValues(alpha: 0.6)
-                      : const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
-                    width: 0.8,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Iconsax.location,
-                      color: Color(0xFF3B82F6),
-                      size: 13.5,
-                    ),
-                    const SizedBox(width: 4.5),
-                    Text(
-                      location.isNotEmpty ? location : 'cat_lab'.tr(),
-                      style: _kStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF3B82F6),
-                      ),
-                    ),
-                  ],
+          if (discount != null &&
+              (discount is num ? discount > 0 : discount.toString().isNotEmpty)) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                  width: 0.8,
                 ),
               ),
-
-              // Verified Lab Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF0F172A).withValues(alpha: 0.6)
-                      : const Color(0xFFECFDF5),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.25),
-                    width: 0.8,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.local_offer_rounded,
+                    color: Color(0xFFD97706),
+                    size: 12.5,
                   ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.verified_rounded,
-                      color: Color(0xFF10B981),
-                      size: 13.5,
+                  const SizedBox(width: 4),
+                  Text(
+                    '%$discount ${_tr('discount', context)}',
+                    style: _kStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFB45309),
                     ),
-                    const SizedBox(width: 4.5),
-                    Text(
-                      _tr('verified_lab', context),
-                      style: _kStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF047857),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
+          ],
 
-              // Discount Badge (if exists)
-              if (discount != null &&
-                  (discount is num ? discount > 0 : discount.toString().isNotEmpty))
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.local_offer_rounded,
-                        color: Color(0xFFD97706),
-                        size: 12.5,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '%$discount ${_tr('discount', context)}',
-                        style: _kStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFFB45309),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+          const SizedBox(height: 14),
 
-            const SizedBox(height: 14),
-
-            // ── 4. Quick Stats Integrated Inside ──
-            Row(
+          // ── 3. Quick Stats Integrated Inside ──
+          Row(
             children: [
               // Rating Stat Card
               Expanded(
@@ -1100,7 +1042,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
               const SizedBox(width: 8),
 
-              // Same Day Result Stat Card
+              // High Quality & Fast in Time Stat Card
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
@@ -1121,14 +1063,14 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(
-                            Iconsax.document_text_1,
+                            Iconsax.shield_tick,
                             color: Color(0xFF10B981),
                             size: 15,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              _tr('same_day_short', context),
+                              _tr('high_quality', context),
                               style: _kStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -1142,7 +1084,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                       ),
                       const SizedBox(height: 2.5),
                       Text(
-                        _tr('same_day_result', context),
+                        _tr('fast_in_time', context),
                         style: _kStyle(
                           fontSize: 10.5,
                           color: isDark
@@ -1167,32 +1109,36 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
   }
 
   Widget _buildTabsHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final tabs = [
-      {'id': 0, 'title': 'ناساندن', 'icon': Iconsax.info_circle},
+      {'id': 0, 'title': _tr('tab_about', context), 'icon': Iconsax.info_circle},
       {
         'id': 1,
-        'title': 'پشکنینەکان (${_tests.length})',
+        'title': '${_tr('tab_tests', context)} (${_tests.length})',
         'icon': Iconsax.health,
       },
       {
         'id': 2,
-        'title': 'ئۆفەر و پاکێج (${_packages.length})',
+        'title': '${_tr('tab_packages', context)} (${_packages.length})',
         'icon': Icons.local_offer_rounded,
       },
     ];
 
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(4.5),
       decoration: BoxDecoration(
-        color: (Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E293B)
-            : const Color(0xFFF1F5F9)),
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFF334155)
-              : const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         children: tabs.map((t) {
@@ -1202,21 +1148,24 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             child: GestureDetector(
               onTap: () => setState(() => _selectedTabIndex = id),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 9),
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(vertical: 9.5),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? (Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0xFF334155)
-                            : Colors.white)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  gradient: isSelected
+                      ? const LinearGradient(
+                          colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
+                  color: isSelected ? null : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+                            color: const Color(0xFF2563EB).withValues(alpha: 0.30),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
                           ),
                         ]
                       : null,
@@ -1227,22 +1176,20 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     Icon(
                       t['icon'] as IconData,
                       color: isSelected
-                          ? const Color(0xFF2563EB)
-                          : const Color(0xFF64748B),
+                          ? Colors.white
+                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       size: 15,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 5),
                     Flexible(
                       child: Text(
                         t['title'] as String,
                         style: _kStyle(
                           color: isSelected
-                              ? const Color(0xFF0F172A)
-                              : const Color(0xFF64748B),
+                              ? Colors.white
+                              : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                           fontSize: 11.5,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.w600,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
