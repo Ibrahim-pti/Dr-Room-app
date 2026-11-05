@@ -8,6 +8,7 @@ use App\Models\Doctor;
 use App\Models\Pharmacy;
 use App\Models\Medication;
 use App\Models\Lab;
+use App\Models\Nurse;
 
 class GlobalSearchController extends Controller
 {
@@ -52,6 +53,30 @@ class GlobalSearchController extends Controller
             ];
         };
 
+        $mapNurse = function($nurse) {
+            $user = $nurse->user;
+            return [
+                'id' => $nurse->id,
+                'name' => $user ? $user->name : ($nurse->name ?? 'Nurse'),
+                'name_en' => $user ? ($user->name_en ?? '') : '',
+                'name_ar' => $user ? ($user->name_ar ?? '') : '',
+                'specialty' => $nurse->specialty ?? '',
+                'specialty_en' => $nurse->specialty_en ?? '',
+                'specialty_ar' => $nurse->specialty_ar ?? '',
+                'city' => $nurse->city ?? '',
+                'address' => $nurse->address ?? '',
+                'image' => $nurse->image_path
+                    ? (str_starts_with($nurse->image_path, 'http') ? $nurse->image_path : asset('storage/' . $nurse->image_path))
+                    : ($user && $user->profile_image ? asset('storage/' . $user->profile_image) : null),
+                'rating' => (float) ($nurse->rating ?? 4.8),
+                'total_reviews' => (int) ($nurse->total_reviews ?? 0),
+                'experience_years' => (int) ($nurse->experience_years ?? 1),
+                'is_available' => (bool) ($nurse->is_available ?? true),
+                'fee' => $nurse->fee ?? 15000,
+                'service_type' => $nurse->service_type ?? 'home_nursing',
+            ];
+        };
+
         $mapMedication = function($med) {
             return [
                 'id' => $med->id,
@@ -67,6 +92,7 @@ class GlobalSearchController extends Controller
             $doctors = Doctor::with('user:id,name')->limit(10)->get()->map($mapDoctor);
             $pharmacies = Pharmacy::with('user:id,name')->limit(10)->get()->map($mapPharmacy);
             $labs = Lab::with('user:id,name')->limit(10)->get()->map($mapLab);
+            $nurses = Nurse::where('is_approved', true)->with('user:id,name,name_en,name_ar,profile_image')->limit(15)->get()->map($mapNurse);
             $medications = Medication::with('user:id,name')->limit(10)->get()->map($mapMedication);
         } else {
             $doctors = Doctor::with('user:id,name')
@@ -96,6 +122,21 @@ class GlobalSearchController extends Controller
                 ->get()
                 ->map($mapLab);
 
+            $nurses = Nurse::where('is_approved', true)
+                ->where(function($q) use ($query) {
+                    $q->whereHas('user', function($u) use ($query) {
+                        $u->where('name', 'LIKE', "%{$query}%")
+                          ->orWhere('name_en', 'LIKE', "%{$query}%")
+                          ->orWhere('name_ar', 'LIKE', "%{$query}%");
+                    })
+                    ->orWhere('specialty', 'LIKE', "%{$query}%")
+                    ->orWhere('city', 'LIKE', "%{$query}%");
+                })
+                ->with('user:id,name,name_en,name_ar,profile_image')
+                ->limit(15)
+                ->get()
+                ->map($mapNurse);
+
             $medications = Medication::with('user:id,name')
                 ->where('name', 'LIKE', "%{$query}%")
                 ->orWhere('description', 'LIKE', "%{$query}%")
@@ -110,7 +151,8 @@ class GlobalSearchController extends Controller
                 'doctors' => $doctors,
                 'pharmacies' => $pharmacies,
                 'medications' => $medications,
-                'labs' => $labs
+                'labs' => $labs,
+                'nurses' => $nurses
             ]
         ]);
     }
