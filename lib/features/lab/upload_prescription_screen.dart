@@ -354,9 +354,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             };
           }).toList();
 
-          if (_providers.isNotEmpty) {
-            _selectedProvider = _providers.first;
-          }
+          // Keep _selectedProvider as null initially so none is auto-selected
         }
       } else {
         // Fetch laboratories
@@ -368,10 +366,6 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
               : (decoded is List ? decoded : []);
           if (list.isNotEmpty) {
             _providers = list.map((e) => Map<String, dynamic>.from(e)).toList();
-            if (_providers.isNotEmpty) {
-              _selectedProvider = _providers.first;
-              _fetchTestsForLab(_selectedProvider!['id']);
-            }
           }
         }
       }
@@ -536,17 +530,13 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
           setState(() {
             _searchQuery = val;
             final fp = _filteredProviders;
-            if (fp.isNotEmpty &&
-                (_selectedProvider == null ||
-                    !fp.any(
-                      (p) =>
-                          p['id']?.toString() ==
-                          _selectedProvider?['id']?.toString(),
-                    ))) {
-              _selectedProvider = fp.first;
-              if (!widget.isNursing) {
-                _fetchTestsForLab(_selectedProvider!['id']);
-              }
+            if (_selectedProvider != null &&
+                !fp.any(
+                  (p) =>
+                      p['id']?.toString() ==
+                      _selectedProvider?['id']?.toString(),
+                )) {
+              _selectedProvider = null;
             }
           });
         },
@@ -1326,15 +1316,6 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                                     color: isDark
                                         ? Colors.white
                                         : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'jpg_png_pdf_hint'.tr(),
-                                  style: const TextStyle(
-                                    fontFamily: 'Rabar',
-                                    fontSize: 12,
-                                    color: Color(0xFF94A3B8),
                                   ),
                                 ),
                               ],
