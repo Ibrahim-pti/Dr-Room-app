@@ -5,6 +5,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/localization_extensions.dart';
 import 'nurse_details_screen.dart';
 
 class NurseListScreen extends StatefulWidget {
@@ -754,15 +755,8 @@ class _NurseListScreenState extends State<NurseListScreen> {
   }
 
   Widget _buildPremiumNurseCard(Map<String, dynamic> nurse, int index) {
-    final lang = context.locale.languageCode;
-    final isArabic = lang == 'ar';
-    final isEnglish = lang == 'en';
-
-    final name = (isArabic && nurse['name_ar'] != null && nurse['name_ar'].toString().isNotEmpty)
-        ? nurse['name_ar']
-        : (isEnglish && nurse['name_en'] != null && nurse['name_en'].toString().isNotEmpty)
-            ? nurse['name_en']
-            : (nurse['name'] ?? '');
+    final userObj = nurse['user'] is Map ? nurse['user'] as Map : nurse;
+    final name = context.localizedField(userObj, 'name', fallback: 'پەرستار'.tr());
 
     final fallbackImages = [
       'https://images.unsplash.com/photo-1594824813511-236b283d0cfa?w=400&h=300&fit=crop&crop=face,top&q=80',

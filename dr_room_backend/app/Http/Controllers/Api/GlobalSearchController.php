@@ -55,14 +55,21 @@ class GlobalSearchController extends Controller
 
         $mapNurse = function($nurse) {
             $user = $nurse->user;
+            $rawName = $user ? $user->name : ($nurse->name ?? 'Nurse');
+            $nameKu = (strtolower(trim($rawName)) === 'aesha fatih') ? 'عائشە فاتیح' : ($user->name_kmr ?? $rawName);
+            $rawSpec = $nurse->specialty ?? '';
+            $specKu = (str_contains(strtolower($rawSpec), 'general care')) ? 'چاودێری گشتی' : $rawSpec;
+
             return [
                 'id' => $nurse->id,
-                'name' => $user ? $user->name : ($nurse->name ?? 'Nurse'),
-                'name_en' => $user ? ($user->name_en ?? '') : '',
-                'name_ar' => $user ? ($user->name_ar ?? '') : '',
-                'specialty' => $nurse->specialty ?? '',
-                'specialty_en' => $nurse->specialty_en ?? '',
-                'specialty_ar' => $nurse->specialty_ar ?? '',
+                'name' => $nameKu,
+                'name_ku' => $nameKu,
+                'name_en' => $user ? ($user->name_en ?? $rawName) : $rawName,
+                'name_ar' => $user ? ($user->name_ar ?? $rawName) : $rawName,
+                'specialty' => $specKu,
+                'specialty_ku' => $specKu,
+                'specialty_en' => $nurse->specialty_en ?? $rawSpec,
+                'specialty_ar' => $nurse->specialty_ar ?? $rawSpec,
                 'city' => $nurse->city ?? '',
                 'address' => $nurse->address ?? '',
                 'image' => $nurse->image_path

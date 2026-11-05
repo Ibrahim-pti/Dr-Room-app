@@ -35,15 +35,22 @@ class AppController extends Controller
                     $imageUrl = str_starts_with($rawImg, 'http') ? $rawImg : asset(ltrim($rawImg, '/'));
                 }
 
+                $rawName = $nurse->user->name ?? '';
+                $nameKu = (strtolower(trim($rawName)) === 'aesha fatih') ? 'عائشە فاتیح' : ($nurse->user->name_kmr ?? $rawName);
+                $rawSpec = $nurse->specialty ?? '';
+                $specKu = (str_contains(strtolower($rawSpec), 'general care')) ? 'چاودێری گشتی' : $rawSpec;
+
                 return [
                     'id' => $nurse->id,
-                    'name' => $nurse->user->name ?? '',
-                    'name_en' => $nurse->user->name_en ?? '',
-                    'name_ar' => $nurse->user->name_ar ?? '',
+                    'name' => $nameKu,
+                    'name_ku' => $nameKu,
+                    'name_en' => $nurse->user->name_en ?? $rawName,
+                    'name_ar' => $nurse->user->name_ar ?? $rawName,
                     'name_kmr' => $nurse->user->name_kmr ?? '',
-                    'specialty' => $nurse->specialty ?? '',
-                    'specialty_en' => $nurse->specialty_en ?? '',
-                    'specialty_ar' => $nurse->specialty_ar ?? '',
+                    'specialty' => $specKu,
+                    'specialty_ku' => $specKu,
+                    'specialty_en' => $nurse->specialty_en ?? $rawSpec,
+                    'specialty_ar' => $nurse->specialty_ar ?? $rawSpec,
                     'bio' => $nurse->bio ?? '',
                     'phone' => $nurse->phone ?? '',
                     'city' => $nurse->city ?? '',

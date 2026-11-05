@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../core/providers/cart_provider.dart';
 import '../pharmacy/screens/cart_screen.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/localization_extensions.dart';
 import 'nurse_reviews_screen.dart';
 
 class NurseDetailsScreen extends StatefulWidget {
@@ -35,6 +36,27 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     _rating = double.tryParse(_nurseData['rating']?.toString() ?? '') ?? 0.0;
     _totalReviews = int.tryParse(_nurseData['total_reviews']?.toString() ?? '') ?? 0;
     _fetchReviews();
+    _fetchNurseDetails();
+  }
+
+  Future<void> _fetchNurseDetails() async {
+    final nurseId = _nurseData['id'] ?? widget.nurse['id'];
+    if (nurseId == null) return;
+    try {
+      final res = await ApiClient.get('/nurses/$nurseId');
+      if (res.statusCode == 200 && mounted) {
+        final decoded = jsonDecode(res.body);
+        if (decoded is Map && decoded['nurse'] is Map) {
+          setState(() {
+            _nurseData = Map<String, dynamic>.from(decoded['nurse']);
+            _rating = double.tryParse(_nurseData['rating']?.toString() ?? '') ?? _rating;
+            _totalReviews = int.tryParse(_nurseData['total_reviews']?.toString() ?? '') ?? _totalReviews;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching nurse details: $e');
+    }
   }
 
   Future<void> _fetchReviews() async {
@@ -116,43 +138,12 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = context.locale.languageCode;
-    final isArabic = lang == 'ar';
-    final isEnglish = lang == 'en';
-    final nurse = widget.nurse;
+    final nurse = _nurseData.isNotEmpty ? _nurseData : widget.nurse;
 
-    final name =
-        (isArabic &&
-            nurse['name_ar'] != null &&
-            nurse['name_ar'].toString().isNotEmpty)
-        ? nurse['name_ar']
-        : (isEnglish &&
-              nurse['name_en'] != null &&
-              nurse['name_en'].toString().isNotEmpty)
-        ? nurse['name_en']
-        : (nurse['name'] ?? '');
-
-    final specialty =
-        (isArabic &&
-            nurse['specialty_ar'] != null &&
-            nurse['specialty_ar'].toString().isNotEmpty)
-        ? nurse['specialty_ar']
-        : (isEnglish &&
-              nurse['specialty_en'] != null &&
-              nurse['specialty_en'].toString().isNotEmpty)
-        ? nurse['specialty_en']
-        : (nurse['specialty'] ?? '');
-
-    final bio =
-        (isArabic &&
-            nurse['bio_ar'] != null &&
-            nurse['bio_ar'].toString().isNotEmpty)
-        ? nurse['bio_ar']
-        : (isEnglish &&
-              nurse['bio_en'] != null &&
-              nurse['bio_en'].toString().isNotEmpty)
-        ? nurse['bio_en']
-        : (nurse['bio'] ?? '');
+    final userObj = nurse['user'] is Map ? nurse['user'] as Map : nurse;
+    final name = context.localizedField(userObj, 'name', fallback: 'پەرستار'.tr());
+    final specialty = context.localizedField(nurse, 'specialty', fallback: 'nursing_verified_nurse'.tr());
+    final bio = context.localizedField(nurse, 'bio', fallback: '');
 
     final image = nurse['image'];
     final phone = nurse['phone']?.toString() ?? '';
@@ -162,14 +153,13 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     final rating = double.tryParse(nurse['rating']?.toString() ?? '') ?? 0.0;
     final totalReviews = int.tryParse(nurse['total_reviews']?.toString() ?? '') ?? 0;
     final nurseId = int.tryParse(nurse['id']?.toString() ?? '0') ?? 0;
-    final city = nurse['city']?.toString() ?? '';
+    final rawCity = context.localizedField(nurse, 'city', fallback: 'Erbil');
+    final city = _cityKurdish(rawCity);
     final customServices = nurse['custom_services'] as List<dynamic>? ?? [];
-
-
 
     // Collect all specialty chips
     final List<String> allSpecialties = [];
-    final String specialtyStr = (specialty ?? '').toString();
+    final String specialtyStr = specialty.trim();
     if (specialtyStr.isNotEmpty) {
       final parts = specialtyStr
           .split(RegExp(r'[،,]'))
@@ -178,18 +168,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
       allSpecialties.addAll(parts);
     }
     for (var cs in customServices) {
-      if (cs is Map && cs['name'] != null && cs['name'].toString().isNotEmpty) {
-        final csName =
-            (isArabic &&
-                cs['name_ar'] != null &&
-                cs['name_ar'].toString().isNotEmpty)
-            ? cs['name_ar']
-            : (isEnglish &&
-                  cs['name_en'] != null &&
-                  cs['name_en'].toString().isNotEmpty)
-            ? cs['name_en']
-            : cs['name'].toString();
-        if (!allSpecialties.contains(csName)) {
+      if (cs is Map) {
+        final csName = context.localizedField(cs, 'name');
+        if (csName.isNotEmpty && !allSpecialties.contains(csName)) {
           allSpecialties.add(csName);
         }
       }
@@ -245,7 +226,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                     // 🩺 Tab 2: پسپۆڕییەکان و خزمەتگوزارییەکان (Specialties & Services)
                     _buildSpecialtiesSection(allSpecialties),
                     const SizedBox(height: 14),
-                    _buildServicesAndPricingSection(customServices, fee, nurse, isArabic, isEnglish),
+                    _buildServicesAndPricingSection(customServices, fee, nurse),
                   ],
                 ],
               ),
@@ -1374,8 +1355,6 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     List<dynamic> customServices,
     dynamic fee,
     Map<String, dynamic> nurse,
-    bool isArabic,
-    bool isEnglish,
   ) {
     final nurseName = nurse['user'] != null ? (nurse['user']['name'] ?? '') : (nurse['name'] ?? 'پەرستاری ماڵەوە');
     final nurseId = nurse['id'];
@@ -1423,11 +1402,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
             ...validServices.asMap().entries.map((entry) {
               final idx = entry.key;
               final cs = entry.value as Map;
-              final sName = isEnglish
-                  ? (cs['name_en'] != null && cs['name_en'].toString().isNotEmpty ? cs['name_en'] : (cs['name'] ?? ''))
-                  : (isArabic
-                      ? (cs['name_ar'] != null && cs['name_ar'].toString().isNotEmpty ? cs['name_ar'] : (cs['name'] ?? ''))
-                      : (cs['name'] ?? ''));
+              final sName = context.localizedField(cs, 'name', fallback: cs['name']?.toString() ?? '');
               final sPrice = cs['price'] != null ? (double.tryParse(cs['price'].toString()) ?? defaultFee) : defaultFee;
 
               return Container(

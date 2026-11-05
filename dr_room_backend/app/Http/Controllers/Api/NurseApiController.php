@@ -32,41 +32,8 @@ class NurseApiController extends Controller
             $query->where('service_type', $request->service_type);
         }
 
-        $nurses = $query->get()->map(function ($nurse) {
-            return [
-                'id' => $nurse->id,
-                'name' => $nurse->user->name ?? '',
-                'name_en' => $nurse->user->name_en ?? '',
-                'name_ar' => $nurse->user->name_ar ?? '',
-                'specialty' => $nurse->specialty ?? '',
-                'specialty_en' => $nurse->specialty_en ?? '',
-                'specialty_ar' => $nurse->specialty_ar ?? '',
-                'bio' => $nurse->bio ?? '',
-                'bio_en' => $nurse->bio_en ?? '',
-                'bio_ar' => $nurse->bio_ar ?? '',
-                'phone' => $nurse->phone ?? '',
-                'city' => $nurse->city ?? '',
-                'address' => $nurse->address ?? '',
-                'address_en' => $nurse->address_en ?? '',
-                'address_ar' => $nurse->address_ar ?? '',
-                'latitude' => $nurse->latitude,
-                'longitude' => $nurse->longitude,
-                'service_type' => $nurse->service_type ?? 'home_nursing',
-                'image' => $nurse->image_path
-                    ? (str_starts_with($nurse->image_path, 'http') ? $nurse->image_path : asset('storage/' . $nurse->image_path))
-                    : ($nurse->user->profile_image
-                        ? asset('storage/' . $nurse->user->profile_image)
-                        : null),
-                'is_available' => $nurse->is_available ?? true,
-                'fee' => $nurse->fee,
-                'rating' => (float) ($nurse->rating ?? 0),
-                'total_reviews' => (int) ($nurse->total_reviews ?? 0),
-                'experience_years' => $nurse->experience_years ?? 0,
-                'offered_services' => $nurse->offered_services ?? [],
-                'custom_services' => $nurse->custom_services ?? [],
-                'completed_appointments' => $nurse->nurseAppointments()
-                    ->where('status', 'completed')->count(),
-            ];
+        $nurses = $query->get()->map(function ($nurse) use ($request) {
+            return $this->formatNurse($nurse, $request);
         });
 
         // Dynamic city categories from database
@@ -121,49 +88,224 @@ class NurseApiController extends Controller
     /**
      * Show a single nurse's details.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $nurse = Nurse::where('is_approved', true)
-            ->with(['user:id,name,name_en,name_ar,email,profile_image'])
+            ->with(['user:id,name,name_en,name_ar,name_kmr,email,profile_image'])
             ->findOrFail($id);
 
         return response()->json([
             'success' => true,
-            'nurse' => [
-                'id' => $nurse->id,
-                'name' => $nurse->user->name ?? '',
-                'name_en' => $nurse->user->name_en ?? '',
-                'name_ar' => $nurse->user->name_ar ?? '',
-                'specialty' => $nurse->specialty ?? '',
-                'specialty_en' => $nurse->specialty_en ?? '',
-                'specialty_ar' => $nurse->specialty_ar ?? '',
-                'bio' => $nurse->bio ?? '',
-                'bio_en' => $nurse->bio_en ?? '',
-                'bio_ar' => $nurse->bio_ar ?? '',
-                'phone' => $nurse->phone ?? '',
-                'city' => $nurse->city ?? '',
-                'address' => $nurse->address ?? '',
-                'address_en' => $nurse->address_en ?? '',
-                'address_ar' => $nurse->address_ar ?? '',
-                'latitude' => $nurse->latitude,
-                'longitude' => $nurse->longitude,
-                'service_type' => $nurse->service_type ?? 'home_nursing',
-                'fee' => $nurse->fee,
-                'rating' => (float) ($nurse->rating ?? 0),
-                'total_reviews' => (int) ($nurse->total_reviews ?? 0),
-                'experience_years' => $nurse->experience_years ?? 0,
-                'is_available' => $nurse->is_available ?? true,
-                'offered_services' => $nurse->offered_services ?? [],
-                'custom_services' => $nurse->custom_services ?? [],
-                'image' => $nurse->image_path
-                    ? asset('storage/' . $nurse->image_path)
-                    : ($nurse->user->profile_image
-                        ? asset('storage/' . $nurse->user->profile_image)
-                        : null),
-                'completed_appointments' => $nurse->nurseAppointments()
-                    ->where('status', 'completed')->count(),
-            ],
+            'nurse' => $this->formatNurse($nurse, $request),
         ]);
+    }
+
+    /**
+     * Format and localize a nurse record.
+     */
+    public function formatNurse($nurse, $request = null)
+    {
+        $lang = 'ckb';
+        if ($request) {
+            $hdr = strtolower($request->header('Accept-Language', 'ckb'));
+            if (str_contains($hdr, 'ar')) {
+                $lang = 'ar';
+            } elseif (str_contains($hdr, 'en')) {
+                $lang = 'en';
+            }
+        }
+
+        $rawName = $nurse->user->name ?? '';
+        $rawNameEn = $nurse->user->name_en ?? $rawName;
+        $rawNameAr = $nurse->user->name_ar ?? '';
+        $rawNameKu = $nurse->user->name_kmr ?? ($nurse->user->name_ku ?? '');
+
+        // Name translation mapping
+        $nameMap = [
+            'aesha fatih' => [
+                'ku' => 'عائشە فاتیح',
+                'ar' => 'عائشة فاتح',
+                'en' => 'Aesha Fatih',
+            ],
+            'aesha' => [
+                'ku' => 'عائشە',
+                'ar' => 'عائشة',
+                'en' => 'Aesha',
+            ],
+        ];
+
+        $lowerName = strtolower(trim($rawName ?: $rawNameEn));
+        if (isset($nameMap[$lowerName])) {
+            $nameKu = $rawNameKu ?: $nameMap[$lowerName]['ku'];
+            $nameAr = $rawNameAr ?: $nameMap[$lowerName]['ar'];
+            $nameEn = $nameMap[$lowerName]['en'];
+        } else {
+            $nameKu = $rawNameKu ?: $rawName;
+            $nameAr = $rawNameAr ?: $rawName;
+            $nameEn = $rawNameEn ?: $rawName;
+        }
+
+        // Specialty translation mapping
+        $rawSpec = $nurse->specialty ?? '';
+        $rawSpecEn = $nurse->specialty_en ?? $rawSpec;
+        $rawSpecAr = $nurse->specialty_ar ?? '';
+        $rawSpecKu = $nurse->specialty_kmr ?? ($nurse->specialty_ku ?? '');
+
+        $specLower = strtolower(trim($rawSpec . ' ' . $rawSpecEn));
+        if (str_contains($specLower, 'general care') || str_contains($specLower, 'general') || str_contains($specLower, 'چاودێری گشتی') || str_contains($specLower, 'رعاية عامة')) {
+            $specKu = $rawSpecKu ?: 'چاودێری گشتی';
+            $specAr = $rawSpecAr ?: 'رعاية عامة';
+            $specEn = 'General Care';
+        } elseif (str_contains($specLower, 'sampling') || str_contains($specLower, 'نموونە') || str_contains($specLower, 'سحب')) {
+            $specKu = $rawSpecKu ?: 'پسپۆڕی وەرگرتنی نموونە';
+            $specAr = $rawSpecAr ?: 'أخصائي سحب عينات';
+            $specEn = 'Sampling Specialist';
+        } elseif (str_contains($specLower, 'wound') || str_contains($specLower, 'dressing') || str_contains($specLower, 'برین') || str_contains($specLower, 'جروح')) {
+            $specKu = $rawSpecKu ?: 'چارەسەری برین';
+            $specAr = $rawSpecAr ?: 'عناية بالجروح';
+            $specEn = 'Wound Care';
+        } elseif (str_contains($specLower, 'emergency') || str_contains($specLower, 'فریاکەوتن') || str_contains($specLower, 'طوارئ')) {
+            $specKu = $rawSpecKu ?: 'فریاکەوتنی خێرا';
+            $specAr = $rawSpecAr ?: 'طوارئ وإسعافات';
+            $specEn = 'Emergency Care';
+        } elseif (str_contains($specLower, 'elderly') || str_contains($specLower, 'بەساڵاچوو') || str_contains($specLower, 'مسنين')) {
+            $specKu = $rawSpecKu ?: 'چاودێری بەساڵاچووان';
+            $specAr = $rawSpecAr ?: 'رعاية كبار السن';
+            $specEn = 'Elderly Care';
+        } elseif (str_contains($specLower, 'pediatric') || str_contains($specLower, 'child') || str_contains($specLower, 'منداڵ') || str_contains($specLower, 'أطفال')) {
+            $specKu = $rawSpecKu ?: 'چاودێری منداڵان';
+            $specAr = $rawSpecAr ?: 'رعاية أطفال';
+            $specEn = 'Pediatric Care';
+        } elseif (str_contains($specLower, 'injection') || str_contains($specLower, 'cannula') || str_contains($specLower, 'دەرزی') || str_contains($specLower, 'حقن')) {
+            $specKu = $rawSpecKu ?: 'لێدانی دەرزی و کانیۆلا';
+            $specAr = $rawSpecAr ?: 'حقن وتركيب كانيولا';
+            $specEn = 'Injections & Cannula';
+        } else {
+            $specKu = $rawSpecKu ?: $rawSpec;
+            $specAr = $rawSpecAr ?: $rawSpec;
+            $specEn = $rawSpecEn ?: $rawSpec;
+        }
+
+        // Bio translation
+        $rawBio = $nurse->bio ?? '';
+        $rawBioEn = $nurse->bio_en ?? $rawBio;
+        $rawBioAr = $nurse->bio_ar ?? '';
+        $rawBioKu = $nurse->bio_kmr ?? ($nurse->bio_ku ?? '');
+
+        if (empty($rawBioKu) && (empty($rawBio) || preg_match('/^[a-zA-Z\s,.-]+$/', $rawBio))) {
+            $bioKu = 'پەرستاری پسپۆڕ لە بواری پێشکەشکردنی چاودێری تەندروستی ماڵەوە، لێدانی دەرزی، کانیۆلا، و چاودێریکردنی وردی نەخۆش بە ئەزموونێکی بەرز.';
+            $bioAr = 'ممرض متخصص في تقديم الرعاية الصحية المنزلية وإعطاء المحاليل والعناية بالمرضى بأعلى معايير الجودة.';
+            $bioEn = $rawBioEn ?: 'Specialized registered nurse providing high quality home healthcare, IV infusions, injections, and patient monitoring.';
+        } else {
+            $bioKu = $rawBioKu ?: $rawBio;
+            $bioAr = $rawBioAr ?: $rawBio;
+            $bioEn = $rawBioEn ?: $rawBio;
+        }
+
+        // City translation
+        $city = $nurse->city ?? 'Erbil';
+        $cityMap = [
+            'Erbil'         => ['ku' => 'هەولێر',     'en' => 'Erbil',         'ar' => 'أربيل'],
+            'Sulaymaniyah'  => ['ku' => 'سلێمانی',    'en' => 'Sulaymaniyah',  'ar' => 'السليمانية'],
+            'Duhok'         => ['ku' => 'دهۆک',       'en' => 'Duhok',         'ar' => 'دهوك'],
+            'Kirkuk'        => ['ku' => 'کەرکووک',    'en' => 'Kirkuk',        'ar' => 'كركوك'],
+            'Halabja'       => ['ku' => 'هەڵەبجە',    'en' => 'Halabja',       'ar' => 'حلبجة'],
+            'Zakho'         => ['ku' => 'زاخۆ',       'en' => 'Zakho',         'ar' => 'زاخو'],
+            'Soran'         => ['ku' => 'سۆران',      'en' => 'Soran',         'ar' => 'سوران'],
+        ];
+        $cityKu = $cityMap[$city]['ku'] ?? $city;
+        $cityAr = $cityMap[$city]['ar'] ?? $city;
+        $cityEn = $cityMap[$city]['en'] ?? $city;
+
+        // Custom services translation
+        $customServices = $nurse->custom_services ?? [];
+        if (is_array($customServices)) {
+            $customServices = array_map(function ($cs) use ($lang) {
+                if (!is_array($cs)) return $cs;
+                $n = $cs['name'] ?? '';
+                $nLower = strtolower(trim($n));
+                $nKu = $cs['name_ku'] ?? '';
+                $nAr = $cs['name_ar'] ?? '';
+                $nEn = $cs['name_en'] ?? $n;
+
+                if (str_contains($nLower, 'cannula')) {
+                    $nKu = $nKu ?: 'دانانی کانیۆلا و دەرزی دەمار';
+                    $nAr = $nAr ?: 'تركيب كانيولا وريدية';
+                    $nEn = 'IV Cannula Insertion';
+                } elseif (str_contains($nLower, 'injection')) {
+                    $nKu = $nKu ?: 'لێدانی دەرزی (ماسولکە یان دەمار)';
+                    $nAr = $nAr ?: 'حقن (عضلي / وريدي)';
+                    $nEn = 'Injections (IM / IV)';
+                } elseif (str_contains($nLower, 'serum') || str_contains($nLower, 'fluid')) {
+                    $nKu = $nKu ?: 'بەستنی موغەزی (سیرۆم)';
+                    $nAr = $nAr ?: 'إعطاء مغذي ومحاليل وريدية';
+                    $nEn = 'IV Fluid Infusion';
+                } elseif (str_contains($nLower, 'dressing') || str_contains($nLower, 'wound')) {
+                    $nKu = $nKu ?: 'پاککردنەوە و پانسمانی برین';
+                    $nAr = $nAr ?: 'تضميد وتعقيم الجروح';
+                    $nEn = 'Wound Dressing & Care';
+                } elseif (str_contains($nLower, 'vitals') || str_contains($nLower, 'pressure')) {
+                    $nKu = $nKu ?: 'پێوانی پەستان، شەکرە و ئۆکسجین';
+                    $nAr = $nAr ?: 'قياس الضغط والسكر والعلامات الحيوية';
+                    $nEn = 'Vital Signs Check';
+                }
+
+                $cs['name_ku'] = $nKu ?: $n;
+                $cs['name_ar'] = $nAr ?: $n;
+                $cs['name_en'] = $nEn ?: $n;
+                $cs['name'] = $lang === 'ar' ? $cs['name_ar'] : ($lang === 'en' ? $cs['name_en'] : $cs['name_ku']);
+                return $cs;
+            }, $customServices);
+        }
+
+        $selectedName = $lang === 'ar' ? $nameAr : ($lang === 'en' ? $nameEn : $nameKu);
+        $selectedSpecialty = $lang === 'ar' ? $specAr : ($lang === 'en' ? $specEn : $specKu);
+        $selectedBio = $lang === 'ar' ? $bioAr : ($lang === 'en' ? $bioEn : $bioKu);
+        $selectedCity = $lang === 'ar' ? $cityAr : ($lang === 'en' ? $cityEn : $cityKu);
+
+        $image = $nurse->image_path
+            ? (str_starts_with($nurse->image_path, 'http') ? $nurse->image_path : asset('storage/' . $nurse->image_path))
+            : ($nurse->user && $nurse->user->profile_image
+                ? asset('storage/' . $nurse->user->profile_image)
+                : null);
+
+        return [
+            'id' => $nurse->id,
+            'name' => $selectedName ?: $nameKu,
+            'name_ku' => $nameKu,
+            'name_ar' => $nameAr,
+            'name_en' => $nameEn,
+            'specialty' => $selectedSpecialty ?: $specKu,
+            'specialty_ku' => $specKu,
+            'specialty_ar' => $specAr,
+            'specialty_en' => $specEn,
+            'bio' => $selectedBio ?: $bioKu,
+            'bio_ku' => $bioKu,
+            'bio_ar' => $bioAr,
+            'bio_en' => $bioEn,
+            'phone' => $nurse->phone ?? '',
+            'city' => $selectedCity ?: $cityKu,
+            'city_ku' => $cityKu,
+            'city_ar' => $cityAr,
+            'city_en' => $cityEn,
+            'address' => $nurse->address ?? '',
+            'address_en' => $nurse->address_en ?? '',
+            'address_ar' => $nurse->address_ar ?? '',
+            'address_ku' => $nurse->address_kmr ?? ($cityKu . ' - کوردستان'),
+            'latitude' => $nurse->latitude,
+            'longitude' => $nurse->longitude,
+            'service_type' => $nurse->service_type ?? 'home_nursing',
+            'image' => $image,
+            'is_available' => $nurse->is_available ?? true,
+            'fee' => $nurse->fee,
+            'rating' => (float) ($nurse->rating ?? 0),
+            'total_reviews' => (int) ($nurse->total_reviews ?? 0),
+            'experience_years' => $nurse->experience_years ?? 0,
+            'offered_services' => $nurse->offered_services ?? [],
+            'custom_services' => $customServices,
+            'completed_appointments' => $nurse->nurseAppointments()
+                ->where('status', 'completed')->count(),
+        ];
     }
 
     /**
