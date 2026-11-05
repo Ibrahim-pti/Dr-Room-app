@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -368,18 +369,23 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 1. Hero Image Banner Carousel ──
-                _buildHeroBanner(discount),
-                const SizedBox(height: 12),
-
-                // ── 2. Unified Master Profile Card (Centered Logo, Name, Chips & Integrated Stats) ──
-                _buildMasterProfileCard(
-                  name: name,
-                  location: location,
-                  profileImage: profileImage,
-                  rating: rating,
-                  reviewsCount: reviewsCount,
-                  discount: discount,
+                // ── 1 & 2. Integrated Hero Banner & Waved Master Profile Card ──
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    _buildHeroBanner(discount),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 175),
+                      child: _buildMasterProfileCard(
+                        name: name,
+                        location: location,
+                        profileImage: profileImage,
+                        rating: rating,
+                        reviewsCount: reviewsCount,
+                        discount: discount,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 14),
 
@@ -543,15 +549,15 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     _imagesCount = images.length;
 
     return Container(
-      height: 190,
+      height: 240,
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -560,7 +566,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
         children: [
           // 1. Swipable Carousel
           ClipRRect(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(28),
             child: PageView.builder(
               controller: _pageController,
               itemCount: images.length,
@@ -600,18 +606,48 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             ),
           ),
 
-          // 2. Bottom Gradient Shadow
-          Positioned.fill(
-            child: IgnorePointer(
+          // 2. Smooth Ambient Top Vignette (Seamlessly blends into the image)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 80,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withValues(alpha: 0.0),
-                      Colors.black.withValues(alpha: 0.5),
+                      Colors.black.withValues(alpha: 0.40),
+                      Colors.black.withValues(alpha: 0.10),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.45, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Bottom Blue Wave Glow Overlay (behind avatar cradle)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 95,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      const Color(0xFF2563EB).withValues(alpha: 0.75),
+                      const Color(0xFF1D4ED8),
                     ],
                   ),
                 ),
@@ -619,7 +655,39 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             ),
           ),
 
-          // 3. Discount Badge (Top Start)
+          // 4. Clean Minimal Dots Indicator (Floating directly on image, no box)
+          Positioned(
+            bottom: 56,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(images.length, (idx) {
+                final isSel = idx == _currentImageIndex;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: isSel ? 20 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: isSel
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1.5),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          // 5. Discount Badge (Top Start)
           if (discount != null)
             PositionedDirectional(
               top: 12,
@@ -663,31 +731,6 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                 ),
               ),
             ),
-
-          // 4. Animated Dots Indicator (Bottom Center)
-          Positioned(
-            bottom: 12,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(images.length, (idx) {
-                final isSel = idx == _currentImageIndex;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
-                  width: isSel ? 16 : 5,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: isSel
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                );
-              }),
-            ),
-          ),
         ],
       ),
     ).animate().fadeIn(duration: 400.ms).scaleXY(begin: 0.98);
@@ -704,28 +747,23 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final resolvedImg = ApiClient.getImageUrl(profileImage);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+    return CustomPaint(
+      painter: ProfileCardWavePainter(
+        cardColor: cardColor,
+        borderColor: borderColor,
+        isDark: isDark,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // ── 1. Centered Lab Avatar with Verified Badge ──
-          Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // ── 1. Centered Lab Avatar with Verified Badge (Cradled in wave dip) ──
+            const SizedBox(height: 12),
+            Center(
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -933,20 +971,10 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             ],
           ),
 
-          const SizedBox(height: 14),
+            const SizedBox(height: 14),
 
-          // ── 4. Subtle Divider ──
-          Container(
-            height: 1,
-            color: isDark
-                ? const Color(0xFF334155).withValues(alpha: 0.5)
-                : const Color(0xFFF1F5F9),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ── 5. Quick Stats Integrated Inside ──
-          Row(
+            // ── 4. Quick Stats Integrated Inside ──
+            Row(
             children: [
               // Rating Stat Card
               Expanded(
@@ -1131,7 +1159,9 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
               ),
             ],
           ),
-        ],
+            const SizedBox(height: 18),
+          ],
+        ),
       ),
     ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05);
   }
@@ -2614,4 +2644,111 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
       ),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.3);
   }
+}
+
+/// Builds the path for the master profile card with a double-crest wave
+/// and a central dip/cradle for the lab avatar.
+Path _buildCardWavePath(Size size) {
+  final w = size.width;
+  final h = size.height;
+  final path = Path();
+
+  // Wave starts at left edge (0, 32)
+  path.moveTo(0, 32);
+
+  // Curve up to peak 1 at x = 0.16 * w, y = 2
+  path.cubicTo(
+    0.05 * w, 16,
+    0.10 * w, 2,
+    0.16 * w, 2,
+  );
+
+  // Curve down into center cradle at x = 0.50 * w, y = 46
+  path.cubicTo(
+    0.24 * w, 2,
+    0.35 * w, 44,
+    0.50 * w, 44,
+  );
+
+  // Curve up out of cradle to peak 2 at x = 0.82 * w, y = 0
+  path.cubicTo(
+    0.65 * w, 44,
+    0.74 * w, 2,
+    0.82 * w, 2,
+  );
+
+  // Curve down to right edge at (w, 32)
+  path.cubicTo(
+    0.89 * w, 2,
+    0.95 * w, 16,
+    w, 32,
+  );
+
+  // Down to bottom-right corner with radius 24
+  path.lineTo(w, h - 24);
+  path.quadraticBezierTo(w, h, w - 24, h);
+
+  // Along bottom to bottom-left corner with radius 24
+  path.lineTo(24, h);
+  path.quadraticBezierTo(0, h, 0, h - 24);
+
+  path.close();
+  return path;
+}
+
+/// Paints the white card with the custom top wave, shadow, and border.
+class ProfileCardWavePainter extends CustomPainter {
+  final Color cardColor;
+  final Color borderColor;
+  final bool isDark;
+
+  const ProfileCardWavePainter({
+    required this.cardColor,
+    required this.borderColor,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = _buildCardWavePath(size);
+
+    // 1. Soft Shadow
+    canvas.drawShadow(
+      path,
+      Colors.black.withValues(alpha: isDark ? 0.35 : 0.04),
+      14,
+      false,
+    );
+
+    // 2. Background Fill
+    final fillPaint = Paint()
+      ..color = cardColor
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(path, fillPaint);
+
+    // 3. Border Stroke
+    final borderPaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawPath(path, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant ProfileCardWavePainter oldDelegate) {
+    return oldDelegate.cardColor != cardColor ||
+        oldDelegate.borderColor != borderColor ||
+        oldDelegate.isDark != isDark;
+  }
+}
+
+/// Clipper version for children if clipping is needed.
+class ProfileCardWaveClipper extends CustomClipper<Path> {
+  const ProfileCardWaveClipper();
+
+  @override
+  Path getClip(Size size) => _buildCardWavePath(size);
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
