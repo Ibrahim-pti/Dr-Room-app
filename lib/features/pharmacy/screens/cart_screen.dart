@@ -345,28 +345,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             ),
           ),
         ),
-        actions: [
-          if (!isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: borderColor),
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Iconsax.trash,
-                    color: Color(0xFFEF4444),
-                    size: 17,
-                  ),
-                  tooltip: 'cart_clear_title'.tr(),
-                  onPressed: () => _confirmClearCart(coreCart),
-                ),
-              ),
-            ),
-        ],
+        actions: const [],
       ),
       body: isEmpty
           ? Center(
@@ -424,7 +403,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                               : (isNursing ? const Color(0xFF0D9488) : const Color(0xFF7C3AED));
                           final String badgeText = isLab
                               ? 'cat_lab'.tr()
-                              : (isNursing ? 'nursing_title'.tr() : 'general_service'.tr());
+                              : (isNursing ? 'cat_nursing'.tr() : 'general_service'.tr());
                           final IconData badgeIcon = isLab
                               ? Icons.science_outlined
                               : (isNursing ? Icons.medical_services_outlined : Iconsax.health);
