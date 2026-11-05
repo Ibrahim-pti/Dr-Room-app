@@ -800,8 +800,8 @@
   "ai_scan_btn": "Scan Now",
   "ai_scan_modal_title": "Medical Image Analysis via AI",
   "ai_scan_modal_desc": "Capture prescription, medicine box, or laboratory report:",
-  "ai_camera": "Camera 📸",
-  "ai_gallery": "Gallery 🖼️",
+  "ai_camera": "Camera",
+  "ai_gallery": "Gallery (Photos)",
   "ai_welcome_message": "Hello! I am Dr-Room AI Health Assistant 🤖.\nYou can describe your symptoms or send photos of prescriptions and lab tests for instant analysis.",
   "ai_typing": "AI is analyzing and formulating response...",
   "ai_input_hint": "Type symptoms or attach photo...",
@@ -827,8 +827,6 @@
   "ai_scan_camera_desc": "Point your camera at the image or document",
   "ai_scan_gallery_title": "Upload from Gallery 🖼️",
   "ai_scan_gallery_desc": "Select an image from your device",
-  "ai_camera": "Camera",
-  "ai_gallery": "Gallery (Photos)",
   "ai_scanning_step1": "Reading text & data (OCR)...",
   "ai_scanning_step2": "Analyzing content with AI...",
   "ai_scanning_step3": "Preparing clinical guidance...",
@@ -994,7 +992,6 @@
   "select_payment_method": "Select Payment Method",
   "select_payment_method_desc": "Please select one of these methods to complete your order",
   "trusted_payment_methods": "Trusted Payment Methods",
-  "continue_btn": "Continue",
   "order_summary_title": "Order & Payment Summary",
   "order_review_desc": "Please review your details before completing the order",
   "service_type": "Service Type",
@@ -1108,5 +1105,9 @@
   "rx_please_select_nurse": "Please select a nurse first",
   "rx_needs_center_section": "Requires Center Visit (Outside Home):",
   "rx_view_nearby_centers_btn": "View Nearby Centers / Book Appointment",
-  "rx_center_explanation_note": "These scans cannot be performed at home and require visiting a medical imaging center. Their costs are separated from home nursing."
+  "rx_center_explanation_note": "These scans cannot be performed at home and require visiting a medical imaging center. Their costs are separated from home nursing.",
+  "rx_ai_analyzing_title": "AI Prescription Analysis",
+  "rx_ai_analyzing_subtitle": "Please wait while AI extracts medicines and dosages...",
+  "rx_no_services_selected": "Please select at least one nursing service",
+  "rx_only_self_meds_note": "This prescription contains self-administered medications only and does not require a nurse."
 }

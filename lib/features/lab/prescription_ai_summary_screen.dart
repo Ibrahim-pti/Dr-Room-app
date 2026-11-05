@@ -68,45 +68,7 @@ class SelfMedicationItem {
   }
 }
 
-class CenterScanItem {
-  final String id;
-  final String title;
-  final String titleAr;
-  final String titleEn;
-  final String titleKmr;
-  final String subtitle;
-  final String subtitleAr;
-  final String subtitleEn;
-  final String subtitleKmr;
-  final IconData icon;
 
-  CenterScanItem({
-    required this.id,
-    required this.title,
-    required this.titleAr,
-    required this.titleEn,
-    required this.titleKmr,
-    required this.subtitle,
-    required this.subtitleAr,
-    required this.subtitleEn,
-    required this.subtitleKmr,
-    required this.icon,
-  });
-
-  String getLocalizedTitle(String lang) {
-    if (lang == 'ar') return titleAr;
-    if (lang == 'en') return titleEn;
-    if (lang == 'kmr') return titleKmr;
-    return title;
-  }
-
-  String getLocalizedSubtitle(String lang) {
-    if (lang == 'ar') return subtitleAr;
-    if (lang == 'en') return subtitleEn;
-    if (lang == 'kmr') return subtitleKmr;
-    return subtitle;
-  }
-}
 
 class PrescriptionAiSummaryScreen extends StatefulWidget {
   final File prescriptionImage;
@@ -135,7 +97,6 @@ class _PrescriptionAiSummaryScreenState
 
   List<NurseServiceItem> _nurseServices = [];
   List<SelfMedicationItem> _selfMedications = [];
-  List<CenterScanItem> _centerScans = [];
 
   List<Map<String, dynamic>> _nurses = [];
   Map<String, dynamic>? _selectedNurse;
@@ -143,82 +104,8 @@ class _PrescriptionAiSummaryScreenState
   @override
   void initState() {
     super.initState();
-    _initDefaultItems();
     _initNurses();
     _analyzePrescriptionWithAi();
-  }
-
-  void _initDefaultItems() {
-    _nurseServices = [
-      NurseServiceItem(
-        id: 'ampoule_injection',
-        title: 'لێدانی دەرزی',
-        titleAr: 'حقن إبرة',
-        titleEn: 'Injection',
-        titleKmr: 'لێدانا دەرزیێ',
-        subtitle: 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
-        cost: 5000.0,
-        icon: Icons.vaccines_rounded,
-        isSelected: true,
-      ),
-      NurseServiceItem(
-        id: 'cannula_iv',
-        title: 'دانانی کانیولا و مەغزی',
-        titleAr: 'تركيب كانيولا ومغذي',
-        titleEn: 'IV Fluid & Cannula',
-        titleKmr: 'دانانا کانیولا و مەغزی',
-        subtitle: 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
-        cost: 5000.0,
-        icon: Icons.water_drop_rounded,
-        isSelected: true,
-      ),
-    ];
-
-    _selfMedications = [
-      SelfMedicationItem(
-        title: 'حەب و کەپسول',
-        titleAr: 'حبوب وكبسولات',
-        titleEn: 'Tablets & Capsules',
-        titleKmr: 'حەب و کەپسول',
-        subtitle: 'پێویست بە پەرستار ناکات',
-        icon: Icons.medication_rounded,
-      ),
-      SelfMedicationItem(
-        title: 'شرووب',
-        titleAr: 'شراب طبي',
-        titleEn: 'Syrup',
-        titleKmr: 'شرووب',
-        subtitle: 'پێویست بە پەرستار ناکات',
-        icon: Icons.liquor_rounded,
-      ),
-    ];
-
-    _centerScans = [
-      CenterScanItem(
-        id: 'ultrasound',
-        title: 'سۆنەر',
-        titleAr: 'سونار',
-        titleEn: 'Ultrasound',
-        titleKmr: 'سۆنەر',
-        subtitle: 'پێویست بە سەنتەری تیشک و سۆنەر دەکات',
-        subtitleAr: 'يتطلب زيارة مركز الأشعة والسونار',
-        subtitleEn: 'Requires Radiology & Ultrasound Center',
-        subtitleKmr: 'پێدڤی ب سەنتەرێ تیشک و سۆنەرێ دکەت',
-        icon: Icons.health_and_safety_rounded,
-      ),
-      CenterScanItem(
-        id: 'chest_xray',
-        title: 'تیشک',
-        titleAr: 'أشعة',
-        titleEn: 'X-Ray',
-        titleKmr: 'تیشک',
-        subtitle: 'پێویست بە سەنتەری تیشک دەکات',
-        subtitleAr: 'يتطلب زيارة مركز الأشعة والتصوير',
-        subtitleEn: 'Requires Radiology & Imaging Center',
-        subtitleKmr: 'پێدڤی ب سەنتەرێ تیشکێ دکەت',
-        icon: Icons.radio_button_checked_rounded,
-      ),
-    ];
   }
 
   void _initNurses() {
@@ -303,20 +190,84 @@ class _PrescriptionAiSummaryScreenState
   }
 
   Future<void> _analyzePrescriptionWithAi() async {
+    setState(() => _isAnalyzing = true);
     try {
       final currentLang = context.locale.languageCode;
-      await AiClinicalVisionService.instance.analyzeMedicalImage(
+      final aiResult = await AiClinicalVisionService.instance.parsePrescriptionForNursing(
         imageFile: widget.prescriptionImage,
-        mode: 'medicine',
-        userNote:
-            'Extract all prescription medications and split clearly into: '
-            '1. Injections/IV fluids requiring nurse administration. '
-            '2. Oral tablets, capsules, syrups taken by patient with zero fee. '
-            '3. Radiology scans, ultrasound, or laboratory investigations requiring center visit.',
         language: currentLang,
       );
+
+      if (mounted) {
+        final List<NurseServiceItem> parsedNurseServices = [];
+        final List<SelfMedicationItem> parsedSelfMeds = [];
+
+        if (aiResult['nurse_services'] is List) {
+          for (var item in aiResult['nurse_services']) {
+            if (item is Map) {
+              final iconType = item['icon_type']?.toString().toLowerCase() ?? '';
+              IconData icon = Icons.medical_services_rounded;
+              if (iconType.contains('inj') || iconType.contains('needle')) {
+                icon = Icons.vaccines_rounded;
+              } else if (iconType.contains('can') || iconType.contains('fluid') || iconType.contains('serum')) {
+                icon = Icons.water_drop_rounded;
+              } else if (iconType.contains('wound') || iconType.contains('dress')) {
+                icon = Icons.healing_rounded;
+              } else if (iconType.contains('vital')) {
+                icon = Icons.favorite_rounded;
+              }
+
+              parsedNurseServices.add(
+                NurseServiceItem(
+                  id: item['id']?.toString() ?? 'nurse_${parsedNurseServices.length}',
+                  title: item['title']?.toString() ?? 'لێدانی دەرزی',
+                  titleAr: item['title_ar']?.toString() ?? item['title']?.toString() ?? 'حقن إبرة',
+                  titleEn: item['title_en']?.toString() ?? item['title']?.toString() ?? 'Injection',
+                  titleKmr: item['title_kmr']?.toString() ?? item['title']?.toString() ?? 'لێدانا دەرزیێ',
+                  subtitle: item['subtitle']?.toString() ?? 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
+                  cost: (item['cost'] as num?)?.toDouble() ?? 5000.0,
+                  icon: icon,
+                  isSelected: true,
+                ),
+              );
+            }
+          }
+        }
+
+        if (aiResult['self_medications'] is List) {
+          for (var item in aiResult['self_medications']) {
+            if (item is Map) {
+              final iconType = item['icon_type']?.toString().toLowerCase() ?? '';
+              IconData icon = Icons.medication_rounded;
+              if (iconType.contains('syrup') || iconType.contains('liquid')) {
+                icon = Icons.liquor_rounded;
+              } else if (iconType.contains('drop')) {
+                icon = Icons.opacity_rounded;
+              } else if (iconType.contains('cream') || iconType.contains('ointment')) {
+                icon = Icons.sanitizer_rounded;
+              }
+
+              parsedSelfMeds.add(
+                SelfMedicationItem(
+                  title: item['title']?.toString() ?? 'دەرمانی خۆبەکارھێنان',
+                  titleAr: item['title_ar']?.toString() ?? item['title']?.toString() ?? 'أدوية استخدام ذاتي',
+                  titleEn: item['title_en']?.toString() ?? item['title']?.toString() ?? 'Self Medication',
+                  titleKmr: item['title_kmr']?.toString() ?? item['title']?.toString() ?? 'دەرمانێن بخۆ بکارئینانێ',
+                  subtitle: item['subtitle']?.toString() ?? 'rx_no_nurse_needed'.tr(),
+                  icon: icon,
+                ),
+              );
+            }
+          }
+        }
+
+        setState(() {
+          _nurseServices = parsedNurseServices;
+          _selfMedications = parsedSelfMeds;
+        });
+      }
     } catch (e) {
-      debugPrint('AI analysis completed with structured defaults: $e');
+      debugPrint('Error analyzing prescription with AI: $e');
     } finally {
       if (mounted) {
         setState(() => _isAnalyzing = false);
@@ -775,106 +726,73 @@ class _PrescriptionAiSummaryScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 24),
-
-                  // ── 4. Requires Center Visit Section (🏥 پێویست بە سەردانی سەنتەر دەکات - دەرەوەی ماڵ) ──
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0284C7).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.local_hospital_rounded,
-                          color: Color(0xFF0284C7),
-                          size: 17,
+                  // If only self-administered medications exist, show gentle guidance
+                  if (!_hasNurseServices) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0D9488).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF0D9488).withValues(alpha: 0.25),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'rx_needs_center_section'.tr(),
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.info_outline_rounded,
+                                  color: Color(0xFF0D9488), size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'rx_only_self_meds_note'.tr(),
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 12.5,
+                                    color: Color(0xFF0D9488),
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: const Color(0xFF0284C7).withValues(alpha: 0.25),
-                        width: 1.4,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0284C7)
-                              .withValues(alpha: isDark ? 0.2 : 0.04),
-                          blurRadius: 12,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        for (int i = 0; i < _centerScans.length; i++) ...[
-                          if (i > 0)
-                            Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: borderColor,
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF0D9488),
+                                side: const BorderSide(color: Color(0xFF0D9488)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              ),
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              label: Text('خزمەتگوزاری پەرستار بۆ ماڵەوە زیاد بکە (پشکنینی گشتی)'.tr()),
+                              onPressed: () {
+                                setState(() {
+                                  _nurseServices.add(
+                                    NurseServiceItem(
+                                      id: 'general_nurse_visit',
+                                      title: 'پشکنینی نیشانەکان و چاودێری پەرستاری لە ماڵەوە',
+                                      titleAr: 'فحص العلامات الحيوية والرعاية المنزلية',
+                                      titleEn: 'Home Nursing & Vital Signs Check',
+                                      titleKmr: 'پێڤانا نیشانێن ژیانێ و چاڤدێرییا مالێ',
+                                      subtitle: 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
+                                      cost: 5000.0,
+                                      icon: Icons.favorite_rounded,
+                                      isSelected: true,
+                                    ),
+                                  );
+                                });
+                              },
                             ),
-                          _buildCenterScanRow(_centerScans[i], isDark, lang),
+                          ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Center explanation notice (Separate from home nursing)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0284C7).withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.info_outline_rounded,
-                          color: Color(0xFF0284C7),
-                          size: 17,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'rx_center_explanation_note'.tr(),
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12,
-                              color: isDark
-                                  ? const Color(0xFF38BDF8)
-                                  : const Color(0xFF0284C7),
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  ],
 
                   // ── 5. Select Nurse Section (👩‍⚕️ دەستنیشانکردنی پەرستار - Only if nurse services exist) ──
                   if (_hasNurseServices) ...[
@@ -1453,80 +1371,5 @@ class _PrescriptionAiSummaryScreenState
     );
   }
 
-  Widget _buildCenterScanRow(
-      CenterScanItem item, bool isDark, String lang) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: const Color(0xFF0284C7).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              item.icon,
-              color: const Color(0xFF0284C7),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.getLocalizedTitle(lang),
-                  style: TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  item.getLocalizedSubtitle(lang),
-                  style: const TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 11.5,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0284C7).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.business_rounded,
-                  size: 13,
-                  color: Color(0xFF0284C7),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'cat_lab'.tr(),
-                  style: const TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0284C7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 }
