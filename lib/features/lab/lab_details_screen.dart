@@ -395,7 +395,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                   children: [
                     _buildHeroBanner(discount),
                     Padding(
-                      padding: const EdgeInsets.only(top: 175),
+                      padding: const EdgeInsets.only(top: 210),
                       child: _buildMasterProfileCard(
                         name: name,
                         location: location,
@@ -569,7 +569,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
     _imagesCount = images.length;
 
     return Container(
-      height: 240,
+      height: 260,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
@@ -656,7 +656,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
             left: 0,
             right: 0,
             bottom: 0,
-            height: 95,
+            height: 50,
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
               child: Container(
@@ -666,8 +666,8 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      const Color(0xFF2563EB).withValues(alpha: 0.75),
-                      const Color(0xFF1D4ED8),
+                      const Color(0xFF2563EB).withValues(alpha: 0.28),
+                      const Color(0xFF1D4ED8).withValues(alpha: 0.60),
                     ],
                   ),
                 ),
@@ -677,7 +677,7 @@ class _LabDetailsScreenState extends State<LabDetailsScreen> {
 
           // 4. Clean Minimal Dots Indicator (Floating directly on image, no box)
           Positioned(
-            bottom: 56,
+            bottom: 46,
             left: 0,
             right: 0,
             child: Row(
@@ -2600,35 +2600,35 @@ Path _buildCardWavePath(Size size) {
   final h = size.height;
   final path = Path();
 
-  // Wave starts at left edge (0, 32)
-  path.moveTo(0, 32);
+  // Wave starts at left edge (0, 28)
+  path.moveTo(0, 28);
 
-  // Curve up to peak 1 at x = 0.16 * w, y = 2
+  // Curve up to peak 1 at x = 0.16 * w, y = 8
   path.cubicTo(
-    0.05 * w, 16,
-    0.10 * w, 2,
-    0.16 * w, 2,
+    0.05 * w, 18,
+    0.10 * w, 8,
+    0.16 * w, 8,
   );
 
-  // Curve down into center cradle at x = 0.50 * w, y = 46
+  // Curve down into center cradle at x = 0.50 * w, y = 44
   path.cubicTo(
-    0.24 * w, 2,
+    0.24 * w, 8,
     0.35 * w, 44,
     0.50 * w, 44,
   );
 
-  // Curve up out of cradle to peak 2 at x = 0.82 * w, y = 0
+  // Curve up out of cradle to peak 2 at x = 0.82 * w, y = 8
   path.cubicTo(
     0.65 * w, 44,
-    0.74 * w, 2,
-    0.82 * w, 2,
+    0.74 * w, 8,
+    0.82 * w, 8,
   );
 
-  // Curve down to right edge at (w, 32)
+  // Curve down to right edge at (w, 28)
   path.cubicTo(
-    0.89 * w, 2,
-    0.95 * w, 16,
-    w, 32,
+    0.89 * w, 8,
+    0.95 * w, 18,
+    w, 28,
   );
 
   // Down to bottom-right corner with radius 24
