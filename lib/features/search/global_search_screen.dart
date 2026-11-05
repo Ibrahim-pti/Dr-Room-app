@@ -8,10 +8,8 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/utils/api_client.dart';
 import '../../core/utils/localization_extensions.dart';
-import '../doctors/doctor_details_screen.dart';
-import '../pharmacy/screens/pharmacy_detail_screen.dart';
-import '../pharmacy/models/pharmacy_model.dart';
 import '../lab/lab_details_screen.dart';
+import '../nursing/nurse_details_screen.dart';
 
 class GlobalSearchScreen extends StatefulWidget {
   const GlobalSearchScreen({super.key});
@@ -25,35 +23,14 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   Timer? _debounce;
   bool _isLoading = false;
 
-  List<dynamic> _doctors = [];
-  List<dynamic> _pharmacies = [];
-  List<dynamic> _medications = [];
   List<dynamic> _labs = [];
+  List<dynamic> _nurses = [];
 
   String _selectedCategory = 'All';
   final List<Map<String, dynamic>> _categories = [
-    {'id': 'All', 'key': 'all', 'icon': Iconsax.category},
-    {'id': 'Doctors', 'key': 'top_doctors', 'icon': Iconsax.profile_2user},
-    {'id': 'Pharmacies', 'key': 'top_pharmacies', 'icon': Iconsax.hospital},
-    {'id': 'Labs', 'key': 'top_labs', 'icon': Iconsax.health},
-    {'id': 'Medications', 'key': 'medications', 'icon': Iconsax.box_1},
-  ];
-
-
-  final List<String> _doctorFallbackImages = [
-    'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1594824813511-236b283d0cfa?w=500&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=500&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=500&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=500&auto=format&fit=crop&q=80',
-  ];
-
-  final List<String> _pharmacyFallbackImages = [
-    'assets/images/pharmacy1.jpg',
-    'assets/images/pharmacy2.jpg',
-    'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=500&auto=format&fit=crop&q=60',
+    {'id': 'All', 'icon': Iconsax.category},
+    {'id': 'Labs', 'icon': Iconsax.health},
+    {'id': 'Nurses', 'icon': Iconsax.profile_2user},
   ];
 
   final List<String> _labFallbackImages = [
@@ -61,6 +38,13 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     'assets/images/lab2.jpg',
     'assets/images/lab3.jpg',
     'assets/images/lab4.jpg',
+  ];
+
+  final List<String> _nurseFallbackImages = [
+    'https://images.unsplash.com/photo-1594824813511-236b283d0cfa?w=400&h=300&fit=crop&crop=face,top&q=80',
+    'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=300&fit=crop&crop=face,top&q=80',
+    'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&h=300&fit=crop&crop=face,top&q=80',
+    'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop&crop=face,top&q=80',
   ];
 
   @override
@@ -92,11 +76,39 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
           setState(() {
-            _doctors = data['data']['doctors'] ?? [];
-            _pharmacies = data['data']['pharmacies'] ?? [];
-            _medications = data['data']['medications'] ?? [];
             _labs = data['data']['labs'] ?? [];
+            _nurses = data['data']['nurses'] ?? [];
           });
+        }
+      }
+
+      // Resilient fallback: If nurses are not present in the global-search payload
+      if (_nurses.isEmpty) {
+        final nurseRes = await ApiClient.get('/nurses');
+        if (nurseRes.statusCode == 200) {
+          final nData = jsonDecode(nurseRes.body);
+          final rawList = nData['data'] is List ? nData['data'] : (nData is List ? nData : []);
+          if (query.trim().isEmpty) {
+            if (mounted) setState(() => _nurses = rawList);
+          } else {
+            final q = query.toLowerCase();
+            if (mounted) {
+              setState(() {
+                _nurses = rawList.where((n) {
+                  final name = (n['name'] ?? '').toString().toLowerCase();
+                  final nameEn = (n['name_en'] ?? '').toString().toLowerCase();
+                  final nameAr = (n['name_ar'] ?? '').toString().toLowerCase();
+                  final specialty = (n['specialty'] ?? '').toString().toLowerCase();
+                  final city = (n['city'] ?? '').toString().toLowerCase();
+                  return name.contains(q) ||
+                      nameEn.contains(q) ||
+                      nameAr.contains(q) ||
+                      specialty.contains(q) ||
+                      city.contains(q);
+                }).toList();
+              });
+            }
+          }
         }
       }
     } catch (e) {
@@ -106,12 +118,33 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     }
   }
 
+  String _getCategoryLabel(String id, BuildContext context) {
+    final lang = context.locale.languageCode;
+    if (id == 'All') {
+      return lang == 'ar' ? 'الكل' : (lang == 'en' ? 'All' : 'هەمووی');
+    } else if (id == 'Labs') {
+      return lang == 'ar' ? 'المختبرات' : (lang == 'en' ? 'Laboratories' : 'لیستی تاقیگەکان');
+    } else {
+      return lang == 'ar' ? 'الممرضين' : (lang == 'en' ? 'Nurses' : 'لیستی پەرستاران');
+    }
+  }
+
+  String _getSectionTitle(String type, BuildContext context) {
+    final lang = context.locale.languageCode;
+    if (type == 'labs') {
+      return lang == 'ar' ? 'المختبرات' : (lang == 'en' ? 'Laboratories' : 'تاقیگەکان');
+    } else {
+      return lang == 'ar' ? 'الممرضين' : (lang == 'en' ? 'Nurses' : 'پەرستارەکان');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
     final surface = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final lang = context.locale.languageCode;
 
     return Scaffold(
       backgroundColor: bg,
@@ -156,7 +189,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
             decoration: InputDecoration(
-              hintText: 'search_all_hint'.tr(),
+              hintText: lang == 'ar'
+                  ? 'البحث عن مختبر، ممرض...'
+                  : (lang == 'en' ? 'Search for lab, nurse...' : 'گەڕان بۆ تاقیگە، پەرستار...'),
               hintStyle: const TextStyle(
                 fontFamily: 'Rabar',
                 color: Color(0xFF94A3B8),
@@ -201,9 +236,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               itemBuilder: (context, index) {
                 final cat = _categories[index];
                 final id = cat['id'] as String;
-                final key = cat['key'] as String;
                 final icon = cat['icon'] as IconData;
                 final isSelected = _selectedCategory == id;
+                final label = _getCategoryLabel(id, context);
 
                 return Padding(
                   padding: const EdgeInsetsDirectional.only(end: 8),
@@ -249,7 +284,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            key.tr(),
+                            label,
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               color: isSelected ? Colors.white : (isDark ? Colors.white : const Color(0xFF334155)),
@@ -267,7 +302,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           ),
 
           // ── Search Results ──
-
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -277,36 +311,22 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                     padding: const EdgeInsets.all(16),
                     physics: const BouncingScrollPhysics(),
                     children: [
-                      // Doctors Group
-                      if ((_selectedCategory == 'All' || _selectedCategory == 'Doctors') && _doctors.isNotEmpty) ...[
-                        _buildSectionHeader('پزیشکەکان', _doctors.length, Iconsax.profile_2user),
-                        ..._doctors.asMap().entries.map((entry) => _buildDoctorCard(context, entry.value, entry.key)),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Pharmacies Group
-                      if ((_selectedCategory == 'All' || _selectedCategory == 'Pharmacies') && _pharmacies.isNotEmpty) ...[
-                        _buildSectionHeader('دەرمانخانەکان', _pharmacies.length, Iconsax.hospital),
-                        ..._pharmacies.asMap().entries.map((entry) => _buildPharmacyCard(context, entry.value, entry.key)),
-                        const SizedBox(height: 16),
-                      ],
-
                       // Labs Group
                       if ((_selectedCategory == 'All' || _selectedCategory == 'Labs') && _labs.isNotEmpty) ...[
-                        _buildSectionHeader('تاقیگەکان', _labs.length, Iconsax.health),
+                        _buildSectionHeader(_getSectionTitle('labs', context), _labs.length, Iconsax.health),
                         ..._labs.asMap().entries.map((entry) => _buildLabCard(context, entry.value, entry.key)),
                         const SizedBox(height: 16),
                       ],
 
-                      // Medications Group
-                      if ((_selectedCategory == 'All' || _selectedCategory == 'Medications') && _medications.isNotEmpty) ...[
-                        _buildSectionHeader('دەرمانەکان', _medications.length, Iconsax.box_1),
-                        ..._medications.asMap().entries.map((entry) => _buildMedicationCard(context, entry.value, entry.key)),
+                      // Nurses Group
+                      if ((_selectedCategory == 'All' || _selectedCategory == 'Nurses') && _nurses.isNotEmpty) ...[
+                        _buildSectionHeader(_getSectionTitle('nurses', context), _nurses.length, Iconsax.profile_2user),
+                        ..._nurses.asMap().entries.map((entry) => _buildNurseCard(context, entry.value, entry.key)),
                         const SizedBox(height: 16),
                       ],
 
                       // Empty State
-                      if (_doctors.isEmpty && _pharmacies.isEmpty && _labs.isEmpty && _medications.isEmpty)
+                      if (_labs.isEmpty && _nurses.isEmpty)
                         Center(
                           child: Padding(
                             padding: const EdgeInsets.only(top: 60),
@@ -326,7 +346,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                                 ),
                                 const SizedBox(height: 18),
                                 Text(
-                                  'هیچ ئەنجامێک نەدۆزرایەوە',
+                                  lang == 'ar'
+                                      ? 'لم يتم العثور على أي نتائج'
+                                      : (lang == 'en' ? 'No results found' : 'هیچ ئەنجامێک نەدۆزرایەوە'),
                                   style: TextStyle(
                                     fontFamily: 'Rabar',
                                     fontWeight: FontWeight.bold,
@@ -335,9 +357,13 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 6),
-                                const Text(
-                                  'تکایە دڵنیابە لە دروستی نووسینی ناوەکە یان پسپۆڕییەکە',
-                                  style: TextStyle(
+                                Text(
+                                  lang == 'ar'
+                                      ? 'تأكد من كتابة اسم المختبر أو الممرض بشكل صحيح'
+                                      : (lang == 'en'
+                                          ? 'Make sure the lab or nurse name is spelled correctly'
+                                          : 'دڵنیابە لە دروستی نووسینی ناوی تاقیگە یان پەرستارەکە'),
+                                  style: const TextStyle(
                                     fontFamily: 'Rabar',
                                     color: Color(0xFF94A3B8),
                                     fontSize: 12.5,
@@ -414,369 +440,19 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     return null;
   }
 
-  Widget _buildDoctorCard(BuildContext context, dynamic d, int index) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-
-    final userObj = d['user'] is Map ? d['user'] : d;
-    final String doctorName = context.localizedField(userObj, 'name', fallback: 'cat_doctor'.tr());
-    final String rawImage = d['image'] ?? d['"image"'] ?? '';
-    final String? uploadedUrl = _getImageUrl(rawImage);
-    final String fallbackImg = _doctorFallbackImages[index % _doctorFallbackImages.length];
-    final String imageToUse = (uploadedUrl != null && !uploadedUrl.contains('default') && !uploadedUrl.contains('doctor1.png'))
-        ? uploadedUrl
-        : fallbackImg;
-    final String specialty = context.localizedField(d, 'specialty', fallback: context.localizedField(d, 'specialization', fallback: 'medical_specialist'.tr()));
-    final String fee = d['fee']?.toString() ?? d['"fee"']?.toString() ?? '25,000';
-    final String rating = d['rating']?.toString() ?? '4.9';
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DoctorDetailsScreen(
-              doctorId: d['id'] ?? 1,
-              name: doctorName,
-              specialty: specialty,
-              image: imageToUse,
-              initialDoctor: d is Map<String, dynamic> ? d : null,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Doctor Photo
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: 72,
-                height: 78,
-                color: const Color(0xFFEFF6FF),
-                child: CachedNetworkImage(
-                  imageUrl: imageToUse,
-                  fit: BoxFit.cover,
-                  alignment: const Alignment(0, -0.15),
-                  errorWidget: (context, url, error) => const Icon(
-                    Icons.person,
-                    size: 36,
-                    color: Color(0xFF3B82F6),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          doctorName,
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      // Verified Tag
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 10),
-                            const SizedBox(width: 2),
-                            Text(
-                              'verified'.tr(),
-                              style: const TextStyle(
-                                fontFamily: 'Rabar',
-                                color: Color(0xFF10B981),
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    specialty,
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                      fontSize: 11.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      // Rating
-                      Row(
-                        children: [
-                          const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 13),
-                          const SizedBox(width: 2),
-                          Text(
-                            rating,
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                              color: Color(0xFFD97706),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 10),
-                      // Fee
-                      Text(
-                        '$fee IQD',
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          color: Color(0xFF10B981),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(),
-                      // Book Button
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3B82F6),
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
-                              blurRadius: 4,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          'book_appointment'.tr(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            color: Colors.white,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(delay: (index * 60).ms).slideY(begin: 0.05, end: 0);
-  }
-
-  Widget _buildPharmacyCard(BuildContext context, dynamic p, int index) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-
-    final userObj = p['user'] is Map ? p['user'] : p;
-    final String pharmacyName = context.localizedField(userObj, 'name', fallback: 'cat_pharmacy'.tr());
-    final String rawImage = p['image'] ?? p['"image"'] ?? '';
-    final String? uploadedUrl = _getImageUrl(rawImage);
-    final String fallbackImg = _pharmacyFallbackImages[index % _pharmacyFallbackImages.length];
-    final String imageToUse = (uploadedUrl != null && !uploadedUrl.contains('default')) ? uploadedUrl : fallbackImg;
-    final bool isNetwork = imageToUse.startsWith('http');
-    final String address = context.localizedField(p, 'address', fallback: context.localizedField(p, 'city', fallback: ''));
-    final String rating = p['rating']?.toString() ?? '4.8';
-
-    return GestureDetector(
-      onTap: () {
-        final pharmacyModel = Pharmacy(
-          id: p['id'] ?? 1,
-          name: pharmacyName,
-          profileImage: imageToUse,
-          rating: double.tryParse(rating) ?? 4.8,
-          isOpen: p['is_open'] == 1 || p['"is_open"'] == '1' || true,
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PharmacyDetailScreen(pharmacy: pharmacyModel),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: 72,
-                height: 72,
-                color: const Color(0xFFF8FAFC),
-                child: isNetwork
-                    ? CachedNetworkImage(
-                        imageUrl: imageToUse,
-                        fit: BoxFit.cover,
-                        errorWidget: (context, url, error) => Image.asset('assets/images/pharmacy1.jpg', fit: BoxFit.cover),
-                      )
-                    : Image.asset(imageToUse, fit: BoxFit.cover),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          pharmacyName,
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'open_status'.tr(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            color: Color(0xFF10B981),
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Iconsax.location, size: 11, color: Color(0xFF3B82F6)),
-                      const SizedBox(width: 3),
-                      Expanded(
-                        child: Text(
-                          address,
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                            fontSize: 11,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 13),
-                      const SizedBox(width: 2),
-                      Text(
-                        rating,
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                          color: Color(0xFFD97706),
-                        ),
-                      ),
-                      const Spacer(),
-                      const Icon(Iconsax.truck_fast, size: 12, color: Color(0xFF3B82F6)),
-                      const SizedBox(width: 4),
-                      Text(
-                        'fast_delivery'.tr(),
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          color: Color(0xFF3B82F6),
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(delay: (index * 60).ms).slideY(begin: 0.05, end: 0);
-  }
-
   Widget _buildLabCard(BuildContext context, dynamic l, int index) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
-    final String labName = context.localizedField(l, 'name', fallback: 'cat_lab'.tr());
+    final userObj = l['user'] is Map ? l['user'] : l;
+    final String labName = context.localizedField(userObj, 'name', fallback: 'cat_lab'.tr());
     final String fallbackImg = _labFallbackImages[index % _labFallbackImages.length];
-    final String address = context.localizedField(l, 'address', fallback: context.localizedField(l, 'city', fallback: ''));
+    final String address = context.localizedField(
+      l,
+      'address',
+      fallback: context.localizedField(l, 'location', fallback: context.localizedField(l, 'city', fallback: '')),
+    );
     final String rating = l['rating']?.toString() ?? '4.8';
 
     return GestureDetector(
@@ -918,84 +594,133 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     ).animate().fadeIn(delay: (index * 60).ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildMedicationCard(BuildContext context, dynamic m, int index) {
+  Widget _buildNurseCard(BuildContext context, dynamic n, int index) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
-    final String medName = context.localizedField(m, 'name', fallback: 'medications'.tr());
-    final String pharmacyName = context.localizedField(m['pharmacy'] ?? {}, 'name', fallback: 'cat_pharmacy'.tr());
-    final String price = m['price']?.toString() ?? '3,500';
+    final userObj = n['user'] is Map ? n['user'] : n;
+    final String nurseName = context.localizedField(userObj, 'name', fallback: 'top_nurses'.tr());
+    final String rawImage = (n['image'] ?? n['image_path'] ?? userObj['profile_image'] ?? '').toString();
+    final String? uploadedUrl = _getImageUrl(rawImage);
+    final String fallbackImg = _nurseFallbackImages[index % _nurseFallbackImages.length];
+    final String imageToUse = (uploadedUrl != null && !uploadedUrl.contains('default')) ? uploadedUrl : fallbackImg;
+    final bool isNetwork = imageToUse.startsWith('http');
+
+    final String specialty = context.localizedField(n, 'specialty', fallback: 'medical_specialist'.tr());
+    final String city = context.localizedField(n, 'city', fallback: context.localizedField(n, 'address', fallback: ''));
+    final String rating = n['rating']?.toString() ?? '4.9';
+    final bool isAvailable = n['is_available'] == true || n['is_available'] == 1 || n['is_available'] == '1';
 
     return GestureDetector(
       onTap: () {
-        if (m['pharmacy_id'] != null) {
-          final pharmacyModel = Pharmacy(
-            id: m['pharmacy_id'],
-            name: pharmacyName,
-            profileImage: null,
-            rating: 4.9,
-            isOpen: true,
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PharmacyDetailScreen(pharmacy: pharmacyModel),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NurseDetailsScreen(
+              nurse: n is Map<String, dynamic> ? n : Map<String, dynamic>.from(n as Map),
             ),
-          );
-        }
+          ),
+        );
       },
-
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: cardBg,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: borderColor),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Row(
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+            // Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: 72,
+                height: 72,
+                color: const Color(0xFFF8FAFC),
+                child: isNetwork
+                    ? CachedNetworkImage(
+                        imageUrl: imageToUse,
+                        fit: BoxFit.cover,
+                        errorWidget: (context, url, error) => Image.network(
+                          fallbackImg,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Iconsax.profile_2user,
+                            color: Color(0xFF0D9488),
+                            size: 30,
+                          ),
+                        ),
+                      )
+                    : Image.asset(
+                        imageToUse,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Iconsax.profile_2user,
+                          color: Color(0xFF0D9488),
+                          size: 30,
+                        ),
+                      ),
               ),
-              child: const Icon(Iconsax.box_1, color: Color(0xFF8B5CF6), size: 24),
             ),
             const SizedBox(width: 12),
+
+            // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    medName,
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13.5,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          nurseName,
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: (isAvailable ? const Color(0xFF10B981) : const Color(0xFF64748B)).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          isAvailable ? 'available'.tr() : 'unavailable'.tr(),
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            color: isAvailable ? const Color(0xFF10B981) : const Color(0xFF64748B),
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      const Icon(Iconsax.shop, size: 11, color: Color(0xFF94A3B8)),
+                      const Icon(Iconsax.health, size: 11, color: Color(0xFF0D9488)),
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
-                          pharmacyName,
+                          specialty.isNotEmpty ? specialty : (city.isNotEmpty ? city : 'پەرستاری گشتی'),
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             color: isDark ? Colors.white60 : const Color(0xFF64748B),
@@ -1007,28 +732,57 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 13),
+                      const SizedBox(width: 2),
+                      Text(
+                        rating,
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          color: Color(0xFFD97706),
+                        ),
+                      ),
+                      if (city.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        const Icon(Iconsax.location, size: 11, color: Color(0xFF64748B)),
+                        const SizedBox(width: 2),
+                        Flexible(
+                          child: Text(
+                            city,
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                              fontSize: 10.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      const Spacer(),
+                      const Icon(Iconsax.shield_tick, size: 12, color: Color(0xFF10B981)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'verified'.tr(),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          color: Color(0xFF10B981),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '$price د.ع',
-                style: const TextStyle(
-                  fontFamily: 'Rabar',
-                  color: Color(0xFF10B981),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11.5,
-                ),
               ),
             ),
           ],
         ),
       ),
-    ).animate().fadeIn(delay: (index * 50).ms).slideY(begin: 0.05, end: 0);
+    ).animate().fadeIn(delay: (index * 60).ms).slideY(begin: 0.05, end: 0);
   }
 }
