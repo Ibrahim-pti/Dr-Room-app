@@ -24,8 +24,8 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
 
   final List<String> _filters = ['All', 'top_rated', 'nearest', 'open_now'];
 
-  // Dynamic filter state from API
-  List<String> _dynamicCities = ['All', 'Erbil', 'Sulaymaniyah', 'Duhok', 'Kirkuk', 'Halabja'];
+  // City filter options: strictly Erbil, Sulaymaniyah, Duhok
+  final List<String> _filterCities = ['All', 'Erbil', 'Sulaymaniyah', 'Duhok'];
   List<Map<String, dynamic>> _dynamicRatings = [
     {'key': 'all', 'label': 'All', 'min': 0.0},
     {'key': '4_5', 'label': '4.5+', 'min': 4.5},
@@ -153,11 +153,61 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
     final lower = city.toLowerCase().trim();
     if (lower == 'all') return _tr('city_all', ctx);
     if (lower.contains('erbil') || lower.contains('هەولێر') || lower.contains('أربيل')) return _tr('city_erbil', ctx);
-    if (lower.contains('sulaymaniyah') || lower.contains('سلێمانی') || lower.contains('السليمانية')) return _tr('city_sulaymaniyah', ctx);
-    if (lower.contains('duhok') || lower.contains('دهۆک') || lower.contains('دهوك')) return _tr('city_duhok', ctx);
-    if (lower.contains('kirkuk') || lower.contains('کەرکووک') || lower.contains('كركوك')) return _tr('city_kirkuk', ctx);
-    if (lower.contains('halabja') || lower.contains('هەڵەبجە') || lower.contains('حلبجة')) return _tr('city_halabja', ctx);
+    if (lower.contains('sulaymaniyah') || lower.contains('سلێمانی') || lower.contains('السليمانية') || lower.contains('slemani')) return _tr('city_sulaymaniyah', ctx);
+    if (lower.contains('duhok') || lower.contains('دهۆک') || lower.contains('دهوك') || lower.contains('dohuk')) return _tr('city_duhok', ctx);
     return city;
+  }
+
+  String _getLabCityDisplay(dynamic lab, BuildContext ctx) {
+    final rawCity = lab['city']?.toString().trim();
+    if (rawCity != null && rawCity.isNotEmpty && rawCity.toLowerCase() != 'null') {
+      return _getLocalizedCityName(rawCity, ctx);
+    }
+    // Check if location or address contains a known city
+    final loc = '${lab['location'] ?? ''} ${lab['address'] ?? ''}'.toLowerCase();
+    if (loc.contains('sulaymaniyah') || loc.contains('سلێمانی') || loc.contains('السليمانية') || loc.contains('slemani')) {
+      return _tr('city_sulaymaniyah', ctx);
+    }
+    if (loc.contains('duhok') || loc.contains('دهۆک') || loc.contains('دهوك') || loc.contains('dohuk')) {
+      return _tr('city_duhok', ctx);
+    }
+    if (loc.contains('erbil') || loc.contains('هەولێر') || loc.contains('أربيل')) {
+      return _tr('city_erbil', ctx);
+    }
+    final directLoc = ctx.localizedField(lab, 'location', fallback: ctx.localizedField(lab, 'address', fallback: ''));
+    if (directLoc.isNotEmpty) {
+      return directLoc;
+    }
+    return _tr('city_erbil', ctx);
+  }
+
+  bool _matchesCity(dynamic lab, String targetCity) {
+    if (targetCity == 'All' || targetCity.isEmpty) return true;
+    final rawCity = (lab['city'] ?? '').toString().toLowerCase().trim();
+    final rawLocation = (lab['location'] ?? '').toString().toLowerCase().trim();
+    final rawAddress = (lab['address'] ?? '').toString().toLowerCase().trim();
+    final combined = '$rawCity $rawLocation $rawAddress';
+
+    final target = targetCity.toLowerCase().trim();
+    if (target.contains('erbil') || target.contains('هەولێر') || target.contains('أربيل')) {
+      return combined.contains('erbil') ||
+          combined.contains('هەولێر') ||
+          combined.contains('أربيل') ||
+          (rawCity.isEmpty && rawLocation.isEmpty);
+    }
+    if (target.contains('sulaymaniyah') || target.contains('سلێمانی') || target.contains('السليمانية') || target.contains('slemani')) {
+      return combined.contains('sulaymaniyah') ||
+          combined.contains('سلێمانی') ||
+          combined.contains('السليمانية') ||
+          combined.contains('slemani');
+    }
+    if (target.contains('duhok') || target.contains('دهۆک') || target.contains('دهوك') || target.contains('dohuk')) {
+      return combined.contains('duhok') ||
+          combined.contains('دهۆک') ||
+          combined.contains('دهوك') ||
+          combined.contains('dohuk');
+    }
+    return combined.contains(target);
   }
 
   String _getLocalizedRatingName(double minRating, BuildContext ctx) {
@@ -181,26 +231,11 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
         // Dynamic filters from API
         if (decoded is Map && decoded.containsKey('filters')) {
           final filtersMap = decoded['filters'];
-          if (filtersMap['cities'] is List) {
-            _dynamicCities = List<String>.from(filtersMap['cities']);
-          }
           if (filtersMap['ratings'] is List) {
             _dynamicRatings = List<Map<String, dynamic>>.from(
               (filtersMap['ratings'] as List).map((r) => Map<String, dynamic>.from(r)),
             );
           }
-        } else if (labs.isNotEmpty) {
-          // Fallback: extract distinct cities from labs dynamically
-          final extractedCities = labs
-              .map((l) => l['city']?.toString())
-              .where((c) => c != null && c.isNotEmpty)
-              .toSet()
-              .cast<String>()
-              .toList();
-          if (!extractedCities.contains('All')) {
-            extractedCities.insert(0, 'All');
-          }
-          _dynamicCities = extractedCities;
         }
 
         setState(() {
@@ -241,17 +276,13 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
         if (_selectedFilter == 'top_rated') {
           matchesTopTab = rating >= 4.7;
         } else if (_selectedFilter == 'nearest') {
-          matchesTopTab = city.contains('erbil') || city.contains('هەولێر');
+          matchesTopTab = _matchesCity(lab, 'Erbil');
         } else if (_selectedFilter == 'open_now') {
           matchesTopTab = isOpen;
         }
 
-        // City filter from dynamic API cities
-        bool matchesCity = true;
-        if (_selectedCity != 'All' && _selectedCity.isNotEmpty) {
-          matchesCity = city.contains(_selectedCity.toLowerCase()) ||
-              _selectedCity.toLowerCase().contains(city);
-        }
+        // City filter: strictly Erbil, Sulaymaniyah, Duhok
+        bool matchesCity = _matchesCity(lab, _selectedCity);
 
         // Rating filter from dynamic API ratings
         bool matchesRating = rating >= _selectedMinRating;
@@ -386,7 +417,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _dynamicCities.map((city) {
+                      children: _filterCities.map((city) {
                         final isSel = tempCity.toLowerCase() == city.toLowerCase();
                         return GestureDetector(
                           onTap: () {
@@ -936,7 +967,7 @@ class _AllLabsScreenState extends State<AllLabsScreen> {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          _getLocalizedCityName('${lab['city'] ?? 'Erbil'}', context),
+                          _getLabCityDisplay(lab, context),
                           style: _kurdishStyle(
                             color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                             fontSize: 12,

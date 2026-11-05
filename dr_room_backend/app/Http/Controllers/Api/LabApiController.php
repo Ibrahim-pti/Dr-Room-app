@@ -66,9 +66,8 @@ class LabApiController extends Controller
             ];
         });
 
-        // Dynamic distinct cities from the real labs data
-        $dynamicCities = $labs->pluck('city')->unique()->filter()->values()->all();
-        array_unshift($dynamicCities, 'All');
+        // Normalized standard cities: All, Erbil, Sulaymaniyah, Duhok
+        $dynamicCities = ['All', 'Erbil', 'Sulaymaniyah', 'Duhok'];
 
         // Dynamic rating thresholds
         $dynamicRatings = [
