@@ -444,30 +444,7 @@ class _LabHubScreenState extends State<LabHubScreen> {
         },
       ),
     );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF0F172A),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        content: Row(
-          children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              color: Color(0xFF10B981),
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '$testName ${'nursing_added_to_cart'.tr()}',
-                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    setState(() {});
   }
 
   void _addPackageToCart(Map<String, dynamic> pkg) {
@@ -520,31 +497,6 @@ class _LabHubScreenState extends State<LabHubScreen> {
     final cart = Provider.of<CartProvider>(context, listen: false);
     cart.removeItem(test['id'].toString());
     setState(() {});
-
-    final testName = _getLocalized(test, 'name');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF0F172A),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        content: Row(
-          children: [
-            const Icon(
-              Icons.remove_circle_outline_rounded,
-              color: Color(0xFFEF4444),
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '$testName ${'item_removed_msg'.tr()}',
-                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   void _decrementTestInCart(Map<String, dynamic> test) {

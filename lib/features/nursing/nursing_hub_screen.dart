@@ -436,50 +436,49 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
 
   void _toggleServiceInCart(Map<String, dynamic> service) {
     final cart = Provider.of<CartProvider>(context, listen: false);
-    final isAdded = cart.items.any((i) => i.id == service['id']);
-    final serviceName = _getLocalized(service, 'name');
+    final id = service['id'].toString();
+    final isAdded = cart.items.any((i) => i.id == id);
 
     if (isAdded) {
-      cart.removeItem(service['id']);
+      cart.removeItem(id);
     } else {
-      cart.setServiceType('nursing');
-      cart.addItem(CartItem(
-        id: service['id'],
-        name: serviceName,
-        price: (service['price'] as num).toDouble(),
-        quantity: 1,
-        extraData: {'type': 'nursing_service'},
-      ));
+      _addServiceToCart(service);
     }
     setState(() {});
+  }
 
-    final msg = isAdded
-        ? '$serviceName ${'nursing_removed_from_cart'.tr()}'
-        : '$serviceName ${'nursing_added_to_cart'.tr()}';
+  void _addServiceToCart(Map<String, dynamic> service) {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    cart.setServiceType('nursing');
+    final serviceName = _getLocalized(service, 'name');
+    final id = service['id'].toString();
+    final price = (service['price'] as num?)?.toDouble() ?? 0.0;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF0F172A),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        content: Row(
-          children: [
-            Icon(
-              isAdded ? Icons.remove_circle_outline_rounded : Icons.check_circle_rounded,
-              color: isAdded ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                msg,
-                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    cart.addItem(CartItem(
+      id: id,
+      name: serviceName,
+      price: price,
+      quantity: 1,
+      extraData: {
+        'type': 'nursing_service',
+        'duration': service['duration'],
+        'duration_en': service['duration_en'],
+        'duration_ar': service['duration_ar'],
+      },
+    ));
+    setState(() {});
+  }
+
+  void _decrementServiceInCart(Map<String, dynamic> service) {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    final id = service['id'].toString();
+    final currentQty = cart.getItemQuantity(id);
+    if (currentQty > 1) {
+      cart.decrementItem(id);
+    } else {
+      cart.removeItem(id);
+    }
+    setState(() {});
   }
 
   void _addPackageToCart(Map<String, dynamic> pkg) {
@@ -1203,6 +1202,10 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                               final item = filtered[idx];
                               final localizedName = _getLocalized(item, 'name');
                               final localizedDuration = _getLocalized(item, 'duration');
+                              final cart = Provider.of<CartProvider>(context, listen: false);
+                              final serviceId = item['id'].toString();
+                              final itemQty = cart.getItemQuantity(serviceId);
+                              final isInCart = itemQty > 0;
 
                               return Container(
                                 padding: const EdgeInsets.all(14),
@@ -1210,7 +1213,10 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                                   color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                    color: isInCart
+                                        ? const Color(0xFF10B981)
+                                        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                    width: isInCart ? 1.5 : 1,
                                   ),
                                 ),
                                 child: Row(
@@ -1265,15 +1271,75 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 6),
-                                        IconButton(
-                                          constraints: const BoxConstraints(),
-                                          padding: const EdgeInsets.all(4),
-                                          icon: const Icon(Iconsax.add_circle, color: Color(0xFF0D9488), size: 22),
-                                          onPressed: () {
-                                            _toggleServiceInCart(item);
-                                          },
-                                        ),
+                                        const SizedBox(width: 8),
+                                        isInCart
+                                            ? Container(
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(
+                                                    color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    InkWell(
+                                                      borderRadius: const BorderRadius.horizontal(right: Radius.circular(9)),
+                                                      onTap: () {
+                                                        _decrementServiceInCart(item);
+                                                        setModalState(() {});
+                                                      },
+                                                      child: const Padding(
+                                                        padding: EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                                                        child: Icon(
+                                                          Icons.remove_rounded,
+                                                          size: 16,
+                                                          color: Color(0xFFEF4444),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                                                      child: Text(
+                                                        '$itemQty',
+                                                        style: const TextStyle(
+                                                          fontFamily: 'Rabar',
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Color(0xFF10B981),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    InkWell(
+                                                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(9)),
+                                                      onTap: () {
+                                                        _addServiceToCart(item);
+                                                        setModalState(() {});
+                                                      },
+                                                      child: const Padding(
+                                                        padding: EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                                                        child: Icon(
+                                                          Icons.add_rounded,
+                                                          size: 16,
+                                                          color: Color(0xFF0D9488),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            : IconButton(
+                                                constraints: const BoxConstraints(),
+                                                padding: const EdgeInsets.all(4),
+                                                tooltip: 'lab_hub_select'.tr(),
+                                                icon: const Icon(Iconsax.add_circle, color: Color(0xFF0D9488), size: 24),
+                                                onPressed: () {
+                                                  _addServiceToCart(item);
+                                                  setModalState(() {});
+                                                },
+                                              ),
                                       ],
                                     ),
                                   ],
