@@ -7,6 +7,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
 import 'admin_ui.dart';
+import 'services/statement_pdf_service.dart';
 
 /// Revenue at a glance plus the full transaction ledger.
 class AdminTransactionsScreen extends StatefulWidget {
@@ -277,7 +278,457 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
             ),
           ),
         ],
+
+        // Export PDF Statement Button
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: 14),
+          child: ElevatedButton.icon(
+            onPressed: _openExportReportModal,
+            icon: const Icon(Iconsax.document_download, size: 20),
+            label: const Text(
+              'دەرهێنانی ڕاپۆرتی PDF (پسوڵەی حیساباتی دابینکاران)',
+              style: TextStyle(fontFamily: 'Rabar', fontSize: 13.5, fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4F46E5),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              elevation: 2,
+              shadowColor: const Color(0xFF4F46E5).withValues(alpha: 0.35),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  Future<void> _openExportReportModal() async {
+    int selectedYear = DateTime.now().year;
+    int selectedMonth = DateTime.now().month;
+    String providerType = 'all'; // 'all', 'lab', 'nurse'
+    int? selectedProviderId;
+    List<dynamic> labs = [];
+    List<dynamic> nurses = [];
+    bool isGeneratingPdf = false;
+    String? modalError;
+
+    // Fetch providers
+    try {
+      final res = await ApiClient.get('/admin/transactions/providers');
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        labs = body['data']?['labs'] ?? [];
+        nurses = body['data']?['nurses'] ?? [];
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (modalCtx, setModalState) {
+            final isDark = Theme.of(modalCtx).brightness == Brightness.dark;
+
+            final kurdishMonths = [
+              {'id': 1, 'name': 'کانوونی دووەم (١)'},
+              {'id': 2, 'name': 'شوبات (٢)'},
+              {'id': 3, 'name': 'ئازار (٣)'},
+              {'id': 4, 'name': 'نیسان (٤)'},
+              {'id': 5, 'name': 'ئایار (٥)'},
+              {'id': 6, 'name': 'حوزەیران (٦)'},
+              {'id': 7, 'name': 'تەممووز (٧)'},
+              {'id': 8, 'name': 'ئاب (٨)'},
+              {'id': 9, 'name': 'ئەیلوول (٩)'},
+              {'id': 10, 'name': 'تشرینی یەکەم (١٠)'},
+              {'id': 11, 'name': 'تشرینی دووەم (١١)'},
+              {'id': 12, 'name': 'کانوونی یەکەم (١٢)'},
+            ];
+
+            Future<Map<String, dynamic>?> fetchStatementData() async {
+              setModalState(() {
+                isGeneratingPdf = true;
+                modalError = null;
+              });
+
+              try {
+                final queryParams = [
+                  'year=$selectedYear',
+                  'month=$selectedMonth',
+                  'provider_type=$providerType',
+                  if (selectedProviderId != null) 'provider_id=$selectedProviderId',
+                ].join('&');
+
+                final res = await ApiClient.get('/admin/transactions/statement?$queryParams');
+                if (res.statusCode == 200) {
+                  final body = jsonDecode(res.body);
+                  return Map<String, dynamic>.from(body['data'] ?? {});
+                } else {
+                  setModalState(() {
+                    modalError = AdminUi.readError(res);
+                  });
+                }
+              } catch (e) {
+                setModalState(() {
+                  modalError = '$e';
+                });
+              } finally {
+                setModalState(() {
+                  isGeneratingPdf = false;
+                });
+              }
+              return null;
+            }
+
+            return Container(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(modalCtx).viewInsets.bottom + 24,
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4F46E5).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Iconsax.document_download, color: Color(0xFF4F46E5), size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'دەرهێنانی پسوڵە و ڕاپۆرتی حیسابات (PDF)',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'دیاریکردنی مانگ، ساڵ و دابینکار بۆ یەکلاکردنەوەی دارایی',
+                                style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    if (modalError != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          modalError!,
+                          style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFFEF4444)),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Month & Year Selector Row
+                    Row(
+                      children: [
+                        // Month Dropdown
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('مانگی ژمێریاری', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<int>(
+                                    value: selectedMonth,
+                                    isExpanded: true,
+                                    items: kurdishMonths.map((m) {
+                                      return DropdownMenuItem<int>(
+                                        value: m['id'] as int,
+                                        child: Text(m['name'] as String, style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                                      );
+                                    }).toList(),
+                                    onChanged: (val) {
+                                      if (val != null) setModalState(() => selectedMonth = val);
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+
+                        // Year Dropdown
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('ساڵ', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<int>(
+                                    value: selectedYear,
+                                    isExpanded: true,
+                                    items: [2025, 2026, 2027].map((y) {
+                                      return DropdownMenuItem<int>(
+                                        value: y,
+                                        child: Text('$y', style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                                      );
+                                    }).toList(),
+                                    onChanged: (val) {
+                                      if (val != null) setModalState(() => selectedYear = val);
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Provider Filter Section
+                    const Text('دابینکاری خزمەتگوزاری (Provider)', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+
+                    // Type Chips: All, Lab, Nurse
+                    Row(
+                      children: [
+                        _buildFilterTypeChip('all', 'هەموو دابینکارەکان', providerType, (t) {
+                          setModalState(() {
+                            providerType = t;
+                            selectedProviderId = null;
+                          });
+                        }),
+                        const SizedBox(width: 8),
+                        _buildFilterTypeChip('lab', 'تاقیگەکان', providerType, (t) {
+                          setModalState(() {
+                            providerType = t;
+                            selectedProviderId = labs.isNotEmpty ? labs.first['id'] : null;
+                          });
+                        }),
+                        const SizedBox(width: 8),
+                        _buildFilterTypeChip('nurse', 'پەرستارەکان', providerType, (t) {
+                          setModalState(() {
+                            providerType = t;
+                            selectedProviderId = nurses.isNotEmpty ? nurses.first['id'] : null;
+                          });
+                        }),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Specific Provider Dropdown (if Lab or Nurse selected)
+                    if (providerType == 'lab' && labs.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<int>(
+                            value: selectedProviderId,
+                            isExpanded: true,
+                            hint: const Text('تاقیگە دیاریبکە', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                            items: [
+                              const DropdownMenuItem<int>(
+                                value: null,
+                                child: Text('تەواوی تاقیگەکان (گشتی)', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                              ),
+                              ...labs.map((l) => DropdownMenuItem<int>(
+                                value: l['id'],
+                                child: Text(l['name'] ?? 'تاقیگە', style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                              )),
+                            ],
+                            onChanged: (val) => setModalState(() => selectedProviderId = val),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ] else if (providerType == 'nurse' && nurses.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<int>(
+                            value: selectedProviderId,
+                            isExpanded: true,
+                            hint: const Text('پەرستار دیاریبکە', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                            items: [
+                              const DropdownMenuItem<int>(
+                                value: null,
+                                child: Text('تەواوی پەرستارەکان (گشتی)', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                              ),
+                              ...nurses.map((n) => DropdownMenuItem<int>(
+                                value: n['id'],
+                                child: Text(n['name'] ?? 'پەرستار', style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                              )),
+                            ],
+                            onChanged: (val) => setModalState(() => selectedProviderId = val),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    const SizedBox(height: 10),
+
+                    // Action Buttons Row: View/Print + Share
+                    if (isGeneratingPdf)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else ...[
+                      // Primary Button: View & Print
+                      SizedBox(
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final data = await fetchStatementData();
+                            if (data != null && modalCtx.mounted) {
+                              Navigator.pop(modalCtx);
+                              if (mounted) {
+                                await StatementPdfService.previewAndPrint(context, data);
+                              }
+                            }
+                          },
+                          icon: const Icon(Iconsax.printer, size: 20),
+                          label: const Text(
+                            'بینینی پسوڵە و چاپکردن (Print / Save)',
+                            style: TextStyle(fontFamily: 'Rabar', fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4F46E5),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Secondary Button: WhatsApp / Direct Share
+                      SizedBox(
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final data = await fetchStatementData();
+                            if (data != null && modalCtx.mounted) {
+                              Navigator.pop(modalCtx);
+                              await StatementPdfService.shareStatement(data);
+                            }
+                          },
+                          icon: const Icon(Iconsax.share, size: 18),
+                          label: const Text(
+                            'هاوبەشکردنی ڕاستەوخۆ (WhatsApp / Share)',
+                            style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF10B981),
+                            side: const BorderSide(color: Color(0xFF10B981)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterTypeChip(String type, String label, String currentType, Function(String) onSelect) {
+    final isSelected = currentType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onSelect(type),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF4F46E5).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : const Color(0xFF4F46E5),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

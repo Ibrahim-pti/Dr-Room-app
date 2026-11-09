@@ -238,6 +238,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // ── Payments and revenue ───────────────────────────────────────────
         Route::middleware('permission:view_payments')->group(function () {
             Route::get('/transactions/summary', [\App\Http\Controllers\Api\Admin\AdminTransactionController::class, 'summary']);
+            Route::get('/transactions/statement', [\App\Http\Controllers\Api\Admin\AdminTransactionController::class, 'statement']);
+            Route::get('/transactions/providers', [\App\Http\Controllers\Api\Admin\AdminTransactionController::class, 'providers']);
             Route::get('/transactions', [\App\Http\Controllers\Api\Admin\AdminTransactionController::class, 'index']);
             Route::patch('/transactions/{id}/status', [\App\Http\Controllers\Api\Admin\AdminTransactionController::class, 'updateStatus']);
         });
