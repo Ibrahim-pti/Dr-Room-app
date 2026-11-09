@@ -58,10 +58,9 @@ class AdminAnalyticsController extends Controller
             ->get();
 
         // 5. Test Categories Distribution
-        $categoriesBreakdown = LabTest::select('category_id', DB::raw('COUNT(*) as count'))
-            ->whereNotNull('category_id')
-            ->groupBy('category_id')
-            ->with('category:id,name,name_en,name_ar,name_kmr')
+        $categoriesBreakdown = LabTest::select('type as category', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('type')
+            ->groupBy('type')
             ->get();
 
         return response()->json([

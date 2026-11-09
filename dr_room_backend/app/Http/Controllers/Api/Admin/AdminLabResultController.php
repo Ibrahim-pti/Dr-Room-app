@@ -11,9 +11,9 @@ class AdminLabResultController extends Controller
     public function index(Request $request)
     {
         $query = LabResult::with([
-            'lab:id,name,phone,image_path',
+            'lab.user:id,name,phone',
             'patient:id,name,phone',
-            'test:id,name,name_en,name_ar,price,category_id'
+            'test:id,name,type,price'
         ]);
 
         if ($request->filled('status')) {
@@ -39,9 +39,9 @@ class AdminLabResultController extends Controller
     public function show($id)
     {
         $result = LabResult::with([
-            'lab',
-            'patient',
-            'test'
+            'lab.user:id,name,phone',
+            'patient:id,name,phone',
+            'test:id,name,type,price'
         ])->findOrFail($id);
 
         return response()->json([

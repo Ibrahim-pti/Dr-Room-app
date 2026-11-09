@@ -12,6 +12,13 @@ class Lab extends Model
 
     protected $guarded = [];
 
+    protected $appends = ['name'];
+
+    public function getNameAttribute()
+    {
+        return $this->user->name ?? null;
+    }
+
     protected $casts = [
         'available_days' => 'array',
         'rating' => 'decimal:1',

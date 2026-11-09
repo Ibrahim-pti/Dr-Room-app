@@ -172,7 +172,7 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
                                         children: [
                                           const Icon(Iconsax.microscope, size: 14, color: Color(0xFF0284C7)),
                                           const SizedBox(width: 4),
-                                          Text('تاقیگە: ${lab['name'] ?? 'تاقیگەی گشتی'}', style: AdminUi.subtitle),
+                                          Text('تاقیگە: ${lab['user']?['name'] ?? lab['name'] ?? 'تاقیگەی گشتی'}', style: AdminUi.subtitle),
                                           const Spacer(),
                                           const Icon(Iconsax.user, size: 14, color: Color(0xFF64748B)),
                                           const SizedBox(width: 4),
