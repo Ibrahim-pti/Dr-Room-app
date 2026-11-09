@@ -46,3 +46,4 @@ class SupportTicket extends Model
         return 'TKT-' . date('ymd') . '-' . strtoupper(substr(uniqid(), -4));
     }
 }
+

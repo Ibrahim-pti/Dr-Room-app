@@ -41,3 +41,4 @@ class PatientEmrRecord extends Model
         return $this->belongsTo(User::class, 'last_updated_by');
     }
 }
+

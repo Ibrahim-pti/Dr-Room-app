@@ -67,3 +67,4 @@ class ReportSettingsController extends Controller
         ]);
     }
 }
+

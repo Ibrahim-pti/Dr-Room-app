@@ -60,3 +60,4 @@ class AdminLoyaltyController extends Controller
         ]);
     }
 }
+

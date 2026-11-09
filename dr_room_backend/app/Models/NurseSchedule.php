@@ -28,3 +28,4 @@ class NurseSchedule extends Model
         return $this->belongsTo(Nurse::class);
     }
 }
+

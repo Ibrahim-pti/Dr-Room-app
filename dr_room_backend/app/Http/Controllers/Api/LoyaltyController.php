@@ -108,3 +108,4 @@ class LoyaltyController extends Controller
         ]);
     }
 }
+

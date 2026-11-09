@@ -81,3 +81,4 @@ class AdminAnalyticsController extends Controller
         ]);
     }
 }
+

@@ -63,3 +63,4 @@ class AdminLabResultController extends Controller
         ]);
     }
 }
+
