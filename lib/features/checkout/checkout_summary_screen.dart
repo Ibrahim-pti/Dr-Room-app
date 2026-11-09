@@ -41,7 +41,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
         final data = jsonDecode(res.body)['data'];
         setState(() {
           _appliedCouponCode = data['code'];
-          _couponDiscount = (data['discount_amount'] ?? 0).toDouble();
+          _couponDiscount = double.tryParse(data['discount_amount']?.toString() ?? '0') ?? 0.0;
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

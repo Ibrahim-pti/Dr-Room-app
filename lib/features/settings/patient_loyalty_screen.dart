@@ -51,7 +51,7 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
 
         setState(() {
           _points = balData['points'] ?? 0;
-          _monetaryValue = (balData['monetary_value_iqd'] ?? 0).toDouble();
+          _monetaryValue = double.tryParse(balData['monetary_value_iqd']?.toString() ?? '0') ?? 0.0;
           _tier = balData['tier'] ?? 'Silver';
           _history = histData is Map
               ? (histData['data'] ?? [])
@@ -65,13 +65,12 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
         });
       }
     } catch (e) {
-      if (mounted)
-        if (mounted) {
-          setState(() {
-            _error = '$e';
-            _isLoading = false;
-          });
-        }
+      if (mounted) {
+        setState(() {
+          _error = '$e';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -143,14 +142,13 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
         _load();
       } else {
         final msg = jsonDecode(res.body)['message'] ?? 'هەڵە ڕوویدا';
-        if (mounted)
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(msg, style: const TextStyle(fontFamily: 'Rabar')),
-              ),
-            );
-          }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(msg, style: const TextStyle(fontFamily: 'Rabar')),
+            ),
+          );
+        }
       }
     } catch (_) {}
     if (mounted) setState(() => _isRedeeming = false);

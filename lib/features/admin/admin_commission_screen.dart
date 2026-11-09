@@ -55,9 +55,9 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
         final settingsData = jsonDecode(results[1].body)['data'];
 
         setState(() {
-          _totalRevenue = (summaryData['total_revenue'] ?? 0).toDouble();
-          _totalCommission = (summaryData['total_commission'] ?? 0).toDouble();
-          _totalProviderPayout = (summaryData['total_provider_payout'] ?? 0).toDouble();
+          _totalRevenue = double.tryParse(summaryData['total_revenue']?.toString() ?? '0') ?? 0.0;
+          _totalCommission = double.tryParse(summaryData['total_commission']?.toString() ?? '0') ?? 0.0;
+          _totalProviderPayout = double.tryParse(summaryData['total_provider_payout']?.toString() ?? '0') ?? 0.0;
           _breakdown = summaryData['breakdown'] ?? [];
 
           _nursingRateCtrl.text = (settingsData['nursing_rate'] ?? 10).toString();
@@ -201,8 +201,8 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
                         const SizedBox(height: 10),
                         ..._breakdown.map((b) {
                           final service = b['service_type'] ?? 'گشتی';
-                          final total = (b['total_amount'] ?? 0).toDouble();
-                          final comm = (b['total_commission'] ?? 0).toDouble();
+                          final total = double.tryParse(b['total_amount']?.toString() ?? '0') ?? 0.0;
+                          final comm = double.tryParse(b['total_commission']?.toString() ?? '0') ?? 0.0;
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),
