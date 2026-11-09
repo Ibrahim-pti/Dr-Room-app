@@ -17,6 +17,7 @@ class AdminReportSettingsScreen extends StatefulWidget {
 
 class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
   bool _isLoading = true;
+  bool _isSaving = false;
   String? _error;
 
   final _titleCtrl = TextEditingController();
@@ -32,6 +33,15 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
     _load();
   }
 
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _subtitleCtrl.dispose();
+    _footerCtrl.dispose();
+    _phoneCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     setState(() {
       _isLoading = true;
@@ -45,17 +55,17 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body)['data'] ?? {};
         setState(() {
-          _titleCtrl.text = data['header_title'] ?? '';
-          _subtitleCtrl.text = data['header_subtitle'] ?? '';
-          _footerCtrl.text = data['footer_text'] ?? '';
-          _phoneCtrl.text = data['emergency_phone'] ?? '';
+          _titleCtrl.text = data['header_title'] ?? 'دکتۆر ڕۆم - دۆسیەی پزیشکی و ئەنجامی پشکنین';
+          _subtitleCtrl.text = data['header_subtitle'] ?? 'Dr. Room Healthcare System & Lab Diagnostics';
+          _footerCtrl.text = data['footer_text'] ?? 'ئەم ڕاپۆرتە بە فەرمی لەلایەن تاقیگەی باوەڕپێکراو پەسەندکراوە و پارێزراوە بە مۆری ئەلیکترۆنی.';
+          _phoneCtrl.text = data['emergency_phone'] ?? '+964 750 000 0000';
           _showWatermark = data['show_watermark'] ?? true;
           _showStamp = data['show_stamp'] ?? true;
           _isLoading = false;
         });
       } else {
         setState(() {
-          _error = 'کێشە لە بارکردنی ڕێکخستنی ڕاپۆرت ڕوویدا';
+          _error = AdminUi.readError(res);
           _isLoading = false;
         });
       }
@@ -65,6 +75,9 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
   }
 
   Future<void> _save() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
     try {
       final res = await ApiClient.post('/admin/report-settings', body: {
         'header_title': _titleCtrl.text.trim(),
@@ -75,18 +88,24 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
         'show_stamp': _showStamp,
       });
 
+      if (!mounted) return;
+
       if (res.statusCode == 200) {
-        if (mounted) AdminUi.toast(context, 'ڕێکخستن و قالبی ڕاپۆرت بە سەرکەوتوویی نوێکرایەوە');
+        AdminUi.toast(context, 'ڕێکخستن و قالبی ڕاپۆرت بە سەرکەوتوویی نوێکرایەوە');
       } else {
-        if (mounted) AdminUi.toast(context, AdminUi.readError(res), isError: true);
+        AdminUi.toast(context, AdminUi.readError(res), isError: true);
       }
     } catch (e) {
       if (mounted) AdminUi.toast(context, '$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       appBar: AdminAppBar(
@@ -100,129 +119,523 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: AdminUi.subtitle))
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Iconsax.info_circle, size: 48, color: Colors.amber),
+                        const SizedBox(height: 12),
+                        Text(_error!, style: AdminUi.subtitle, textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _load,
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: const Text('دووبارە هەوڵبدەرەوە', style: TextStyle(fontFamily: 'Rabar')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6366F1),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Preview Box
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4)),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Image.asset('assets/images/logo.png', width: 44, height: 44, errorBuilder: (_, _, _) => const Icon(Icons.local_hospital, size: 40, color: Color(0xFF6366F1))),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _titleCtrl.text.isNotEmpty ? _titleCtrl.text : 'دکتۆر ڕۆم - ئەنجامی پشکنین',
-                                        style: const TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        _subtitleCtrl.text.isNotEmpty ? _subtitleCtrl.text : 'سیستەمی تەندروستی پێشکەوتوو',
-                                        style: const TextStyle(fontFamily: 'Rabar', fontSize: 11, color: Colors.grey),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (_showStamp)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: const Color(0xFF10B981), width: 1.5),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Text('پەسەندکراوە', style: TextStyle(fontFamily: 'Rabar', fontSize: 10, color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
-                                  ),
-                              ],
+                      // Section Header: Live Preview
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6366F1).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            const Divider(height: 24),
-                            Text(
-                              _footerCtrl.text.isNotEmpty ? _footerCtrl.text : 'ئەم ئەنجامە بە شێوازی ئەلیکترۆنی دەرکراوە.',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontFamily: 'Rabar', fontSize: 10, color: Colors.grey),
+                            child: const Icon(Iconsax.eye, size: 16, color: Color(0xFF6366F1)),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('پێشبینینی ڕاستەوخۆی قالبی فەرمی (Live Preview)', style: AdminUi.title),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Premium Medical Document Preview
+                      _buildDocumentPreview(isDark).animate().fadeIn(duration: 250.ms),
+
+                      const SizedBox(height: 24),
+
+                      // Section Header: Header Details
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                          ],
-                        ),
-                      ).animate().fadeIn(duration: 250.ms),
+                            child: const Icon(Iconsax.edit_2, size: 16, color: Color(0xFF3B82F6)),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('سەرپەڕە و دەقە فەرمییەکان', style: AdminUi.title),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
 
-                      const SizedBox(height: 20),
-
-                      // Form Settings
+                      // Main Form Card
                       Container(
                         decoration: AdminUi.cardDecoration,
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('ڕێکخستنە سەرەکییەکان', style: AdminUi.title),
-                            const SizedBox(height: 16),
-                            TextField(
+                            _buildInputField(
+                              label: 'سەرناوی فەرمی سەرپەڕەی ڕاپۆرت',
+                              hint: 'دکتۆر ڕۆم - دۆسیەی پزیشکی و ئەنجامی پشکنین',
+                              icon: Iconsax.document_text,
                               controller: _titleCtrl,
-                              onChanged: (_) => setState(() {}),
-                              decoration: const InputDecoration(labelText: 'سەرناوی فەرمی سەرپەڕەی ڕاپۆرت'),
+                              isDark: isDark,
                             ),
-                            const SizedBox(height: 12),
-                            TextField(
+                            const SizedBox(height: 14),
+                            _buildInputField(
+                              label: 'سەردێڕی دووەم (ئینگلیزی / پۆلێن)',
+                              hint: 'Dr. Room Healthcare System & Lab Diagnostics',
+                              icon: Iconsax.text_block,
                               controller: _subtitleCtrl,
-                              onChanged: (_) => setState(() {}),
-                              decoration: const InputDecoration(labelText: 'سەردێڕی دووەم (ئینگلیزی / کوردی)'),
+                              isDark: isDark,
                             ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: _footerCtrl,
-                              onChanged: (_) => setState(() {}),
-                              maxLines: 2,
-                              decoration: const InputDecoration(labelText: 'دەقی خوارەوەی ڕاپۆرت (تێبینی تاقیگە و گەرەنتی)'),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
+                            const SizedBox(height: 14),
+                            _buildInputField(
+                              label: 'ژمارەی پەیوەندی و فریاکەوتن',
+                              hint: '+964 750 000 0000',
+                              icon: Iconsax.call,
                               controller: _phoneCtrl,
-                              decoration: const InputDecoration(labelText: 'ژمارەی پەیوەندی و فریاکەوتن'),
+                              isDark: isDark,
+                              keyboardType: TextInputType.phone,
                             ),
-                            const Divider(height: 24),
-                            SwitchListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: const Text('پیشاندانی مۆری ئەلیکترۆنی لەسەر فایلی ڕاپۆرت', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
-                              value: _showStamp,
-                              onChanged: (v) => setState(() => _showStamp = v),
-                            ),
-                            SwitchListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: const Text('پیشاندانی Watermark لە پاشبنەمای پەڕە', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
-                              value: _showWatermark,
-                              onChanged: (v) => setState(() => _showWatermark = v),
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _save,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF6366F1),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              ),
-                              child: const Text('پاشەکەوتکردنی ڕێکخستنەکان', style: TextStyle(fontFamily: 'Rabar', fontSize: 14)),
+                            const SizedBox(height: 14),
+                            _buildInputField(
+                              label: 'دەقی خوارەوەی ڕاپۆرت (تێبینی و گەرەنتی)',
+                              hint: 'ئەم ڕاپۆرتە بە فەرمی لەلایەن تاقیگەی باوەڕپێکراو پەسەندکراوە...',
+                              icon: Iconsax.note_text,
+                              controller: _footerCtrl,
+                              isDark: isDark,
+                              maxLines: 2,
                             ),
                           ],
                         ),
+                      ).animate().fadeIn(duration: 300.ms),
+
+                      const SizedBox(height: 24),
+
+                      // Section Header: Stamps & Security
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Iconsax.shield_tick, size: 16, color: Color(0xFF10B981)),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('مۆر و ئاسایشی بەڵگەنامەکان', style: AdminUi.title),
+                        ],
                       ),
+                      const SizedBox(height: 12),
+
+                      // Switches Card (Uses pure custom widgets to prevent any ListTile assertions!)
+                      Container(
+                        decoration: AdminUi.cardDecoration,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Column(
+                          children: [
+                            _buildCustomSwitchTile(
+                              title: 'پیشاندانی مۆری ئەلیکترۆنی لەسەر فایلی ڕاپۆرت',
+                              subtitle: 'مۆری فەرمی پەسەندکراو بە سەوزی لە گۆشەی سەرەوە چاپ دەکرێت',
+                              icon: Iconsax.verify,
+                              iconColor: const Color(0xFF10B981),
+                              value: _showStamp,
+                              onChanged: (v) => setState(() => _showStamp = v),
+                              isDark: isDark,
+                            ),
+                            Divider(height: 20, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+                            _buildCustomSwitchTile(
+                              title: 'پیشاندانی Watermark لە پاشبنەمای پەڕە',
+                              subtitle: 'بۆ پاراستنی ڕاپۆرت لە ساختەکاری و کۆپیکردنی دەستکاری کراو',
+                              icon: Iconsax.security_safe,
+                              iconColor: const Color(0xFF6366F1),
+                              value: _showWatermark,
+                              onChanged: (v) => setState(() => _showWatermark = v),
+                              isDark: isDark,
+                            ),
+                          ],
+                        ),
+                      ).animate().fadeIn(duration: 350.ms),
+
+                      const SizedBox(height: 28),
+
+                      // Full-width Luxury Save Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: _isSaving ? null : _save,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6366F1),
+                            foregroundColor: Colors.white,
+                            elevation: 3,
+                            shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          child: _isSaving
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                )
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Iconsax.tick_circle, size: 20),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'پاشەکەوتکردنی ڕێکخستنەکان',
+                                      style: TextStyle(fontFamily: 'Rabar', fontSize: 15, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
+    );
+  }
+
+  /// Modern Interactive Medical Document Preview Card
+  Widget _buildDocumentPreview(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // Subtle Watermark Simulation
+          if (_showWatermark)
+            Positioned.fill(
+              child: Center(
+                child: Opacity(
+                  opacity: isDark ? 0.05 : 0.04,
+                  child: Transform.rotate(
+                    angle: -0.25,
+                    child: const Text(
+                      'DR. ROOM VERIFIED OFFICIAL',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Top luxury gradient bar
+              Container(
+                height: 6,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFF3B82F6)],
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    // Official Header Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Hospital / Logo Icon
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 26),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Title & Subtitle
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _titleCtrl.text.isNotEmpty
+                                    ? _titleCtrl.text
+                                    : 'دکتۆر ڕۆم - دۆسیەی پزیشکی و ئەنجامی پشکنین',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                _subtitleCtrl.text.isNotEmpty
+                                    ? _subtitleCtrl.text
+                                    : 'Dr. Room Healthcare System & Lab Diagnostics',
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 11,
+                                  color: Color(0xFF94A3B8),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Official Stamp Seal
+                        if (_showStamp)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFF10B981), width: 1.2),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Iconsax.verify, color: Color(0xFF10B981), size: 13),
+                                SizedBox(width: 4),
+                                Text(
+                                  'پەسەندکراوە',
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF10B981),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 14),
+                    Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+                    const SizedBox(height: 12),
+
+                    // Phone & Guarantee Footer
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Iconsax.call, size: 12, color: Color(0xFF6366F1)),
+                              const SizedBox(width: 6),
+                              Text(
+                                _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '+964 750 000 0000',
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        const Text(
+                          'مۆری دیجیتاڵی فەرمی',
+                          style: TextStyle(fontFamily: 'Rabar', fontSize: 10.5, color: Color(0xFF94A3B8)),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+                    Text(
+                      _footerCtrl.text.isNotEmpty
+                          ? _footerCtrl.text
+                          : 'ئەم ڕاپۆرتە بە فەرمی لەلایەن تاقیگەی باوەڕپێکراو پەسەندکراوە و پارێزراوە بە مۆری ئەلیکترۆنی.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 10.5,
+                        height: 1.4,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Modern Form Input Field with Icon Badge
+  Widget _buildInputField({
+    required String label,
+    required String hint,
+    required IconData icon,
+    required TextEditingController controller,
+    required bool isDark,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 12.5,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white70 : const Color(0xFF334155),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: maxLines,
+            keyboardType: keyboardType,
+            onChanged: (_) => setState(() {}),
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFF94A3B8)),
+              prefixIcon: Icon(icon, size: 20, color: const Color(0xFF6366F1)),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Custom Switch Tile without ListTile to prevent any DecoratedBox assertions
+  Widget _buildCustomSwitchTile({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required bool isDark,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: iconColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11,
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Switch.adaptive(
+            value: value,
+            activeTrackColor: iconColor,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
     );
   }
 }

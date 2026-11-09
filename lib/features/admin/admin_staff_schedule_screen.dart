@@ -96,11 +96,27 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
       subtitle: 'دیاریکردنی کاتی دەستپێک، کۆتایی و زۆرترین داواکاری لە ڕۆژێکدا',
       submitLabel: 'پاشەکەوتکردن',
       builder: (setSheetState, setError) => [
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('بەردەستە بۆ وەرگرتنی داواکاری؟', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
-          value: isAvail,
-          onChanged: (v) => setSheetState(() => isAvail = v),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Iconsax.calendar_tick, size: 20, color: Color(0xFF14B8A6)),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text('بەردەستە بۆ وەرگرتنی داواکاری؟', style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.w600)),
+              ),
+              Switch.adaptive(
+                value: isAvail,
+                activeTrackColor: const Color(0xFF14B8A6),
+                onChanged: (v) => setSheetState(() => isAvail = v),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         Row(

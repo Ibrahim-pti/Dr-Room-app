@@ -122,22 +122,43 @@ class _AdminExpensesScreenState extends State<AdminExpensesScreen> {
           decoration: const InputDecoration(labelText: 'بڕی خەرجی (دینار)', suffixText: 'د.ع'),
         ),
         const SizedBox(height: 12),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Iconsax.calendar),
-          title: Text('بەروار: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: selectedDate,
-              firstDate: DateTime(2025),
-              lastDate: DateTime(2030),
-            );
-            if (picked != null) {
-              setSheetState(() => selectedDate = picked);
-            }
-          },
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: selectedDate,
+                firstDate: DateTime(2025),
+                lastDate: DateTime(2030),
+              );
+              if (picked != null) {
+                setSheetState(() => selectedDate = picked);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Iconsax.calendar, size: 20, color: Color(0xFFEF4444)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'بەروار: ${DateFormat('yyyy-MM-dd').format(selectedDate)}',
+                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                ],
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 12),
         TextField(
