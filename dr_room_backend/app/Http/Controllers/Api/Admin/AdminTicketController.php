@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use App\Models\TicketMessage;
+use App\Services\TicketNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -81,6 +82,9 @@ class AdminTicketController extends Controller
         $ticket->assigned_staff_id = Auth::id();
         $ticket->save();
 
+        // Notify patient of admin reply
+        TicketNotificationService::notifyPatientAdminReply($ticket, $request->message);
+
         return response()->json([
             'success' => true,
             'message' => 'وەڵامەکەت بە سەرکەوتوویی بۆ نەخۆش نێردرا',
@@ -98,6 +102,9 @@ class AdminTicketController extends Controller
 
         $ticket->status = $request->status;
         $ticket->save();
+
+        // Notify patient of status change
+        TicketNotificationService::notifyPatientStatusChanged($ticket, $ticket->status);
 
         return response()->json([
             'success' => true,

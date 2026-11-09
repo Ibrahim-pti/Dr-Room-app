@@ -279,21 +279,47 @@ class _PatientSupportTicketsScreenState extends State<PatientSupportTicketsScree
                                           color: AppColors.primary,
                                         ),
                                       ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: _statusColor(status).withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          _statusLabel(status),
-                                          style: TextStyle(
-                                            fontFamily: 'Rabar',
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: _statusColor(status),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (unread)
+                                            Container(
+                                              margin: const EdgeInsets.only(left: 6),
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: const Color(0xFFEF4444), width: 1),
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Iconsax.notification_status, size: 12, color: Color(0xFFEF4444)),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    'وەڵامی نوێ',
+                                                    style: TextStyle(fontFamily: 'Rabar', fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFEF4444)),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: _statusColor(status).withValues(alpha: 0.12),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              _statusLabel(status),
+                                              style: TextStyle(
+                                                fontFamily: 'Rabar',
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: _statusColor(status),
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                        ],
                                       ),
                                     ],
                                   ),

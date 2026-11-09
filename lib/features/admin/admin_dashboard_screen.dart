@@ -7,14 +7,17 @@ import '../../core/utils/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../home/main_shell.dart';
 import 'admin_app_bar.dart';
+import 'admin_analytics_screen.dart';
 import 'admin_articles_screen.dart';
 import 'admin_banners_screen.dart';
+import 'admin_coupons_screen.dart';
 import 'admin_doctors_screen.dart';
 import 'admin_labs_screen.dart';
 import 'admin_notifications_screen.dart';
 import 'admin_nurses_screen.dart';
 import 'admin_orders_screen.dart';
 import 'admin_pharmacies_screen.dart';
+import 'admin_tickets_screen.dart';
 import 'admin_transactions_screen.dart';
 import 'admin_users_screen.dart';
 import 'admin_xrays_screen.dart';
@@ -71,7 +74,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final int labs = (_stats?['pending_labs'] ?? 0) as int;
     final int pharms = (_stats?['pending_pharmacies'] ?? 0) as int;
     final int orders = (_stats?['pending_orders'] ?? 0) as int;
-    return nurses + labs + pharms + orders;
+    final int openTickets = (_stats?['open_tickets'] ?? 0) as int;
+    return nurses + labs + pharms + orders + openTickets;
   }
 
   @override
@@ -151,6 +155,49 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 MaterialPageRoute(builder: (context) => const MainShell()),
               );
             },
+          ),
+          IconButton(
+            tooltip: 'سکاڵا و پشتیوانی',
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: AppColors.getSurface(context),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.getBorder(context)),
+                  ),
+                  child: const Icon(Iconsax.message_question, color: Color(0xFF0F172A), size: 18),
+                ),
+                if ((_stats?['open_tickets'] ?? 0) > 0 || (_stats?['unread_ticket_messages'] ?? 0) > 0)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: Center(
+                        child: Text(
+                          '${(_stats?['open_tickets'] ?? 0) > 0 ? _stats!['open_tickets'] : _stats!['unread_ticket_messages']}',
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () => _openScreen(const AdminTicketsScreen()),
           ),
           IconButton(
             tooltip: 'ئاگادارییەکان',
@@ -244,7 +291,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildPendingBanner() {
     return GestureDetector(
       onTap: () {
-        if ((_stats?['pending_orders'] ?? 0) > 0) {
+        if ((_stats?['open_tickets'] ?? 0) > 0) {
+          _openScreen(const AdminTicketsScreen());
+        } else if ((_stats?['pending_orders'] ?? 0) > 0) {
           _openScreen(const AdminOrdersScreen());
         } else if ((_stats?['pending_nurses'] ?? 0) > 0) {
           _openScreen(const AdminNursesScreen());
@@ -449,6 +498,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final int pendingOrders = (_stats?['pending_orders'] ?? 0) as int;
     final int totalOrders = (_stats?['total_orders'] ?? 0) as int;
 
+    final int openTickets = (_stats?['open_tickets'] ?? 0) as int;
+    final int unreadTicketMessages = (_stats?['unread_ticket_messages'] ?? 0) as int;
+
     final int pendingPharmacies = (_stats?['pending_pharmacies'] ?? 0) as int;
     final int totalPharmacies = (_stats?['total_pharmacies'] ?? 0) as int;
 
@@ -471,40 +523,42 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminOrdersScreen(),
       },
       {
-        'title': 'تاقیگەکان',
-        'subtitle': '$totalLabs تاقیگەی پزیشکی',
-        'icon': Iconsax.microscope,
+        'title': 'سکاڵا و پشتیوانی',
+        'subtitle': openTickets > 0 ? '$openTickets تیکێتی کراوە' : 'پشتیوانی نەخۆش',
+        'icon': Iconsax.message_question,
+        'color': const Color(0xFFEC4899),
+        'bg': const Color(0xFFFDF2F8),
+        'badge': openTickets > 0
+            ? '$openTickets تیکێتی نوێ'
+            : (unreadTicketMessages > 0 ? '$unreadTicketMessages نامە' : null),
+        'screen': const AdminTicketsScreen(),
+      },
+      {
+        'title': 'ئامار و ڕاپۆرت',
+        'subtitle': 'گەشەکردن و داهات',
+        'icon': Iconsax.chart_2,
         'color': const Color(0xFF8B5CF6),
         'bg': const Color(0xFFF5F3FF),
-        'badge': pendingLabs > 0 ? '$pendingLabs پەسەندکردن' : null,
-        'screen': const AdminLabsScreen(),
+        'badge': null,
+        'screen': const AdminAnalyticsScreen(),
       },
       {
         'title': 'پەرستارەکان',
         'subtitle': '$totalNurses پەرستاری ماڵەوە',
         'icon': Iconsax.profile_2user,
-        'color': const Color(0xFFEC4899),
-        'bg': const Color(0xFFFDF2F8),
+        'color': const Color(0xFF10B981),
+        'bg': const Color(0xFFECFDF5),
         'badge': pendingNurses > 0 ? '$pendingNurses پەسەندکردن' : null,
         'screen': const AdminNursesScreen(),
       },
       {
-        'title': 'بەکارهێنەران',
-        'subtitle': '$totalUsers نەخۆش و یوزەر',
-        'icon': Iconsax.people,
+        'title': 'تاقیگەکان',
+        'subtitle': '$totalLabs تاقیگەی پزیشکی',
+        'icon': Iconsax.microscope,
         'color': const Color(0xFF0284C7),
         'bg': const Color(0xFFF0F9FF),
-        'badge': null,
-        'screen': const AdminUsersScreen(),
-      },
-      {
-        'title': 'بانەر و ڕیکلام',
-        'subtitle': 'ڕیکلامی سەرەکی ئەپ',
-        'icon': Iconsax.picture_frame,
-        'color': const Color(0xFF3B82F6),
-        'bg': const Color(0xFFEFF6FF),
-        'badge': null,
-        'screen': const AdminBannersScreen(),
+        'badge': pendingLabs > 0 ? '$pendingLabs پەسەندکردن' : null,
+        'screen': const AdminLabsScreen(),
       },
       {
         'title': 'دەرمانخانەکان',
@@ -514,6 +568,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'bg': const Color(0xFFF0FDFA),
         'badge': pendingPharmacies > 0 ? '$pendingPharmacies پەسەندکردن' : null,
         'screen': const AdminPharmaciesScreen(),
+      },
+      {
+        'title': 'بەکارهێنەران',
+        'subtitle': '$totalUsers نەخۆش و یوزەر',
+        'icon': Iconsax.people,
+        'color': const Color(0xFF6366F1),
+        'bg': const Color(0xFFEEF2FF),
+        'badge': null,
+        'screen': const AdminUsersScreen(),
+      },
+      {
+        'title': 'کۆدەکانی داشکاندن',
+        'subtitle': 'پڕۆمۆکۆدی داشکاندن',
+        'icon': Iconsax.ticket_discount,
+        'color': const Color(0xFFF97316),
+        'bg': const Color(0xFFFFF7ED),
+        'badge': null,
+        'screen': const AdminCouponsScreen(),
       },
     ];
 
@@ -626,14 +698,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildManagementGrid() {
     final List<Map<String, dynamic>> items = [
       {
-        'title': 'فریاگوزاری و وتارەکان',
-        'subtitle': 'ڕێنمایی پزیشکی و فریاگوزاری سەرەتایی',
-        'icon': Iconsax.document_text,
-        'color': const Color(0xFFDC2626),
-        'bg': const Color(0xFFFEF2F2),
-        'screen': const AdminArticlesScreen(),
-      },
-      {
         'title': 'دارایی و داهاتی گشتی',
         'subtitle': 'تۆماری تراکنش و بزووتنەوە داراییەکان',
         'icon': Iconsax.wallet_3,
@@ -642,12 +706,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminTransactionsScreen(),
       },
       {
-        'title': 'ئاگاداری گشتی',
+        'title': 'بانەر و ڕیکلامەکان',
+        'subtitle': 'ڕیکلام و پۆستەری سەرەکی ئەپ',
+        'icon': Iconsax.picture_frame,
+        'color': const Color(0xFF3B82F6),
+        'bg': const Color(0xFFEFF6FF),
+        'screen': const AdminBannersScreen(),
+      },
+      {
+        'title': 'ئاگاداری گشتی (Push Notification)',
         'subtitle': 'ناردنی پەیامی ڕاستەوخۆ بۆ بەکارهێنەران',
         'icon': Iconsax.notification_bing,
         'color': const Color(0xFFD97706),
         'bg': const Color(0xFFFFFBEB),
         'screen': const AdminNotificationsScreen(),
+      },
+      {
+        'title': 'فریاگوزاری و وتارەکان',
+        'subtitle': 'ڕێنمایی پزیشکی و فریاگوزاری سەرەتایی',
+        'icon': Iconsax.document_text,
+        'color': const Color(0xFFDC2626),
+        'bg': const Color(0xFFFEF2F2),
+        'screen': const AdminArticlesScreen(),
       },
     ];
 

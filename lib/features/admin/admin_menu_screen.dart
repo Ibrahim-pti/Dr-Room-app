@@ -9,19 +9,16 @@ import '../../main.dart';
 import 'admin_reviews_screen.dart';
 import 'admin_categories_screen.dart';
 import 'admin_transactions_screen.dart';
-import 'admin_banners_screen.dart';
-import 'admin_notifications_screen.dart';
 import 'admin_emergency_screen.dart';
 import 'admin_app_bar.dart';
 import 'admin_service_fee_screen.dart';
-import 'admin_coupons_screen.dart';
-import 'admin_tickets_screen.dart';
 import 'admin_commission_screen.dart';
 import 'admin_expenses_screen.dart';
 import 'admin_lab_results_screen.dart';
-import 'admin_analytics_screen.dart';
 import 'admin_staff_schedule_screen.dart';
 import 'admin_report_settings_screen.dart';
+import 'admin_staff_screen.dart';
+import 'admin_activity_log_screen.dart';
 
 class AdminMenuScreen extends StatefulWidget {
   const AdminMenuScreen({super.key});
@@ -63,55 +60,15 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   List<Map<String, dynamic>> _visibleSections() {
     final all = [
       {
-        'sectionTitle': 'بەڕێوەبردنی ناوەڕۆک و ڕێکخستنەکان',
+        'sectionTitle': 'ڕێکخستنی سیستەم و قالبەکان',
         'items': [
           {
-            'title': 'فریاکەوتن و حاڵەتی لەناکاو',
+            'title': 'دیزاین و لۆگۆی ڕاپۆرتەکان',
             'permission': AdminPermissions.manageContent,
-            'subtitle': 'بەڕێوەبردنی ژمارە و نەخۆشخانەکانی فریاکەوتن',
-            'icon': Icons.emergency,
-            'color': const Color(0xFFEF4444),
-            'screen': const AdminEmergencyScreen(),
-          },
-          {
-            'title': 'بانەر و ڕیکلامەکان',
-            'permission': AdminPermissions.manageContent,
-            'subtitle': 'بەڕێوەبردنی بانەرەکانی سەرەکی',
-            'icon': Iconsax.slider_horizontal,
+            'subtitle': 'ڕێکخستنی سەرپەڕە، لۆگۆ و مۆری فەرمی ئەنجامەکان',
+            'icon': Iconsax.document_filter,
             'color': const Color(0xFF6366F1),
-            'screen': const AdminBannersScreen(),
-          },
-          {
-            'title': 'ئاگاداری گشتی',
-            'permission': AdminPermissions.manageContent,
-            'subtitle': 'ناردنی پەیام بۆ هەموو بەکارهێنەران',
-            'icon': Iconsax.notification_bing,
-            'color': const Color(0xFFD97706),
-            'screen': const AdminNotificationsScreen(),
-          },
-          {
-            'title': 'کەتەگۆرییەکان',
-            'permission': AdminPermissions.manageCategories,
-            'subtitle': 'لیستەکانی پەرستاری، تاقیگە، دەرمانخانە و پزیشک',
-            'icon': Iconsax.category,
-            'color': const Color(0xFF0D9488),
-            'screen': const AdminCategoriesScreen(),
-          },
-          {
-            'title': 'هەڵسەنگاندن و کۆمێنتەکان',
-            'permission': AdminPermissions.manageReviews,
-            'subtitle': 'شاردنەوە و سڕینەوەی کۆمێنتی نەگونجاو',
-            'icon': Iconsax.star,
-            'color': const Color(0xFFD97706),
-            'screen': const AdminReviewsScreen(),
-          },
-          {
-            'title': 'مامەڵە و داهات',
-            'permission': AdminPermissions.viewPayments,
-            'subtitle': 'تۆماری پارەدان و ڕاپۆرتی داهات',
-            'icon': Iconsax.wallet_3,
-            'color': const Color(0xFF059669),
-            'screen': const AdminTransactionsScreen(),
+            'screen': const AdminReportSettingsScreen(),
           },
           {
             'title': 'کرێی خزمەتگوزاری',
@@ -122,14 +79,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'screen': const AdminServiceFeeScreen(),
           },
           {
-            'title': 'کۆدەکانی داشکاندن',
-            'permission': AdminPermissions.manageContent,
-            'subtitle': 'دروستکردن و بەڕێوەبردنی کۆدی داشکاندن',
-            'icon': Iconsax.ticket_discount,
-            'color': const Color(0xFF6366F1),
-            'screen': const AdminCouponsScreen(),
-          },
-          {
             'title': 'سیستەمی کۆمیشن',
             'permission': AdminPermissions.viewPayments,
             'subtitle': 'دیاریکردنی ڕێژەی قازانج و پشکی تاقیگە و پەرستار',
@@ -138,25 +87,25 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'screen': const AdminCommissionScreen(),
           },
           {
-            'title': 'دیزاین و لۆگۆی ڕاپۆرتەکان',
-            'permission': AdminPermissions.manageContent,
-            'subtitle': 'ڕێکخستنی سەرپەڕە، لۆگۆ و مۆری فەرمی ئەنجامەکان',
-            'icon': Iconsax.document_filter,
-            'color': const Color(0xFF0284C7),
-            'screen': const AdminReportSettingsScreen(),
+            'title': 'کەتەگۆرییەکان',
+            'permission': AdminPermissions.manageCategories,
+            'subtitle': 'لیستەکانی پەرستاری، تاقیگە، دەرمانخانە و پزیشک',
+            'icon': Iconsax.category,
+            'color': const Color(0xFF0D9488),
+            'screen': const AdminCategoriesScreen(),
           },
         ],
       },
       {
-        'sectionTitle': 'پشتیوانی، پشکنین و دەوامی ستاف',
+        'sectionTitle': 'دەوامی ستاف و چاودێری پشکنین',
         'items': [
           {
-            'title': 'سکاڵا و پشتیوانی',
-            'permission': null,
-            'subtitle': 'وەڵامدانەوەی نامە و کێشەی نەخۆشەکان',
-            'icon': Iconsax.message_question,
-            'color': const Color(0xFFEC4899),
-            'screen': const AdminTicketsScreen(),
+            'title': 'خشتەی دەوامی ستاف و پەرستاران',
+            'permission': AdminPermissions.manageProviders,
+            'subtitle': 'ڕێکخستنی کاتە بەتاڵەکان و ڕێگری لە تێکەڵبوونی کات',
+            'icon': Iconsax.calendar_tick,
+            'color': const Color(0xFF0D9488),
+            'screen': const AdminStaffScheduleScreen(),
           },
           {
             'title': 'چاودێری ئەنجامی پشکنینەکان',
@@ -167,17 +116,25 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'screen': const AdminLabResultsScreen(),
           },
           {
-            'title': 'خشتەی دەوامی ستاف و پەرستاران',
-            'permission': AdminPermissions.manageProviders,
-            'subtitle': 'ڕێکخستنی کاتە بەتاڵەکان و ڕێگری لە تێکەڵبوونی کات',
-            'icon': Iconsax.calendar_tick,
-            'color': const Color(0xFF0D9488),
-            'screen': const AdminStaffScheduleScreen(),
+            'title': 'هەڵسەنگاندن و کۆمێنتەکان',
+            'permission': AdminPermissions.manageReviews,
+            'subtitle': 'شاردنەوە و سڕینەوەی کۆمێنتی نەگونجاو',
+            'icon': Iconsax.star,
+            'color': const Color(0xFFD97706),
+            'screen': const AdminReviewsScreen(),
+          },
+          {
+            'title': 'فریاکەوتن و حاڵەتی لەناکاو',
+            'permission': AdminPermissions.manageContent,
+            'subtitle': 'بەڕێوەبردنی ژمارە و نەخۆشخانەکانی فریاکەوتن',
+            'icon': Icons.emergency,
+            'color': const Color(0xFFEF4444),
+            'screen': const AdminEmergencyScreen(),
           },
         ],
       },
       {
-        'sectionTitle': 'دارایی، بودجە و ئامارەکان',
+        'sectionTitle': 'دارایی، بودجە و مەساریف',
         'items': [
           {
             'title': 'بودجە و خەرجییەکان',
@@ -188,18 +145,34 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'screen': const AdminExpensesScreen(),
           },
           {
-            'title': 'ئامار و ڕاپۆرتە پێشکەوتووەکان',
+            'title': 'مامەڵە و داهات',
             'permission': AdminPermissions.viewPayments,
-            'subtitle': 'زۆرترین پشکنین، باشترین پەرستار و ئاستی گەشەکردن',
-            'icon': Iconsax.chart_2,
-            'color': const Color(0xFF8B5CF6),
-            'screen': const AdminAnalyticsScreen(),
+            'subtitle': 'تۆماری پارەدان و ڕاپۆرتی داهات',
+            'icon': Iconsax.wallet_3,
+            'color': const Color(0xFF059669),
+            'screen': const AdminTransactionsScreen(),
           },
         ],
       },
       {
-        'sectionTitle': 'هەژمار و چوونەدەرەوە',
+        'sectionTitle': 'ئەدمین، ستاف و پاراستن',
         'items': [
+          {
+            'title': 'ستاف و بەڕێوەبەران',
+            'permission': AdminPermissions.manageStaff,
+            'subtitle': 'زیادکردنی ئەدمین و دەسەڵاتەکان',
+            'icon': Iconsax.shield_security,
+            'color': const Color(0xFF6366F1),
+            'screen': const AdminStaffScreen(),
+          },
+          {
+            'title': 'تۆماری چالاکییەکان',
+            'permission': AdminPermissions.manageStaff,
+            'subtitle': 'بینینی هەموو کردەوە و گۆڕانکارییەکانی ستاف',
+            'icon': Iconsax.task,
+            'color': const Color(0xFF8B5CF6),
+            'screen': const AdminActivityLogScreen(),
+          },
           {
             'title': 'چوونەدەرەوە',
             'subtitle': 'چوونەدەرەوە لە هەژماری ئەدمین',

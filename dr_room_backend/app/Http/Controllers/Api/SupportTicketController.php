@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use App\Models\TicketMessage;
+use App\Services\TicketNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -62,6 +63,9 @@ class SupportTicketController extends Controller
             'is_read' => true,
         ]);
 
+        // Send push notification & in-app alert to Admins
+        TicketNotificationService::notifyAdminsNewMessage($ticket, $request->description, true);
+
         return response()->json([
             'success' => true,
             'message' => 'تیکێتەکەت بە سەرکەوتوویی نێردرا',
@@ -111,6 +115,9 @@ class SupportTicketController extends Controller
         if (in_array($ticket->status, ['resolved', 'closed'])) {
             $ticket->update(['status' => 'open']);
         }
+
+        // Send push notification & in-app alert to Admins
+        TicketNotificationService::notifyAdminsNewMessage($ticket, $request->message, false);
 
         return response()->json([
             'success' => true,

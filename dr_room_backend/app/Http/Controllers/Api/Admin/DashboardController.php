@@ -29,6 +29,13 @@ class DashboardController extends Controller
         $totalOrders = Order::count();
         $pendingOrders = Order::where('status', 'pending')->count();
         $totalAppointments = Appointment::count();
+
+        $openTickets = 0;
+        $unreadTicketMessages = 0;
+        try {
+            $openTickets = \App\Models\SupportTicket::where('status', 'open')->count();
+            $unreadTicketMessages = \App\Models\TicketMessage::where('is_admin_reply', false)->where('is_read', false)->count();
+        } catch (\Throwable $e) {}
         
         $recentAppointments = Appointment::with(['patient', 'doctor.user'])
             ->orderBy('id', 'desc')
@@ -52,6 +59,8 @@ class DashboardController extends Controller
             'pending_pharmacies' => $pendingPharmacies,
             'total_orders' => $totalOrders,
             'pending_orders' => $pendingOrders,
+            'open_tickets' => $openTickets,
+            'unread_ticket_messages' => $unreadTicketMessages,
             'total_appointments' => $totalAppointments,
             'recent_appointments' => $recentAppointments,
             'recent_orders' => $recentOrders,
