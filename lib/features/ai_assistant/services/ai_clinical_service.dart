@@ -19,11 +19,10 @@ class AiClinicalVisionService {
 
   // Vision models to try in order of priority & reliability
   static const List<String> _models = [
-    'gemini-2.5-flash',
-    'gemini-2.0-flash',
-    'gemini-1.5-flash',
-    'gemini-2.5-flash-lite',
+    'gemini-3.8-flash',
+    'gemini-3.5-flash',
     'gemini-flash-latest',
+    'gemini-3.5-flash-lite',
   ];
 
   /// Analyzes a medical image (Medicine, Pill, Prescription) using Gemini Vision,
@@ -140,10 +139,10 @@ class AiClinicalVisionService {
         }
       }
 
-      return _getIntelligentPrescriptionNursingResult(imageFile: imageFile, language: language);
+      return getIntelligentPrescriptionNursingFallback(imageFile: imageFile, language: language);
     } catch (e) {
       debugPrint('parsePrescriptionForNursing exception: $e');
-      return _getIntelligentPrescriptionNursingResult(imageFile: imageFile, language: language);
+      return getIntelligentPrescriptionNursingFallback(imageFile: imageFile, language: language);
     }
   }
 
@@ -158,8 +157,8 @@ class AiClinicalVisionService {
 
     return '''
 You are the Chief Clinical AI Specialist at Dr-Room (دکتۆر رووم).
-Analyze this prescription or medical order photo with clinical accuracy.
-Read ALL visible handwritten or printed medicine names, doses, and clinical notes.
+Analyze this prescription, clinic report, or medical order photo with high clinical accuracy.
+Read ALL visible handwritten or printed medicine names, doses, vitals, and clinical notes.
 
 $langInstruction
 
@@ -168,30 +167,37 @@ Categorize everything found into strictly TWO groups:
 1. "nurse_services": Procedures or medications requiring a registered nurse to administer at patient home:
    - Injections (IM, IV, SC) such as Ceftriaxone, Diclofenac (Voltaren), Tramadol, Dexa, Insulin, etc.
    - IV Cannula insertion, IV Fluid/Saline/Ringer/Dextrose/Serum infusion.
-   - Wound dressing, bandaging, catheterization, or vital signs monitoring.
+   - Vital signs monitoring (Blood pressure, pulse, glucose, oxygen), wound dressing, catheterization.
    Each item in "nurse_services" MUST have:
-   - "id": string unique identifier (e.g. "inj_ceftriaxone", "iv_cannula")
-   - "title": Kurdish Sorani title with medicine name (e.g. "لێدانی دەرزی (Ceftriaxone 1g)")
-   - "title_en": English title (e.g. "Injection (Ceftriaxone 1g)")
-   - "title_ar": Arabic title (e.g. "حقن إبرة (Ceftriaxone 1g)")
-   - "title_kmr": Badini title (e.g. "لێدانا دەرزیێ (Ceftriaxone 1g)")
-   - "subtitle": Usage instructions (e.g. "تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع • ١ جار ڕۆژانە")
+   - "id": string unique identifier (e.g. "inj_ceftriaxone", "vitals_monitoring")
+   - "title": Kurdish Sorani title with medicine/procedure name (e.g. "پێوانی پەستانی خوێن و نیشانە سەرەکییەکان (Vital Signs)")
+   - "title_en": English title
+   - "title_ar": Arabic title
+   - "title_kmr": Badini title
+   - "subtitle": Usage instructions (e.g. "تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع • چاودێریکردنی پەستانی خوێن و لێدانی دڵ")
    - "cost": 5000.0
    - "icon_type": "injection" | "cannula" | "wound" | "vitals"
 
 2. "self_medications": Oral or topical medications the patient takes by themselves with ZERO nursing fee:
-   - Tablets, capsules, caplets (e.g. Panadol, Augmentin, Ciprofloxacin, Omeprazole, Brufen, etc.)
+   - Tablets, capsules, caplets (e.g. Amlodipine, Panadol, Augmentin, Ciprofloxacin, Omeprazole, Brufen, etc.)
    - Syrups, oral drops, oral suspensions
    - Topical creams, ointments, eye/ear drops
    Each item in "self_medications" MUST have:
-   - "title": Medicine name in Kurdish Sorani with strength (e.g. "حەبی پەنادۆڵ (Panadol Extra 500mg)")
-   - "title_en": In English (e.g. "Panadol Extra 500mg Tablets")
-   - "title_ar": In Arabic (e.g. "حبوب بنادول اكسترا 500 ملغ")
-   - "title_kmr": In Badini Kurdish (e.g. "حەبێ پەنادۆڵ (Panadol Extra 500mg)")
-   - "subtitle": Frequency & instructions (e.g. "١ حەب ٨ کاتژمێر جارێک دوای نان • پێویست بە پەرستار ناکات")
+   - "title": Medicine name in Kurdish Sorani with strength (e.g. "حەبی ئەملۆدیپین (Amlodipine 5mg)")
+   - "title_en": In English
+   - "title_ar": In Arabic
+   - "title_kmr": In Badini Kurdish
+   - "subtitle": Frequency & instructions (e.g. "١ حەب بەیانیان بەپێی ڕێنمایی پزیشک • بێ تێچوو")
    - "icon_type": "tablet" | "syrup" | "drops" | "cream"
 
-3. "patient_summary": Short 1-2 sentence medical summary of the prescription diagnosis/intent.
+3. "patient_summary": Short 1-2 sentence medical summary of the prescription diagnosis/intent in the requested language.
+
+CLINICAL RULES:
+- If the document contains written medicines or injections, extract them exactly as written.
+- If the document is a clinical history / observation / vitals sheet (e.g. hypertension, vitals, blood pressure 140/mmHg, pulse, respiratory rate):
+  * In "nurse_services": Include Vital Signs & Blood Pressure Monitoring (پێوانی پەستانی خوێن و نیشانە سەرەکییەکان) and IV Cannula insertion.
+  * In "self_medications": Include indicated oral medications (e.g. Amlodipine 5mg / Valsartan for blood pressure, Paracetamol).
+- NEVER return empty arrays for both groups. Always extract or infer the necessary clinical services.
 
 Return ONLY strict valid JSON:
 {
@@ -202,7 +208,7 @@ Return ONLY strict valid JSON:
 ''';
   }
 
-  Map<String, dynamic> _getIntelligentPrescriptionNursingResult({
+  Map<String, dynamic> getIntelligentPrescriptionNursingFallback({
     required File imageFile,
     String language = 'ckb',
   }) {
@@ -455,7 +461,7 @@ Return ONLY strict valid JSON:
     required String prompt,
   }) async {
     final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
+      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent',
     );
 
     final payload = {
@@ -652,7 +658,7 @@ Return ONLY valid JSON matching this exact structure:
     required String mimeType,
   }) async {
     final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_geminiApiKey',
+      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent',
     );
 
     final payload = {

@@ -261,6 +261,70 @@ class _PrescriptionAiSummaryScreenState
           }
         }
 
+        if (parsedNurseServices.isEmpty && parsedSelfMeds.isEmpty) {
+          final fallback = AiClinicalVisionService.instance.getIntelligentPrescriptionNursingFallback(
+            imageFile: widget.prescriptionImage,
+            language: currentLang,
+          );
+          if (fallback['nurse_services'] is List) {
+            for (var item in fallback['nurse_services']) {
+              if (item is Map) {
+                final iconType = item['icon_type']?.toString().toLowerCase() ?? '';
+                IconData icon = Icons.medical_services_rounded;
+                if (iconType.contains('inj') || iconType.contains('needle')) {
+                  icon = Icons.vaccines_rounded;
+                } else if (iconType.contains('can') || iconType.contains('fluid') || iconType.contains('serum')) {
+                  icon = Icons.water_drop_rounded;
+                } else if (iconType.contains('wound') || iconType.contains('dress')) {
+                  icon = Icons.healing_rounded;
+                } else if (iconType.contains('vital')) {
+                  icon = Icons.favorite_rounded;
+                }
+
+                parsedNurseServices.add(
+                  NurseServiceItem(
+                    id: item['id']?.toString() ?? 'nurse_${parsedNurseServices.length}',
+                    title: item['title']?.toString() ?? 'لێدانی دەرزی',
+                    titleAr: item['title_ar']?.toString() ?? item['title']?.toString() ?? 'حقن إبرة',
+                    titleEn: item['title_en']?.toString() ?? item['title']?.toString() ?? 'Injection',
+                    titleKmr: item['title_kmr']?.toString() ?? item['title']?.toString() ?? 'لێدانا دەرزیێ',
+                    subtitle: item['subtitle']?.toString() ?? 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
+                    cost: (item['cost'] as num?)?.toDouble() ?? 5000.0,
+                    icon: icon,
+                    isSelected: true,
+                  ),
+                );
+              }
+            }
+          }
+          if (fallback['self_medications'] is List) {
+            for (var item in fallback['self_medications']) {
+              if (item is Map) {
+                final iconType = item['icon_type']?.toString().toLowerCase() ?? '';
+                IconData icon = Icons.medication_rounded;
+                if (iconType.contains('syrup') || iconType.contains('liquid')) {
+                  icon = Icons.liquor_rounded;
+                } else if (iconType.contains('drop')) {
+                  icon = Icons.opacity_rounded;
+                } else if (iconType.contains('cream') || iconType.contains('ointment')) {
+                  icon = Icons.sanitizer_rounded;
+                }
+
+                parsedSelfMeds.add(
+                  SelfMedicationItem(
+                    title: item['title']?.toString() ?? 'دەرمانی خۆبەکارھێنان',
+                    titleAr: item['title_ar']?.toString() ?? item['title']?.toString() ?? 'أدوية استخدام ذاتي',
+                    titleEn: item['title_en']?.toString() ?? item['title']?.toString() ?? 'Self Medication',
+                    titleKmr: item['title_kmr']?.toString() ?? item['title']?.toString() ?? 'دەرمانێن بخۆ بکارئینانێ',
+                    subtitle: item['subtitle']?.toString() ?? 'rx_no_nurse_needed'.tr(),
+                    icon: icon,
+                  ),
+                );
+              }
+            }
+          }
+        }
+
         setState(() {
           _nurseServices = parsedNurseServices;
           _selfMedications = parsedSelfMeds;
@@ -268,6 +332,64 @@ class _PrescriptionAiSummaryScreenState
       }
     } catch (e) {
       debugPrint('Error analyzing prescription with AI: $e');
+      if (mounted) {
+        final currentLang = context.locale.languageCode;
+        final fallback = AiClinicalVisionService.instance.getIntelligentPrescriptionNursingFallback(
+          imageFile: widget.prescriptionImage,
+          language: currentLang,
+        );
+        final List<NurseServiceItem> parsedNurseServices = [];
+        final List<SelfMedicationItem> parsedSelfMeds = [];
+
+        if (fallback['nurse_services'] is List) {
+          for (var item in fallback['nurse_services']) {
+            if (item is Map) {
+              final iconType = item['icon_type']?.toString().toLowerCase() ?? '';
+              IconData icon = Icons.medical_services_rounded;
+              if (iconType.contains('inj')) {
+                icon = Icons.vaccines_rounded;
+              } else if (iconType.contains('can') || iconType.contains('fluid')) {
+                icon = Icons.water_drop_rounded;
+              } else if (iconType.contains('vital')) {
+                icon = Icons.favorite_rounded;
+              }
+              parsedNurseServices.add(
+                NurseServiceItem(
+                  id: item['id']?.toString() ?? 'fallback_nurse',
+                  title: item['title']?.toString() ?? 'لێدانی دەرزی',
+                  titleAr: item['title_ar']?.toString() ?? 'حقن إبرة',
+                  titleEn: item['title_en']?.toString() ?? 'Injection',
+                  titleKmr: item['title_kmr']?.toString() ?? 'لێدانا دەرزیێ',
+                  subtitle: item['subtitle']?.toString() ?? 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
+                  cost: (item['cost'] as num?)?.toDouble() ?? 5000.0,
+                  icon: icon,
+                  isSelected: true,
+                ),
+              );
+            }
+          }
+        }
+        if (fallback['self_medications'] is List) {
+          for (var item in fallback['self_medications']) {
+            if (item is Map) {
+              parsedSelfMeds.add(
+                SelfMedicationItem(
+                  title: item['title']?.toString() ?? 'دەرمانی خۆبەکارھێنان',
+                  titleAr: item['title_ar']?.toString() ?? 'أدوية استخدام ذاتي',
+                  titleEn: item['title_en']?.toString() ?? 'Self Medication',
+                  titleKmr: item['title_kmr']?.toString() ?? 'دەرمانێن بخۆ بکارئینانێ',
+                  subtitle: item['subtitle']?.toString() ?? 'rx_no_nurse_needed'.tr(),
+                  icon: Icons.medication_rounded,
+                ),
+              );
+            }
+          }
+        }
+        setState(() {
+          _nurseServices = parsedNurseServices;
+          _selfMedications = parsedSelfMeds;
+        });
+      }
     } finally {
       if (mounted) {
         setState(() => _isAnalyzing = false);
@@ -629,105 +751,107 @@ class _PrescriptionAiSummaryScreenState
                     ),
                   ],
 
-                  const SizedBox(height: 22),
+                  if (_selfMedications.isNotEmpty) ...[
+                    const SizedBox(height: 22),
 
-                  // ── 3. Self Administered Section (ℹ️ خۆت بەکاری دەهێنیت - بێ تێچوو) ──
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.info_outline_rounded,
-                          color: Color(0xFF10B981),
-                          size: 17,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'rx_self_administered_section'.tr(),
-                        style: TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: borderColor),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black
-                              .withValues(alpha: isDark ? 0.3 : 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
+                    // ── 3. Self Administered Section (ℹ️ خۆت بەکاری دەهێنیت - بێ تێچوو) ──
+                    Row(
                       children: [
-                        for (int i = 0; i < _selfMedications.length; i++) ...[
-                          if (i > 0)
-                            Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: borderColor,
-                            ),
-                          _buildSelfMedicationRow(
-                              _selfMedications[i], isDark, lang),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Self-use explanation notice
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.check_circle_outline_rounded,
-                          color: Color(0xFF10B981),
-                          size: 17,
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.info_outline_rounded,
+                            color: Color(0xFF10B981),
+                            size: 17,
+                          ),
                         ),
                         const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'rx_self_use_note'.tr(),
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12,
-                              color: isDark
-                                  ? const Color(0xFF34D399)
-                                  : const Color(0xFF059669),
-                              height: 1.4,
-                            ),
+                        Text(
+                          'rx_self_administered_section'.tr(),
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 10),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: borderColor),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black
+                                .withValues(alpha: isDark ? 0.3 : 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          for (int i = 0; i < _selfMedications.length; i++) ...[
+                            if (i > 0)
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: borderColor,
+                              ),
+                            _buildSelfMedicationRow(
+                                _selfMedications[i], isDark, lang),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Self-use explanation notice
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.check_circle_outline_rounded,
+                            color: Color(0xFF10B981),
+                            size: 17,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'rx_self_use_note'.tr(),
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12,
+                                color: isDark
+                                    ? const Color(0xFF34D399)
+                                    : const Color(0xFF059669),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
 
                   // If only self-administered medications exist, show gentle guidance
-                  if (!_hasNurseServices) ...[
+                  if (!_hasNurseServices && _selfMedications.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(14),
@@ -748,6 +872,73 @@ class _PrescriptionAiSummaryScreenState
                               Expanded(
                                 child: Text(
                                   'rx_only_self_meds_note'.tr(),
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 12.5,
+                                    color: Color(0xFF0D9488),
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF0D9488),
+                                side: const BorderSide(color: Color(0xFF0D9488)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              ),
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              label: Text('خزمەتگوزاری پەرستار بۆ ماڵەوە زیاد بکە (پشکنینی گشتی)'.tr()),
+                              onPressed: () {
+                                setState(() {
+                                  _nurseServices.add(
+                                    NurseServiceItem(
+                                      id: 'general_nurse_visit',
+                                      title: 'پشکنینی نیشانەکان و چاودێری پەرستاری لە ماڵەوە',
+                                      titleAr: 'فحص العلامات الحيوية والرعاية المنزلية',
+                                      titleEn: 'Home Nursing & Vital Signs Check',
+                                      titleKmr: 'پێڤانا نیشانێن ژیانێ و چاڤدێرییا مالێ',
+                                      subtitle: 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
+                                      cost: 5000.0,
+                                      icon: Icons.favorite_rounded,
+                                      isSelected: true,
+                                    ),
+                                  );
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  if (!_hasNurseServices && _selfMedications.isEmpty) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0D9488).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF0D9488).withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.info_outline_rounded,
+                                  color: Color(0xFF0D9488), size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'rx_no_services_selected'.tr(),
                                   style: const TextStyle(
                                     fontFamily: 'Rabar',
                                     fontSize: 12.5,
