@@ -49,7 +49,8 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
       if (!mounted) return;
 
       if (res.statusCode == 200) {
-        final list = jsonDecode(res.body)['data'] ?? [];
+        final decoded = jsonDecode(res.body);
+        final list = decoded is List ? decoded : (decoded is Map ? (decoded['data'] ?? []) : []);
         setState(() {
           _nurses = list;
           if (_nurses.isNotEmpty) {
@@ -59,7 +60,10 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         });
 
         if (_selectedNurse != null) {
-          _loadScheduleForNurse(_selectedNurse['id']);
+          final nurseId = _selectedNurse['nurse']?['id'] ?? _selectedNurse['id'];
+          if (nurseId != null) {
+            _loadScheduleForNurse(int.tryParse(nurseId.toString()) ?? 0);
+          }
         }
       }
     } catch (e) {
@@ -71,8 +75,10 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     try {
       final res = await ApiClient.get('/nurse/schedule?nurse_id=$nurseId');
       if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
+        final list = decoded is List ? decoded : (decoded is Map ? (decoded['data'] ?? []) : []);
         setState(() {
-          _schedules = jsonDecode(res.body)['data'] ?? [];
+          _schedules = list;
         });
       }
     } catch (_) {}
@@ -127,8 +133,20 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         slot['is_available'] = isAvail;
         slot['max_daily_visits'] = int.tryParse(visitsCtrl.text.trim()) ?? 6;
 
-        setState(() {});
-        AdminUi.toast(context, 'خشتەی کاتی پەرستار پاشەکەوتکرا');
+        final nurseId = _selectedNurse?['nurse']?['id'] ?? _selectedNurse?['id'];
+        if (nurseId != null) {
+          try {
+            await ApiClient.post('/nurse/schedule', body: {
+              'nurse_id': nurseId,
+              'schedules': _schedules,
+            });
+          } catch (_) {}
+        }
+
+        if (mounted) {
+          setState(() {});
+          AdminUi.toast(context, 'خشتەی کاتی پەرستار پاشەکەوتکرا');
+        }
         return true;
       },
     );
@@ -163,12 +181,17 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                             items: _nurses.map((n) {
                               return DropdownMenuItem(
                                 value: n,
-                                child: Text(n['user']?['name'] ?? n['name'] ?? 'پەرستار'),
+                                child: Text(n['name'] ?? n['user']?['name'] ?? 'پەرستار'),
                               );
                             }).toList(),
                             onChanged: (n) {
                               setState(() => _selectedNurse = n);
-                              if (n != null) _loadScheduleForNurse(n['id']);
+                              if (n != null) {
+                                final nurseId = n['nurse']?['id'] ?? n['id'];
+                                if (nurseId != null) {
+                                  _loadScheduleForNurse(int.tryParse(nurseId.toString()) ?? 0);
+                                }
+                              }
                             },
                           ),
                         ),

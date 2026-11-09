@@ -17,13 +17,24 @@ class NurseScheduleApiController extends Controller
      */
     public function getSchedule(Request $request, $nurseId = null)
     {
+        $nurseId = $request->query('nurse_id', $nurseId);
+
         if (!$nurseId) {
             $user = Auth::user();
-            $nurse = $user->nurse;
+            $nurse = $user ? $user->nurse : null;
             if (!$nurse) {
                 return response()->json(['success' => false, 'message' => 'پەرستار نەدۆزرایەوە'], 404);
             }
             $nurseId = $nurse->id;
+        } else {
+            // Check if $nurseId is user_id or nurse_id
+            $nurse = Nurse::find($nurseId);
+            if (!$nurse) {
+                $nurse = Nurse::where('user_id', $nurseId)->first();
+            }
+            if ($nurse) {
+                $nurseId = $nurse->id;
+            }
         }
 
         $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -34,7 +45,7 @@ class NurseScheduleApiController extends Controller
                 return $existing->get($day);
             }
             return [
-                'nurse_id' => $nurseId,
+                'nurse_id' => (int) $nurseId,
                 'day_of_week' => $day,
                 'start_time' => '08:00:00',
                 'end_time' => '20:00:00',
@@ -54,9 +65,15 @@ class NurseScheduleApiController extends Controller
      */
     public function updateSchedule(Request $request)
     {
-        $nurse = Auth::user()->nurse;
+        $nurseId = $request->input('nurse_id');
+        if ($nurseId) {
+            $nurse = Nurse::find($nurseId) ?? Nurse::where('user_id', $nurseId)->first();
+        } else {
+            $nurse = Auth::user() ? Auth::user()->nurse : null;
+        }
+
         if (!$nurse) {
-            return response()->json(['success' => false, 'message' => 'تەنها پەرستار دەتوانێت دەستکاری بکات'], 403);
+            return response()->json(['success' => false, 'message' => 'پەرستار نەدۆزرایەوە'], 404);
         }
 
         $request->validate([
@@ -64,7 +81,7 @@ class NurseScheduleApiController extends Controller
             'schedules.*.day_of_week' => 'required|string',
             'schedules.*.start_time' => 'required|string',
             'schedules.*.end_time' => 'required|string',
-            'schedules.*.is_available' => 'required|boolean',
+            'schedules.*.is_available' => 'required',
             'schedules.*.max_daily_visits' => 'nullable|integer|min:1',
         ]);
 
@@ -74,7 +91,7 @@ class NurseScheduleApiController extends Controller
                 [
                     'start_time' => $item['start_time'],
                     'end_time' => $item['end_time'],
-                    'is_available' => $item['is_available'],
+                    'is_available' => filter_var($item['is_available'], FILTER_VALIDATE_BOOLEAN),
                     'max_daily_visits' => $item['max_daily_visits'] ?? 6,
                 ]
             );
