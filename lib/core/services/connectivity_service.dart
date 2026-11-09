@@ -14,7 +14,7 @@ class ConnectivityService {
     checkRealInternet();
 
     // Regular interval internet checker (pure Dart, 0 native plugin dependencies)
-    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 15), (_) {
       checkRealInternet();
     });
   }
