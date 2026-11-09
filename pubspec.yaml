@@ -44,8 +44,15 @@ dependencies:
   firebase_messaging: ^16.5.0
   connectivity_plus: ^7.3.1
   rasedi_flutter_sdk: ^1.0.3
-  pdf: ^3.13.1
-  printing: ^5.15.1
+  pdf: 3.11.3
+  printing: 5.14.3
+
+dependency_overrides:
+  pdf: 3.11.3
+  printing: 5.14.3
+  xml: 6.5.0
+  image: 4.3.0
+  archive: 3.6.1
 
 dev_dependencies:
   flutter_test:
