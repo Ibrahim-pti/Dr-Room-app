@@ -208,6 +208,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                               icon: Iconsax.text_block,
                               controller: _subtitleCtrl,
                               isDark: isDark,
+                              textDirection: TextDirection.ltr,
                             ),
                             const SizedBox(height: 14),
                             _buildInputField(
@@ -217,6 +218,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                               controller: _phoneCtrl,
                               isDark: isDark,
                               keyboardType: TextInputType.phone,
+                              textDirection: TextDirection.ltr,
                             ),
                             const SizedBox(height: 14),
                             _buildInputField(
@@ -381,26 +383,35 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Hospital / Logo Icon
+                        // Hospital / Dr. Room Logo
                         Container(
-                          width: 48,
-                          height: 48,
+                          width: 52,
+                          height: 52,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF6366F1).withValues(alpha: 0.3),
-                                blurRadius: 8,
+                                color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                                blurRadius: 10,
                                 offset: const Offset(0, 3),
                               ),
                             ],
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
-                          child: const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 26),
+                          padding: const EdgeInsets.all(5),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.asset(
+                              'assets/images/app_icon.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, _, _) => const Icon(
+                                Icons.local_hospital_rounded,
+                                color: Color(0xFF6366F1),
+                                size: 28,
+                              ),
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 12),
 
@@ -425,6 +436,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                                 _subtitleCtrl.text.isNotEmpty
                                     ? _subtitleCtrl.text
                                     : 'Dr. Room Healthcare System & Lab Diagnostics',
+                                textDirection: TextDirection.ltr,
                                 style: const TextStyle(
                                   fontFamily: 'Rabar',
                                   fontSize: 11,
@@ -473,27 +485,32 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Iconsax.call, size: 12, color: Color(0xFF6366F1)),
-                              const SizedBox(width: 6),
-                              Text(
-                                _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '+964 750 000 0000',
-                                style: TextStyle(
-                                  fontFamily: 'Rabar',
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          child: Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Iconsax.call, size: 13, color: Color(0xFF6366F1)),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '+964 750 000 0000',
+                                  textDirection: TextDirection.ltr,
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                         const Spacer(),
@@ -536,6 +553,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
     required bool isDark,
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
+    TextDirection? textDirection,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -560,6 +578,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
             controller: controller,
             maxLines: maxLines,
             keyboardType: keyboardType,
+            textDirection: textDirection,
             onChanged: (_) => setState(() {}),
             style: TextStyle(
               fontFamily: 'Rabar',
@@ -569,6 +588,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
             ),
             decoration: InputDecoration(
               hintText: hint,
+              hintTextDirection: textDirection,
               hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFF94A3B8)),
               prefixIcon: Icon(icon, size: 20, color: const Color(0xFF6366F1)),
               border: InputBorder.none,
