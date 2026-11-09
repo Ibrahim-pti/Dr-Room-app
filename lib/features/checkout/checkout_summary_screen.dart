@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'order_success_screen.dart';
+import '../../core/utils/api_client.dart';
 import '../../core/providers/order_provider.dart';
 import '../../core/providers/checkout_provider.dart';
 import '../../core/providers/cart_provider.dart';
@@ -19,6 +21,68 @@ class CheckoutSummaryScreen extends StatefulWidget {
 }
 
 class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
+  final _couponCtrl = TextEditingController();
+  String? _appliedCouponCode;
+  double _couponDiscount = 0.0;
+  bool _isValidatingCoupon = false;
+
+  Future<void> _validateAndApplyCoupon(double orderAmount) async {
+    final code = _couponCtrl.text.trim().toUpperCase();
+    if (code.isEmpty) return;
+
+    setState(() => _isValidatingCoupon = true);
+    try {
+      final res = await ApiClient.post('/coupons/validate', body: {
+        'code': code,
+        'order_amount': orderAmount,
+      });
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body)['data'];
+        setState(() {
+          _appliedCouponCode = data['code'];
+          _couponDiscount = (data['discount_amount'] ?? 0).toDouble();
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFF10B981),
+              content: Text('coupon_applied'.tr(), style: const TextStyle(fontFamily: 'Rabar')),
+            ),
+          );
+        }
+      } else {
+        final msg = jsonDecode(res.body)['message'] ?? 'کۆدی داشکاندن نادروستە';
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFFEF4444),
+              content: Text(msg, style: const TextStyle(fontFamily: 'Rabar')),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFEF4444),
+            content: Text('$e', style: const TextStyle(fontFamily: 'Rabar')),
+          ),
+        );
+      }
+    }
+    if (mounted) setState(() => _isValidatingCoupon = false);
+  }
+
+  void _removeCoupon() {
+    setState(() {
+      _appliedCouponCode = null;
+      _couponDiscount = 0.0;
+      _couponCtrl.clear();
+    });
+  }
+
   TextStyle _kStyle({
     double fontSize = 14,
     FontWeight fontWeight = FontWeight.normal,
@@ -258,6 +322,16 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                         false,
                                       ),
                                     ],
+                                    if (_couponDiscount > 0) ...[
+                                      const SizedBox(height: 14),
+                                      _buildSummaryRow(
+                                        Iconsax.ticket_discount,
+                                        '${'coupon_discount'.tr()} ($_appliedCouponCode)',
+                                        '- ${NumberFormat('#,###').format(_couponDiscount)} د.ع',
+                                        false,
+                                        customColor: const Color(0xFF10B981),
+                                      ),
+                                    ],
                                     const Padding(
                                       padding: EdgeInsets.symmetric(vertical: 16),
                                       child: _DashedDivider(),
@@ -265,7 +339,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                     _buildSummaryRow(
                                       Iconsax.ticket_discount,
                                       'total'.tr(),
-                                      '${NumberFormat('#,###').format(cartProvider.total)} د.ع',
+                                      '${NumberFormat('#,###').format(((cartProvider.total - _couponDiscount) < 0 ? 0 : (cartProvider.total - _couponDiscount)).toInt())} د.ع',
                                       true,
                                     ),
                                   ],
@@ -277,6 +351,93 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                       );
                     },
                   ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.04),
+
+                  const SizedBox(height: 16),
+
+                  // ── Promo Code Card ──
+                  Consumer<CartProvider>(
+                    builder: (context, cartProvider, child) {
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Iconsax.ticket_discount, color: Color(0xFF6366F1), size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'promo_code'.tr(),
+                                  style: _kStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (_appliedCouponCode != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 18),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'کۆدی $_appliedCouponCode چالاککرا (${NumberFormat('#,###').format(_couponDiscount)} د.ع)',
+                                      style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 13),
+                                    ),
+                                    const Spacer(),
+                                    IconButton(
+                                      icon: const Icon(Icons.close, size: 18, color: Colors.grey),
+                                      onPressed: _removeCoupon,
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _couponCtrl,
+                                      textCapitalization: TextCapitalization.characters,
+                                      decoration: InputDecoration(
+                                        hintText: 'enter_promo_code'.tr(),
+                                        hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
+                                        isDense: true,
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton(
+                                    onPressed: _isValidatingCoupon ? null : () => _validateAndApplyCoupon(cartProvider.total),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF6366F1),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    child: _isValidatingCoupon
+                                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                        : Text('apply_coupon'.tr(), style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
 
                   const SizedBox(height: 24),
 
@@ -410,6 +571,9 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                 return;
                               }
 
+                              // Calculate discounted total if coupon is applied
+                              final effectiveTotal = ((cartProvider.total - _couponDiscount) < 0 ? 0.0 : (cartProvider.total - _couponDiscount));
+
                               // Check if selected payment method uses Rasedi Gateway
                               final selectedMethod = checkoutProvider.selectedPaymentMethod;
                               final gateway = RasediPaymentService.mapMethodToGateway(selectedMethod);
@@ -418,7 +582,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                               if (gateway != null) {
                                 final result = await RasediCheckoutScreen.startPayment(
                                   context,
-                                  amount: cartProvider.total,
+                                  amount: effectiveTotal,
                                   title: 'DrRoom - ${cartProvider.serviceType ?? 'Medical'}',
                                   description: cartProvider.items.map((e) => e.name).join('، '),
                                   gateway: gateway,
@@ -446,6 +610,8 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                               final orderId = await checkoutProvider.processPayment(
                                 cartProvider,
                                 transactionReference: transactionRef,
+                                couponCode: _appliedCouponCode,
+                                discountAmount: _couponDiscount,
                               );
 
                               if (orderId != null && context.mounted) {
@@ -457,7 +623,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                   serviceType: serviceName,
                                   customTitle: itemsStr.isEmpty ? null : itemsStr,
                                   status: transactionRef != null ? OrderStatus.processing : OrderStatus.pending,
-                                  price: cartProvider.total,
+                                  price: effectiveTotal,
                                   serviceFee: cartProvider.serviceFee,
                                   date: DateTime.now(),
                                 ));
@@ -517,7 +683,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Text(
-                                        '${NumberFormat('#,###').format(cart.total)} د.ع',
+                                        '${NumberFormat('#,###').format(((cart.total - _couponDiscount) < 0 ? 0 : (cart.total - _couponDiscount)).toInt())} د.ع',
                                         style: _kStyle(
                                           fontSize: 13.5,
                                           fontWeight: FontWeight.bold,
@@ -540,19 +706,19 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
     );
   }
 
-  Widget _buildSummaryRow(IconData icon, String label, String value, bool isTotal) {
+  Widget _buildSummaryRow(IconData icon, String label, String value, bool isTotal, {Color? customColor}) {
     return Row(
       crossAxisAlignment: isTotal ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
         if (!isTotal) ...[
-          Icon(icon, size: 17, color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+          Icon(icon, size: 17, color: customColor ?? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
           const SizedBox(width: 10),
         ],
         Expanded(
           child: Text(
             label,
             style: _kStyle(
-              color: isTotal ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+              color: isTotal ? const Color(0xFF0F172A) : (customColor ?? const Color(0xFF64748B)),
               fontSize: isTotal ? 16 : 13.5,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
             ),
@@ -584,7 +750,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: _kStyle(
-                    color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
+                    color: customColor ?? (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                   ),

@@ -103,6 +103,26 @@ class AdminOrderController extends Controller
                     'status' => 'completed',
                     'paid_at' => now(),
                 ]);
+
+            // Award loyalty points to patient if enabled and not already awarded
+            if (($order->loyalty_points_earned ?? 0) <= 0 && $order->patient) {
+                $enabled = \App\Models\AppSetting::get('loyalty_enabled', true);
+                if ($enabled) {
+                    $ptsPer1000 = (float) \App\Models\AppSetting::get('loyalty_points_per_1000_iqd', 1);
+                    $earned = (int) floor(($order->total_price / 1000) * $ptsPer1000);
+                    if ($earned > 0) {
+                        $order->loyalty_points_earned = $earned;
+                        $order->patient->increment('loyalty_points', $earned);
+                        \App\Models\LoyaltyTransaction::create([
+                            'user_id' => $order->patient_id,
+                            'points' => $earned,
+                            'type' => 'earned_order',
+                            'description' => "پاداشتی خاڵەکان بۆ داواکاری #{$order->id}",
+                            'order_id' => $order->id,
+                        ]);
+                    }
+                }
+            }
         } elseif ($request->status === 'cancelled') {
             \App\Models\Transaction::where('payable_type', Order::class)
                 ->where('payable_id', $order->id)

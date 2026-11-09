@@ -149,6 +149,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/payments/methods/{id}', [\App\Http\Controllers\Api\PaymentController::class, 'deleteMethod']);
     Route::get('/payments/receipt/{id}', [\App\Http\Controllers\Api\PaymentController::class, 'receipt']);
 
+    // ─── Patient: Coupons & Discounts ──────────────────────────────────────
+    Route::post('/coupons/validate', [\App\Http\Controllers\Api\CouponController::class, 'validateCoupon']);
+
+    // ─── Patient: Support & Tickets ─────────────────────────────────────────
+    Route::get('/support-tickets', [\App\Http\Controllers\Api\SupportTicketController::class, 'index']);
+    Route::post('/support-tickets', [\App\Http\Controllers\Api\SupportTicketController::class, 'store']);
+    Route::get('/support-tickets/{id}', [\App\Http\Controllers\Api\SupportTicketController::class, 'show']);
+    Route::post('/support-tickets/{id}/reply', [\App\Http\Controllers\Api\SupportTicketController::class, 'reply']);
+
+    // ─── Patient: Comprehensive EMR ─────────────────────────────────────────
+    Route::get('/patient/emr', [\App\Http\Controllers\Api\PatientEmrController::class, 'show']);
+    Route::post('/patient/emr', [\App\Http\Controllers\Api\PatientEmrController::class, 'update']);
+    Route::get('/patients/{id}/emr', [\App\Http\Controllers\Api\PatientEmrController::class, 'patientEmr']);
+
+    // ─── Patient: Loyalty Program & Points ──────────────────────────────────
+    Route::get('/loyalty/balance', [\App\Http\Controllers\Api\LoyaltyController::class, 'balance']);
+    Route::get('/loyalty/history', [\App\Http\Controllers\Api\LoyaltyController::class, 'history']);
+    Route::post('/loyalty/redeem', [\App\Http\Controllers\Api\LoyaltyController::class, 'redeem']);
+
+    // ─── Staff / Nurse Schedule & Collision Check ───────────────────────────
+    Route::get('/nurse/schedule', [\App\Http\Controllers\Api\NurseScheduleApiController::class, 'getSchedule']);
+    Route::post('/nurse/schedule', [\App\Http\Controllers\Api\NurseScheduleApiController::class, 'updateSchedule']);
+    Route::post('/nurse/check-collision', [\App\Http\Controllers\Api\NurseScheduleApiController::class, 'checkCollision']);
+
     // ─── Doctor: Dashboard API ─────────────────────────────────────────────
     Route::middleware([\App\Http\Middleware\IsDoctor::class])->prefix('doctor')->group(function () {
         Route::get('/profile', [DoctorController::class, 'profile']);
@@ -294,6 +318,48 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::patch('/users/{id}/block', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'block']);
             Route::patch('/users/{id}/unblock', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'unblock']);
         });
+
+        // ─── Coupons Management ───────────────────────────────────────────
+        Route::get('/coupons', [\App\Http\Controllers\Api\Admin\CouponController::class, 'index']);
+        Route::post('/coupons', [\App\Http\Controllers\Api\Admin\CouponController::class, 'store']);
+        Route::put('/coupons/{id}', [\App\Http\Controllers\Api\Admin\CouponController::class, 'update']);
+        Route::patch('/coupons/{id}/toggle', [\App\Http\Controllers\Api\Admin\CouponController::class, 'toggleStatus']);
+        Route::delete('/coupons/{id}', [\App\Http\Controllers\Api\Admin\CouponController::class, 'destroy']);
+
+        // ─── Support Tickets Management ───────────────────────────────────
+        Route::get('/tickets', [\App\Http\Controllers\Api\Admin\AdminTicketController::class, 'index']);
+        Route::get('/tickets/{id}', [\App\Http\Controllers\Api\Admin\AdminTicketController::class, 'show']);
+        Route::post('/tickets/{id}/reply', [\App\Http\Controllers\Api\Admin\AdminTicketController::class, 'reply']);
+        Route::patch('/tickets/{id}/status', [\App\Http\Controllers\Api\Admin\AdminTicketController::class, 'updateStatus']);
+        Route::delete('/tickets/{id}', [\App\Http\Controllers\Api\Admin\AdminTicketController::class, 'destroy']);
+
+        // ─── Commission Management ─────────────────────────────────────────
+        Route::get('/commission/settings', [\App\Http\Controllers\Api\Admin\CommissionController::class, 'settings']);
+        Route::post('/commission/settings', [\App\Http\Controllers\Api\Admin\CommissionController::class, 'updateSettings']);
+        Route::get('/commission/summary', [\App\Http\Controllers\Api\Admin\CommissionController::class, 'summary']);
+
+        // ─── Expenses & Budget Management ──────────────────────────────────
+        Route::get('/expenses', [\App\Http\Controllers\Api\Admin\AdminExpenseController::class, 'index']);
+        Route::post('/expenses', [\App\Http\Controllers\Api\Admin\AdminExpenseController::class, 'store']);
+        Route::put('/expenses/{id}', [\App\Http\Controllers\Api\Admin\AdminExpenseController::class, 'update']);
+        Route::delete('/expenses/{id}', [\App\Http\Controllers\Api\Admin\AdminExpenseController::class, 'destroy']);
+        Route::get('/expenses/summary', [\App\Http\Controllers\Api\Admin\AdminExpenseController::class, 'summary']);
+
+        // ─── Lab Results Monitor ───────────────────────────────────────────
+        Route::get('/lab-results', [\App\Http\Controllers\Api\Admin\AdminLabResultController::class, 'index']);
+        Route::get('/lab-results/{id}', [\App\Http\Controllers\Api\Admin\AdminLabResultController::class, 'show']);
+        Route::patch('/lab-results/{id}/verify', [\App\Http\Controllers\Api\Admin\AdminLabResultController::class, 'verify']);
+
+        // ─── Loyalty Program Admin ─────────────────────────────────────────
+        Route::get('/loyalty/stats', [\App\Http\Controllers\Api\Admin\AdminLoyaltyController::class, 'stats']);
+        Route::post('/loyalty/settings', [\App\Http\Controllers\Api\Admin\AdminLoyaltyController::class, 'updateSettings']);
+
+        // ─── Advanced Analytics & Categories ───────────────────────────────
+        Route::get('/analytics/overview', [\App\Http\Controllers\Api\Admin\AdminAnalyticsController::class, 'overview']);
+
+        // ─── Report Branding & Settings ────────────────────────────────────
+        Route::get('/report-settings', [\App\Http\Controllers\Api\Admin\ReportSettingsController::class, 'index']);
+        Route::post('/report-settings', [\App\Http\Controllers\Api\Admin\ReportSettingsController::class, 'update']);
 
         Route::middleware('permission:manage_staff')
             ->post('/add-admin', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'storeAdmin']);

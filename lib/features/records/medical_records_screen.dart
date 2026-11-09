@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
+import 'patient_emr_screen.dart';
 
 class MedicalRecordsScreen extends StatefulWidget {
   final bool showBackButton;
@@ -110,6 +111,62 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ── Comprehensive Patient EMR Quick Action ──
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PatientEmrScreen()),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(18),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0284C7), Color(0xFF0369A1)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            const CircleAvatar(
+                              backgroundColor: Colors.white24,
+                              child: Icon(Iconsax.health, color: Colors.white),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'comprehensive_emr'.tr(),
+                                    style: _kStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'مێژووی نەخۆشی، هەستیاری (Allergies)، نەشتەرگەری و دەرمانەکانت',
+                                    style: _kStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.85)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 14),
+                          ],
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 50.ms),
+                    const SizedBox(height: 20),
+
                     // ── Folders Section (Symmetrical 3 Columns) ──
                     Text(
                       'بەشە پزیشکییەکان',

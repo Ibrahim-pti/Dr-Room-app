@@ -15,7 +15,12 @@ class CheckoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> processPayment(CartProvider cart, {String? transactionReference}) async {
+  Future<String?> processPayment(
+    CartProvider cart, {
+    String? transactionReference,
+    String? couponCode,
+    double discountAmount = 0.0,
+  }) async {
     _isProcessing = true;
     notifyListeners();
 
@@ -48,12 +53,16 @@ class CheckoutProvider extends ChangeNotifier {
         patientDetails['prescription_path'] = prescriptionPath;
       }
 
+      final effectiveTotal = (cart.total - discountAmount) < 0.0 ? 0.0 : (cart.total - discountAmount);
+
       final Map<String, dynamic> payload = {
         'service_type': cart.serviceType ?? 'General',
         'subtotal': cart.subtotal,
         'extra_fee': cart.extraFee,
         'service_fee': cart.serviceFee,
-        'total_price': cart.total,
+        'coupon_code': couponCode,
+        'discount_amount': discountAmount,
+        'total_price': effectiveTotal,
         'payment_method': _selectedPaymentMethod,
         'transaction_reference': transactionReference,
         'payment_status': transactionReference != null ? 'paid' : 'pending',

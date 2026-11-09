@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'name_en', 'name_ar', 'name_kmr', 'email', 'phone', 'password', 'role', 'status', 'profile_image', 'otp_code', 'otp_expires_at', 'permissions', 'last_login_at'])]
+#[Fillable(['name', 'name_en', 'name_ar', 'name_kmr', 'email', 'phone', 'password', 'role', 'status', 'loyalty_points', 'profile_image', 'otp_code', 'otp_expires_at', 'permissions', 'last_login_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -175,5 +175,20 @@ class User extends Authenticatable
     public function assignedLabOrders()
     {
         return $this->hasMany(Order::class, 'assigned_lab_id');
+    }
+
+    public function emrRecord()
+    {
+        return $this->hasOne(PatientEmrRecord::class, 'patient_id');
+    }
+
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class, 'user_id');
+    }
+
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyTransaction::class, 'user_id');
     }
 }

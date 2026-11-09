@@ -14,6 +14,14 @@ import 'admin_notifications_screen.dart';
 import 'admin_emergency_screen.dart';
 import 'admin_app_bar.dart';
 import 'admin_service_fee_screen.dart';
+import 'admin_coupons_screen.dart';
+import 'admin_tickets_screen.dart';
+import 'admin_commission_screen.dart';
+import 'admin_expenses_screen.dart';
+import 'admin_lab_results_screen.dart';
+import 'admin_analytics_screen.dart';
+import 'admin_staff_schedule_screen.dart';
+import 'admin_report_settings_screen.dart';
 
 class AdminMenuScreen extends StatefulWidget {
   const AdminMenuScreen({super.key});
@@ -112,6 +120,80 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'icon': Iconsax.receipt_item,
             'color': const Color(0xFF2563EB),
             'screen': const AdminServiceFeeScreen(),
+          },
+          {
+            'title': 'کۆدەکانی داشکاندن (Coupons)',
+            'permission': AdminPermissions.manageContent,
+            'subtitle': 'دروستکردن و بەڕێوەبردنی کۆدی داشکاندن',
+            'icon': Iconsax.ticket_discount,
+            'color': const Color(0xFF6366F1),
+            'screen': const AdminCouponsScreen(),
+          },
+          {
+            'title': 'سیستەمی کۆمیشن (Commission)',
+            'permission': AdminPermissions.viewPayments,
+            'subtitle': 'دیاریکردنی ڕێژەی قازانج و پشکی تاقیگە و پەرستار',
+            'icon': Iconsax.percentage_square,
+            'color': const Color(0xFF10B981),
+            'screen': const AdminCommissionScreen(),
+          },
+          {
+            'title': 'دیزاین و لۆگۆی ڕاپۆرتەکان',
+            'permission': AdminPermissions.manageContent,
+            'subtitle': 'ڕێکخستنی سەرپەڕە، لۆگۆ و مۆری فەرمی ئەنجامەکان',
+            'icon': Iconsax.document_filter,
+            'color': const Color(0xFF0284C7),
+            'screen': const AdminReportSettingsScreen(),
+          },
+        ],
+      },
+      {
+        'sectionTitle': 'پشتیوانی، پشکنین و دەوامی ستاف',
+        'items': [
+          {
+            'title': 'سکاڵا و پشتیوانی (Support & Tickets)',
+            'permission': null,
+            'subtitle': 'وەڵامدانەوەی نامە و کێشەی نەخۆشەکان',
+            'icon': Iconsax.message_question,
+            'color': const Color(0xFFEC4899),
+            'screen': const AdminTicketsScreen(),
+          },
+          {
+            'title': 'چاودێری ئەنجامی پشکنینەکان',
+            'permission': AdminPermissions.manageOrders,
+            'subtitle': 'دڵنیابوونەوە لە ناردنی فایلی PDF بۆ نەخۆش',
+            'icon': Iconsax.document_text,
+            'color': const Color(0xFF0284C7),
+            'screen': const AdminLabResultsScreen(),
+          },
+          {
+            'title': 'خشتەی دەوامی ستاف و پەرستاران',
+            'permission': AdminPermissions.manageProviders,
+            'subtitle': 'ڕێکخستنی کاتە بەتاڵەکان و ڕێگری لە تێکەڵبوونی کات',
+            'icon': Iconsax.calendar_tick,
+            'color': const Color(0xFF0D9488),
+            'screen': const AdminStaffScheduleScreen(),
+          },
+        ],
+      },
+      {
+        'sectionTitle': 'دارایی، بودجە و ئامارەکان',
+        'items': [
+          {
+            'title': 'بودجە و خەرجییەکان (Expenses)',
+            'permission': AdminPermissions.viewPayments,
+            'subtitle': 'پۆلێنکردنی خەرجییەکان و قازانجی پوخت',
+            'icon': Iconsax.moneys,
+            'color': const Color(0xFFF97316),
+            'screen': const AdminExpensesScreen(),
+          },
+          {
+            'title': 'ئامار و ڕاپۆرتە پێشکەوتووەکان',
+            'permission': AdminPermissions.viewPayments,
+            'subtitle': 'زۆرترین پشکنین، باشترین پەرستار و ئاستی گەشەکردن',
+            'icon': Iconsax.chart_2,
+            'color': const Color(0xFF8B5CF6),
+            'screen': const AdminAnalyticsScreen(),
           },
         ],
       },

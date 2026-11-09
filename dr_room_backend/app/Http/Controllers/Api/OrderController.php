@@ -117,12 +117,39 @@ class OrderController extends Controller
                 $patientDetails['is_prescription'] = true;
             }
 
+            // Coupon & Commission Calculations
+            $couponCode = $request->coupon_code ? strtoupper(trim($request->coupon_code)) : null;
+            $discountAmount = (float) ($request->discount_amount ?? 0);
+            if ($couponCode) {
+                $coupon = \App\Models\Coupon::where('code', $couponCode)->first();
+                if ($coupon) {
+                    $coupon->increment('used_count');
+                }
+            }
+
+            $serviceType = strtolower($request->service_type ?? '');
+            $commRate = 10.0;
+            if (str_contains($serviceType, 'lab')) {
+                $commRate = (float) \App\Models\AppSetting::get('commission_lab_rate', 15);
+            } elseif (str_contains($serviceType, 'pharmacy') || str_contains($serviceType, 'medication')) {
+                $commRate = (float) \App\Models\AppSetting::get('commission_pharmacy_rate', 5);
+            } elseif (str_contains($serviceType, 'nurse') || str_contains($serviceType, 'nursing')) {
+                $commRate = (float) \App\Models\AppSetting::get('commission_nursing_rate', 10);
+            }
+            $commAmount = round(($request->total_price * $commRate) / 100, 2);
+            $providerNetAmount = round(max(0, $request->total_price - $commAmount), 2);
+
             $order = Order::create([
                 'patient_id' => Auth::id(),
                 'service_type' => $request->service_type,
                 'subtotal' => $request->subtotal,
                 'extra_fee' => $request->extra_fee,
                 'total_price' => $request->total_price,
+                'coupon_code' => $couponCode,
+                'discount_amount' => $discountAmount,
+                'commission_rate' => $commRate,
+                'commission_amount' => $commAmount,
+                'provider_net_amount' => $providerNetAmount,
                 'status' => 'pending',
                 'payment_method' => $request->payment_method,
                 'assigned_pharmacy_id' => $assignedPharmacyId,

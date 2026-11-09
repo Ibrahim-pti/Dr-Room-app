@@ -18,6 +18,9 @@ import '../doctors/favorite_doctors_screen.dart';
 import '../records/medical_records_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../admin/admin_dashboard_shell.dart';
+import 'patient_loyalty_screen.dart';
+import 'patient_support_tickets_screen.dart';
+import '../records/patient_emr_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -486,6 +489,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         // The three below belong with the patient's own
                         // account rather than in the menu drawer, which is
                         // where they used to sit (or, for payments, nowhere).
+                        _buildDivider(context),
+                        _buildListItem(
+                          context,
+                          icon: Iconsax.medal_star,
+                          title: 'loyalty_program'.tr(),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const PatientLoyaltyScreen(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        _buildDivider(context),
+                        _buildListItem(
+                          context,
+                          icon: Iconsax.health,
+                          title: 'comprehensive_emr'.tr(),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const PatientEmrScreen(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        _buildDivider(context),
+                        _buildListItem(
+                          context,
+                          icon: Iconsax.message_question,
+                          title: 'my_tickets'.tr(),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const PatientSupportTicketsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+
                         _buildDivider(context),
                         _buildListItem(
                           context,
