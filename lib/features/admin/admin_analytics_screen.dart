@@ -72,6 +72,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
         icon: Iconsax.chart_2,
         iconColor: const Color(0xFF8B5CF6),
         iconBackgroundColor: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+        showBackButton: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

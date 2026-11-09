@@ -208,6 +208,10 @@ class _PatientSupportTicketsScreenState extends State<PatientSupportTicketsScree
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text('my_tickets'.tr(), style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,

@@ -107,6 +107,10 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text('comprehensive_emr'.tr(), style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -174,7 +178,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                         DropdownButtonFormField<String>(
                           initialValue: _bloodType,
                           decoration: InputDecoration(
-                            labelText: 'گروپی خوێن (Blood Type)',
+                            labelText: 'گروپی خوێن',
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           items: const ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']

@@ -120,13 +120,14 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
         title: 'کەتەگۆرییەکان',
         subtitle: 'بەڕێوەبردنی هەموو لیستەکانی ئەپ',
         icon: Iconsax.category,
         iconColor: const Color(0xFF0D9488),
         iconBackgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
+        showBackButton: true,
         actions: [
           ElevatedButton.icon(
             onPressed: () => _openForm(),

@@ -65,11 +65,12 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
         });
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = '$e';
           _isLoading = false;
         });
+      }
     }
   }
 
@@ -141,15 +142,18 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
         _load();
       } else {
         final msg = jsonDecode(res.body)['message'] ?? 'هەڵە ڕوویدا';
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(msg, style: const TextStyle(fontFamily: 'Rabar')),
             ),
           );
+        }
       }
     } catch (_) {}
-    if (mounted) setState(() => _isRedeeming = false);
+    if (mounted) {
+      setState(() => _isRedeeming = false);
+    }
   }
 
   void _showSuccessCouponDialog(String code, int value) {
@@ -249,6 +253,10 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           'loyalty_program'.tr(),
           style: const TextStyle(

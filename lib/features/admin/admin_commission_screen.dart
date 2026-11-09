@@ -112,6 +112,7 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
         icon: Iconsax.percentage_square,
         iconColor: const Color(0xFF10B981),
         iconBackgroundColor: const Color(0xFF10B981).withValues(alpha: 0.1),
+        showBackButton: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -169,13 +170,13 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
                             ),
                             const SizedBox(height: 16),
 
-                            _buildRateRow('پەرستاری ماڵەوە (Nursing)', _nursingRateCtrl),
+                            _buildRateRow('پەرستاری ماڵەوە', _nursingRateCtrl),
                             const Divider(height: 20),
-                            _buildRateRow('تاقیگەکان (Labs)', _labRateCtrl),
+                            _buildRateRow('تاقیگەکان', _labRateCtrl),
                             const Divider(height: 20),
-                            _buildRateRow('دەرمانخانەکان (Pharmacies)', _pharmacyRateCtrl),
+                            _buildRateRow('دەرمانخانەکان', _pharmacyRateCtrl),
                             const Divider(height: 20),
-                            _buildRateRow('کلینیک و پزیشکان (Doctors)', _doctorRateCtrl),
+                            _buildRateRow('کلینیک و پزیشکان', _doctorRateCtrl),
                             const SizedBox(height: 16),
 
                             ElevatedButton(

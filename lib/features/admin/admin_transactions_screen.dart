@@ -122,6 +122,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
         icon: Iconsax.wallet_3,
         iconColor: const Color(0xFF059669),
         iconBackgroundColor: const Color(0xFFECFDF5),
+        showBackButton: true,
       ),
       body: AdminUi.body(
         isLoading: _isLoading,

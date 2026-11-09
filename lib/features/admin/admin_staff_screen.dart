@@ -85,13 +85,14 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
         title: 'ستاف و دەسەڵاتەکان',
         subtitle: '${_staff.length} هەژماری ستاف',
         icon: Iconsax.security_user,
         iconColor: const Color(0xFF4F46E5),
         iconBackgroundColor: const Color(0xFFEEF2FF),
+        showBackButton: true,
         actions: [
           AdminUi.primaryAction(
             label: 'ستافی نوێ',

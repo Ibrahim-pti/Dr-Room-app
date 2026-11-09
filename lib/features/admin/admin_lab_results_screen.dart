@@ -89,6 +89,7 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
         icon: Iconsax.document_text,
         iconColor: const Color(0xFF0284C7),
         iconBackgroundColor: const Color(0xFF0284C7).withValues(alpha: 0.1),
+        showBackButton: true,
       ),
       body: Column(
         children: [

@@ -82,7 +82,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'screen': const AdminBannersScreen(),
           },
           {
-            'title': 'ئاگاداری گشتی (Push Notification)',
+            'title': 'ئاگاداری گشتی',
             'permission': AdminPermissions.manageContent,
             'subtitle': 'ناردنی پەیام بۆ هەموو بەکارهێنەران',
             'icon': Iconsax.notification_bing,
@@ -114,7 +114,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'screen': const AdminTransactionsScreen(),
           },
           {
-            'title': 'کرێی خزمەتگوزاری (Service Fee)',
+            'title': 'کرێی خزمەتگوزاری',
             'permission': AdminPermissions.manageContent,
             'subtitle': 'دیاریکردنی کرێی داواکارییەکان یان کردنی بە خۆڕایی',
             'icon': Iconsax.receipt_item,
@@ -122,7 +122,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'screen': const AdminServiceFeeScreen(),
           },
           {
-            'title': 'کۆدەکانی داشکاندن (Coupons)',
+            'title': 'کۆدەکانی داشکاندن',
             'permission': AdminPermissions.manageContent,
             'subtitle': 'دروستکردن و بەڕێوەبردنی کۆدی داشکاندن',
             'icon': Iconsax.ticket_discount,
@@ -130,7 +130,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'screen': const AdminCouponsScreen(),
           },
           {
-            'title': 'سیستەمی کۆمیشن (Commission)',
+            'title': 'سیستەمی کۆمیشن',
             'permission': AdminPermissions.viewPayments,
             'subtitle': 'دیاریکردنی ڕێژەی قازانج و پشکی تاقیگە و پەرستار',
             'icon': Iconsax.percentage_square,
@@ -151,7 +151,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         'sectionTitle': 'پشتیوانی، پشکنین و دەوامی ستاف',
         'items': [
           {
-            'title': 'سکاڵا و پشتیوانی (Support & Tickets)',
+            'title': 'سکاڵا و پشتیوانی',
             'permission': null,
             'subtitle': 'وەڵامدانەوەی نامە و کێشەی نەخۆشەکان',
             'icon': Iconsax.message_question,
@@ -180,7 +180,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         'sectionTitle': 'دارایی، بودجە و ئامارەکان',
         'items': [
           {
-            'title': 'بودجە و خەرجییەکان (Expenses)',
+            'title': 'بودجە و خەرجییەکان',
             'permission': AdminPermissions.viewPayments,
             'subtitle': 'پۆلێنکردنی خەرجییەکان و قازانجی پوخت',
             'icon': Iconsax.moneys,
@@ -236,6 +236,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         icon: Iconsax.setting_2,
         iconColor: AppColors.primary,
         iconBackgroundColor: AppColors.primary.withValues(alpha: 0.1),
+        showBackButton: false,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

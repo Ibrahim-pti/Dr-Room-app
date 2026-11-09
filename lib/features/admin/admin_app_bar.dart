@@ -12,7 +12,7 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? titleFontFamily;
   final TextStyle? titleStyle;
   final Widget? titleWidget;
-  final bool showBackButton;
+  final bool? showBackButton;
 
   const AdminAppBar({
     super.key,
@@ -26,12 +26,12 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.titleFontFamily,
     this.titleStyle,
     this.titleWidget,
-    this.showBackButton = false,
+    this.showBackButton,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool canPop = showBackButton;
+    final bool canPop = showBackButton ?? Navigator.canPop(context);
 
     return Container(
       padding: EdgeInsets.only(

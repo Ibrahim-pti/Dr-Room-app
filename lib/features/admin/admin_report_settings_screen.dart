@@ -95,6 +95,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
         icon: Iconsax.document_filter,
         iconColor: const Color(0xFF6366F1),
         iconBackgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.1),
+        showBackButton: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

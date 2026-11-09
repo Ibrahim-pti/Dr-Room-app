@@ -153,13 +153,14 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
     final hiddenCount = _reviews.where((r) => r['is_hidden'] == true).length;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
         title: 'هەڵسەنگاندنەکان',
         subtitle: '${_reviews.length} هەڵسەنگاندن · $hiddenCount شاردراوە',
         icon: Iconsax.star,
         iconColor: const Color(0xFFD97706),
         iconBackgroundColor: const Color(0xFFFFFBEB),
+        showBackButton: true,
       ),
       body: Column(
         children: [

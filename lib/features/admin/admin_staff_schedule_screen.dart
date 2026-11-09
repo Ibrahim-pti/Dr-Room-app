@@ -144,6 +144,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         icon: Iconsax.calendar_tick,
         iconColor: const Color(0xFF0D9488),
         iconBackgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
+        showBackButton: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

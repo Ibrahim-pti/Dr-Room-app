@@ -83,13 +83,14 @@ class _AdminActivityLogScreenState extends State<AdminActivityLogScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
         title: 'تۆماری چالاکی',
         subtitle: 'کێ چی گۆڕی و کەی',
         icon: Iconsax.document_text,
         iconColor: const Color(0xFF64748B),
         iconBackgroundColor: const Color(0xFFF1F5F9),
+        showBackButton: true,
       ),
       body: Column(
         children: [

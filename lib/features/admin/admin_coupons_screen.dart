@@ -210,6 +210,7 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen> {
         icon: Iconsax.ticket_discount,
         iconColor: const Color(0xFF6366F1),
         iconBackgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.1),
+        showBackButton: true,
         actions: [
           IconButton(
             onPressed: () => _openAddEditDialog(),

@@ -642,7 +642,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminTransactionsScreen(),
       },
       {
-        'title': 'ئاگاداری گشتی (Push Notification)',
+        'title': 'ئاگاداری گشتی',
         'subtitle': 'ناردنی پەیامی ڕاستەوخۆ بۆ بەکارهێنەران',
         'icon': Iconsax.notification_bing,
         'color': const Color(0xFFD97706),

@@ -105,6 +105,7 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
         icon: Iconsax.message_question,
         iconColor: const Color(0xFFEC4899),
         iconBackgroundColor: const Color(0xFFEC4899).withValues(alpha: 0.1),
+        showBackButton: true,
       ),
       body: Column(
         children: [

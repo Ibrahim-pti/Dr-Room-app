@@ -106,6 +106,7 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
         icon: Iconsax.health,
         iconColor: const Color(0xFF3B82F6),
         iconBackgroundColor: const Color(0xFFEFF6FF),
+        showBackButton: true,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
