@@ -43,7 +43,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
         });
       } else {
         setState(() {
-          _error = 'کێشە لە بارکردنی ئامارەکان ڕوویدا';
+          _error = AdminUi.readError(res);
           _isLoading = false;
         });
       }
@@ -77,7 +77,30 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: AdminUi.subtitle))
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Iconsax.info_circle, size: 48, color: Colors.amber),
+                        const SizedBox(height: 12),
+                        Text(_error!, style: AdminUi.subtitle, textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _load,
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: const Text('دووبارە هەوڵبدەرەوە', style: TextStyle(fontFamily: 'Rabar')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF8B5CF6),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               : RefreshIndicator(
                   onRefresh: _load,
                   child: SingleChildScrollView(
