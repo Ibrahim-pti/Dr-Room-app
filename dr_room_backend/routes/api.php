@@ -312,13 +312,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
         });
 
-        // Users
+        // Users & Patients Management
         Route::middleware('permission:manage_users')->group(function () {
             Route::get('/users', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'index']);
             Route::put('/users/{id}', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'update']);
             Route::delete('/users/{id}', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'destroy']);
             Route::patch('/users/{id}/block', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'block']);
             Route::patch('/users/{id}/unblock', [\App\Http\Controllers\Api\Admin\AdminUserController::class, 'unblock']);
+
+            // Patient Management (بەڕێوەبردنی نەخۆشەکان)
+            Route::get('/patients', [\App\Http\Controllers\Api\Admin\AdminPatientController::class, 'index']);
+            Route::get('/patients/{id}', [\App\Http\Controllers\Api\Admin\AdminPatientController::class, 'show']);
+            Route::post('/patients/{id}/notify', [\App\Http\Controllers\Api\Admin\AdminPatientController::class, 'notify']);
+            Route::patch('/patients/{id}/toggle-block', [\App\Http\Controllers\Api\Admin\AdminPatientController::class, 'toggleBlock']);
         });
 
         // ─── Coupons Management ───────────────────────────────────────────

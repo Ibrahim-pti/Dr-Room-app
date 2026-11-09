@@ -17,6 +17,7 @@ import 'admin_expenses_screen.dart';
 import 'admin_lab_results_screen.dart';
 import 'admin_staff_schedule_screen.dart';
 import 'admin_report_settings_screen.dart';
+import 'admin_patients_screen.dart';
 import 'admin_staff_screen.dart';
 import 'admin_activity_log_screen.dart';
 
@@ -157,6 +158,14 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
       {
         'sectionTitle': 'ئەدمین، ستاف و پاراستن',
         'items': [
+          {
+            'title': 'بەڕێوەبردنی نەخۆشەکان',
+            'permission': AdminPermissions.manageUsers,
+            'subtitle': 'دۆسیەی پزیشکی، لۆکەیشن، بلۆککردن و نۆتیفیکەیشن',
+            'icon': Iconsax.profile_2user,
+            'color': const Color(0xFF0D9488),
+            'screen': const AdminPatientsScreen(),
+          },
           {
             'title': 'ستاف و بەڕێوەبەران',
             'permission': AdminPermissions.manageStaff,

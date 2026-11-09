@@ -16,10 +16,10 @@ import 'admin_labs_screen.dart';
 import 'admin_notifications_screen.dart';
 import 'admin_nurses_screen.dart';
 import 'admin_orders_screen.dart';
+import 'admin_patients_screen.dart';
 import 'admin_pharmacies_screen.dart';
 import 'admin_tickets_screen.dart';
 import 'admin_transactions_screen.dart';
-import 'admin_users_screen.dart';
 import 'admin_xrays_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -375,15 +375,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     ).animate().fadeIn().slideY(begin: 0.05, end: 0);
   }
 
-  // ── 2. Key Stats Cards (Large & Prominent) ──
+  // ── 2. Key Stats Cards (3 Pillars: Patients, Orders, Providers) ──
   Widget _buildKeyStatsGrid() {
+    final totalPatients = '${_stats?['total_users'] ?? 0}';
     final totalOrders = '${_stats?['total_orders'] ?? 0}';
-    final totalNurses = '${_stats?['total_nurses'] ?? 0}';
-    final totalLabs = '${_stats?['total_labs'] ?? 0}';
-    final totalPharmacies = '${_stats?['total_pharmacies'] ?? 0}';
+    final totalNurses = int.tryParse('${_stats?['total_nurses'] ?? 0}') ?? 0;
+    final totalLabs = int.tryParse('${_stats?['total_labs'] ?? 0}') ?? 0;
+    final totalPharmacies = int.tryParse('${_stats?['total_pharmacies'] ?? 0}') ?? 0;
+    final totalProviders = '${totalLabs + totalPharmacies + totalNurses}';
 
     return Row(
       children: [
+        Expanded(
+          child: _buildBigStatCard(
+            title: 'نەخۆشەکان',
+            value: totalPatients,
+            subtitle: 'بەکارهێنەرانی ئەپ',
+            icon: Iconsax.profile_2user,
+            color: const Color(0xFF0D9488),
+            onTap: () => _openScreen(const AdminPatientsScreen()),
+          ),
+        ),
+        const SizedBox(width: 8),
         Expanded(
           child: _buildBigStatCard(
             title: 'داواکارییەکان',
@@ -391,19 +404,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             subtitle: 'کۆی ئۆردەرەکان',
             icon: Iconsax.box,
             color: const Color(0xFFF59E0B),
-            bgGradient: [const Color(0xFFFFFBEB), const Color(0xFFFEF3C7)],
             onTap: () => _openScreen(const AdminOrdersScreen()),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(
           child: _buildBigStatCard(
             title: 'دابینکەران',
-            value: '${int.parse(totalLabs) + int.parse(totalPharmacies) + int.parse(totalNurses)}',
-            subtitle: 'تاقیگە، دەرمان، پەرستار',
+            value: totalProviders,
+            subtitle: 'تاقیگە، دەرمان، ستاف',
             icon: Iconsax.health,
             color: const Color(0xFF2563EB),
-            bgGradient: [const Color(0xFFEFF6FF), const Color(0xFFDBEAFE)],
             onTap: () => _openScreen(const AdminPharmaciesScreen()),
           ),
         ),
@@ -417,25 +428,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     required String subtitle,
     required IconData icon,
     required Color color,
-    required List<Color> bgGradient,
     required VoidCallback onTap,
   }) {
     return Material(
       color: AppColors.getSurface(context),
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppColors.getBorder(context)),
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: 0.06),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: color.withValues(alpha: 0.05),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -446,41 +456,43 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(icon, color: color, size: 22),
+                    child: Icon(icon, color: color, size: 18),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, size: 13, color: AppColors.getTextSubtitle(context)),
+                  Icon(Icons.arrow_forward_ios_rounded, size: 11, color: AppColors.getTextSubtitle(context)),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
               Text(
                 value,
                 style: GoogleFonts.poppins(
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: AppColors.getTextTitle(context),
                   height: 1,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Text(
                 title,
                 style: TextStyle(
                   fontFamily: 'Rabar',
-                  fontSize: 14.5,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.bold,
                   color: AppColors.getTextTitle(context),
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               Text(
                 subtitle,
                 style: TextStyle(
                   fontFamily: 'Rabar',
-                  fontSize: 11.5,
+                  fontSize: 10,
                   color: AppColors.getTextSubtitle(context),
                 ),
                 maxLines: 1,
@@ -570,13 +582,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminPharmaciesScreen(),
       },
       {
-        'title': 'بەکارهێنەران',
-        'subtitle': '$totalUsers نەخۆش و یوزەر',
-        'icon': Iconsax.people,
-        'color': const Color(0xFF6366F1),
-        'bg': const Color(0xFFEEF2FF),
+        'title': 'نەخۆشەکان',
+        'subtitle': '$totalUsers نەخۆش و بەکارهێنەر',
+        'icon': Iconsax.profile_2user,
+        'color': const Color(0xFF0D9488),
+        'bg': const Color(0xFFF0FDFA),
         'badge': null,
-        'screen': const AdminUsersScreen(),
+        'screen': const AdminPatientsScreen(),
       },
       {
         'title': 'کۆدەکانی داشکاندن',
