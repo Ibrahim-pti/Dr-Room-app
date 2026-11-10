@@ -73,6 +73,8 @@ class PharmacyOrderController extends Controller
                 } catch (\Throwable $e) {}
             }
 
+            \App\Services\OrderNotificationService::notifyStatusChanged($order, 'accepted');
+
             return back()->with('success', 'داواکارییەکە بە سەرکەوتوویی وەرگیرا.');
         }
 
@@ -83,6 +85,12 @@ class PharmacyOrderController extends Controller
 
         $order->status = $request->status;
         $order->save();
+
+        if ($order->assigned_driver_id && in_array($request->status, ['completed', 'cancelled'], true)) {
+            \App\Models\Driver::syncDutyStatusForUser((int) $order->assigned_driver_id);
+        }
+
+        \App\Services\OrderNotificationService::notifyStatusChanged($order, $request->status);
 
         return back()->with('success', 'باری داواکارییەکە گۆڕدرا بۆ ' . $request->status);
     }

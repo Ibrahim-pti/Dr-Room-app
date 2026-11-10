@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AppNotification;
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
 class OrderNotificationService
@@ -28,7 +29,7 @@ class OrderNotificationService
         $messageAr = '';
         $messageEn = '';
 
-        if ($newStatus === 'processing' || $newStatus === 'accepted') {
+        if (in_array($newStatus, ['processing', 'accepted', 'approved', 'confirmed', 'in_progress'], true)) {
             $titleKu = 'داواکارییەکەت قبوڵکرا ✅';
             $titleAr = 'تم قبول طلبك بنجاح ✅';
             $titleEn = 'Your Order Has Been Accepted ✅';
@@ -332,6 +333,103 @@ class OrderNotificationService
             );
         } catch (\Throwable $e) {
             Log::error('Delivery stage notification failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send AppNotification rows and FCM pushes to a list of user IDs safely.
+     */
+    private static function sendBatch(array $userIds, array $payload, array $fcmData = []): void
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $userIds))));
+        if ($ids === []) {
+            return;
+        }
+
+        try {
+            foreach ($ids as $uid) {
+                AppNotification::create(array_merge($payload, ['user_id' => $uid]));
+            }
+            app(FcmService::class)->sendToUsers(
+                $ids,
+                (string) ($payload['title'] ?? ''),
+                (string) ($payload['message'] ?? ''),
+                $fcmData
+            );
+        } catch (\Throwable $e) {
+            Log::error('Batch notification failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notify patient, admins/staff, and any directly assigned provider when a new order is placed.
+     */
+    public static function notifyOrderCreated(Order $order): void
+    {
+        $serviceType = strtolower(trim((string) ($order->service_type ?? '')));
+        $orderNumber = '#' . $order->id;
+        $isPharm = str_contains($serviceType, 'pharmac') || str_contains($serviceType, 'medic') || str_contains($serviceType, 'دەرمان');
+        $isLab = str_contains($serviceType, 'lab') || str_contains($serviceType, 'تاقیگە');
+
+        $serviceKu = $isPharm ? 'دەرمانخانە' : ($isLab ? 'پشکنینی تاقیگە' : 'پەرستاری ماڵەوە');
+        $serviceAr = $isPharm ? 'الصيدلية' : ($isLab ? 'المختبر الطبي' : 'التمريض المنزلي');
+        $serviceEn = $isPharm ? 'Pharmacy Order' : ($isLab ? 'Lab Test Order' : 'Home Nursing');
+
+        // 1. Patient order receipt confirmation
+        if ($order->patient_id) {
+            self::sendBatch([$order->patient_id], [
+                'title'      => "داواکاری {$orderNumber} تۆمارکرا ✅",
+                'title_ar'   => "تم تسجيل الطلب {$orderNumber} ✅",
+                'title_en'   => "Order {$orderNumber} Placed ✅",
+                'message'    => "داواکارییەکەت ({$serviceKu}) بە سەرکەوتوویی گەیشت و کاری لەسەر دەکرێت.",
+                'message_ar' => "تم استلام طلبك ({$serviceAr}) بنجاح وجاري متابعته.",
+                'message_en' => "Your {$serviceEn} has been received successfully.",
+                'type'       => 'order_update',
+            ], [
+                'order_id'     => (string) $order->id,
+                'service_type' => $serviceType,
+                'type'         => 'order_created',
+            ]);
+        }
+
+        // 2. Admin & Staff alert
+        $adminIds = User::whereIn('role', ['admin', 'staff'])->pluck('id')->all();
+        $patientName = trim((string) ($order->patient?->name ?? ($order->patient_details['name'] ?? 'نەخۆش')));
+        $totalIqd = number_format((float) $order->total_price, 0);
+
+        self::sendBatch($adminIds, [
+            'title'      => "داواکاری نوێ {$orderNumber} ({$serviceKu}) 🛎️",
+            'title_ar'   => "طلب جديد {$orderNumber} ({$serviceAr}) 🛎️",
+            'title_en'   => "New {$serviceEn} {$orderNumber} 🛎️",
+            'message'    => "{$patientName} داواکارییەکی {$serviceKu} بە بڕی {$totalIqd} د.ع تۆمارکرد.",
+            'message_ar' => "سجل {$patientName} طلباً جديداً بقيمة {$totalIqd} د.ع.",
+            'message_en' => "{$patientName} placed a new {$serviceEn} totaling {$totalIqd} IQD.",
+            'type'       => 'admin_notice',
+        ], [
+            'order_id' => (string) $order->id,
+            'type'     => 'admin_new_order',
+        ]);
+
+        // 3. Assigned Provider (Pharmacy / Lab / Nurse) if selected at order creation
+        $providerIds = array_values(array_diff(array_filter([
+            $order->assigned_pharmacy_id,
+            $order->assigned_lab_id,
+            $order->assigned_nurse_id,
+        ]), $adminIds));
+
+        if ($providerIds !== []) {
+            self::sendBatch($providerIds, [
+                'title'      => "داواکارییەکی نوێت بۆ هات ({$orderNumber}) 📦",
+                'title_ar'   => "وصلك طلب جديد ({$orderNumber}) 📦",
+                'title_en'   => "New Order Received ({$orderNumber}) 📦",
+                'message'    => "نەخۆش {$patientName} داواکاری {$serviceKu}ـی ناردووە.",
+                'message_ar' => "أرسل المريض {$patientName} طلباً جديداً.",
+                'message_en' => "Patient {$patientName} submitted a new {$serviceEn}.",
+                'type'       => 'order_update',
+            ], [
+                'order_id' => (string) $order->id,
+                'type'     => 'provider_new_order',
+            ]);
         }
     }
 }

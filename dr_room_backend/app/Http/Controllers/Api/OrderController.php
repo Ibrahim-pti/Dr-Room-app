@@ -212,6 +212,9 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Notify patient, admins/staff, and any pre-assigned provider
+            \App\Services\OrderNotificationService::notifyOrderCreated($order);
+
             // Automatically dispatch eligible orders (Pharmacy / unassigned Lab pickup)
             // directly to the nearest available delivery driver without admin bottleneck.
             if ($order->needsDeliveryDriver()) {

@@ -56,6 +56,12 @@ class LabPatientController extends Controller
             'status' => $request->status,
         ]);
 
+        if ($order->assigned_driver_id && in_array($request->status, ['completed', 'cancelled'], true)) {
+            \App\Models\Driver::syncDutyStatusForUser((int) $order->assigned_driver_id);
+        }
+
+        \App\Services\OrderNotificationService::notifyStatusChanged($order, $request->status);
+
         return back()->with('success', 'بارودۆخی داواکارییەکە بە سەرکەوتوویی نوێکرایەوە.');
     }
 }

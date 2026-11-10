@@ -45,6 +45,8 @@ class NurseAppointmentController extends Controller
         $appointment->status = $request->status;
         $appointment->save();
 
+        \App\Services\OrderNotificationService::notifyStatusChanged($appointment, $request->status);
+
         return back()->with('success', 'دۆخی چاوپێکەوتنەکە نوێکرایەوە.');
     }
 
@@ -58,6 +60,8 @@ class NurseAppointmentController extends Controller
         $appointment->assigned_nurse_id = Auth::id();
         $appointment->status = 'processing'; // Auto processing when accepted
         $appointment->save();
+
+        \App\Services\OrderNotificationService::notifyStatusChanged($appointment, 'processing');
 
         return back()->with('success', 'داواکارییەکە بە سەرکەوتوویی وەرگیرا.');
     }
