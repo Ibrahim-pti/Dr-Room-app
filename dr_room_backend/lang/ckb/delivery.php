@@ -25,7 +25,7 @@ return [
     'phone_placeholder' => '0750 123 4567',
     'phone_hint' => 'هەر ئەم ژمارەیە بۆ چوونەژوورەوە لە ئەپی DrRoom بەکاردێت',
     'password' => 'وشەی تێپەڕ',
-    'password_placeholder' => 'لانیکەم ٦ پیت یان ژمارە',
+    'password_placeholder' => ' وشەی تێپەڕەکەت بنووسەرەوە',
     'password_confirm' => 'دووبارەکردنەوەی وشەی تێپەڕ',
     'password_confirm_placeholder' => 'وشەی تێپەڕەکە بنووسەرەوە',
     'city' => 'شار',
