@@ -142,7 +142,30 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                    ? Center(child: Text(_error!, style: AdminUi.subtitle))
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Iconsax.info_circle, size: 48, color: Colors.amber),
+                              const SizedBox(height: 12),
+                              Text(_error!, style: AdminUi.subtitle, textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: _load,
+                                icon: const Icon(Icons.refresh, size: 18),
+                                label: const Text('دووبارە هەوڵبدەرەوە', style: TextStyle(fontFamily: 'Rabar')),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
                     : _tickets.isEmpty
                         ? Center(
                             child: Column(
@@ -221,18 +244,25 @@ class _AdminTicketsScreenState extends State<AdminTicketsScreen> {
                                           children: [
                                             const Icon(Iconsax.user, size: 14, color: Color(0xFF94A3B8)),
                                             const SizedBox(width: 4),
-                                            Text(
-                                              user['name'] ?? 'نەخۆش',
-                                              style: AdminUi.subtitle.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
+                                            Expanded(
+                                              child: Text(
+                                                user['name'] ?? 'نەخۆش',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: AdminUi.subtitle.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
+                                              ),
                                             ),
-                                            const Spacer(),
+                                            const SizedBox(width: 8),
                                             const Icon(Iconsax.clock, size: 14, color: Color(0xFF94A3B8)),
                                             const SizedBox(width: 4),
-                                            Text(
-                                              t['created_at'] != null
-                                                  ? DateFormat('yyyy/MM/dd HH:mm').format(DateTime.parse(t['created_at']))
-                                                  : '',
-                                              style: AdminUi.subtitle.copyWith(fontSize: 11),
+                                            Builder(
+                                              builder: (_) {
+                                                final dt = DateTime.tryParse('${t['created_at'] ?? ''}');
+                                                return Text(
+                                                  dt != null ? DateFormat('yyyy/MM/dd HH:mm').format(dt) : '',
+                                                  style: AdminUi.subtitle.copyWith(fontSize: 11),
+                                                );
+                                              },
                                             ),
                                           ],
                                         ),
@@ -270,6 +300,12 @@ class _TicketDetailSheetState extends State<_TicketDetailSheet> {
   void initState() {
     super.initState();
     _fetch();
+  }
+
+  @override
+  void dispose() {
+    _replyCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _fetch() async {
@@ -317,13 +353,19 @@ class _TicketDetailSheetState extends State<_TicketDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(

@@ -13,7 +13,9 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $totalUsers = User::whereNotIn('role', ['admin', 'doctor', 'nurse', 'lab', 'pharmacy'])->count(); // patients
+        $totalUsers = User::where(function ($q) {
+            $q->whereNull('role')->orWhereNotIn('role', ['admin', 'staff', 'moderator', 'doctor', 'nurse', 'lab', 'pharmacy', 'xray']);
+        })->count(); // patients
         $totalDoctors = Doctor::count();
         $pendingDoctors = User::where('role', 'doctor')->where('status', 'pending')->count();
         

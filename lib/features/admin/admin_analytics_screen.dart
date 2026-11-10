@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
@@ -17,6 +17,7 @@ class AdminAnalyticsScreen extends StatefulWidget {
 
 class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
   bool _isLoading = true;
+  bool _isFallback = false;
   String? _error;
   Map<String, dynamic> _data = {};
 
@@ -29,6 +30,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
   Future<void> _load() async {
     setState(() {
       _isLoading = true;
+      _isFallback = false;
       _error = null;
     });
 
@@ -37,16 +39,56 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
       if (!mounted) return;
 
       if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
         setState(() {
-          _data = jsonDecode(res.body)['data'] ?? {};
+          _data = Map<String, dynamic>.from(decoded['data'] ?? {});
           _isLoading = false;
         });
-      } else {
-        setState(() {
-          _error = AdminUi.readError(res);
-          _isLoading = false;
-        });
+        return;
       }
+
+      // Fallback: derive basic monthly overview if analytics/overview endpoint
+      // is unavailable on an older server deployment.
+      try {
+        final fallbackResults = await Future.wait([
+          ApiClient.get('/admin/dashboard'),
+          ApiClient.get('/admin/transactions/summary'),
+        ]);
+        if (!mounted) return;
+
+        final dashRes = fallbackResults[0];
+        final txRes = fallbackResults[1];
+        if (dashRes.statusCode == 200) {
+          final dash = jsonDecode(dashRes.body) as Map;
+          final tx = txRes.statusCode == 200 ? (jsonDecode(txRes.body) as Map) : {};
+          final totalOrders = int.tryParse('${dash['total_orders'] ?? 0}') ?? 0;
+          final pendingOrders = int.tryParse('${dash['pending_orders'] ?? 0}') ?? 0;
+          final completedOrders = (totalOrders - pendingOrders).clamp(0, totalOrders);
+          final revenue = double.tryParse('${tx['this_month'] ?? tx['total_revenue'] ?? 0}') ?? 0.0;
+
+          setState(() {
+            _data = {
+              'monthly': {
+                'orders_count': totalOrders,
+                'completed_count': completedOrders,
+                'revenue': revenue,
+                'new_users': int.tryParse('${dash['total_users'] ?? 0}') ?? 0,
+              },
+              'top_tests': const [],
+              'top_nurses': const [],
+              'categories_distribution': const [],
+            };
+            _isFallback = true;
+            _isLoading = false;
+          });
+          return;
+        }
+      } catch (_) {}
+
+      setState(() {
+        _error = AdminUi.readError(res);
+        _isLoading = false;
+      });
     } catch (e) {
       if (mounted) setState(() { _error = '$e'; _isLoading = false; });
     }
@@ -54,11 +96,12 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
 
   String _formatIqd(dynamic val) {
     final d = double.tryParse(val?.toString() ?? '0') ?? 0;
-    return '${NumberFormat('#,###').format(d)} د.ع';
+    return '${intl.NumberFormat('#,###').format(d)} د.ع';
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final monthly = _data['monthly'] ?? {};
     final topTests = (_data['top_tests'] as List?) ?? [];
     final topNurses = (_data['top_nurses'] as List?) ?? [];
@@ -104,10 +147,34 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
               : RefreshIndicator(
                   onRefresh: _load,
                   child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (_isFallback) ...[
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Iconsax.info_circle, size: 16, color: Color(0xFFD97706)),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'ئاماری سەرەکی لە داشبۆردەوە نیشاندراوە (ڕاپۆرتە قووڵەکانی سێرڤەر لە چاوەڕوانی نوێکردنەوەدان)',
+                                    style: TextStyle(fontFamily: 'Rabar', fontSize: 11, color: Color(0xFFB45309)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         // Monthly performance summary
                         Text('ئاستی گەشەکردنی ئەم مانگە', style: AdminUi.title),
                         const SizedBox(height: 12),
@@ -185,7 +252,13 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                                         ),
                                         const SizedBox(width: 10),
                                         Expanded(
-                                          child: Text(t['title'] ?? 'پشکنین', style: AdminUi.subtitle.copyWith(color: Colors.black87, fontWeight: FontWeight.w600)),
+                                          child: Text(
+                                            t['title'] ?? 'پشکنین',
+                                            style: AdminUi.subtitle.copyWith(
+                                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                         ),
                                         Text('${t['total_requests'] ?? 1} داواکاری', style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF8B5CF6))),
                                       ],
@@ -220,7 +293,13 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                                       const Icon(Iconsax.category, size: 18, color: Color(0xFF8B5CF6)),
                                       const SizedBox(width: 10),
                                       Expanded(
-                                        child: Text(cat['category'] ?? 'گشتی', style: AdminUi.subtitle.copyWith(color: Colors.black87, fontWeight: FontWeight.w600)),
+                                        child: Text(
+                                          cat['category'] ?? 'گشتی',
+                                          style: AdminUi.subtitle.copyWith(
+                                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
                                       ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -251,6 +330,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                         else
                           ...topNurses.map((n) {
                             final user = n['user'] ?? {};
+                            final imgProvider = ApiClient.getImageProvider(user['profile_image'] ?? n['image_path']);
                             return Container(
                               margin: const EdgeInsets.only(bottom: 10),
                               decoration: AdminUi.cardDecoration,
@@ -258,8 +338,9 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                               child: Row(
                                 children: [
                                   CircleAvatar(
-                                    backgroundImage: ApiClient.getImageProvider(user['profile_image'] ?? n['image_path']),
-                                    child: const Icon(Icons.person),
+                                    backgroundColor: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
+                                    backgroundImage: imgProvider,
+                                    child: imgProvider == null ? const Icon(Icons.person, color: Color(0xFF8B5CF6)) : null,
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(

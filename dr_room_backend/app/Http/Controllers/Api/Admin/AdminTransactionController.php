@@ -228,6 +228,14 @@ class AdminTransactionController extends Controller
             'data' => [
                 'statement_number' => 'DR-STMT-' . $year . str_pad($month, 2, '0', STR_PAD_LEFT) . '-' . ($providerId ?: 'ALL'),
                 'generated_at' => now()->format('Y-m-d H:i'),
+                'branding' => [
+                    'header_title' => \App\Models\AppSetting::get('report_header_title', 'دکتۆر ڕۆم - Dr. Room'),
+                    'header_subtitle' => \App\Models\AppSetting::get('report_header_subtitle', 'سیستەمی تەندروستی و پزیشکی ماڵەوە'),
+                    'footer_text' => \App\Models\AppSetting::get('report_footer_text', 'پەسەندکراوە لەلایەن بەشی دارایی Dr. Room'),
+                    'emergency_phone' => \App\Models\AppSetting::get('report_emergency_phone', '+964 750 000 0000'),
+                    'show_watermark' => (bool) \App\Models\AppSetting::get('report_show_watermark', true),
+                    'show_stamp' => (bool) \App\Models\AppSetting::get('report_show_stamp', true),
+                ],
                 'period' => [
                     'year' => $year,
                     'month' => $month,

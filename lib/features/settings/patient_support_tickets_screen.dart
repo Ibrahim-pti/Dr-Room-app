@@ -72,126 +72,144 @@ class _PatientSupportTicketsScreenState extends State<PatientSupportTicketsScree
     };
   }
 
-  void _openCreateTicketSheet() {
+  Future<void> _openCreateTicketSheet() async {
     final subjectCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     String category = 'general';
     bool isSubmitting = false;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) {
-          return Container(
-            padding: EdgeInsets.only(
-              top: 20,
-              left: 20,
-              right: 20,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-            ),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('create_ticket'.tr(), style: const TextStyle(fontFamily: 'Rabar', fontSize: 16, fontWeight: FontWeight.bold)),
-                      IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: category,
-                    decoration: InputDecoration(
-                      labelText: 'ticket_category'.tr(),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    try {
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('create_ticket'.tr(), style: const TextStyle(fontFamily: 'Rabar', fontSize: 16, fontWeight: FontWeight.bold)),
+                        IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
+                      ],
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'general', child: Text('پرسیار و پێشنیاری گشتی')),
-                      DropdownMenuItem(value: 'order', child: Text('کێشە لە داواکاری')),
-                      DropdownMenuItem(value: 'nurse', child: Text('تێبینی لەسەر پەرستار')),
-                      DropdownMenuItem(value: 'lab', child: Text('کێشەی ئەنجامی تاقیگە')),
-                      DropdownMenuItem(value: 'payment', child: Text('کێشەی پارەدان')),
-                      DropdownMenuItem(value: 'complaint', child: Text('سکاڵای فەرمی')),
-                    ],
-                    onChanged: (v) => setSheetState(() => category = v!),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: subjectCtrl,
-                    decoration: InputDecoration(
-                      labelText: 'ticket_subject'.tr(),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: category,
+                      decoration: InputDecoration(
+                        labelText: 'ticket_category'.tr(),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'general', child: Text('پرسیار و پێشنیاری گشتی')),
+                        DropdownMenuItem(value: 'order', child: Text('کێشە لە داواکاری')),
+                        DropdownMenuItem(value: 'nurse', child: Text('تێبینی لەسەر پەرستار')),
+                        DropdownMenuItem(value: 'lab', child: Text('کێشەی ئەنجامی تاقیگە')),
+                        DropdownMenuItem(value: 'payment', child: Text('کێشەی پارەدان')),
+                        DropdownMenuItem(value: 'complaint', child: Text('سکاڵای فەرمی')),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) setSheetState(() => category = v);
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: descCtrl,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      labelText: 'ticket_description'.tr(),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: subjectCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'ticket_subject'.tr(),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: isSubmitting
-                        ? null
-                        : () async {
-                            final sub = subjectCtrl.text.trim();
-                            final desc = descCtrl.text.trim();
-                            if (sub.isEmpty || desc.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('تکایە بابەت و کێشەکە بنووسە', style: TextStyle(fontFamily: 'Rabar'))),
-                              );
-                              return;
-                            }
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descCtrl,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        labelText: 'ticket_description'.tr(),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: isSubmitting
+                          ? null
+                          : () async {
+                              final sub = subjectCtrl.text.trim();
+                              final desc = descCtrl.text.trim();
+                              if (sub.isEmpty || desc.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('تکایە بابەت و کێشەکە بنووسە', style: TextStyle(fontFamily: 'Rabar'))),
+                                );
+                                return;
+                              }
 
-                            setSheetState(() => isSubmitting = true);
-                            try {
-                              final res = await ApiClient.post('/support-tickets', body: {
-                                'category': category,
-                                'subject': sub,
-                                'description': desc,
-                              });
+                              setSheetState(() => isSubmitting = true);
+                              try {
+                                final res = await ApiClient.post('/support-tickets', body: {
+                                  'category': category,
+                                  'subject': sub,
+                                  'description': desc,
+                                });
 
-                              if (res.statusCode == 200 || res.statusCode == 201) {
-                                if (ctx.mounted) Navigator.pop(ctx);
-                                _load();
-                                if (mounted) {
+                                if (res.statusCode == 200 || res.statusCode == 201) {
+                                  if (ctx.mounted) Navigator.pop(ctx);
+                                  _load();
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('تیکێتەکەت بە سەرکەوتوویی نێردرا', style: TextStyle(fontFamily: 'Rabar'))),
+                                    );
+                                  }
+                                } else if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('تیکێتەکەت بە سەرکەوتوویی نێردرا', style: TextStyle(fontFamily: 'Rabar'))),
+                                    const SnackBar(content: Text('ناردنی تیکێت سەرکەوتوو نەبوو', style: TextStyle(fontFamily: 'Rabar'))),
                                   );
                                 }
+                              } catch (_) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('کێشەی پەیوەندی ڕوویدا', style: TextStyle(fontFamily: 'Rabar'))),
+                                  );
+                                }
+                              } finally {
+                                if (ctx.mounted) setSheetState(() => isSubmitting = false);
                               }
-                            } catch (_) {}
-                            setSheetState(() => isSubmitting = false);
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: isSubmitting
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text('create_ticket'.tr(), style: const TextStyle(fontFamily: 'Rabar', fontSize: 14)),
                     ),
-                    child: isSubmitting
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : Text('create_ticket'.tr(), style: const TextStyle(fontFamily: 'Rabar', fontSize: 14)),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      ),
-    );
+            );
+          },
+        ),
+      );
+    } finally {
+      subjectCtrl.dispose();
+      descCtrl.dispose();
+    }
   }
 
   void _openTicketChat(dynamic ticket) {
@@ -226,7 +244,30 @@ class _PatientSupportTicketsScreenState extends State<PatientSupportTicketsScree
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(fontFamily: 'Rabar', color: Colors.grey)))
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Iconsax.info_circle, size: 48, color: Colors.amber),
+                        const SizedBox(height: 12),
+                        Text(_error!, style: const TextStyle(fontFamily: 'Rabar', color: Colors.grey), textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _load,
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: const Text('دووبارە هەوڵبدەرەوە', style: TextStyle(fontFamily: 'Rabar')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               : _tickets.isEmpty
                   ? Center(
                       child: Column(
@@ -340,11 +381,14 @@ class _PatientSupportTicketsScreenState extends State<PatientSupportTicketsScree
                                     children: [
                                       const Icon(Iconsax.clock, size: 14, color: Colors.grey),
                                       const SizedBox(width: 4),
-                                      Text(
-                                        t['created_at'] != null
-                                            ? DateFormat('yyyy/MM/dd HH:mm').format(DateTime.parse(t['created_at']))
-                                            : '',
-                                        style: const TextStyle(fontFamily: 'Rabar', fontSize: 11, color: Colors.grey),
+                                      Builder(
+                                        builder: (_) {
+                                          final dt = DateTime.tryParse('${t['created_at'] ?? ''}');
+                                          return Text(
+                                            dt != null ? DateFormat('yyyy/MM/dd HH:mm').format(dt) : '',
+                                            style: const TextStyle(fontFamily: 'Rabar', fontSize: 11, color: Colors.grey),
+                                          );
+                                        },
                                       ),
                                       const Spacer(),
                                       const Text('بینینی گفتوگۆ', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Colors.blue)),
@@ -384,16 +428,27 @@ class _PatientTicketChatSheetState extends State<_PatientTicketChatSheet> {
     _fetch();
   }
 
+  @override
+  void dispose() {
+    _msgCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetch() async {
     try {
       final res = await ApiClient.get('/support-tickets/${widget.ticketId}');
+      if (!mounted) return;
       if (res.statusCode == 200) {
         setState(() {
           _ticket = jsonDecode(res.body)['data'];
           _isLoading = false;
         });
+      } else {
+        setState(() => _isLoading = false);
       }
-    } catch (_) {}
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _send() async {
@@ -405,13 +460,25 @@ class _PatientTicketChatSheetState extends State<_PatientTicketChatSheet> {
       final res = await ApiClient.post('/support-tickets/${widget.ticketId}/reply', body: {
         'message': text,
       });
+      if (!mounted) return;
       if (res.statusCode == 200) {
         _msgCtrl.clear();
         _fetch();
         widget.onUpdated();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ناردنی پەیام سەرکەوتوو نەبوو', style: TextStyle(fontFamily: 'Rabar'))),
+        );
       }
-    } catch (_) {}
-    setState(() => _isSending = false);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('کێشەی پەیوەندی ڕوویدا', style: TextStyle(fontFamily: 'Rabar'))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
   }
 
   @override
@@ -424,7 +491,12 @@ class _PatientTicketChatSheetState extends State<_PatientTicketChatSheet> {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(

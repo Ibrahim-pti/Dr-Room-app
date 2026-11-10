@@ -288,7 +288,9 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
             icon: const Icon(Iconsax.document_download, size: 20),
             label: const Text(
               'دەرهێنانی ڕاپۆرتی PDF (پسوڵەی حیساباتی دابینکاران)',
-              style: TextStyle(fontFamily: 'Rabar', fontSize: 13.5, fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF4F46E5),
@@ -561,14 +563,14 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                         _buildFilterTypeChip('lab', 'تاقیگەکان', providerType, (t) {
                           setModalState(() {
                             providerType = t;
-                            selectedProviderId = labs.isNotEmpty ? labs.first['id'] : null;
+                            selectedProviderId = labs.isNotEmpty ? int.tryParse('${labs.first['id']}') : null;
                           });
                         }),
                         const SizedBox(width: 8),
                         _buildFilterTypeChip('nurse', 'پەرستارەکان', providerType, (t) {
                           setModalState(() {
                             providerType = t;
-                            selectedProviderId = nurses.isNotEmpty ? nurses.first['id'] : null;
+                            selectedProviderId = nurses.isNotEmpty ? int.tryParse('${nurses.first['id']}') : null;
                           });
                         }),
                       ],
@@ -585,17 +587,19 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                           border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         child: DropdownButtonHideUnderline(
-                          child: DropdownButton<int>(
-                            value: selectedProviderId,
+                          child: DropdownButton<int?>(
+                            value: labs.any((l) => int.tryParse('${l['id']}') == selectedProviderId)
+                                ? selectedProviderId
+                                : null,
                             isExpanded: true,
                             hint: const Text('تاقیگە دیاریبکە', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
                             items: [
-                              const DropdownMenuItem<int>(
+                              const DropdownMenuItem<int?>(
                                 value: null,
                                 child: Text('تەواوی تاقیگەکان (گشتی)', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
                               ),
-                              ...labs.map((l) => DropdownMenuItem<int>(
-                                value: l['id'],
+                              ...labs.map((l) => DropdownMenuItem<int?>(
+                                value: int.tryParse('${l['id']}'),
                                 child: Text(l['name'] ?? 'تاقیگە', style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
                               )),
                             ],
@@ -613,17 +617,19 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                           border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         child: DropdownButtonHideUnderline(
-                          child: DropdownButton<int>(
-                            value: selectedProviderId,
+                          child: DropdownButton<int?>(
+                            value: nurses.any((n) => int.tryParse('${n['id']}') == selectedProviderId)
+                                ? selectedProviderId
+                                : null,
                             isExpanded: true,
                             hint: const Text('پەرستار دیاریبکە', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
                             items: [
-                              const DropdownMenuItem<int>(
+                              const DropdownMenuItem<int?>(
                                 value: null,
                                 child: Text('تەواوی پەرستارەکان (گشتی)', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
                               ),
-                              ...nurses.map((n) => DropdownMenuItem<int>(
-                                value: n['id'],
+                              ...nurses.map((n) => DropdownMenuItem<int?>(
+                                value: int.tryParse('${n['id']}'),
                                 child: Text(n['name'] ?? 'پەرستار', style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
                               )),
                             ],
@@ -853,11 +859,13 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(_money(transaction['amount']),
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: 13.5,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A))),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : const Color(0xFF0F172A))),
                 const SizedBox(height: 4),
                 AdminUi.chip(label, color, small: true),
               ],

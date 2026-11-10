@@ -15,7 +15,11 @@ class AdminPatientController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::whereNotIn('role', ['admin', 'doctor', 'nurse', 'lab', 'pharmacy', 'xray']);
+        $nonPatientRoles = ['admin', 'staff', 'moderator', 'doctor', 'nurse', 'lab', 'pharmacy', 'xray'];
+        $baseQuery = User::where(function ($q) use ($nonPatientRoles) {
+            $q->whereNull('role')->orWhereNotIn('role', $nonPatientRoles);
+        });
+        $query = clone $baseQuery;
 
         // Search by name, phone or email
         if ($request->filled('search')) {
@@ -29,7 +33,9 @@ class AdminPatientController extends Controller
 
         // Status Filter
         if ($request->status === 'active') {
-            $query->where('status', 'approved');
+            $query->where(function ($q) {
+                $q->where('status', 'approved')->orWhereNull('status');
+            });
         } elseif ($request->status === 'blocked') {
             $query->where('status', 'blocked');
         } elseif ($request->status === 'new') {
@@ -66,8 +72,10 @@ class AdminPatientController extends Controller
             'data' => $patients,
             'meta' => [
                 'total' => $paginator->total(),
-                'active_count' => User::whereNotIn('role', ['admin', 'doctor', 'nurse', 'lab', 'pharmacy', 'xray'])->where('status', 'approved')->count(),
-                'blocked_count' => User::whereNotIn('role', ['admin', 'doctor', 'nurse', 'lab', 'pharmacy', 'xray'])->where('status', 'blocked')->count(),
+                'active_count' => (clone $baseQuery)->where(function ($q) {
+                    $q->where('status', 'approved')->orWhereNull('status');
+                })->count(),
+                'blocked_count' => (clone $baseQuery)->where('status', 'blocked')->count(),
             ],
         ]);
     }
@@ -190,7 +198,11 @@ class AdminPatientController extends Controller
         AppNotification::create([
             'user_id' => $patient->id,
             'title' => $request->title,
+            'title_ar' => $request->title,
+            'title_en' => $request->title,
             'message' => $request->message,
+            'message_ar' => $request->message,
+            'message_en' => $request->message,
             'type' => 'admin_notice',
             'is_read' => false,
         ]);
@@ -233,3 +245,4 @@ class AdminPatientController extends Controller
         ]);
     }
 }
+

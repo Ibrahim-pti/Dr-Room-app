@@ -234,6 +234,8 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
         );
       },
     );
+    titleCtrl.dispose();
+    messageCtrl.dispose();
   }
 
   String _formatIqd(dynamic val) {
@@ -315,12 +317,15 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
 
   /// Patient Header with Avatar, Name, Phone & Status Badge
   Widget _buildPatientHeaderCard(bool isDark) {
-    final name = _patient?['name'] ?? 'نەخۆش';
-    final phone = _patient?['phone'] ?? 'بێ ژمارە';
-    final email = _patient?['email'] ?? '';
+    final name = (_patient?['name'] ?? 'نەخۆش').toString();
+    final trimmedName = name.trim();
+    final initial = trimmedName.isNotEmpty ? trimmedName.characters.first : 'ن';
+    final phone = (_patient?['phone'] ?? '').toString().trim();
+    final email = (_patient?['email'] ?? '').toString().trim();
     final isBlocked = _patient?['is_blocked'] == true;
     final loyalty = _patient?['loyalty_points'] ?? 0;
-    final createdAt = _patient?['created_at'] ?? '';
+    final createdAt = (_patient?['created_at'] ?? '').toString();
+    final avatarProvider = ApiClient.getImageProvider(_patient?['avatar_url']?.toString());
 
     return Container(
       decoration: AdminUi.cardDecoration,
@@ -341,18 +346,23 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
+              image: avatarProvider != null
+                  ? DecorationImage(image: avatarProvider, fit: BoxFit.cover)
+                  : null,
             ),
-            child: Center(
-              child: Text(
-                name.isNotEmpty ? name.characters.first : 'ن',
-                style: const TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            child: avatarProvider == null
+                ? Center(
+                    child: Text(
+                      initial,
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: 14),
 
@@ -374,6 +384,7 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
@@ -393,28 +404,57 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: Row(
+                if (phone.isNotEmpty)
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Row(
+                      children: [
+                        const Icon(Iconsax.call, size: 13, color: Color(0xFF64748B)),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            '\u200E$phone',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFF64748B)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  const Row(
                     children: [
-                      const Icon(Iconsax.call, size: 13, color: Color(0xFF64748B)),
-                      const SizedBox(width: 4),
-                      Text(phone, style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFF64748B))),
+                      Icon(Iconsax.call, size: 13, color: Color(0xFF94A3B8)),
+                      SizedBox(width: 4),
+                      Text('بێ ژمارە', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFF94A3B8))),
                     ],
                   ),
-                ),
                 if (email.isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Iconsax.sms, size: 13, color: Color(0xFF94A3B8)),
-                      const SizedBox(width: 4),
-                      Text(email, style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8))),
-                    ],
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Row(
+                      children: [
+                        const Icon(Iconsax.sms, size: 13, color: Color(0xFF94A3B8)),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            email,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -431,7 +471,6 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
                     if (createdAt.isNotEmpty)
                       Text(
                         'تۆمارکراوە: $createdAt',
@@ -537,7 +576,8 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
 
   /// Address & Location Card
   Widget _buildAddressCard(bool isDark) {
-    final address = _patient?['address'] ?? 'ناونیشان لە سیستەمدا تۆمارنەکراوە';
+    final rawAddress = (_patient?['address'] ?? '').toString().trim();
+    final address = rawAddress.isNotEmpty ? rawAddress : 'ناونیشان لە سیستەمدا تۆمارنەکراوە';
     final location = _patient?['location'] as Map?;
     final lat = location?['lat'];
     final lng = location?['lng'];
@@ -559,9 +599,16 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
                 child: const Icon(Iconsax.location, size: 16, color: Color(0xFF0D9488)),
               ),
               const SizedBox(width: 8),
-              const Text('ناونیشانی نەخۆش و لۆکەیشن', style: TextStyle(fontFamily: 'Rabar', fontSize: 13.5, fontWeight: FontWeight.bold)),
-              const Spacer(),
-              if (lat != null && lng != null)
+              const Expanded(
+                child: Text(
+                  'ناونیشانی نەخۆش و لۆکەیشن',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontFamily: 'Rabar', fontSize: 13.5, fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (lat != null && lng != null) ...[
+                const SizedBox(width: 8),
                 OutlinedButton.icon(
                   onPressed: () async {
                     final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
@@ -577,6 +624,7 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
                     visualDensity: VisualDensity.compact,
                   ),
                 ),
+              ],
             ],
           ),
           const SizedBox(height: 10),
@@ -654,9 +702,24 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
   /// EMR Medical Card
   Widget _buildEmrCard(bool isDark) {
     final emr = _patient?['emr'] as Map? ?? {};
-    final blood = emr['blood_type'] ?? 'دیاری نەکراوە';
-    final chronic = (emr['chronic_diseases'] as List?)?.join('، ') ?? 'نییە';
-    final allergies = (emr['allergies'] as List?)?.join('، ') ?? 'نییە';
+    final rawBlood = emr['blood_type']?.toString().trim() ?? '';
+    final blood = rawBlood.isNotEmpty ? rawBlood : 'دیاری نەکراوە';
+
+    final chronicList = (emr['chronic_diseases'] as List?)
+            ?.map((e) => e.toString().trim())
+            .where((e) => e.isNotEmpty)
+            .toList() ??
+        [];
+    final chronic = chronicList.isNotEmpty ? chronicList.join('، ') : 'نییە';
+
+    final allergiesList = (emr['allergies'] as List?)
+            ?.map((e) => e.toString().trim())
+            .where((e) => e.isNotEmpty)
+            .toList() ??
+        [];
+    final allergies = allergiesList.isNotEmpty ? allergiesList.join('، ') : '';
+
+    final emergencyNotes = (emr['emergency_notes'] ?? '').toString().trim();
 
     return Container(
       decoration: AdminUi.cardDecoration,
@@ -681,14 +744,24 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              _buildEmrTag('گرووپی خوێن', blood, const Color(0xFFEF4444)),
+              Expanded(child: _buildEmrTag('گرووپی خوێن', blood, const Color(0xFFEF4444))),
               const SizedBox(width: 8),
-              _buildEmrTag('نەخۆشی درێژخایەن', chronic, const Color(0xFFF59E0B)),
+              Expanded(child: _buildEmrTag('نەخۆشی درێژخایەن', chronic, const Color(0xFFF59E0B))),
             ],
           ),
-          if (allergies != 'نییە') ...[
+          if (allergies.isNotEmpty) ...[
             const SizedBox(height: 8),
-            _buildEmrTag('حەساسیەت / هەستیاری', allergies, const Color(0xFF8B5CF6)),
+            SizedBox(
+              width: double.infinity,
+              child: _buildEmrTag('حەساسیەت / هەستیاری', allergies, const Color(0xFF8B5CF6)),
+            ),
+          ],
+          if (emergencyNotes.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: _buildEmrTag('تێبینی فریاکەوتن', emergencyNotes, const Color(0xFF0D9488)),
+            ),
           ],
         ],
       ),
@@ -696,22 +769,20 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
   }
 
   Widget _buildEmrTag(String title, String val, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: TextStyle(fontFamily: 'Rabar', fontSize: 10, color: color, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 2),
-            Text(val, style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontFamily: 'Rabar', fontSize: 10, color: color, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 2),
+          Text(val, style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+        ],
       ),
     );
   }
@@ -726,7 +797,15 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('مێژووی داواکارییەکان (Order History)', style: TextStyle(fontFamily: 'Rabar', fontSize: 14, fontWeight: FontWeight.bold)),
+            const Expanded(
+              child: Text(
+                'مێژووی داواکارییەکان (Order History)',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontFamily: 'Rabar', fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(width: 8),
             Text('${orders.length} داواکاری', style: const TextStyle(fontFamily: 'Rabar', fontSize: 11, color: Color(0xFF64748B))),
           ],
         ),
@@ -795,7 +874,14 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
                         children: [
                           Row(
                             children: [
-                              Text(ord['order_number'] ?? '#ORD', style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold)),
+                              Flexible(
+                                child: Text(
+                                  ord['order_number'] ?? '#ORD',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, fontWeight: FontWeight.bold),
+                                ),
+                              ),
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

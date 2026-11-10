@@ -20,6 +20,7 @@ class AdminPatientsScreen extends StatefulWidget {
 
 class _AdminPatientsScreenState extends State<AdminPatientsScreen> {
   List<dynamic> _patients = [];
+  Map<String, dynamic> _meta = {};
   bool _isLoading = true;
   String? _error;
   String _search = '';
@@ -70,6 +71,7 @@ class _AdminPatientsScreenState extends State<AdminPatientsScreen> {
         final list = body['data'] is Map ? (body['data']['data'] ?? []) : (body['data'] ?? []);
         setState(() {
           _patients = list;
+          _meta = body['meta'] is Map ? Map<String, dynamic>.from(body['meta']) : {};
           _isLoading = false;
         });
       } else {
@@ -84,8 +86,10 @@ class _AdminPatientsScreenState extends State<AdminPatientsScreen> {
   }
 
   void _onSearchChanged(String val) {
+    setState(() {}); // Immediately show/hide clear button
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
       setState(() => _search = val.trim());
       _load();
     });
@@ -104,7 +108,9 @@ class _AdminPatientsScreenState extends State<AdminPatientsScreen> {
       backgroundColor: AppColors.getBackground(context),
       appBar: AdminAppBar(
         title: 'بەڕێوەبردنی نەخۆشەکان',
-        subtitle: 'لیستی بەکارهێنەران، دۆسیە و پەیوەندیکردن',
+        subtitle: _meta['total'] != null
+            ? '${_meta['total']} نەخۆش · ${_meta['active_count'] ?? 0} چالاک'
+            : 'لیستی بەکارهێنەران، دۆسیە و پەیوەندیکردن',
         icon: Iconsax.profile_2user,
         iconColor: const Color(0xFF0D9488),
         iconBackgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
@@ -242,12 +248,15 @@ class _AdminPatientsScreenState extends State<AdminPatientsScreen> {
                               separatorBuilder: (_, _) => const SizedBox(height: 10),
                               itemBuilder: (context, i) {
                                 final p = _patients[i];
-                                final name = p['name'] ?? 'نەخۆش';
-                                final phone = p['phone'] ?? '';
+                                final name = (p['name'] ?? 'نەخۆش').toString();
+                                final trimmedName = name.trim();
+                                final initial = trimmedName.isNotEmpty ? trimmedName.characters.first : 'ن';
+                                final phone = (p['phone'] ?? '').toString().trim();
                                 final isBlocked = p['is_blocked'] == true;
-                                final ordersCount = p['orders_count'] ?? 0;
+                                final ordersCount = int.tryParse('${p['orders_count'] ?? 0}') ?? 0;
                                 final totalSpent = _formatIqd(p['total_spent']);
-                                final date = p['created_at'] ?? '';
+                                final date = (p['created_at'] ?? '').toString();
+                                final avatarProvider = ApiClient.getImageProvider(p['avatar_url']?.toString());
 
                                 return Material(
                                   color: Colors.transparent,
@@ -257,7 +266,7 @@ class _AdminPatientsScreenState extends State<AdminPatientsScreen> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => AdminPatientDetailScreen(
-                                            patientId: p['id'],
+                                            patientId: p['id'] is int ? p['id'] : int.parse('${p['id']}'),
                                             initialName: name,
                                           ),
                                         ),
@@ -270,7 +279,7 @@ class _AdminPatientsScreenState extends State<AdminPatientsScreen> {
                                       padding: const EdgeInsets.all(14),
                                       child: Row(
                                         children: [
-                                          // Avatar initials
+                                          // Avatar / Photo with Initials Fallback
                                           Container(
                                             width: 46,
                                             height: 46,
@@ -283,18 +292,23 @@ class _AdminPatientsScreenState extends State<AdminPatientsScreen> {
                                                 end: Alignment.bottomRight,
                                               ),
                                               borderRadius: BorderRadius.circular(12),
+                                              image: avatarProvider != null
+                                                  ? DecorationImage(image: avatarProvider, fit: BoxFit.cover)
+                                                  : null,
                                             ),
-                                            child: Center(
-                                              child: Text(
-                                                name.isNotEmpty ? name.characters.first : 'ن',
-                                                style: const TextStyle(
-                                                  fontFamily: 'Rabar',
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
+                                            child: avatarProvider == null
+                                                ? Center(
+                                                    child: Text(
+                                                      initial,
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Rabar',
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                  )
+                                                : null,
                                           ),
                                           const SizedBox(width: 12),
 
@@ -333,13 +347,19 @@ class _AdminPatientsScreenState extends State<AdminPatientsScreen> {
                                                   ],
                                                 ),
                                                 const SizedBox(height: 3),
-                                                Directionality(
-                                                  textDirection: TextDirection.ltr,
-                                                  child: Text(
-                                                    phone.isNotEmpty ? phone : 'بێ ژمارە',
-                                                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
+                                                if (phone.isNotEmpty)
+                                                  Directionality(
+                                                    textDirection: TextDirection.ltr,
+                                                    child: Text(
+                                                      '\u200E$phone',
+                                                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF64748B)),
+                                                    ),
+                                                  )
+                                                else
+                                                  const Text(
+                                                    'بێ ژمارە',
+                                                    style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: Color(0xFF94A3B8)),
                                                   ),
-                                                ),
                                                 const SizedBox(height: 4),
                                                 Row(
                                                   children: [

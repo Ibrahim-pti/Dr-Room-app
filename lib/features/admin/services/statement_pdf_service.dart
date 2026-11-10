@@ -43,9 +43,24 @@ class StatementPdfService {
     final provider = (data['provider'] as Map?) ?? {};
     final period = (data['period'] as Map?) ?? {};
     final summary = (data['summary'] as Map?) ?? {};
+    final branding = (data['branding'] as Map?) ?? {};
     final transactions = (data['transactions'] as List?) ?? [];
     final statementNo = data['statement_number']?.toString() ?? 'DR-STMT-2026';
     final generatedAt = data['generated_at']?.toString() ?? '';
+
+    final headerTitle = (branding['header_title']?.toString().trim().isNotEmpty ?? false)
+        ? branding['header_title'].toString().trim()
+        : 'دکتۆر ڕۆم - Dr. Room';
+    final headerSubtitle = (branding['header_subtitle']?.toString().trim().isNotEmpty ?? false)
+        ? branding['header_subtitle'].toString().trim()
+        : 'سیستەمی تەندروستی و پزیشکی ماڵەوە';
+    final footerText = (branding['footer_text']?.toString().trim().isNotEmpty ?? false)
+        ? branding['footer_text'].toString().trim()
+        : 'پەسەندکراوە لەلایەن بەشی دارایی Dr. Room';
+    final emergencyPhone = (branding['emergency_phone']?.toString().trim().isNotEmpty ?? false)
+        ? branding['emergency_phone'].toString().trim()
+        : '+964 750 000 0000';
+    final showStamp = branding['show_stamp'] != false;
 
     pdf.addPage(
       pw.MultiPage(
@@ -60,7 +75,14 @@ class StatementPdfService {
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
                   // 1. OFFICIAL HEADER BAR
-                  _buildHeader(logoImage, statementNo, generatedAt, ttfBold),
+                  _buildHeader(
+                    logoImage,
+                    statementNo,
+                    generatedAt,
+                    ttfBold,
+                    headerTitle: headerTitle,
+                    headerSubtitle: headerSubtitle,
+                  ),
                   pw.SizedBox(height: 14),
 
                   // 2. PROVIDER & PERIOD CARDS
@@ -96,7 +118,12 @@ class StatementPdfService {
                   pw.SizedBox(height: 20),
 
                   // 6. OFFICIAL FOOTER / STAMP & SIGNATURE BLOCK
-                  _buildFooterSignatures(ttfBold),
+                  _buildFooterSignatures(
+                    ttfBold,
+                    footerText: footerText,
+                    emergencyPhone: emergencyPhone,
+                    showStamp: showStamp,
+                  ),
                 ],
               ),
             ),
@@ -113,8 +140,10 @@ class StatementPdfService {
     pw.MemoryImage? logoImage,
     String statementNo,
     String generatedAt,
-    pw.Font ttfBold,
-  ) {
+    pw.Font ttfBold, {
+    required String headerTitle,
+    required String headerSubtitle,
+  }) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
@@ -158,30 +187,32 @@ class StatementPdfService {
               ],
             ),
           ),
-          pw.Spacer(),
+          pw.SizedBox(width: 12),
 
           // Center: Title & App Name
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            children: [
-              pw.Text(
-                'دکتۆر ڕۆم - Dr. Room',
-                style: pw.TextStyle(
-                  font: ttfBold,
-                  fontSize: 16,
-                  color: primaryColor,
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text(
+                  headerTitle,
+                  style: pw.TextStyle(
+                    font: ttfBold,
+                    fontSize: 14,
+                    color: primaryColor,
+                  ),
                 ),
-              ),
-              pw.SizedBox(height: 2),
-              pw.Text(
-                'پسوڵە و ڕاپۆرتی حیساباتی فەرمی دابینکاران',
-                style: const pw.TextStyle(fontSize: 10, color: textMuted),
-              ),
-              pw.Text(
-                'سیستەمی تەندروستی و پزیشکی ماڵەوە',
-                style: const pw.TextStyle(fontSize: 8.5, color: textMuted),
-              ),
-            ],
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'پسوڵە و ڕاپۆرتی حیساباتی فەرمی دابینکاران',
+                  style: const pw.TextStyle(fontSize: 10, color: textMuted),
+                ),
+                pw.Text(
+                  headerSubtitle,
+                  style: const pw.TextStyle(fontSize: 8.5, color: textMuted),
+                ),
+              ],
+            ),
           ),
           pw.SizedBox(width: 10),
 
@@ -197,7 +228,7 @@ class StatementPdfService {
               child: pw.ClipRRect(
                 horizontalRadius: 8,
                 verticalRadius: 8,
-                child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+                child: pw.Image(logoImage, fit: pw.BoxFit.cover),
               ),
             ),
         ],
@@ -483,7 +514,12 @@ class StatementPdfService {
   }
 
   /// Official Seal & Signatures
-  static pw.Widget _buildFooterSignatures(pw.Font ttfBold) {
+  static pw.Widget _buildFooterSignatures(
+    pw.Font ttfBold, {
+    required String footerText,
+    required String emergencyPhone,
+    required bool showStamp,
+  }) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
@@ -510,31 +546,49 @@ class StatementPdfService {
           ),
 
           // Platform Official Seal
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            children: [
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: pw.BoxDecoration(
-                  color: successLight,
-                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-                  border: pw.Border.all(color: successColor, width: 0.8),
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                if (showStamp) ...[
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: pw.BoxDecoration(
+                      color: successLight,
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                      border: pw.Border.all(color: successColor, width: 0.8),
+                    ),
+                    child: pw.Text(
+                      'مۆری فەرمی ژمێریاری دکتۆر ڕۆم ✓',
+                      style: pw.TextStyle(font: ttfBold, fontSize: 8, color: successColor),
+                    ),
+                  ),
+                  pw.SizedBox(height: 4),
+                ],
+                pw.Text(
+                  footerText,
+                  textAlign: pw.TextAlign.right,
+                  style: const pw.TextStyle(fontSize: 7.5, color: textMuted),
                 ),
-                child: pw.Text(
-                  'مۆری فەرمی ژمێریاری دکتۆر ڕۆم ✓',
-                  style: pw.TextStyle(font: ttfBold, fontSize: 8, color: successColor),
+                pw.SizedBox(height: 2),
+                pw.Row(
+                  mainAxisSize: pw.MainAxisSize.min,
+                  children: [
+                    pw.Text(
+                      'پەیوەندی فریاکەوتن و دارایی: ',
+                      style: const pw.TextStyle(fontSize: 7.5, color: textMuted),
+                    ),
+                    pw.Directionality(
+                      textDirection: pw.TextDirection.ltr,
+                      child: pw.Text(
+                        emergencyPhone,
+                        style: const pw.TextStyle(fontSize: 7.5, color: textMuted),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              pw.SizedBox(height: 4),
-              pw.Text(
-                'پەسەندکراوە لەلایەن بەشی دارایی Dr. Room',
-                style: const pw.TextStyle(fontSize: 7.5, color: textMuted),
-              ),
-              pw.Text(
-                'پەیوەندی فریاکەوتن و دارایی: +964 750 000 0000',
-                style: const pw.TextStyle(fontSize: 7.5, color: textMuted),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

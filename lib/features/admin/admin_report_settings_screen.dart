@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -26,6 +27,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
   final _phoneCtrl = TextEditingController();
   bool _showWatermark = true;
   bool _showStamp = true;
+  String? _logoUrl;
 
   @override
   void initState() {
@@ -58,9 +60,11 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
           _titleCtrl.text = data['header_title'] ?? 'دکتۆر ڕۆم - دۆسیەی پزیشکی و ئەنجامی پشکنین';
           _subtitleCtrl.text = data['header_subtitle'] ?? 'Dr. Room Healthcare System & Lab Diagnostics';
           _footerCtrl.text = data['footer_text'] ?? 'ئەم ڕاپۆرتە بە فەرمی لەلایەن تاقیگەی باوەڕپێکراو پەسەندکراوە و پارێزراوە بە مۆری ئەلیکترۆنی.';
-          _phoneCtrl.text = data['emergency_phone'] ?? '+964 750 000 0000';
+          final rawPhone = (data['emergency_phone'] ?? '+964 750 000 0000').toString();
+          _phoneCtrl.text = _cleanPhone(rawPhone);
           _showWatermark = data['show_watermark'] ?? true;
           _showStamp = data['show_stamp'] ?? true;
+          _logoUrl = data['logo_url']?.toString();
           _isLoading = false;
         });
       } else {
@@ -74,6 +78,16 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
     }
   }
 
+  String _cleanPhone(String raw) {
+    return raw
+        .replaceAll('\u200E', '')
+        .replaceAll('\u200F', '')
+        .replaceAll('\u202A', '')
+        .replaceAll('\u202B', '')
+        .replaceAll('\u202C', '')
+        .trim();
+  }
+
   Future<void> _save() async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
@@ -83,7 +97,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
         'header_title': _titleCtrl.text.trim(),
         'header_subtitle': _subtitleCtrl.text.trim(),
         'footer_text': _footerCtrl.text.trim(),
-        'emergency_phone': _phoneCtrl.text.trim(),
+        'emergency_phone': _cleanPhone(_phoneCtrl.text),
         'show_watermark': _showWatermark,
         'show_stamp': _showStamp,
       });
@@ -160,7 +174,9 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                             child: const Icon(Iconsax.eye, size: 16, color: Color(0xFF6366F1)),
                           ),
                           const SizedBox(width: 8),
-                          Text('پێشبینینی ڕاستەوخۆی قالبی فەرمی (Live Preview)', style: AdminUi.title),
+                          Expanded(
+                            child: Text('پێشبینینی ڕاستەوخۆی قالبی فەرمی (Live Preview)', style: AdminUi.title),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -307,9 +323,13 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                                   children: [
                                     Icon(Iconsax.tick_circle, size: 20),
                                     SizedBox(width: 8),
-                                    Text(
-                                      'پاشەکەوتکردنی ڕێکخستنەکان',
-                                      style: TextStyle(fontFamily: 'Rabar', fontSize: 15, fontWeight: FontWeight.bold),
+                                    Flexible(
+                                      child: Text(
+                                        'پاشەکەوتکردنی ڕێکخستنەکان',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(fontFamily: 'Rabar', fontSize: 15, fontWeight: FontWeight.bold),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -383,35 +403,48 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Hospital / Dr. Room Logo
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF6366F1).withValues(alpha: 0.15),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
+                        // Official Dr. Room Logo
+                        Builder(
+                          builder: (context) {
+                            final remoteLogo = ApiClient.getImageProvider(_logoUrl);
+                            return Container(
+                              width: 54,
+                              height: 54,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF6366F1).withValues(alpha: 0.16),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                               ),
-                            ],
-                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                          ),
-                          padding: const EdgeInsets.all(5),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              'assets/images/app_icon.png',
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, _, _) => const Icon(
-                                Icons.local_hospital_rounded,
-                                color: Color(0xFF6366F1),
-                                size: 28,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(13),
+                                child: remoteLogo != null
+                                    ? Image(
+                                        image: remoteLogo,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) => Image.asset(
+                                          'assets/images/app_icon.png',
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    : Image.asset(
+                                        'assets/images/app_icon.png',
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) => const Icon(
+                                          Icons.local_hospital_rounded,
+                                          color: Color(0xFF6366F1),
+                                          size: 28,
+                                        ),
+                                      ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         ),
                         const SizedBox(width: 12),
 
@@ -437,6 +470,9 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                                     ? _subtitleCtrl.text
                                     : 'Dr. Room Healthcare System & Lab Diagnostics',
                                 textDirection: TextDirection.ltr,
+                                textAlign: Directionality.of(context) == TextDirection.rtl
+                                    ? TextAlign.right
+                                    : TextAlign.left,
                                 style: const TextStyle(
                                   fontFamily: 'Rabar',
                                   fontSize: 11,
@@ -499,13 +535,12 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                                 const Icon(Iconsax.call, size: 13, color: Color(0xFF6366F1)),
                                 const SizedBox(width: 6),
                                 Text(
-                                  _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '+964 750 000 0000',
+                                  '\u200E${_cleanPhone(_phoneCtrl.text).isNotEmpty ? _cleanPhone(_phoneCtrl.text) : '+964 750 000 0000'}',
                                   textDirection: TextDirection.ltr,
-                                  style: TextStyle(
-                                    fontFamily: 'Rabar',
+                                  style: GoogleFonts.poppins(
                                     fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.3,
                                     color: isDark ? Colors.white70 : const Color(0xFF334155),
                                   ),
                                 ),
@@ -514,9 +549,14 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                           ),
                         ),
                         const Spacer(),
-                        const Text(
-                          'مۆری دیجیتاڵی فەرمی',
-                          style: TextStyle(fontFamily: 'Rabar', fontSize: 10.5, color: Color(0xFF94A3B8)),
+                        const SizedBox(width: 8),
+                        const Flexible(
+                          child: Text(
+                            'مۆری دیجیتاڵی فەرمی',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontFamily: 'Rabar', fontSize: 10.5, color: Color(0xFF94A3B8)),
+                          ),
                         ),
                       ],
                     ),
@@ -583,12 +623,18 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
               textDirection: textDirection,
               textAlign: textDirection == TextDirection.ltr ? TextAlign.left : TextAlign.right,
               onChanged: (_) => setState(() {}),
-              style: TextStyle(
-                fontFamily: 'Rabar',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
+              style: textDirection == TextDirection.ltr
+                  ? GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    )
+                  : TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
               decoration: InputDecoration(
                 hintText: hint,
                 hintTextDirection: textDirection,
