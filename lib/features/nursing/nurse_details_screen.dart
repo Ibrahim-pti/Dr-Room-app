@@ -25,6 +25,7 @@ class NurseDetailsScreen extends StatefulWidget {
 class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
   bool _isFavorite = false;
   int _selectedTabIndex = 0; // 0: ناساندن, 1: خزمەتگوزاری و پسپۆڕی
+  final Set<int> _selectedServiceIndices = {};
   Map<String, dynamic> _nurseData = {};
   double _rating = 0.0;
   int _totalReviews = 0;
@@ -194,6 +195,26 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         if (isKurdish) return 'داواکردن';
         if (isArabic) return 'اطلب الآن';
         return 'Request';
+      case 'select_prompt':
+        if (isBadini) return 'بهەلبژێرە';
+        if (isKurdish) return 'هەڵبژێرە';
+        if (isArabic) return 'اختر خدمة';
+        return 'Select';
+      case 'clear_selection':
+        if (isBadini) return 'لابردن';
+        if (isKurdish) return 'لابردن';
+        if (isArabic) return 'إزالة';
+        return 'Clear';
+      case 'home_care_service':
+        if (isBadini) return 'خزمەتگوزارییا پەرستاری ل مال';
+        if (isKurdish) return 'خزمەتگوزاری پەرستاری ماڵەوە';
+        if (isArabic) return 'خدمة تمريض منزلي';
+        return 'Home Nursing Service';
+      case 'total':
+        if (isBadini) return 'کۆیا گشتی';
+        if (isKurdish) return 'کۆی گشتی';
+        if (isArabic) return 'الإجمالي';
+        return 'Total';
       case 'currency':
         if (isArabic) return 'د.ع';
         if (isKurdish) return 'د.ع';
@@ -242,28 +263,37 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     }
   }
 
-  void _bookDefaultNurseService(Map<String, dynamic> nurse) {
+  void _checkoutSelectedServices(
+    List<Map<String, dynamic>> serviceOptions,
+    Map<String, dynamic> nurse,
+  ) {
+    if (_selectedServiceIndices.isEmpty) return;
+
     final cart = context.read<CartProvider>();
     cart.setServiceType('nursing', extraFee: 0.0);
 
     final nurseName = nurse['user'] != null
         ? (nurse['user']['name'] ?? 'پەرستاری ماڵەوە')
         : (nurse['name'] ?? 'پەرستاری ماڵەوە');
-    final nurseSpecialty =
-        context.localizedField(nurse, 'specialty', fallback: 'چاودێری گشتی');
-    final nurseFee = nurse['fee'] != null
-        ? (double.tryParse(nurse['fee'].toString()) ?? 25000.0)
-        : 25000.0;
     final nurseId = nurse['id'];
 
-    cart.addItem(
-      CartItem(
-        id: 'nurse_${nurseId ?? 1}',
-        name: '$nurseName ($nurseSpecialty)',
-        price: nurseFee,
-        extraData: nurseId != null ? {'nurse_id': nurseId} : null,
-      ),
-    );
+    final sortedIndices = _selectedServiceIndices.toList()..sort();
+    for (final idx in sortedIndices) {
+      if (idx < 0 || idx >= serviceOptions.length) continue;
+      final item = serviceOptions[idx];
+      final sName = item['name']?.toString() ?? 'چاودێری گشتی';
+      final sPrice = (item['price'] as num?)?.toDouble() ?? 25000.0;
+      cart.addItem(
+        CartItem(
+          id: item['id']?.toString() ?? 'nurse_${nurseId ?? 1}_srv_$idx',
+          name: '$nurseName ($sName)',
+          price: sPrice,
+          extraData: nurseId != null
+              ? {'nurse_id': nurseId, 'service_name': sName}
+              : {'service_name': sName},
+        ),
+      );
+    }
 
     Navigator.push(
       context,
@@ -353,8 +383,40 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     final double defaultFee = fee != null
         ? (double.tryParse(fee.toString()) ?? 25000.0)
         : 25000.0;
-    final int servicesTabCount =
-        validServices.isNotEmpty ? validServices.length : allSpecialties.length;
+
+    final List<Map<String, dynamic>> serviceOptions = validServices.isNotEmpty
+        ? validServices.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final cs = entry.value as Map;
+            final sName = context.localizedField(
+              cs,
+              'name',
+              fallback: cs['name']?.toString() ?? '',
+            );
+            final sPrice = cs['price'] != null
+                ? (double.tryParse(cs['price'].toString()) ?? defaultFee)
+                : defaultFee;
+            return {
+              'id': 'nurse_${nurseId > 0 ? nurseId : 1}_srv_$idx',
+              'name': sName.toString(),
+              'subtitle': specialty.trim().isNotEmpty
+                  ? specialty.trim()
+                  : _tr('home_care_service', context),
+              'price': sPrice,
+            };
+          }).toList()
+        : [
+            {
+              'id': 'nurse_${nurseId > 0 ? nurseId : 1}',
+              'name': specialty.trim().isNotEmpty
+                  ? specialty.trim()
+                  : 'چاودێری گشتی',
+              'subtitle': _tr('home_care_service', context),
+              'price': defaultFee,
+            },
+          ];
+
+    final int servicesTabCount = serviceOptions.length;
 
     return Scaffold(
       backgroundColor:
@@ -367,7 +429,9 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
               16,
               4,
               16,
-              MediaQuery.of(context).padding.bottom + 96,
+              _selectedServiceIndices.isNotEmpty
+                  ? MediaQuery.of(context).padding.bottom + 96
+                  : MediaQuery.of(context).padding.bottom + 24,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,27 +485,23 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                 ] else ...[
                   _buildSpecialtiesSection(allSpecialties),
                   const SizedBox(height: 14),
-                  _buildServicesAndPricingSection(
-                    validServices,
-                    defaultFee,
-                    nurse,
-                  ),
+                  _buildServicesAndPricingSection(serviceOptions),
                 ],
               ],
             ),
           ),
 
-          // ── 5. Sticky Bottom Booking Bar (Matches LabDetailsScreen) ──
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: MediaQuery.of(context).padding.bottom + 12,
-            child: _buildBottomBookingBar(
-              defaultFee: defaultFee,
-              validServicesCount: validServices.length,
-              nurse: nurse,
+          // ── 5. Sticky Bottom Booking Bar (Only shown when at least 1 service is selected) ──
+          if (_selectedServiceIndices.isNotEmpty)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: MediaQuery.of(context).padding.bottom + 12,
+              child: _buildBottomBookingBar(
+                serviceOptions: serviceOptions,
+                nurse: nurse,
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -773,7 +833,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     final bool hasExp =
-        experienceYears != null && experienceYears.toString().trim().isNotEmpty;
+        (int.tryParse(experienceYears?.toString().trim() ?? '') ?? 0) > 0;
 
     return CustomPaint(
       painter: ProfileCardWavePainter(
@@ -2024,7 +2084,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                       color: color.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.check_circle, color: color, size: 16),
+                    child: Icon(Iconsax.health, color: color, size: 16),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2037,11 +2097,6 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
                       ),
                     ),
                   ),
-                  Icon(
-                    Iconsax.arrow_left_2,
-                    color: color.withValues(alpha: 0.5),
-                    size: 16,
-                  ),
                 ],
               ),
             ).animate().fadeIn(delay: (idx * 60).ms).slideX(begin: -0.05);
@@ -2051,17 +2106,11 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
     );
   }
 
-  // ─── Tab 2: خزمەتگوزارییەکان و نرخ (Services & Pricing) ───
+  // ─── Tab 2: خزمەتگوزارییەکان و نرخ (Services & Pricing - Selectable like Lab Tests) ───
   Widget _buildServicesAndPricingSection(
-    List<dynamic> validServices,
-    double defaultFee,
-    Map<String, dynamic> nurse,
+    List<Map<String, dynamic>> serviceOptions,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final nurseName = nurse['user'] != null
-        ? (nurse['user']['name'] ?? '')
-        : (nurse['name'] ?? 'پەرستاری ماڵەوە');
-    final nurseId = nurse['id'];
 
     return Container(
       width: double.infinity,
@@ -2077,252 +2126,223 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(
-                Iconsax.activity,
-                color: Color(0xFF3B82F6),
-                size: 18,
+              Row(
+                children: [
+                  const Icon(
+                    Iconsax.activity,
+                    color: Color(0xFF3B82F6),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'خزمەتگوزارییەکان و نرخ (${serviceOptions.length})',
+                    style: _kStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                'خزمەتگوزارییەکان و نرخ (${validServices.isNotEmpty ? validServices.length : 1})',
-                style: _kStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+              if (_selectedServiceIndices.isNotEmpty)
+                GestureDetector(
+                  onTap: () => setState(() => _selectedServiceIndices.clear()),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFFEF4444).withValues(alpha: 0.16)
+                          : const Color(0xFFFEE2E2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.close_rounded,
+                          color: Color(0xFFDC2626),
+                          size: 13,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          _tr('clear_selection', context),
+                          style: _kStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFFDC2626),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Text(
+                  _tr('select_prompt', context),
+                  style: _kStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF3B82F6),
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 14),
-          if (validServices.isNotEmpty) ...[
-            ...validServices.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final cs = entry.value as Map;
-              final sName = context.localizedField(
-                cs,
-                'name',
-                fallback: cs['name']?.toString() ?? '',
-              );
-              final sPrice = cs['price'] != null
-                  ? (double.tryParse(cs['price'].toString()) ?? defaultFee)
-                  : defaultFee;
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: serviceOptions.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 10),
+            itemBuilder: (context, idx) {
+              final item = serviceOptions[idx];
+              final bool isSelected = _selectedServiceIndices.contains(idx);
+              final String sName = item['name']?.toString() ?? '';
+              final String sSub = item['subtitle']?.toString() ?? '';
+              final int sPrice = (item['price'] as num?)?.toInt() ?? 25000;
 
-              return Container(
-                width: double.infinity,
-                margin: EdgeInsets.only(
-                  bottom: idx < validServices.length - 1 ? 10 : 0,
-                ),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark
-                        ? const Color(0xFF334155)
-                        : const Color(0xFFE2E8F0),
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (isSelected) {
+                      _selectedServiceIndices.remove(idx);
+                    } else {
+                      _selectedServiceIndices.add(idx);
+                    }
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(11),
-                      ),
-                      child: const Icon(
-                        Iconsax.health,
-                        color: Color(0xFF2563EB),
-                        size: 18,
-                      ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A).withValues(alpha: 0.28)
+                            : const Color(0xFFEFF6FF))
+                        : (isDark
+                            ? const Color(0xFF0F172A)
+                            : Colors.white),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFF3B82F6)
+                          : (isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0)),
+                      width: isSelected ? 1.5 : 1.0,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            sName.toString(),
-                            style: _kStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F172A),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${NumberFormat('#,###').format(sPrice.toInt())} ${_tr('currency', context)}',
-                            style: _kStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2563EB),
-                            ),
-                          ),
-                        ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: isSelected
+                            ? const Color(0xFF3B82F6).withValues(alpha: 0.08)
+                            : Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        final cart = context.read<CartProvider>();
-                        cart.setServiceType('nursing', extraFee: 0.0);
-                        cart.addItem(
-                          CartItem(
-                            id: 'nurse_${nurseId ?? 1}_srv_$idx',
-                            name: '$nurseName ($sName)',
-                            price: sPrice,
-                            extraData: nurseId != null
-                                ? {'nurse_id': nurseId, 'service_name': sName}
-                                : null,
-                          ),
-                        );
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CartScreen(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      // Checkbox indicator (matches LabDetailsScreen)
+                      Container(
+                        width: 24,
+                        height: 24,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                          color: isSelected
+                              ? const Color(0xFF3B82F6)
+                              : (isDark
+                                  ? const Color(0xFF1E293B)
+                                  : const Color(0xFFF1F5F9)),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isSelected
+                                ? const Color(0xFF3B82F6)
+                                : (isDark
+                                    ? const Color(0xFF475569)
+                                    : const Color(0xFFCBD5E1)),
                           ),
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF2563EB)
-                                  .withValues(alpha: 0.28),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                        ),
+                        child: isSelected
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 16,
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Service title & subtitle
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              sName,
+                              style: _kStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
+                              ),
                             ),
+                            if (sSub.isNotEmpty) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                sSub,
+                                style: _kStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Price badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF3B82F6)
+                              : (isDark
+                                  ? const Color(0xFF1E293B)
+                                  : const Color(0xFFF1F5F9)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: Text(
-                          _tr('order_now', context),
+                          '${NumberFormat('#,###').format(sPrice)} ${_tr('currency', context)}',
                           style: _kStyle(
-                            color: Colors.white,
+                            color: isSelected
+                                ? Colors.white
+                                : (isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1E293B)),
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
-            }),
-          ] else ...[
-            _buildServiceRequestCard(defaultFee, nurse),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildServiceRequestCard(
-    double fee,
-    Map<String, dynamic> nurse,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? const [Color(0xFF0F172A), Color(0xFF1E293B)]
-              : const [Color(0xFFEFF6FF), Color(0xFFF8FAFC)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark
-              ? const Color(0xFF334155)
-              : const Color(0xFFBFDBFE),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Iconsax.money_recive,
-                color: Color(0xFF2563EB),
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _tr('visit_fee', context),
-                style: _kStyle(
-                  color: isDark
-                      ? const Color(0xFFCBD5E1)
-                      : const Color(0xFF475569),
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${NumberFormat('#,###').format(fee.toInt())} ${_tr('currency', context)}',
-                style: _kStyle(
-                  color: const Color(0xFF2563EB),
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          GestureDetector(
-            onTap: () => _bookDefaultNurseService(nurse),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF2563EB).withValues(alpha: 0.30),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Iconsax.calendar_tick,
-                    color: Colors.white,
-                    size: 17,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _tr('book_service', context),
-                    style: _kStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            },
           ),
         ],
       ),
@@ -2330,13 +2350,19 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
   }
 
   Widget _buildBottomBookingBar({
-    required double defaultFee,
-    required int validServicesCount,
+    required List<Map<String, dynamic>> serviceOptions,
     required Map<String, dynamic> nurse,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    double selectedTotal = 0.0;
+    for (final idx in _selectedServiceIndices) {
+      if (idx >= 0 && idx < serviceOptions.length) {
+        selectedTotal += (serviceOptions[idx]['price'] as num?)?.toDouble() ?? 0.0;
+      }
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -2354,57 +2380,78 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                _tr('visit_fee', context),
-                style: _kStyle(
-                  color: isDark
-                      ? const Color(0xFF94A3B8)
-                      : const Color(0xFF64748B),
-                  fontSize: 11.5,
+              GestureDetector(
+                onTap: () => setState(() => _selectedServiceIndices.clear()),
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFFEF4444).withValues(alpha: 0.16)
+                        : const Color(0xFFFEE2E2),
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: const Icon(
+                    Icons.close_rounded,
+                    color: Color(0xFFDC2626),
+                    size: 18,
+                  ),
                 ),
               ),
-              const SizedBox(height: 2),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    NumberFormat('#,###').format(defaultFee.toInt()),
+                    '${_tr('total', context)} (${_selectedServiceIndices.length})',
                     style: _kStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
+                      fontSize: 11.5,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _tr('currency', context),
-                    style: _kStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3B82F6),
-                    ),
+                  const SizedBox(height: 2),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        NumberFormat('#,###').format(selectedTotal.toInt()),
+                        style: _kStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _tr('currency', context),
+                        style: _kStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF3B82F6),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ],
           ),
           ElevatedButton(
-            onPressed: () {
-              if (validServicesCount > 0 && _selectedTabIndex == 0) {
-                setState(() => _selectedTabIndex = 1);
-                return;
-              }
-              _bookDefaultNurseService(nurse);
-            },
+            onPressed: () =>
+                _checkoutSelectedServices(serviceOptions, nurse),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3B82F6),
               padding:
-                  const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
