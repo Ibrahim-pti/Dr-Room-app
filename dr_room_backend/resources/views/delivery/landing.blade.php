@@ -25,7 +25,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Katibeh&family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -82,10 +82,13 @@
             background: var(--surface);
         }
         .heading {
-            font-weight: 900;
+            font-family: 'Katibeh', 'Noto Kufi Arabic', sans-serif;
+            font-weight: 400;
             line-height: 1.65 !important;
             letter-spacing: 0;
         }
+        h1.heading { font-size: clamp(2.9rem, 6.4vw, 5.2rem) !important; }
+        h2.heading { font-size: clamp(2.1rem, 4.2vw, 3.4rem) !important; }
         .underline-wrap { position: relative; display: inline-block; }
         .underline-wrap svg {
             position: absolute;
