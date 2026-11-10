@@ -67,3 +67,4 @@ return [
     'err_password' => 'Password must be at least 6 characters.',
     'err_password_confirm' => 'Password confirmation does not match.',
 ];
+

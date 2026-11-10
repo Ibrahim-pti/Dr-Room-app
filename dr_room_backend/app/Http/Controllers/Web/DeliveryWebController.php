@@ -194,3 +194,4 @@ class DeliveryWebController extends Controller
         return redirect()->route('delivery.landing');
     }
 }
+
