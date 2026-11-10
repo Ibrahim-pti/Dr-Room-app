@@ -219,7 +219,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased"
+<body class="min-h-screen flex flex-col antialiased pb-24 lg:pb-0"
       x-data="{
           langOpen: false,
           showPass: false,
@@ -273,10 +273,11 @@
     <!-- Hero + form -->
     <main class="flex-1">
         <div class="w-full px-5 sm:px-8 lg:px-16 2xl:px-24 pt-10 sm:pt-16 pb-14 sm:pb-20">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
 
                 <!-- Story -->
-                <div class="lg:col-span-6 space-y-8 text-start">
+                <div class="contents lg:block lg:col-span-6 lg:space-y-8 text-start">
+                    <div class="order-1 lg:order-none space-y-6 sm:space-y-8">
                     <span class="kicker">{{ __('delivery.badge') }}</span>
 
                     <h1 class="heading text-[2.1rem] sm:text-5xl lg:text-[3.25rem]">
@@ -292,9 +293,10 @@
                     <p class="text-base sm:text-lg leading-[2] font-medium text-[var(--muted)] max-w-xl">
                         {{ __('delivery.hero_desc') }}
                     </p>
+                    </div>
 
                     <!-- Rider note -->
-                    <div class="card tilt-l p-6 sm:p-7 bg-[var(--accent)]">
+                    <div class="order-3 lg:order-none card tilt-l p-6 sm:p-7 bg-[var(--accent)]">
                         <div class="flex items-start gap-5">
                             <div class="w-14 h-14 flex-shrink-0 flex items-center justify-center rounded-2xl border-[1.5px] border-[var(--ink)] bg-[var(--surface)]">
                                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,27 +312,31 @@
                     </div>
 
                     <!-- Benefits -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="card p-5 space-y-3">
-                            <div class="w-9 h-9 flex items-center justify-center border-[1.5px] border-[var(--ink)] rounded-lg">
-                                <svg class="w-4.5 h-4.5 w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <div class="order-3 lg:order-none grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div class="card p-4 sm:p-5 flex sm:block items-start gap-4">
+                            <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center border-[1.5px] border-[var(--ink)] rounded-lg sm:mb-3">
+                                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             </div>
-                            <h4 class="text-sm font-black leading-[1.9]">{{ __('delivery.feat_2_title') }}</h4>
-                            <p class="text-xs text-[var(--muted)] leading-[1.9]">{{ __('delivery.feat_2_desc') }}</p>
+                            <div class="min-w-0 space-y-1.5 sm:space-y-3">
+                                <h4 class="text-sm font-black leading-[1.9]">{{ __('delivery.feat_2_title') }}</h4>
+                                <p class="text-xs text-[var(--muted)] leading-[1.9]">{{ __('delivery.feat_2_desc') }}</p>
+                            </div>
                         </div>
 
-                        <div class="card p-5 space-y-3">
-                            <div class="w-9 h-9 flex items-center justify-center border-[1.5px] border-[var(--ink)] rounded-lg">
+                        <div class="card p-4 sm:p-5 flex sm:block items-start gap-4">
+                            <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center border-[1.5px] border-[var(--ink)] rounded-lg sm:mb-3">
                                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                             </div>
-                            <h4 class="text-sm font-black leading-[1.9]">{{ __('delivery.feat_3_title') }}</h4>
-                            <p class="text-xs text-[var(--muted)] leading-[1.9]">{{ __('delivery.feat_3_desc') }}</p>
+                            <div class="min-w-0 space-y-1.5 sm:space-y-3">
+                                <h4 class="text-sm font-black leading-[1.9]">{{ __('delivery.feat_3_title') }}</h4>
+                                <p class="text-xs text-[var(--muted)] leading-[1.9]">{{ __('delivery.feat_3_desc') }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Form -->
-                <div class="lg:col-span-6" id="register-form">
+                <div class="order-2 lg:order-none lg:col-span-6" id="register-form">
                     <div class="card p-6 sm:p-9 text-start relative">
                         <span class="kicker tilt-r absolute -top-3.5 end-6 !bg-[var(--ink)] !text-[var(--surface)] !border-[var(--ink)]">{{ __('landing.delivery_short') }}</span>
 
@@ -511,6 +517,11 @@
             <p class="text-xs font-bold text-[var(--muted)]">{{ __('delivery.footer_copy') }}</p>
         </div>
     </footer>
+
+    <!-- Mobile sticky action: jumps to the registration form -->
+    <div class="lg:hidden fixed bottom-4 inset-x-5 z-40">
+        <a href="#register-form" class="btn-main !shadow-none">{{ __('delivery.nav_join') }}</a>
+    </div>
 
 </body>
 </html>
