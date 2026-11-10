@@ -219,7 +219,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased pb-24 lg:pb-0"
+<body class="min-h-screen flex flex-col antialiased"
       x-data="{
           langOpen: false,
           showPass: false,
@@ -517,11 +517,6 @@
             <p class="text-xs font-bold text-[var(--muted)]">{{ __('delivery.footer_copy') }}</p>
         </div>
     </footer>
-
-    <!-- Mobile sticky action: jumps to the registration form -->
-    <div class="lg:hidden fixed bottom-4 inset-x-5 z-40">
-        <a href="#register-form" class="btn-main !shadow-none">{{ __('delivery.nav_join') }}</a>
-    </div>
 
 </body>
 </html>
