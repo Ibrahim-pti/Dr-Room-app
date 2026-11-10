@@ -87,8 +87,8 @@
             line-height: 1.65 !important;
             letter-spacing: 0;
         }
-        h1.heading { font-size: clamp(2.9rem, 6.4vw, 5.2rem) !important; }
-        h2.heading { font-size: clamp(2.1rem, 4.2vw, 3.4rem) !important; }
+        h1.heading { font-size: clamp(3rem, 6vw, 5.6rem) !important; }
+        h2.heading { font-size: clamp(2.4rem, 4vw, 3.6rem) !important; }
         .underline-wrap { position: relative; display: inline-block; }
         .underline-wrap svg {
             position: absolute;
@@ -201,8 +201,11 @@
         }
         .btn-ghost:hover { background: var(--ink); color: var(--surface); }
 
-        .tilt-l { transform: rotate(-1.5deg); }
-        .tilt-r { transform: rotate(1deg); }
+        /* Slight hand-cut tilt only on larger screens, so phones stay straight and tidy */
+        @media (min-width: 640px) {
+            .tilt-l { transform: rotate(-1.5deg); }
+            .tilt-r { transform: rotate(1deg); }
+        }
 
         /* Dashed rule between sections */
         .rule-dash { border-top: 1.5px dashed var(--line); }
@@ -228,7 +231,7 @@
 
     <!-- Top bar -->
     <header class="border-b-[1.5px] border-[var(--ink)] bg-[var(--paper)]">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between gap-3">
+        <div class="w-full px-5 sm:px-8 lg:px-16 2xl:px-24 h-[72px] flex items-center justify-between gap-3">
             <a href="{{ $mainSiteHref }}" class="flex items-center gap-3 min-w-0">
                 <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-10 h-10 object-contain flex-shrink-0 border-[1.5px] border-[var(--ink)] rounded-xl bg-[var(--surface)] p-1">
                 <div class="flex items-center gap-2 min-w-0">
@@ -269,7 +272,7 @@
 
     <!-- Hero + form -->
     <main class="flex-1">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-14 sm:pb-20">
+        <div class="w-full px-5 sm:px-8 lg:px-16 2xl:px-24 pt-10 sm:pt-16 pb-14 sm:pb-20">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
 
                 <!-- Story -->
@@ -481,7 +484,7 @@
 
     <!-- Steps -->
     <section class="rule-dash border-t-0">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+        <div class="w-full px-5 sm:px-8 lg:px-16 2xl:px-24 py-16 sm:py-20">
             <div class="max-w-2xl mb-12 space-y-3 text-start">
                 <h2 class="heading text-2xl sm:text-4xl">{{ __('delivery.how_title') }}</h2>
                 <p class="text-sm sm:text-base text-[var(--muted)] leading-[1.9]">{{ __('delivery.how_sub') }}</p>
@@ -504,7 +507,7 @@
     </section>
 
     <footer class="border-t-[1.5px] border-dashed border-[var(--line)]">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-7 text-center">
+        <div class="w-full px-5 sm:px-8 lg:px-16 2xl:px-24 py-7 text-center">
             <p class="text-xs font-bold text-[var(--muted)]">{{ __('delivery.footer_copy') }}</p>
         </div>
     </footer>
