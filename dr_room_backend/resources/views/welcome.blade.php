@@ -362,12 +362,12 @@
                 <div class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
                     
                     <!-- Headline with Kurdish Typography -->
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] xl:text-[48px] font-black text-slate-900 flex flex-col gap-5 sm:gap-6 lg:gap-7 mb-8 lg:mb-10 leading-[1.6] lg:leading-[1.65]">
-                        <span class="block py-1">{{ __('landing.hero_title_1') }}</span>
-                        <span class="block py-1">
-                            <span class="text-[#1e60eb] inline-block overflow-visible py-1">{{ __('landing.hero_title_2') }}</span>
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] xl:text-[48px] font-black text-slate-900 flex flex-col gap-1 sm:gap-1.5 lg:gap-2 mb-8 lg:mb-10 leading-[1.5] lg:leading-[1.55]">
+                        <span class="block">{{ __('landing.hero_title_1') }}</span>
+                        <span class="block">
+                            <span class="text-[#1e60eb] inline-block overflow-visible">{{ __('landing.hero_title_2') }}</span>
                         </span>
-                        <span class="block text-slate-950 py-1">{{ __('landing.hero_title_3') }}</span>
+                        <span class="block text-slate-950">{{ __('landing.hero_title_3') }}</span>
                     </h1>
                     
                     <!-- Description -->
