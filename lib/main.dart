@@ -24,6 +24,7 @@ import 'features/auth/register_screen.dart';
 import 'features/auth/otp_screen.dart';
 import 'features/home/main_shell.dart';
 import 'features/admin/admin_dashboard_shell.dart';
+import 'features/driver/driver_dashboard_shell.dart';
 import 'features/setup/language_selection_screen.dart';
 import 'features/setup/health_profile_screen.dart';
 import 'features/setup/medical_history_screen.dart';
@@ -173,8 +174,10 @@ class AppFlowState extends State<AppFlow> {
           key: const ValueKey('splash'),
           onFinished: (bool isLoggedIn, String role, bool isFirstTime) {
             if (isLoggedIn) {
-              if (role == 'admin') {
+              if (role == 'admin' || role == 'staff' || role == 'moderator') {
                 _goTo(_FlowState.admin);
+              } else if (role == 'driver') {
+                _goTo(_FlowState.driver);
               } else {
                 _goTo(_FlowState.home);
               }
@@ -217,6 +220,15 @@ class AppFlowState extends State<AppFlow> {
             _phoneNumber = phone;
             _goTo(_FlowState.otp);
           },
+          onDirectLogin: (String role) {
+            if (role == 'admin' || role == 'staff' || role == 'moderator') {
+              _goTo(_FlowState.admin);
+            } else if (role == 'driver') {
+              _goTo(_FlowState.driver);
+            } else {
+              _goTo(_FlowState.home);
+            }
+          },
           onSignUp: () => _goTo(_FlowState.register),
         );
 
@@ -235,8 +247,10 @@ class AppFlowState extends State<AppFlow> {
           key: const ValueKey('otp'),
           phoneNumber: _phoneNumber,
           onVerified: (String role) {
-            if (role == 'admin') {
+            if (role == 'admin' || role == 'staff' || role == 'moderator') {
               _goTo(_FlowState.admin);
+            } else if (role == 'driver') {
+              _goTo(_FlowState.driver);
             } else {
               _goTo(_FlowState.home);
             }
@@ -249,6 +263,9 @@ class AppFlowState extends State<AppFlow> {
 
       case _FlowState.admin:
         return const AdminDashboardShell(key: ValueKey('admin'));
+
+      case _FlowState.driver:
+        return const DriverDashboardShell(key: ValueKey('driver'));
     }
   }
 }
@@ -264,4 +281,5 @@ enum _FlowState {
   otp,
   home,
   admin,
+  driver,
 }

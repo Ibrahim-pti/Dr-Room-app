@@ -12,6 +12,7 @@ import 'admin_articles_screen.dart';
 import 'admin_banners_screen.dart';
 import 'admin_coupons_screen.dart';
 import 'admin_doctors_screen.dart';
+import 'admin_drivers_screen.dart';
 import 'admin_labs_screen.dart';
 import 'admin_notifications_screen.dart';
 import 'admin_nurses_screen.dart';
@@ -70,12 +71,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   int get _totalPending {
     if (_stats == null) return 0;
-    final int nurses = (_stats?['pending_nurses'] ?? 0) as int;
-    final int labs = (_stats?['pending_labs'] ?? 0) as int;
-    final int pharms = (_stats?['pending_pharmacies'] ?? 0) as int;
-    final int orders = (_stats?['pending_orders'] ?? 0) as int;
-    final int openTickets = (_stats?['open_tickets'] ?? 0) as int;
-    return nurses + labs + pharms + orders + openTickets;
+    final int nurses = int.tryParse('${_stats?['pending_nurses'] ?? 0}') ?? 0;
+    final int labs = int.tryParse('${_stats?['pending_labs'] ?? 0}') ?? 0;
+    final int pharms = int.tryParse('${_stats?['pending_pharmacies'] ?? 0}') ?? 0;
+    final int drivers = int.tryParse('${_stats?['pending_drivers'] ?? 0}') ?? 0;
+    final int orders = int.tryParse('${_stats?['pending_orders'] ?? 0}') ?? 0;
+    final int openTickets = int.tryParse('${_stats?['open_tickets'] ?? 0}') ?? 0;
+    return nurses + labs + pharms + drivers + orders + openTickets;
   }
 
   @override
@@ -297,6 +299,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           _openScreen(const AdminOrdersScreen());
         } else if ((_stats?['pending_nurses'] ?? 0) > 0) {
           _openScreen(const AdminNursesScreen());
+        } else if ((_stats?['pending_drivers'] ?? 0) > 0) {
+          _openScreen(const AdminDriversScreen());
         } else if ((_stats?['pending_labs'] ?? 0) > 0) {
           _openScreen(const AdminLabsScreen());
         } else {
@@ -522,6 +526,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final int pendingNurses = (_stats?['pending_nurses'] ?? 0) as int;
     final int totalNurses = (_stats?['total_nurses'] ?? 0) as int;
 
+    final int pendingDrivers = int.tryParse('${_stats?['pending_drivers'] ?? 0}') ?? 0;
+    final int totalDrivers = int.tryParse('${_stats?['total_drivers'] ?? 0}') ?? 0;
+    final int onlineDrivers = int.tryParse('${_stats?['online_drivers'] ?? 0}') ?? 0;
+
     final int totalUsers = (_stats?['total_users'] ?? 0) as int;
 
     final List<Map<String, dynamic>> essentials = [
@@ -589,6 +597,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'bg': const Color(0xFFF0FDFA),
         'badge': null,
         'screen': const AdminPatientsScreen(),
+      },
+      {
+        'title': 'کارمەندانی گەیاندن',
+        'subtitle': '$onlineDrivers لە هێڵ · $totalDrivers شۆفێر',
+        'icon': Iconsax.truck_fast,
+        'color': const Color(0xFF10B981),
+        'bg': const Color(0xFFECFDF5),
+        'badge': pendingDrivers > 0 ? '$pendingDrivers پەسەندکردن' : null,
+        'screen': const AdminDriversScreen(),
       },
       {
         'title': 'کۆدەکانی داشکاندن',

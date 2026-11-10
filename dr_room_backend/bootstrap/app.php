@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'lab.profile.complete' => \App\Http\Middleware\EnsureLabProfileComplete::class,
             'staff' => \App\Http\Middleware\IsStaff::class,
             'permission' => \App\Http\Middleware\HasPermission::class,
+            'driver' => \App\Http\Middleware\IsDriver::class,
         ]);
         $middleware->redirectGuestsTo(fn (Request $request) => $request->expectsJson() ? null : route('staff.login'));
     })

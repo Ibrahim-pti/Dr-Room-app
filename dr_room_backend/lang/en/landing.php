@@ -9,6 +9,7 @@ return [
     'about_us' => 'About Us',
     'staff_portal' => 'Doctor & Staff Portal',
     'staff_short' => 'Staff Portal',
+    'delivery_short' => 'Delivery',
     'faq' => 'FAQ',
     'contact' => 'Contact',
     'download_app' => 'Download App',

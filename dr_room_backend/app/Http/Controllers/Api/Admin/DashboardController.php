@@ -14,7 +14,7 @@ class DashboardController extends Controller
     public function index()
     {
         $totalUsers = User::where(function ($q) {
-            $q->whereNull('role')->orWhereNotIn('role', ['admin', 'staff', 'moderator', 'doctor', 'nurse', 'lab', 'pharmacy', 'xray']);
+            $q->whereNull('role')->orWhereNotIn('role', ['admin', 'staff', 'moderator', 'doctor', 'nurse', 'lab', 'pharmacy', 'xray', 'driver']);
         })->count(); // patients
         $totalDoctors = Doctor::count();
         $pendingDoctors = User::where('role', 'doctor')->where('status', 'pending')->count();
@@ -27,6 +27,19 @@ class DashboardController extends Controller
         
         $totalPharmacies = User::where('role', 'pharmacy')->where('status', 'approved')->count();
         $pendingPharmacies = User::where('role', 'pharmacy')->where('status', 'pending')->count();
+
+        $totalDrivers = User::where('role', 'driver')->where('status', 'approved')->count();
+        $pendingDrivers = User::where('role', 'driver')->where('status', 'pending')->count();
+        $onlineDrivers = 0;
+        $busyDrivers = 0;
+        try {
+            $onlineDrivers = \App\Models\Driver::whereHas('user', fn ($q) => $q->where('role', 'driver')->where('status', 'approved'))
+                ->whereIn('duty_status', ['available', 'busy'])
+                ->count();
+            $busyDrivers = \App\Models\Driver::whereHas('user', fn ($q) => $q->where('role', 'driver')->where('status', 'approved'))
+                ->where('duty_status', 'busy')
+                ->count();
+        } catch (\Throwable $e) {}
         
         $totalOrders = Order::count();
         $pendingOrders = Order::where('status', 'pending')->count();
@@ -59,6 +72,10 @@ class DashboardController extends Controller
             'pending_labs' => $pendingLabs,
             'total_pharmacies' => $totalPharmacies,
             'pending_pharmacies' => $pendingPharmacies,
+            'total_drivers' => $totalDrivers,
+            'pending_drivers' => $pendingDrivers,
+            'online_drivers' => $onlineDrivers,
+            'busy_drivers' => $busyDrivers,
             'total_orders' => $totalOrders,
             'pending_orders' => $pendingOrders,
             'open_tickets' => $openTickets,

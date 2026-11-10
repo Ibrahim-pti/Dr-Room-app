@@ -188,6 +188,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/time-offs/{id}', [\App\Http\Controllers\Api\DoctorTimeOffController::class, 'destroy']);
     });
 
+    // ─── Delivery Driver Mobile Dashboard API ───────────────────────────────
+    Route::middleware('driver')->prefix('driver')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Api\DriverController::class, 'dashboard']);
+        Route::post('/duty', [\App\Http\Controllers\Api\DriverController::class, 'updateDuty']);
+        Route::post('/location', [\App\Http\Controllers\Api\DriverController::class, 'updateLocation']);
+        Route::post('/orders/{id}/claim', [\App\Http\Controllers\Api\DriverController::class, 'claimOrder']);
+        Route::post('/orders/{id}/status', [\App\Http\Controllers\Api\DriverController::class, 'updateOrderStatus']);
+    });
+
     // ─── Admin Routes ───────────────────────────────────────────────────────
     Route::middleware('staff')->prefix('admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -260,11 +269,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::middleware('permission:manage_orders')
             ->get('/appointments', [AppointmentController::class, 'index']);
 
+        // Read access for dashboard, live fleet map, and order-dispatch driver picker
+        Route::get('/drivers', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'index']);
+        Route::get('/drivers/live-map', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'liveMap']);
+
         // Orders
         Route::middleware('permission:manage_orders')->group(function () {
         Route::get('/orders', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'index']);
         Route::patch('/orders/{id}/assign-nurse', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'assignNurse']);
         Route::patch('/orders/{id}/assign-pharmacy', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'assignPharmacy']);
+        Route::patch('/orders/{id}/assign-driver', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'assignDriver']);
         Route::patch('/orders/{id}/status', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'updateStatus']);
         Route::delete('/orders/{id}', [\App\Http\Controllers\Api\Admin\AdminOrderController::class, 'destroy']);
         });
@@ -309,6 +323,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/xrays/{id}/approve', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'approve']);
         Route::patch('/xrays/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'reject']);
         Route::delete('/xrays/{id}', [\App\Http\Controllers\Api\Admin\AdminXRayController::class, 'destroy']);
+
+        // Delivery Drivers (کارمەندانی گەیاندن) - write actions
+        Route::post('/drivers', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'store']);
+        Route::patch('/drivers/{id}/approve', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'approve']);
+        Route::patch('/drivers/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'reject']);
+        Route::patch('/drivers/{id}/toggle-block', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'toggleBlock']);
 
         });
 

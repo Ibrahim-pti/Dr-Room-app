@@ -15,7 +15,7 @@ class OrderController extends Controller
     {
         $lang = $request->header('Accept-Language', $request->query('lang', 'ckb'));
         $orders = Order::where('patient_id', Auth::id())
-            ->with(['items', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab'])
+            ->with(['items', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab', 'assignedDriver.driver'])
             ->orderBy('created_at', 'desc')
             ->get();
             
@@ -28,7 +28,7 @@ class OrderController extends Controller
     {
         $lang = $request->header('Accept-Language', $request->query('lang', 'ckb'));
         $order = Order::where('patient_id', Auth::id())
-            ->with(['items', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab'])
+            ->with(['items', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab', 'assignedDriver.driver'])
             ->findOrFail($id);
 
         return response()->json([
@@ -361,6 +361,25 @@ class OrderController extends Controller
         }
         $prescriptionImgUrl = $prescriptionImg ? $this->resolveImageUrl($prescriptionImg) : null;
 
+        // Format Assigned Driver (Live Courier & Delivery Tracking)
+        $assignedDriver = null;
+        if ($order->assignedDriver) {
+            $u = $order->assignedDriver;
+            $d = $u->driver;
+            $assignedDriver = [
+                'id' => $u->id,
+                'name' => $u->name,
+                'phone' => $u->phone,
+                'avatar' => $u->avatar_url,
+                'vehicle_type' => $d?->vehicle_type ?? 'motorcycle',
+                'plate_number' => $d?->plate_number,
+                'duty_status' => $d?->duty_status ?? 'offline',
+                'current_lat' => $d?->current_lat,
+                'current_lng' => $d?->current_lng,
+                'last_location_at' => $d?->last_location_at?->toIso8601String(),
+            ];
+        }
+
         return [
             'id' => $order->id,
             'patient_id' => $order->patient_id,
@@ -374,12 +393,18 @@ class OrderController extends Controller
             'extra_fee' => $order->extra_fee,
             'total_price' => $order->total_price,
             'status' => $order->status,
+            'delivery_status' => $order->delivery_status ?? 'unassigned',
+            'delivery_fee' => (float) ($order->delivery_fee ?? 0),
+            'driver_assigned_at' => $order->driver_assigned_at?->toIso8601String(),
+            'driver_picked_up_at' => $order->driver_picked_up_at?->toIso8601String(),
+            'driver_delivered_at' => $order->driver_delivered_at?->toIso8601String(),
             'status_label' => $statusLabels[$langCode] ?? $statusLabels['ckb'],
             'status_labels' => $statusLabels,
             'payment_method' => $order->payment_method,
             'assigned_nurse_id' => $order->assigned_nurse_id,
             'assigned_pharmacy_id' => $order->assigned_pharmacy_id,
             'assigned_lab_id' => $order->assigned_lab_id,
+            'assigned_driver_id' => $order->assigned_driver_id,
             'patient_details' => $order->patient_details,
             'location_details' => $order->location_details,
             'created_at' => $order->created_at?->toIso8601String(),
@@ -388,6 +413,7 @@ class OrderController extends Controller
             'assigned_nurse' => $assignedNurse,
             'assigned_pharmacy' => $assignedPharmacy,
             'assigned_lab' => $assignedLab,
+            'assigned_driver' => $assignedDriver,
             'prescription_image' => $prescriptionImgUrl,
         ];
     }

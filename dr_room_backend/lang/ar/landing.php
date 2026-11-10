@@ -9,6 +9,7 @@ return [
     'about_us' => 'من نحن',
     'staff_portal' => 'بوابة الكادر الطبي',
     'staff_short' => 'بوابة الكادر',
+    'delivery_short' => 'التوصيل',
     'faq' => 'الأسئلة الشائعة',
     'contact' => 'اتصل بنا',
     'download_app' => 'تحميل التطبيق',

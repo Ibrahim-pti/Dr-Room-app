@@ -9,6 +9,7 @@ return [
     'about_us' => 'دەربارەی ئێمە',
     'staff_portal' => 'پۆڕتاڵی ستاف و پزیشکان',
     'staff_short' => 'پۆڕتاڵی ستاف',
+    'delivery_short' => 'دلیڤەری',
     'faq' => 'پرسیارە باوەکان',
     'contact' => 'پەیوەندی',
     'download_app' => 'دابەزاندنی ئەپ',

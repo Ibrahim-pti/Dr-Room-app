@@ -135,4 +135,167 @@ class OrderNotificationService
             Log::error('FCM Order Notification send failed: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Notify both the driver and patient when a driver is assigned to an order.
+     */
+    public static function notifyDriverAssigned(Order $order, \App\Models\User $driver): void
+    {
+        $orderNumber = '#' . $order->id;
+        $isLab = str_contains(strtolower($order->service_type ?? ''), 'lab');
+
+        $driverTitle = $isLab ? 'ئەرکی گواستنەوەی نموونەی تاقیگە 🚗' : 'داواکاری گەیاندنی نوێ 📦';
+        $driverMsg = $isLab
+            ? "داواکاری نموونەی تاقیگە {$orderNumber} بۆ تۆ دیاریکرا. تکایە لە ئەپەکە وەریبگرە."
+            : "داواکاری گەیاندنی دەرمان {$orderNumber} بۆ تۆ دیاریکرا. تکایە لە ئەپەکە وەریبگرە.";
+
+        try {
+            AppNotification::create([
+                'user_id'    => $driver->id,
+                'title'      => $driverTitle,
+                'title_ar'   => $isLab ? 'مهمة توصيل عينة مختبرية 🚗' : 'طلب توصيل جديد 📦',
+                'title_en'   => $isLab ? 'New Lab Sample Pickup 🚗' : 'New Delivery Assignment 📦',
+                'message'    => $driverMsg,
+                'message_ar' => "تم تعيين الطلب {$orderNumber} لك. يرجى مراجعته في التطبيق.",
+                'message_en' => "Order {$orderNumber} has been assigned to you.",
+                'type'       => 'driver_assignment',
+            ]);
+
+            app(FcmService::class)->sendToUsers(
+                [$driver->id],
+                $driverTitle,
+                $driverMsg,
+                ['order_id' => (string) $order->id, 'type' => 'driver_assignment']
+            );
+        } catch (\Throwable $e) {
+            Log::error('Driver assignment notification failed: ' . $e->getMessage());
+        }
+
+        if ($order->patient_id) {
+            $patientTitle = 'کارمەندی گەیاندن دیاریکرا 🛵';
+            $patientMsg = "کارمەندی گەیاندن ({$driver->name}) بۆ داواکارییەکەت {$orderNumber} دیاریکرا.";
+            try {
+                AppNotification::create([
+                    'user_id'    => $order->patient_id,
+                    'title'      => $patientTitle,
+                    'title_ar'   => 'تم تعيين مندوب التوصيل 🛵',
+                    'title_en'   => 'Delivery Driver Assigned 🛵',
+                    'message'    => $patientMsg,
+                    'message_ar' => "تم تعيين المندوب ({$driver->name}) لطلبك {$orderNumber}.",
+                    'message_en' => "Driver {$driver->name} has been assigned to your order {$orderNumber}.",
+                    'type'       => 'order_update',
+                ]);
+
+                app(FcmService::class)->sendToUsers(
+                    [$order->patient_id],
+                    $patientTitle,
+                    $patientMsg,
+                    ['order_id' => (string) $order->id, 'type' => 'delivery_status_update']
+                );
+            } catch (\Throwable $e) {
+                Log::error('Patient driver assignment notification failed: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Notify patient about real-time delivery milestone updates.
+     */
+    public static function notifyDeliveryStage(Order $order, string $stage): void
+    {
+        if (!$order->patient_id) {
+            return;
+        }
+
+        $isLab = str_contains(strtolower($order->service_type ?? ''), 'lab');
+        $orderNumber = '#' . $order->id;
+
+        [$titleKu, $msgKu, $titleAr, $msgAr, $titleEn, $msgEn] = match ($stage) {
+            'accepted' => [
+                'کارمەندی گەیاندن داواکارییەکەی وەرگرت ✅',
+                "شۆفێر داواکاری {$orderNumber}ی وەرگرت و ئامادەکاری بۆ گەیشتن دەکات.",
+                'قبل المندوب الطلب ✅',
+                "وافق مندوب التوصيل على طلبك {$orderNumber}.",
+                'Driver Accepted Order ✅',
+                "Your driver has accepted order {$orderNumber}.",
+            ],
+            'picked_up' => $isLab ? [
+                'نموونەی خوێن وەرگیرا 🧪',
+                "نموونەی پشکنین بۆ داواکاری {$orderNumber} وەرگیرا و دەگەیەنرێتە تاقیگە.",
+                'تم استلام العينة 🧪',
+                "تم أخذ العينة المخبرية للطلب {$orderNumber} وجاري نقلها للمختبر.",
+                'Sample Collected 🧪',
+                "Sample for order {$orderNumber} has been collected for delivery to the lab.",
+            ] : [
+                'دەرمانەکان لە دەرمانخانە وەرگیران 💊',
+                "کارمەندی گەیاندن داواکاری {$orderNumber}ی لە دەرمانخانە وەرگرت.",
+                'تم استلام الأدوية من الصيدلية 💊',
+                "استلم المندوب طلبك {$orderNumber} من الصيدلية.",
+                'Order Picked Up 💊',
+                "Your medication order {$orderNumber} was picked up from the pharmacy.",
+            ],
+            'on_the_way' => [
+                'کارمەندی گەیاندن لە ڕێگادایە 🛵',
+                "شۆفێر بەڕێکەوتووە و لەسەر نەخشە دەتوانیت شوێنەکەی ببینیت ({$orderNumber}).",
+                'المندوب في الطريق إليك 🛵',
+                "المندوب في طريقه الآن، يمكنك تتبعه مباشرة على الخريطة ({$orderNumber}).",
+                'Driver On The Way 🛵',
+                "Your driver is on the way for order {$orderNumber}. Track live in the app.",
+            ],
+            'arrived' => [
+                'کارمەندی گەیاندن گەیشتە شوێنەکە 📍',
+                "کارمەندی گەیاندن گەیشتە لای تۆ بۆ داواکاری {$orderNumber}.",
+                'وصل المندوب إلى موقعك 📍',
+                "المندوب وصل إلى العنوان للطلب {$orderNumber}.",
+                'Driver Arrived 📍',
+                "Your driver has arrived with order {$orderNumber}.",
+            ],
+            'delivered' => $isLab ? [
+                'نموونە گەیەنرایە تاقیگە 🎉',
+                "نموونەی داواکاری {$orderNumber} بە سەلامەتی گەیشتە تاقیگە و بە زوویی ئەنجام دەردەچێت.",
+                'وصلت العينة إلى المختبر 🎉',
+                "تم تسليم العينة للطلب {$orderNumber} إلى المختبر بنجاح.",
+                'Sample Delivered to Lab 🎉',
+                "Sample for order {$orderNumber} was delivered to the lab.",
+            ] : [
+                'داواکاری گەیەنرا و ڕادەستکرا 🎉',
+                "داواکاری {$orderNumber} بە سەرکەوتوویی ڕادەست کرا. هیوای تەندروستی باش.",
+                'تم تسليم الطلب بنجاح 🎉',
+                "تم تسليم طلبك {$orderNumber} بنجاح.",
+                'Order Delivered 🎉',
+                "Your order {$orderNumber} has been delivered.",
+            ],
+            default => [null, null, null, null, null, null],
+        };
+
+        if (!$titleKu) {
+            return;
+        }
+
+        try {
+            AppNotification::create([
+                'user_id'    => $order->patient_id,
+                'title'      => $titleKu,
+                'title_ar'   => $titleAr,
+                'title_en'   => $titleEn,
+                'message'    => $msgKu,
+                'message_ar' => $msgAr,
+                'message_en' => $msgEn,
+                'type'       => 'order_update',
+            ]);
+
+            app(FcmService::class)->sendToUsers(
+                [$order->patient_id],
+                $titleKu,
+                $msgKu,
+                [
+                    'order_id'        => (string) $order->id,
+                    'delivery_status' => $stage,
+                    'type'            => 'delivery_status_update',
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::error('Delivery stage notification failed: ' . $e->getMessage());
+        }
+    }
 }

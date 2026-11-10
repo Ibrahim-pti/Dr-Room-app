@@ -238,15 +238,32 @@ Route::prefix('pharmacy')->middleware(['auth', \App\Http\Middleware\IsPharmacy::
     Route::post('/settings', [\App\Http\Controllers\Web\PharmacySettingsController::class, 'update'])->name('pharmacy.settings.update');
 });
 
+// Delivery Driver Recruitment & Registration Portal (/delivery and delivery.* subdomain)
+Route::prefix('delivery')->group(function () {
+    Route::post('/register', [\App\Http\Controllers\Web\DeliveryWebController::class, 'register'])->name('delivery.register');
+    Route::get('/waiting', [\App\Http\Controllers\Web\DeliveryWebController::class, 'waiting'])->name('delivery.waiting');
+    Route::get('/status', [\App\Http\Controllers\Web\DeliveryWebController::class, 'status'])->name('delivery.status');
+    Route::post('/logout', [\App\Http\Controllers\Web\DeliveryWebController::class, 'logout'])->name('delivery.logout');
+    Route::get('/{locale?}', [\App\Http\Controllers\Web\DeliveryWebController::class, 'landing'])
+        ->name('delivery.landing')
+        ->where('locale', 'en|ar|ckb|kmr');
+});
+
 // Privacy Policy & Compliance
 Route::get('/privacy-policy', function () {
     return view('privacy');
 })->name('privacy.policy');
 
-Route::get('/{locale?}', function ($locale = 'ckb') {
+Route::get('/{locale?}', function (\Illuminate\Http\Request $request, $locale = 'ckb') {
     if (!in_array($locale, ['en', 'ar', 'ckb', 'kmr'])) {
         abort(404);
     }
+
+    // Serve Delivery portal automatically if accessed via delivery.* subdomain (e.g. delivery.sys.shaqamonline.org)
+    if (str_starts_with(strtolower($request->getHost()), 'delivery.')) {
+        return app(\App\Http\Controllers\Web\DeliveryWebController::class)->landing($request, $locale);
+    }
+
     app()->setLocale($locale);
 
     $labs = \App\Models\User::where('role', 'lab')

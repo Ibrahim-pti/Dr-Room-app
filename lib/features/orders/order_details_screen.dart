@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/providers/order_provider.dart';
 import '../doctors/chat_screen.dart';
@@ -22,6 +24,7 @@ class OrderDetailsScreen extends StatefulWidget {
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   late OrderModel _currentOrder;
   Timer? _pollingTimer;
+  GoogleMapController? _driverMapController;
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -78,10 +81,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         );
 
         if (updatedOrder.status != _currentOrder.status ||
-            updatedOrder.assignedNurseId != _currentOrder.assignedNurseId) {
+            updatedOrder.assignedNurseId != _currentOrder.assignedNurseId ||
+            updatedOrder.deliveryStatus != _currentOrder.deliveryStatus ||
+            updatedOrder.assignedDriverId != _currentOrder.assignedDriverId ||
+            updatedOrder.driverLat != _currentOrder.driverLat ||
+            updatedOrder.driverLng != _currentOrder.driverLng) {
           setState(() {
             _currentOrder = updatedOrder;
           });
+          if (updatedOrder.driverLat != null && updatedOrder.driverLng != null) {
+            _driverMapController?.animateCamera(
+              CameraUpdate.newLatLng(LatLng(updatedOrder.driverLat!, updatedOrder.driverLng!)),
+            );
+          }
         }
       }
     });
@@ -90,6 +102,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   @override
   void dispose() {
     _pollingTimer?.cancel();
+    _driverMapController?.dispose();
     super.dispose();
   }
 
@@ -117,6 +130,184 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         if (lang == 'en') return _currentOrder.statusLabelEn ?? 'Cancelled';
         return _currentOrder.statusLabelCkb ?? 'هەڵوەشێنراوەتەوە';
     }
+  }
+
+  Widget _buildDriverTrackingCard(bool isDark, Color cardBg, Color borderColor) {
+    final lang = context.locale.languageCode.toLowerCase();
+    final stage = (_currentOrder.deliveryStatus ?? 'assigned').toLowerCase();
+
+    final stageText = switch (stage) {
+      'accepted' => switch (lang) {
+          'ar' => 'قبل المندوب الطلب',
+          'en' => 'Driver accepted your order',
+          'kmr' => 'شۆفێری داخوازی وەرگرت',
+          _ => 'شۆفێر داواکارییەکەی وەرگرت',
+        },
+      'picked_up' => switch (lang) {
+          'ar' => 'تم استلام الطلب من المزود',
+          'en' => 'Picked up',
+          'kmr' => 'وەرگرتن هاتە کرن',
+          _ => 'وەرگیراوە و ئامادەیە بۆ گەیاندن',
+        },
+      'on_the_way' => switch (lang) {
+          'ar' => 'المندوب في الطريق الآن 🛵',
+          'en' => 'Driver is on the way 🛵',
+          'kmr' => 'شۆفێر د ڕێکێ دایە 🛵',
+          _ => 'کارمەندی گەیاندن لە ڕێگادایە 🛵',
+        },
+      'arrived' => switch (lang) {
+          'ar' => 'وصل المندوب إلى موقعك 📍',
+          'en' => 'Driver has arrived 📍',
+          'kmr' => 'شۆفێر گەهشت 📍',
+          _ => 'کارمەندی گەیاندن گەیشتە شوێنەکە 📍',
+        },
+      'delivered' => switch (lang) {
+          'ar' => 'تم التسليم بنجاح ✅',
+          'en' => 'Delivered successfully ✅',
+          'kmr' => 'گەهاندن تمام بوو ✅',
+          _ => 'بە سەرکەوتوویی ڕادەستکرا ✅',
+        },
+      _ => switch (lang) {
+          'ar' => 'تم تعيين مندوب التوصيل',
+          'en' => 'Courier assigned',
+          'kmr' => 'شۆفێر هاتە دیارکرن',
+          _ => 'کارمەندی گەیاندن دیاریکراوە',
+        },
+    };
+
+    final vehicleText = switch (_currentOrder.driverVehicleType) {
+      'car' => lang == 'en' ? 'Car' : (lang == 'ar' ? 'سيارة' : 'ئۆتۆمبێل'),
+      'refrigerated_van' => lang == 'en' ? 'Cooler Transport' : (lang == 'ar' ? 'سيارة مبردة' : 'ساردکەرەوەی تاقیگە'),
+      _ => lang == 'en' ? 'Motorcycle' : (lang == 'ar' ? 'دراجة نارية' : 'ماتۆڕسکیل'),
+    };
+
+    final dLat = _currentOrder.driverLat;
+    final dLng = _currentOrder.driverLng;
+    final pLat = _currentOrder.patientLat;
+    final pLng = _currentOrder.patientLng;
+    final showLiveMap = dLat != null && dLng != null && stage != 'delivered';
+
+    final markers = <Marker>{};
+    if (dLat != null && dLng != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('live_driver'),
+          position: LatLng(dLat, dLng),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          infoWindow: InfoWindow(title: _currentOrder.driverName ?? 'Driver'),
+        ),
+      );
+    }
+    if (pLat != null && pLng != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('patient_dest'),
+          position: LatLng(pLat, pLng),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          infoWindow: InfoWindow(title: lang == 'en' ? 'Your Location' : 'شوێنی تۆ'),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Iconsax.truck_fast, color: Color(0xFF10B981), size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _currentOrder.driverName!,
+                      style: _kStyle(
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$vehicleText${(_currentOrder.driverPlateNumber?.isNotEmpty ?? false) ? ' · ${_currentOrder.driverPlateNumber}' : ''}',
+                      style: _kStyle(
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_currentOrder.driverPhone?.isNotEmpty ?? false)
+                IconButton.filled(
+                  onPressed: () async {
+                    final clean = _currentOrder.driverPhone!.replaceAll(RegExp(r'[^0-9+]'), '');
+                    final uri = Uri.parse('tel:$clean');
+                    if (await canLaunchUrl(uri)) await launchUrl(uri);
+                  },
+                  icon: const Icon(Iconsax.call, size: 18, color: Colors.white),
+                  style: IconButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF10B981).withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.25)),
+            ),
+            child: Text(
+              stageText,
+              style: _kStyle(
+                color: const Color(0xFF059669),
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          if (showLiveMap) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: SizedBox(
+                height: 185,
+                width: double.infinity,
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(dLat, dLng),
+                    zoom: 14.2,
+                  ),
+                  markers: markers,
+                  zoomControlsEnabled: false,
+                  myLocationButtonEnabled: false,
+                  mapToolbarEnabled: false,
+                  onMapCreated: (c) => _driverMapController = c,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   String _getStatusDescription(OrderStatus status, BuildContext context) {
@@ -582,6 +773,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ],
                   ),
                 ),
+              ],
+
+              // ── Live Delivery Driver Card & Map (if Driver assigned) ──
+              if (_currentOrder.assignedDriverId != null &&
+                  (_currentOrder.driverName?.isNotEmpty ?? false)) ...[
+                const SizedBox(height: 20),
+                _buildDriverTrackingCard(isDark, cardBg, borderColor),
               ],
 
               // ── Prescription Photo Card (if order is from prescription) ──

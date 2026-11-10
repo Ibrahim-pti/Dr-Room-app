@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -1244,6 +1245,79 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
 
                       // 6. Action Controls for Admin
                       if (orderId is int) ...[
+                        // Assigned Delivery Driver Box (for Pharmacy / Lab orders)
+                        if (receiver['type'] == 'دەرمانخانە' || receiver['type'] == 'تاقیگە') ...[
+                          _buildSectionHeader('کارمەندی گەیاندن (دلیڤەری)', Iconsax.truck_fast),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.getBackground(context),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.getBorder(context)),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(9),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(Iconsax.truck_fast, color: Color(0xFF10B981), size: 20),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        order['assigned_driver'] is Map
+                                            ? '${order['assigned_driver']['name'] ?? 'شۆفێر'}'
+                                            : 'هیچ شۆفێرێک دیارینەکراوە',
+                                        style: TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.getTextTitle(context),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        order['assigned_driver'] is Map
+                                            ? 'دۆخ: ${order['delivery_status'] ?? 'assigned'}'
+                                            : 'دەتوانیت نزیکترین شۆفێر دیاری بکەیت',
+                                        style: TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 11.5,
+                                          color: AppColors.getTextSubtitle(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (rawStatus != 'completed' && rawStatus != 'cancelled')
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      _showAssignDriverSheet(orderId, lat, lng);
+                                    },
+                                    icon: const Icon(Iconsax.user_tick, size: 15),
+                                    label: Text(
+                                      order['assigned_driver'] != null ? 'گۆڕین' : 'دیاریکردن',
+                                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF10B981),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         Row(
                           children: [
                             if (rawStatus == 'pending') ...[
@@ -1444,6 +1518,134 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
           ],
         ),
       ],
+    );
+  }
+
+  Future<void> _showAssignDriverSheet(int orderId, double? destLat, double? destLng) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return FutureBuilder<List<dynamic>>(
+          future: () async {
+            final res = await ApiClient.get('/admin/drivers?status=approved');
+            if (res.statusCode == 200) {
+              final list = List<dynamic>.from(jsonDecode(res.body)['data'] ?? []);
+              // Sort online/available first, then by distance if coordinates exist
+              list.sort((a, b) {
+                final aScore = a['duty_status'] == 'available' ? 0 : (a['duty_status'] == 'busy' ? 1 : 2);
+                final bScore = b['duty_status'] == 'available' ? 0 : (b['duty_status'] == 'busy' ? 1 : 2);
+                if (aScore != bScore) return aScore.compareTo(bScore);
+                if (destLat != null && destLng != null) {
+                  final aLat = double.tryParse('${a['current_lat'] ?? ''}');
+                  final aLng = double.tryParse('${a['current_lng'] ?? ''}');
+                  final bLat = double.tryParse('${b['current_lat'] ?? ''}');
+                  final bLng = double.tryParse('${b['current_lng'] ?? ''}');
+                  if (aLat != null && aLng != null && bLat != null && bLng != null) {
+                    final da = Geolocator.distanceBetween(destLat, destLng, aLat, aLng);
+                    final db = Geolocator.distanceBetween(destLat, destLng, bLat, bLng);
+                    return da.compareTo(db);
+                  }
+                }
+                return 0;
+              });
+              return list;
+            }
+            return [];
+          }(),
+          builder: (ctx, snap) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.65,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.getSurface(context),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('هەڵبژاردنی کارمەندی گەیاندن', style: TextStyle(fontFamily: 'Rabar', fontSize: 16, fontWeight: FontWeight.bold)),
+                      IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: snap.connectionState == ConnectionState.waiting
+                        ? const Center(child: CircularProgressIndicator())
+                        : (snap.data ?? []).isEmpty
+                            ? const Center(child: Text('هیچ شۆفێرێکی پەسەندکراو نییە', style: TextStyle(fontFamily: 'Rabar')))
+                            : ListView.separated(
+                                itemCount: snap.data!.length,
+                                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                                itemBuilder: (_, i) {
+                                  final d = snap.data![i];
+                                  final duty = (d['duty_status'] ?? 'offline').toString();
+                                  final dutyColor = duty == 'available'
+                                      ? const Color(0xFF10B981)
+                                      : (duty == 'busy' ? const Color(0xFF2563EB) : const Color(0xFF94A3B8));
+                                  String distLabel = '';
+                                  if (destLat != null && destLng != null && d['current_lat'] != null && d['current_lng'] != null) {
+                                    final meters = Geolocator.distanceBetween(
+                                      destLat,
+                                      destLng,
+                                      double.parse('${d['current_lat']}'),
+                                      double.parse('${d['current_lng']}'),
+                                    );
+                                    distLabel = ' · ${(meters / 1000).toStringAsFixed(1)} کم';
+                                  }
+
+                                  return ListTile(
+                                    tileColor: AppColors.getBackground(context),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    leading: CircleAvatar(
+                                      backgroundColor: dutyColor.withValues(alpha: 0.14),
+                                      child: Icon(Iconsax.truck_fast, color: dutyColor, size: 20),
+                                    ),
+                                    title: Text((d['name'] ?? '').toString(), style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold, fontSize: 13.5)),
+                                    subtitle: Text(
+                                      '${duty == 'available' ? 'ئامادە' : (duty == 'busy' ? 'سەرقاڵ' : 'ئۆفلاین')} · ${d['city'] ?? ''}$distLabel',
+                                      style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: dutyColor),
+                                    ),
+                                    trailing: ElevatedButton(
+                                      onPressed: () async {
+                                        Navigator.pop(ctx);
+                                        final ok = await context.read<AdminOrderProvider>().assignDriver(
+                                              orderId,
+                                              int.parse('${d['id']}'),
+                                            );
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                ok ? 'شۆفێر بە سەرکەوتوویی دیاریکرا' : 'نەتوانرا شۆفێر دیاری بکرێت',
+                                                style: const TextStyle(fontFamily: 'Rabar'),
+                                              ),
+                                              backgroundColor: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF2563EB),
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      ),
+                                      child: const Text('هەڵبژاردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5)),
+                                    ),
+                                  );
+                                },
+                              ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

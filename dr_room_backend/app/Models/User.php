@@ -117,6 +117,11 @@ class User extends Authenticatable
         return $this->role === 'xray';
     }
 
+    public function getIsDriverAttribute(): bool
+    {
+        return $this->role === 'driver';
+    }
+
     public function getIsBlockedAttribute(): bool
     {
         return $this->status === 'blocked';
@@ -175,6 +180,16 @@ class User extends Authenticatable
     public function assignedLabOrders()
     {
         return $this->hasMany(Order::class, 'assigned_lab_id');
+    }
+
+    public function driver()
+    {
+        return $this->hasOne(Driver::class);
+    }
+
+    public function assignedDriverOrders()
+    {
+        return $this->hasMany(Order::class, 'assigned_driver_id');
     }
 
     public function emrRecord()

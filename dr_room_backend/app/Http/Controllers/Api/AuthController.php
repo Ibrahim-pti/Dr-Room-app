@@ -209,10 +209,41 @@ class AuthController extends Controller
             ], 403);
         }
 
-        if ($user->status === 'blocked') {
+        if ($user->status === 'blocked' || $user->status === 'rejected') {
             return response()->json([
                 'message' => 'هەژمارەکەت بلۆک کراوە.'
             ], 403);
+        }
+
+        // Delivery drivers sign in directly using Phone + Password without OTP friction
+        if ($user->role === 'driver') {
+            $driverProfile = \App\Models\Driver::firstOrCreate(['user_id' => $user->id]);
+            $user->forceFill(['last_login_at' => now()])->save();
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'direct_login' => true,
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'role' => $user->role,
+                    'status' => $user->status,
+                    'is_admin' => false,
+                    'driver' => $driverProfile,
+                ],
+            ]);
+        }
+
+        // Allow mobile client to validate credentials first before asking OTP channel
+        if ($request->boolean('check_direct')) {
+            return response()->json([
+                'requires_otp' => true,
+                'direct_login' => false,
+                'phone' => $user->phone,
+            ]);
         }
 
         $otpError = null;
@@ -333,7 +364,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|unique:users,phone',
             'password' => 'required|string|min:6',
-            'role' => 'nullable|string|in:patient,doctor,nurse,lab,pharmacy,admin',
+            'role' => 'nullable|string|in:patient,doctor,nurse,lab,pharmacy,admin,driver',
             'provider' => 'nullable|string|in:auto,sms,whatsapp,telegram',
         ]);
 

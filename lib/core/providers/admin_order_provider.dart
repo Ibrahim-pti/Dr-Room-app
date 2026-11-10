@@ -69,6 +69,26 @@ class AdminOrderProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> assignDriver(int orderId, int driverId, {double? deliveryFee}) async {
+    try {
+      final response = await ApiClient.patch(
+        '/admin/orders/$orderId/assign-driver',
+        body: {
+          'driver_id': driverId,
+          'delivery_fee': ?deliveryFee,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        await fetchOrders();
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> updateStatus(int orderId, String status) async {
     try {
       final response = await ApiClient.patch(

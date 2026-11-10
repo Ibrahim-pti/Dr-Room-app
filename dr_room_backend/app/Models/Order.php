@@ -16,6 +16,10 @@ class Order extends Model
     protected $casts = [
         'patient_details' => 'array',
         'location_details' => 'array',
+        'driver_assigned_at' => 'datetime',
+        'driver_picked_up_at' => 'datetime',
+        'driver_delivered_at' => 'datetime',
+        'delivery_fee' => 'float',
     ];
 
     public function patient()
@@ -41,5 +45,10 @@ class Order extends Model
     public function assignedLab()
     {
         return $this->belongsTo(User::class, 'assigned_lab_id');
+    }
+
+    public function assignedDriver()
+    {
+        return $this->belongsTo(User::class, 'assigned_driver_id');
     }
 }

@@ -93,6 +93,18 @@ class OrderModel {
   final String? assignedPharmacyNameKmr;
   final String? assignedPharmacyAvatar;
 
+  final String? deliveryStatus;
+  final String? assignedDriverId;
+  final String? driverName;
+  final String? driverPhone;
+  final String? driverVehicleType;
+  final String? driverPlateNumber;
+  final double? driverLat;
+  final double? driverLng;
+  final String? driverLastLocationAt;
+  final double? patientLat;
+  final double? patientLng;
+
   final String? paymentMethod;
   final List<dynamic>? items;
   final String? prescriptionImage;
@@ -134,6 +146,17 @@ class OrderModel {
     this.assignedPharmacyNameAr,
     this.assignedPharmacyNameKmr,
     this.assignedPharmacyAvatar,
+    this.deliveryStatus,
+    this.assignedDriverId,
+    this.driverName,
+    this.driverPhone,
+    this.driverVehicleType,
+    this.driverPlateNumber,
+    this.driverLat,
+    this.driverLng,
+    this.driverLastLocationAt,
+    this.patientLat,
+    this.patientLng,
     this.paymentMethod,
     this.items,
     this.prescriptionImage,
@@ -148,6 +171,10 @@ class OrderModel {
     final pharmacy = json['assigned_pharmacy'] is Map<String, dynamic>
         ? json['assigned_pharmacy'] as Map<String, dynamic>
         : (json['assigned_pharmacy'] is Map ? Map<String, dynamic>.from(json['assigned_pharmacy'] as Map) : null);
+    final driver = json['assigned_driver'] is Map<String, dynamic>
+        ? json['assigned_driver'] as Map<String, dynamic>
+        : (json['assigned_driver'] is Map ? Map<String, dynamic>.from(json['assigned_driver'] as Map) : null);
+    final locDetails = json['location_details'] is Map ? json['location_details'] as Map : null;
 
     final rawNurseAvatar = nurse?['avatar']?.toString() ??
         nurse?['image_url']?.toString() ??
@@ -224,6 +251,17 @@ class OrderModel {
       assignedPharmacyNameAr: pharmacy?['name_ar']?.toString(),
       assignedPharmacyNameKmr: pharmacy?['name_kmr']?.toString(),
       assignedPharmacyAvatar: resolvedPharmacyAvatar,
+      deliveryStatus: json['delivery_status']?.toString(),
+      assignedDriverId: driver?['id']?.toString() ?? json['assigned_driver_id']?.toString(),
+      driverName: driver?['name']?.toString(),
+      driverPhone: driver?['phone']?.toString(),
+      driverVehicleType: driver?['vehicle_type']?.toString(),
+      driverPlateNumber: driver?['plate_number']?.toString(),
+      driverLat: double.tryParse('${driver?['current_lat'] ?? ''}'),
+      driverLng: double.tryParse('${driver?['current_lng'] ?? ''}'),
+      driverLastLocationAt: driver?['last_location_at']?.toString(),
+      patientLat: double.tryParse('${locDetails?['latitude'] ?? locDetails?['lat'] ?? ''}'),
+      patientLng: double.tryParse('${locDetails?['longitude'] ?? locDetails?['lng'] ?? ''}'),
       paymentMethod: json['payment_method']?.toString(),
       items: json['items'] is List ? json['items'] : null,
       prescriptionImage: resolvedPrescription,
@@ -274,6 +312,17 @@ class OrderModel {
       assignedPharmacyNameAr: assignedPharmacyNameAr,
       assignedPharmacyNameKmr: assignedPharmacyNameKmr,
       assignedPharmacyAvatar: assignedPharmacyAvatar,
+      deliveryStatus: deliveryStatus,
+      assignedDriverId: assignedDriverId,
+      driverName: driverName,
+      driverPhone: driverPhone,
+      driverVehicleType: driverVehicleType,
+      driverPlateNumber: driverPlateNumber,
+      driverLat: driverLat,
+      driverLng: driverLng,
+      driverLastLocationAt: driverLastLocationAt,
+      patientLat: patientLat,
+      patientLng: patientLng,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       items: items ?? this.items,
       prescriptionImage: prescriptionImage ?? this.prescriptionImage,

@@ -15,7 +15,7 @@ class AdminOrderController extends Controller
      */
     public function index()
     {
-        $orders = Order::with(['items', 'patient', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab'])
+        $orders = Order::with(['items', 'patient', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab', 'assignedDriver.driver'])
             ->orderBy('created_at', 'desc')
             ->get();
             
@@ -79,6 +79,52 @@ class AdminOrderController extends Controller
         return response()->json([
             'message' => 'Pharmacy assigned successfully',
             'order' => $order->load(['items', 'patient', 'assignedNurse'])
+        ]);
+    }
+
+    /**
+     * Assign a delivery driver to an order (pharmacy delivery or lab sample transport).
+     */
+    public function assignDriver(Request $request, $id)
+    {
+        $request->validate([
+            'driver_id' => 'required|exists:users,id',
+            'delivery_fee' => 'nullable|numeric|min:0',
+        ]);
+
+        $order = Order::findOrFail($id);
+        $driverUser = User::where('id', $request->driver_id)
+            ->where('role', 'driver')
+            ->where('status', 'approved')
+            ->with('driver')
+            ->first();
+
+        if (!$driverUser) {
+            return response()->json(['message' => 'شۆفێری دیاریکراو پەسەندکراو نییە یان نەدۆزرایەوە.'], 400);
+        }
+
+        $order->assigned_driver_id = $driverUser->id;
+        $order->delivery_status = 'assigned';
+        $order->driver_assigned_at = now();
+        if ($request->filled('delivery_fee')) {
+            $order->delivery_fee = (float) $request->delivery_fee;
+        } elseif ($order->delivery_fee <= 0) {
+            $order->delivery_fee = (float) ($order->extra_fee > 0 ? $order->extra_fee : 2500);
+        }
+        if ($order->status === 'pending') {
+            $order->status = 'processing';
+        }
+        $order->save();
+
+        if ($driverUser->driver) {
+            $driverUser->driver->update(['duty_status' => 'busy']);
+        }
+
+        OrderNotificationService::notifyDriverAssigned($order, $driverUser);
+
+        return response()->json([
+            'message' => 'کارمەندی گەیاندن بە سەرکەوتوویی دیاریکرا',
+            'order' => $order->load(['items', 'patient', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab', 'assignedDriver.driver']),
         ]);
     }
 

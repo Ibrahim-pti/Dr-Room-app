@@ -222,6 +222,12 @@
                         <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                     </a>
 
+                    <!-- Delivery Driver Portal Button -->
+                    <a href="/delivery/{{ app()->getLocale() }}" class="inline-flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800 font-bold text-xs px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 hover:border-emerald-300 transition whitespace-nowrap group">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+                        <span>{{ __('landing.delivery_short') }}</span>
+                    </a>
+
                     <!-- Language Switcher -->
                     <div class="relative" x-data="{ langOpen: false }">
                         <button @click="langOpen = !langOpen" @click.away="langOpen = false" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition border border-slate-200 focus:outline-none">
@@ -255,7 +261,10 @@
 
                 <!-- Mobile Menu Button -->
                 <div class="xl:hidden flex items-center gap-2">
-                    <a href="/staff" class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200 flex items-center gap-1.5">
+                    <a href="/delivery/{{ app()->getLocale() }}" class="sm:hidden text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1 whitespace-nowrap">
+                        <span>{{ __('landing.delivery_short') }}</span>
+                    </a>
+                    <a href="/staff" class="sm:hidden text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200 flex items-center gap-1.5 whitespace-nowrap">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                         <span>{{ __('landing.staff_short') }}</span>
                     </a>
@@ -280,6 +289,10 @@
                 <a href="/staff" class="block px-4 py-2.5 text-blue-700 font-extrabold bg-blue-50 rounded-xl text-sm border border-blue-200 flex items-center justify-between">
                     <span>{{ __('landing.staff_portal') }}</span>
                     <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-md">{{ __('landing.login') }}</span>
+                </a>
+                <a href="/delivery/{{ app()->getLocale() }}" class="block px-4 py-2.5 text-emerald-700 font-extrabold bg-emerald-50 rounded-xl text-sm border border-emerald-200 flex items-center justify-between">
+                    <span>{{ __('landing.delivery_short') }}</span>
+                    <span class="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-md">{{ __('delivery.nav_join') }}</span>
                 </a>
                 
                 <!-- Mobile Language Selector -->

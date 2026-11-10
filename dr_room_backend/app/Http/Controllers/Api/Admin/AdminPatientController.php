@@ -15,7 +15,7 @@ class AdminPatientController extends Controller
      */
     public function index(Request $request)
     {
-        $nonPatientRoles = ['admin', 'staff', 'moderator', 'doctor', 'nurse', 'lab', 'pharmacy', 'xray'];
+        $nonPatientRoles = ['admin', 'staff', 'moderator', 'doctor', 'nurse', 'lab', 'pharmacy', 'xray', 'driver'];
         $baseQuery = User::where(function ($q) use ($nonPatientRoles) {
             $q->whereNull('role')->orWhereNotIn('role', $nonPatientRoles);
         });

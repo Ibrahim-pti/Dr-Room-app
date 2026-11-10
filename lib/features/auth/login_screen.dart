@@ -5,16 +5,19 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/push_notification_service.dart';
 import '../../core/utils/api_client.dart';
 import 'widgets/otp_channel_sheet.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function(String phone) onOtpSent;
+  final void Function(String role)? onDirectLogin;
   final VoidCallback onSignUp;
 
   const LoginScreen({
     super.key,
     required this.onOtpSent,
+    this.onDirectLogin,
     required this.onSignUp,
   });
 
@@ -130,12 +133,82 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (_phoneError != null || _passwordError != null) return;
 
-    // Same choice the registration flow offers, so signing in can also receive
-    // the code over WhatsApp instead of SMS.
-    final provider = await showOtpChannelSheet(context);
-    if (provider == null || !mounted) return;
+    await _checkDirectOrPromptOtp(normalizedPhone, password);
+  }
 
-    await _submitLogin(normalizedPhone, password, provider);
+  Future<void> _checkDirectOrPromptOtp(
+    String normalizedPhone,
+    String password,
+  ) async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiClient.post(
+        '/login',
+        body: {
+          'phone': normalizedPhone,
+          'password': password,
+          'check_direct': true,
+        },
+      );
+
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data is Map && data['direct_login'] == true && data['access_token'] != null) {
+          final user = data['user'] is Map ? data['user'] as Map : {};
+          final role = (user['role'] ?? 'driver').toString();
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('auth_token', data['access_token'].toString());
+          await prefs.setString('user_role', role);
+          await prefs.setString('user_name', (user['name'] ?? '').toString());
+          await prefs.setString('user_phone', (user['phone'] ?? normalizedPhone).toString());
+          if (_rememberMe) {
+            await prefs.setString('saved_login_phone', normalizedPhone);
+            await prefs.setBool('remember_me', true);
+          }
+          await prefs.setBool('has_completed_setup', true);
+
+          PushNotificationService.instance.reRegisterToken();
+          setState(() => _isLoading = false);
+
+          if (widget.onDirectLogin != null) {
+            widget.onDirectLogin!(role);
+          } else {
+            widget.onOtpSent(normalizedPhone);
+          }
+          return;
+        }
+
+        setState(() => _isLoading = false);
+        final provider = await showOtpChannelSheet(context);
+        if (provider == null || !mounted) return;
+        await _submitLogin(normalizedPhone, password, provider);
+      } else {
+        final msg = _localizedLoginError(res.statusCode, res.body);
+        if (mounted) {
+          setState(() {
+            _formError = msg;
+            _isLoading = false;
+          });
+        }
+      }
+    } on UnauthorizedException {
+      if (mounted) {
+        setState(() {
+          _formError = 'invalid_phone_or_password'.tr();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _formError = '${'server_connection_error'.tr()}: $e';
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   String _localizedLoginError(int statusCode, String responseBody) {
