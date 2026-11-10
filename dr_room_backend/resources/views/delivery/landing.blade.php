@@ -87,7 +87,7 @@
             line-height: 1.65 !important;
             letter-spacing: 0;
         }
-        h1.heading { font-size: clamp(3rem, 6vw, 5.6rem) !important; }
+        h1.heading { font-size: clamp(3rem, 6vw, 5.6rem) !important; line-height: 1.35 !important; }
         h2.heading { font-size: clamp(2.4rem, 4vw, 3.6rem) !important; }
         .underline-wrap { position: relative; display: inline-block; }
         .underline-wrap svg {
@@ -281,7 +281,7 @@
 
                     <h1 class="heading text-[2.1rem] sm:text-5xl lg:text-[3.25rem]">
                         <span class="block">{{ __('delivery.hero_title_1') }}</span>
-                        <span class="underline-wrap mt-3 text-[var(--accent-ink)]">
+                        <span class="underline-wrap text-[var(--accent-ink)]">
                             {{ __('delivery.hero_title_2') }}
                             <svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true">
                                 <path d="M3 9 C 40 3, 70 12, 105 6 S 170 4, 197 8" stroke="#1C1A17" stroke-width="3" fill="none" stroke-linecap="round"/>
