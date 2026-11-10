@@ -30,12 +30,12 @@
         }
     </script>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex items-center justify-center p-4">
+<body class="bg-[#FFF6F0] text-slate-900 min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-7 sm:p-10 text-center">
+    <div class="w-full max-w-lg bg-white rounded-3xl border border-orange-100 shadow-xl shadow-orange-950/5 p-7 sm:p-10 text-center">
         <div class="flex items-center justify-center gap-2.5 mb-6">
-            <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl border border-slate-200 p-1 object-contain">
-            <span class="text-xl font-black" dir="ltr">Dr<span class="text-[#1e60eb]">Room</span> Delivery</span>
+            <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl border border-orange-100 p-1 object-contain">
+            <span class="text-xl font-black" dir="ltr">Dr<span class="text-[#FF5A00]">Room</span> Delivery</span>
         </div>
 
         @if($status === 'approved')
@@ -44,30 +44,30 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"></path>
                 </svg>
             </div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900">{{ __('delivery.approved_title') }}</h1>
-            <p class="text-sm text-slate-600 mt-3 leading-relaxed">{{ __('delivery.approved_subtitle') }}</p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 leading-[1.8]">{{ __('delivery.approved_title') }}</h1>
+            <p class="text-sm text-slate-600 mt-3 leading-[1.8]">{{ __('delivery.approved_subtitle') }}</p>
         @elseif($status === 'blocked')
             <div class="w-20 h-20 rounded-full bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mx-auto mb-5">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900">{{ __('delivery.blocked_title') }}</h1>
-            <p class="text-sm text-slate-600 mt-3 leading-relaxed">{{ __('delivery.blocked_subtitle') }}</p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 leading-[1.8]">{{ __('delivery.blocked_title') }}</h1>
+            <p class="text-sm text-slate-600 mt-3 leading-[1.8]">{{ __('delivery.blocked_subtitle') }}</p>
         @else
-            <div class="w-20 h-20 rounded-full bg-blue-50 border border-blue-200 text-[#1e60eb] flex items-center justify-center mx-auto mb-5 animate-pulse">
+            <div class="w-20 h-20 rounded-full bg-[#FFF3EB] border border-orange-200 text-[#FF5A00] flex items-center justify-center mx-auto mb-5 animate-pulse">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
-            <span class="inline-block px-3.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-extrabold mb-3">
+            <span class="inline-block px-3.5 py-1.5 rounded-full bg-[#FFF3EB] border border-orange-200 text-[#C2410C] text-xs font-extrabold mb-3">
                 {{ __('delivery.wait_status_label') }}
             </span>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900">{{ __('delivery.wait_title') }}</h1>
-            <p class="text-sm text-slate-600 mt-3 leading-relaxed">{{ __('delivery.wait_subtitle') }}</p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 leading-[1.8]">{{ __('delivery.wait_title') }}</h1>
+            <p class="text-sm text-slate-600 mt-3 leading-[1.8]">{{ __('delivery.wait_subtitle') }}</p>
         @endif
 
-        <div class="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-start flex items-center justify-between gap-3">
+        <div class="mt-6 p-4 rounded-2xl bg-[#FFF9F5] border border-orange-100 text-start flex items-center justify-between gap-3">
             <div>
                 <p class="text-[11px] font-bold text-slate-400">{{ __('delivery.registered_phone') }}</p>
                 <p class="text-sm font-black text-slate-900 mt-0.5" dir="ltr">{{ $user->phone }}</p>
@@ -79,7 +79,7 @@
         </div>
 
         <div class="mt-6 flex flex-col sm:flex-row gap-3">
-            <a href="{{ $mainSiteHref }}" class="flex-1 py-3 px-4 rounded-xl bg-[#1e60eb] hover:bg-blue-700 text-white text-xs font-extrabold transition">
+            <a href="{{ $mainSiteHref }}" class="flex-1 py-3 px-4 rounded-xl bg-[#FF5A00] hover:bg-[#E04F00] text-white text-xs font-extrabold shadow-md shadow-orange-500/20 transition">
                 {{ __('delivery.back_home') }}
             </a>
             <form method="POST" action="{{ route('delivery.logout') }}" class="flex-1">

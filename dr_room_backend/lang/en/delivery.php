@@ -66,5 +66,21 @@ return [
     'err_phone_exists' => 'This phone number is already registered in our system.',
     'err_password' => 'Password must be at least 6 characters.',
     'err_password_confirm' => 'Password confirmation does not match.',
+
+    'how_title' => 'Start Delivering in 3 Simple Steps',
+    'how_sub' => 'Fast onboarding with zero paperwork hassle',
+    'step1_t' => '1. Register Online',
+    'step1_d' => 'Fill out the quick form using your mobile number and password.',
+    'step2_t' => '2. Admin Approval',
+    'step2_d' => 'Our operations team verifies and activates your courier profile.',
+    'step3_t' => '3. Log In & Deliver',
+    'step3_d' => 'Sign into the DrRoom app with your phone & password to accept orders.',
+    'footer_copy' => '© 2026 DrRoom Healthcare — Medical Delivery Network',
+    'vehicle_short_motorcycle' => 'Motorcycle',
+    'vehicle_short_car' => 'Car',
+    'vehicle_short_refrigerated_van' => 'Cooler Van',
+    'scope_short_both' => 'Both',
+    'scope_short_pharmacy' => 'Pharmacy',
+    'scope_short_lab_sample' => 'Lab Samples',
 ];
 
