@@ -117,21 +117,32 @@ class Order extends Model
     }
 
     /**
-     * Exclude in-person lab visits (collection_method === 'lab') from the courier pool.
+     * Delivery drivers handle Pharmacy medication deliveries and unassigned home/work
+     * Lab sample transport — NOT nursing visits, doctor appointments, in-person lab
+     * visits, or lab bookings where a dedicated phlebotomist/nurse is already assigned.
      */
     public function needsDeliveryDriver(): bool
     {
-        $serviceType = strtolower((string) $this->service_type);
-        if (!str_contains($serviceType, 'lab')) {
+        $serviceType = strtolower(trim((string) $this->service_type));
+
+        if (str_contains($serviceType, 'pharmac') || str_contains($serviceType, 'medic') || str_contains($serviceType, 'دەرمان')) {
             return true;
         }
 
-        $patientDetails = is_array($this->patient_details)
-            ? $this->patient_details
-            : (json_decode((string) $this->patient_details, true) ?: []);
-        $method = strtolower(trim((string) ($patientDetails['collection_method'] ?? '')));
+        if (str_contains($serviceType, 'lab') || str_contains($serviceType, 'تاقیگە')) {
+            if (!empty($this->assigned_nurse_id)) {
+                return false;
+            }
 
-        return $method !== 'lab' && $method !== 'visit_lab';
+            $patientDetails = is_array($this->patient_details)
+                ? $this->patient_details
+                : (json_decode((string) $this->patient_details, true) ?: []);
+            $method = strtolower(trim((string) ($patientDetails['collection_method'] ?? '')));
+
+            return $method !== 'lab' && $method !== 'visit_lab';
+        }
+
+        return false;
     }
 
     /**

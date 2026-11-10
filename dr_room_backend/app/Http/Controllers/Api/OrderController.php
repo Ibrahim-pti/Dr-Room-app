@@ -212,8 +212,18 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Automatically dispatch eligible orders (Pharmacy / unassigned Lab pickup)
+            // directly to the nearest available delivery driver without admin bottleneck.
+            if ($order->needsDeliveryDriver()) {
+                try {
+                    app(\App\Services\DriverDispatchService::class)->dispatchNearest($order);
+                } catch (\Throwable $dispatchErr) {
+                    \Illuminate\Support\Facades\Log::warning('Auto-dispatch skipped: ' . $dispatchErr->getMessage());
+                }
+            }
+
             $lang = $request->header('Accept-Language', $request->query('lang', 'ckb'));
-            $order->load(['items', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab']);
+            $order->load(['items', 'assignedNurse.nurse', 'assignedPharmacy.pharmacy', 'assignedLab.lab', 'assignedDriver.driver']);
 
             return response()->json([
                 'message' => 'Order created successfully',

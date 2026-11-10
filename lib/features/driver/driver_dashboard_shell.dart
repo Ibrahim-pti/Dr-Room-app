@@ -855,17 +855,45 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     final pickupLng = double.tryParse('${pickup['lng'] ?? ''}');
     final destLat = double.tryParse('${patient['lat'] ?? ''}');
     final destLng = double.tryParse('${patient['lng'] ?? ''}');
+    final distKm = double.tryParse('${order['distance_km'] ?? ''}');
+    final isOffer = !isPool && stage == 'assigned';
 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.getSurface(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.getBorder(context)),
+        border: Border.all(
+          color: isOffer ? const Color(0xFFF59E0B) : AppColors.getBorder(context),
+          width: isOffer ? 1.5 : 1,
+        ),
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (isOffer) ...[
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Iconsax.flash_1, size: 15, color: Color(0xFFD97706)),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'داواکاری نوێ لە نزیکت · چاوەڕوانی قبوڵکردنی تۆیە',
+                      style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           Row(
             children: [
               Container(
@@ -884,16 +912,37 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                 order['order_number'] ?? '#$id',
                 style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.getTextTitle(context)),
               ),
+              if (distKm != null) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${distKm.toStringAsFixed(1)} کم',
+                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                  ),
+                ),
+              ],
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                  color: (isOffer ? const Color(0xFFF59E0B) : const Color(0xFF2563EB)).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  isPool ? 'ئامادە بۆ وەرگرتن' : _deliveryStageLabel(stage, isLab),
-                  style: const TextStyle(fontFamily: 'Rabar', fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                  isPool
+                      ? 'ئامادە بۆ وەرگرتن'
+                      : (isOffer ? 'داواکاری نوێ' : _deliveryStageLabel(stage, isLab)),
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: isOffer ? const Color(0xFFD97706) : const Color(0xFF2563EB),
+                  ),
                 ),
               ),
             ],
@@ -1030,7 +1079,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
 
   Widget _buildProgressionActions(dynamic order, String stage, bool isLab, bool isBusy) {
     final (String nextStage, String buttonLabel, Color color, bool needsConfirm) = switch (stage) {
-      'assigned' => ('accepted', 'قبوڵکردنی ئەرک', const Color(0xFF2563EB), false),
+      'assigned' => ('accepted', 'قبوڵکردنی داواکاری', const Color(0xFF10B981), false),
       'accepted' => ('picked_up', isLab ? 'نموونە وەرگیرا' : 'لە دەرمانخانە وەرگیرا', const Color(0xFF8B5CF6), false),
       'picked_up' => ('on_the_way', 'لە ڕێگادام', const Color(0xFFF59E0B), false),
       'on_the_way' => ('arrived', 'گەیشتمە شوێنەکە', const Color(0xFF0D9488), false),

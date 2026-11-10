@@ -66,6 +66,13 @@ class PharmacyOrderController extends Controller
             $order->status = 'accepted';
             $order->assigned_pharmacy_id = Auth::id();
             $order->save();
+
+            if (!$order->assigned_driver_id && $order->needsDeliveryDriver()) {
+                try {
+                    app(\App\Services\DriverDispatchService::class)->dispatchNearest($order);
+                } catch (\Throwable $e) {}
+            }
+
             return back()->with('success', 'داواکارییەکە بە سەرکەوتوویی وەرگیرا.');
         }
 

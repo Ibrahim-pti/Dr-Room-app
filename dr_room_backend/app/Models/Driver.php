@@ -43,6 +43,7 @@ class Driver extends Model
 
         $activeCount = Order::where('assigned_driver_id', $driverUserId)
             ->whereNotIn('status', ['completed', 'cancelled'])
+            ->whereIn('delivery_status', ['accepted', 'picked_up', 'on_the_way', 'arrived'])
             ->count();
 
         $nextDuty = $activeCount > 0 ? 'busy' : 'available';

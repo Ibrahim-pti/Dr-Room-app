@@ -7,6 +7,7 @@ use App\Models\AppNotification;
 use App\Models\Driver;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\DriverDispatchService;
 use App\Services\FcmService;
 use App\Services\OrderNotificationService;
 use Illuminate\Http\Request;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 
 class DriverController extends Controller
 {
+    public function __construct(private readonly DriverDispatchService $dispatch) {}
+
     public function dashboard(Request $request)
     {
         $user = $request->user() ?: Auth::user();
@@ -25,10 +28,11 @@ class DriverController extends Controller
         $activeOrders = Order::where('assigned_driver_id', $user->id)
             ->whereNotIn('status', ['completed', 'cancelled'])
             ->with($withRelations)
+            ->orderByRaw("CASE WHEN delivery_status = 'assigned' THEN 0 ELSE 1 END")
             ->orderByDesc('driver_assigned_at')
             ->orderByDesc('id')
             ->get()
-            ->map(fn ($o) => $this->formatDriverOrder($o))
+            ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
             ->values();
 
         $completedOrders = Order::where('assigned_driver_id', $user->id)
@@ -38,10 +42,10 @@ class DriverController extends Controller
             ->orderByDesc('id')
             ->take(25)
             ->get()
-            ->map(fn ($o) => $this->formatDriverOrder($o))
+            ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
             ->values();
 
-        // Available delivery pool (unassigned pharmacy/lab home-pickup orders ready for delivery)
+        // Fallback unassigned delivery pool sorted nearest-first for eligible orders
         $poolQuery = Order::whereNull('assigned_driver_id')
             ->whereIn('status', ['pending', 'processing', 'accepted', 'confirmed', 'approved', 'in_progress'])
             ->with($withRelations)
@@ -63,9 +67,10 @@ class DriverController extends Controller
         }
 
         $availableOrders = $poolQuery->take(50)->get()
-            ->filter(fn ($o) => $o->needsDeliveryDriver())
+            ->filter(fn ($o) => $o->needsDeliveryDriver() && !in_array((int) $user->id, $this->dispatch->getDeclinedDriverIds($o), true))
+            ->sortBy(fn ($o) => $this->dispatch->distanceForDriver($o, $driver) ?? 999999.0)
             ->take(25)
-            ->map(fn ($o) => $this->formatDriverOrder($o))
+            ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
             ->values();
 
         $todayDelivered = Order::where('assigned_driver_id', $user->id)
@@ -135,19 +140,39 @@ class DriverController extends Controller
         $driver = Driver::firstOrCreate(['user_id' => $user->id]);
 
         if ($request->duty_status === 'offline') {
-            $activeCount = Order::where('assigned_driver_id', $user->id)
+            $activeAccepted = Order::where('assigned_driver_id', $user->id)
                 ->whereNotIn('status', ['completed', 'cancelled'])
+                ->whereIn('delivery_status', ['accepted', 'picked_up', 'on_the_way', 'arrived'])
                 ->count();
 
-            if ($activeCount > 0) {
+            if ($activeAccepted > 0) {
                 return response()->json([
                     'message' => 'تکایە سەرەتا گەیاندنە چالاکەکان تەواو بکە پێش ئەوەی ئۆفلاین بیت.',
                 ], 422);
             }
-        }
 
-        $driver->duty_status = $request->duty_status;
-        $driver->save();
+            // Release any pending unaccepted offers and immediately pass to next nearest driver
+            $pendingOffers = Order::where('assigned_driver_id', $user->id)
+                ->whereNotIn('status', ['completed', 'cancelled'])
+                ->where('delivery_status', 'assigned')
+                ->get();
+
+            $driver->duty_status = 'offline';
+            $driver->save();
+
+            foreach ($pendingOffers as $offered) {
+                $this->dispatch->recordDeclinedDriver($offered, $user->id);
+                $offered->assigned_driver_id = null;
+                $offered->delivery_status = 'unassigned';
+                $offered->driver_assigned_at = null;
+                $offered->save();
+                $this->dispatch->dispatchNearest($offered);
+            }
+        } else {
+            $driver->duty_status = $request->duty_status;
+            $driver->save();
+            $this->dispatch->autoAssignWaitingOrdersForDriver($user, $driver);
+        }
 
         return response()->json([
             'message' => $driver->duty_status === 'available'
@@ -173,6 +198,10 @@ class DriverController extends Controller
             'last_location_at' => now(),
         ]);
 
+        if ($driver->duty_status === 'available') {
+            $this->dispatch->autoAssignWaitingOrdersForDriver($user, $driver);
+        }
+
         return response()->json([
             'success' => true,
             'last_location_at' => $driver->last_location_at?->toIso8601String(),
@@ -196,7 +225,7 @@ class DriverController extends Controller
             if ($order->assigned_driver_id !== null && (int) $order->assigned_driver_id !== (int) $user->id) {
                 return null;
             }
-            if (in_array($order->status, ['completed', 'cancelled'], true)) {
+            if (in_array($order->status, ['completed', 'cancelled'], true) || !$order->needsDeliveryDriver()) {
                 return false;
             }
 
@@ -220,14 +249,14 @@ class DriverController extends Controller
             return response()->json(['message' => 'ئەم داواکارییە پێشتر لەلایەن شۆفێرێکی ترەوە وەرگیراوە.'], 409);
         }
         if ($claimed === false) {
-            return response()->json(['message' => 'ئەم داواکارییە چیتر بەردەست نییە.'], 422);
+            return response()->json(['message' => 'ئەم داواکارییە چیتر بەردەست نییە یان بۆ دلیڤەری نییە.'], 422);
         }
 
         OrderNotificationService::notifyDeliveryStage($claimed, 'accepted');
 
         return response()->json([
             'message' => 'داواکارییەکە بە سەرکەوتوویی وەرگیرا',
-            'order' => $this->formatDriverOrder($claimed->fresh(['items', 'patient', 'assignedPharmacy.pharmacy', 'assignedLab.lab', 'assignedNurse.nurse'])),
+            'order' => $this->formatDriverOrder($claimed->fresh(['items', 'patient', 'assignedPharmacy.pharmacy', 'assignedLab.lab', 'assignedNurse.nurse']), $driver),
         ]);
     }
 
@@ -253,6 +282,8 @@ class DriverController extends Controller
                 return response()->json(['message' => 'ناتوانرێت داواکارییەک ڕەتبکرێتەوە دوای وەرگرتنی.'], 422);
             }
 
+            $this->dispatch->recordDeclinedDriver($order, $user->id);
+
             $order->assigned_driver_id = null;
             $order->delivery_status = 'unassigned';
             $order->driver_assigned_at = null;
@@ -261,7 +292,14 @@ class DriverController extends Controller
 
             Driver::syncDutyStatusForUser($user->id);
 
-            return response()->json(['message' => 'داواکارییەکە گەڕێندرایەوە بۆ لیستەکە']);
+            // Automatically forward the declined order to the next nearest online driver
+            $nextDriver = $this->dispatch->dispatchNearest($order);
+
+            return response()->json([
+                'message' => $nextDriver
+                    ? 'داواکارییەکە ئاڕاستەی نزیکترین شۆفێری داهاتوو کرا'
+                    : 'داواکارییەکە گەڕێندرایەوە بۆ لیستە بەردەستەکان',
+            ]);
         }
 
         DB::transaction(function () use ($order, $driver, $user, $next, $request) {
@@ -329,11 +367,11 @@ class DriverController extends Controller
 
         return response()->json([
             'message' => 'دۆخی گەیاندن نوێکرایەوە',
-            'order' => $this->formatDriverOrder($order->fresh(['items', 'patient', 'assignedPharmacy.pharmacy', 'assignedLab.lab', 'assignedNurse.nurse'])),
+            'order' => $this->formatDriverOrder($order->fresh(['items', 'patient', 'assignedPharmacy.pharmacy', 'assignedLab.lab', 'assignedNurse.nurse']), $driver),
         ]);
     }
 
-    private function formatDriverOrder(Order $order): array
+    private function formatDriverOrder(Order $order, ?Driver $viewerDriver = null): array
     {
         $patientDetails = is_array($order->patient_details)
             ? $order->patient_details
@@ -383,6 +421,7 @@ class DriverController extends Controller
             'order_number' => '#' . $order->id,
             'service_type' => $order->service_type,
             'is_lab' => $isLab,
+            'distance_km' => $this->dispatch->distanceForDriver($order, $viewerDriver),
             'status' => $order->status,
             'delivery_status' => $order->delivery_status ?? 'unassigned',
             'total_price' => (float) $order->total_price,

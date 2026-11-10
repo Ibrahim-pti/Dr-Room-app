@@ -137,6 +137,42 @@ class OrderNotificationService
     }
 
     /**
+     * Notify only the nearest matched driver about an incoming delivery offer.
+     */
+    public static function notifyDriverOffer(Order $order, \App\Models\User $driver): void
+    {
+        $orderNumber = '#' . $order->id;
+        $isLab = str_contains(strtolower($order->service_type ?? ''), 'lab');
+
+        $driverTitle = $isLab ? 'ئەرکی نوێی نموونەی تاقیگە لە نزیکت 📍' : 'داواکاری گەیاندنی نوێ لە نزیکت 🛵';
+        $driverMsg = $isLab
+            ? "داواکاری نموونەی تاقیگە {$orderNumber} بۆ تۆ نێردراوە. تکایە لە ئەپدا قبوڵی بکە یان ڕەتی بکەرەوە."
+            : "داواکاری گەیاندنی دەرمان {$orderNumber} لە نزیکتە. تکایە لە ئەپدا قبوڵی بکە یان ڕەتی بکەرەوە.";
+
+        try {
+            AppNotification::create([
+                'user_id'    => $driver->id,
+                'title'      => $driverTitle,
+                'title_ar'   => $isLab ? 'طلب توصيل عينة قريب منك 📍' : 'طلب توصيل دواء قريب منك 🛵',
+                'title_en'   => $isLab ? 'Nearby Lab Sample Offer 📍' : 'Nearby Pharmacy Delivery Offer 🛵',
+                'message'    => $driverMsg,
+                'message_ar' => "الطلب {$orderNumber} قريب من موقعك. يرجى القبول أو الرفض في التطبيق.",
+                'message_en' => "Order {$orderNumber} is nearby. Please accept or decline in the app.",
+                'type'       => 'driver_offer',
+            ]);
+
+            app(FcmService::class)->sendToUsers(
+                [$driver->id],
+                $driverTitle,
+                $driverMsg,
+                ['order_id' => (string) $order->id, 'type' => 'driver_offer']
+            );
+        } catch (\Throwable $e) {
+            Log::error('Driver offer notification failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Notify both the driver and patient when a driver is assigned to an order.
      */
     public static function notifyDriverAssigned(Order $order, \App\Models\User $driver): void

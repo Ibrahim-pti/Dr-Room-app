@@ -1243,9 +1243,14 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
 
                       // 6. Action Controls for Admin
                       if (orderId is int) ...[
-                        // Assigned Delivery Driver Box (for Pharmacy / Lab orders)
-                        if (receiver['type'] == 'دەرمانخانە' || receiver['type'] == 'تاقیگە') ...[
-                          _buildSectionHeader('کارمەندی گەیاندن (دلیڤەری)', Iconsax.truck_fast),
+                        // Assigned Delivery Driver Box ONLY for Pharmacy or unassigned home Lab pickup
+                        if (receiver['type'] == 'دەرمانخانە' ||
+                            (receiver['type'] == 'تاقیگە' &&
+                                order['assigned_nurse'] == null &&
+                                order['assigned_nurse_id'] == null &&
+                                (patientDetails['collection_method']?.toString().toLowerCase() ?? '') != 'lab' &&
+                                (patientDetails['collection_method']?.toString().toLowerCase() ?? '') != 'visit_lab')) ...[
+                          _buildSectionHeader('کارمەندی گەیاندن (دلیڤەری خۆکار)', Iconsax.truck_fast),
                           const SizedBox(height: 10),
                           Container(
                             padding: const EdgeInsets.all(14),
@@ -1272,7 +1277,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                                       Text(
                                         order['assigned_driver'] is Map
                                             ? '${order['assigned_driver']['name'] ?? 'شۆفێر'}'
-                                            : 'هیچ شۆفێرێک دیارینەکراوە',
+                                            : 'لە چاوەڕوانی شۆفێری ئۆنلاین',
                                         style: TextStyle(
                                           fontFamily: 'Rabar',
                                           fontSize: 13.5,
@@ -1283,8 +1288,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                                       const SizedBox(height: 2),
                                       Text(
                                         order['assigned_driver'] is Map
-                                            ? 'دۆخ: ${order['delivery_status'] ?? 'assigned'}'
-                                            : 'دەتوانیت نزیکترین شۆفێر دیاری بکەیت',
+                                            ? ((order['delivery_status'] ?? 'assigned') == 'assigned'
+                                                ? 'نێردراوە بۆ نزیکترین شۆفێر (چاوەڕوانی قبوڵکردن)'
+                                                : 'دۆخ: ${order['delivery_status']}')
+                                            : 'کاتێک شۆفێرێکی نزیک ئۆنلاین دەبێت خۆکار بۆی دەڕوات',
                                         style: TextStyle(
                                           fontFamily: 'Rabar',
                                           fontSize: 11.5,
@@ -1295,20 +1302,20 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                                   ),
                                 ),
                                 if (rawStatus != 'completed' && rawStatus != 'cancelled')
-                                  ElevatedButton.icon(
+                                  OutlinedButton(
                                     onPressed: () {
                                       Navigator.pop(ctx);
                                       _showAssignDriverSheet(orderId, lat, lng);
                                     },
-                                    icon: const Icon(Iconsax.user_tick, size: 15),
-                                    label: Text(
-                                      order['assigned_driver'] != null ? 'گۆڕین' : 'دیاریکردن',
-                                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF10B981),
-                                      foregroundColor: Colors.white,
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: const Color(0xFF10B981),
+                                      side: const BorderSide(color: Color(0xFF10B981)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    child: Text(
+                                      order['assigned_driver'] != null ? 'گۆڕین' : 'دیاریکردن',
+                                      style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.bold),
                                     ),
                                   ),
                               ],

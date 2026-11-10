@@ -166,10 +166,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           _ => 'بە سەرکەوتوویی ڕادەستکرا ✅',
         },
       _ => switch (lang) {
-          'ar' => 'تم تعيين مندوب التوصيل',
-          'en' => 'Courier assigned',
-          'kmr' => 'شۆفێر هاتە دیارکرن',
-          _ => 'کارمەندی گەیاندن دیاریکراوە',
+          'ar' => 'تم إرسال الطلب إلى أقرب مندوب، بانتظار القبول...',
+          'en' => 'Sent to nearest courier, awaiting acceptance...',
+          'kmr' => 'بۆ نێزیکترین شۆفێری هاتە هنارتن...',
+          _ => 'نێردراوە بۆ نزیکترین شۆفێر · چاوەڕوانی قبوڵکردن...',
         },
     };
 
