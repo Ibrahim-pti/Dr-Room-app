@@ -79,7 +79,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
   Map<String, dynamic> _getReceiverInfo(dynamic order) {
     final serviceType = (order['service_type'] ?? '').toString().toLowerCase();
 
-    if (serviceType.contains('pharmacy') || serviceType.contains('دەرمان')) {
+    if (serviceType.contains('pharmacy') || serviceType.contains('medic') || serviceType.contains('دەرمان')) {
       final pharmacy = order['assigned_pharmacy'] is Map ? order['assigned_pharmacy'] : null;
       String name = pharmacy?['name']?.toString() ?? '';
       String phone = pharmacy?['phone']?.toString() ?? '';
@@ -754,12 +754,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
               'ناونیشان دیاری نەکراوە')
           .toString();
 
-      final double? lat = locationDetails['lat'] != null
-          ? double.tryParse(locationDetails['lat'].toString())
-          : (locationDetails['latitude'] != null ? double.tryParse(locationDetails['latitude'].toString()) : null);
-      final double? lng = locationDetails['lng'] != null
-          ? double.tryParse(locationDetails['lng'].toString())
-          : (locationDetails['longitude'] != null ? double.tryParse(locationDetails['longitude'].toString()) : null);
+      final rawLat = locationDetails['lat'] ?? locationDetails['latitude'] ?? patientDetails['lat'] ?? patientDetails['latitude'];
+      final rawLng = locationDetails['lng'] ?? locationDetails['longitude'] ?? patientDetails['lng'] ?? patientDetails['longitude'];
+      final double? lat = rawLat != null ? double.tryParse(rawLat.toString()) : null;
+      final double? lng = rawLng != null ? double.tryParse(rawLng.toString()) : null;
 
       var items = order['items'];
       if (items is String) {

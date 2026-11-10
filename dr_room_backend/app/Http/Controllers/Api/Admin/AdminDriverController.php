@@ -117,9 +117,7 @@ class AdminDriverController extends Controller
                     ->orderByDesc('id')
                     ->first();
 
-                $loc = $activeOrder && is_array($activeOrder->location_details)
-                    ? $activeOrder->location_details
-                    : [];
+                $loc = $activeOrder ? $activeOrder->resolvePatientLocation() : ['address' => '', 'lat' => null, 'lng' => null];
 
                 return [
                     'id' => $u->id,
@@ -140,9 +138,9 @@ class AdminDriverController extends Controller
                         'id' => $activeOrder->id,
                         'service_type' => $activeOrder->service_type,
                         'delivery_status' => $activeOrder->delivery_status,
-                        'dest_lat' => $loc['latitude'] ?? $loc['lat'] ?? null,
-                        'dest_lng' => $loc['longitude'] ?? $loc['lng'] ?? null,
-                        'dest_address' => $loc['address'] ?? ($loc['full_address'] ?? ''),
+                        'dest_lat' => $loc['lat'],
+                        'dest_lng' => $loc['lng'],
+                        'dest_address' => $loc['address'],
                     ] : null,
                 ];
             })

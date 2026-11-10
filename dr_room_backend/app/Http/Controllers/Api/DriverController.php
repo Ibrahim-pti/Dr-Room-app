@@ -41,14 +41,17 @@ class DriverController extends Controller
             ->map(fn ($o) => $this->formatDriverOrder($o))
             ->values();
 
-        // Available delivery pool (unassigned pharmacy/lab orders ready for pickup/delivery)
+        // Available delivery pool (unassigned pharmacy/lab home-pickup orders ready for delivery)
         $poolQuery = Order::whereNull('assigned_driver_id')
-            ->whereIn('status', ['pending', 'processing', 'accepted'])
+            ->whereIn('status', ['pending', 'processing', 'accepted', 'confirmed', 'approved', 'in_progress'])
             ->with($withRelations)
             ->orderByDesc('id');
 
         if ($driver->service_scope === 'pharmacy') {
-            $poolQuery->where('service_type', 'like', '%pharmac%');
+            $poolQuery->where(function ($q) {
+                $q->where('service_type', 'like', '%pharmac%')
+                  ->orWhere('service_type', 'like', '%medic%');
+            });
         } elseif ($driver->service_scope === 'lab_sample') {
             $poolQuery->where('service_type', 'like', '%lab%');
         } else {
@@ -59,7 +62,9 @@ class DriverController extends Controller
             });
         }
 
-        $availableOrders = $poolQuery->take(25)->get()
+        $availableOrders = $poolQuery->take(50)->get()
+            ->filter(fn ($o) => $o->needsDeliveryDriver())
+            ->take(25)
             ->map(fn ($o) => $this->formatDriverOrder($o))
             ->values();
 
@@ -78,6 +83,10 @@ class DriverController extends Controller
             ->where('status', 'completed')
             ->whereDate('driver_delivered_at', today())
             ->sum('delivery_fee');
+
+        $unreadNotifications = AppNotification::where('user_id', $user->id)
+            ->where('is_read', false)
+            ->count();
 
         return response()->json([
             'data' => [
@@ -107,6 +116,7 @@ class DriverController extends Controller
                     'today_earnings' => $todayEarnings,
                     'total_deliveries' => (int) $driver->completed_deliveries,
                     'total_earnings' => (float) $driver->total_earnings,
+                    'unread_notifications' => $unreadNotifications,
                 ],
                 'active_orders' => $activeOrders,
                 'available_orders' => $availableOrders,
@@ -174,6 +184,12 @@ class DriverController extends Controller
         $user = $request->user();
         $driver = Driver::firstOrCreate(['user_id' => $user->id]);
 
+        if ($driver->duty_status === 'offline') {
+            return response()->json([
+                'message' => 'تکایە سەرەتا دۆخەکەت بکەرە ئۆنلاین (ئامادە) پێش وەرگرتنی داواکاری.',
+            ], 422);
+        }
+
         $claimed = DB::transaction(function () use ($id, $user, $driver) {
             $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
 
@@ -188,7 +204,7 @@ class DriverController extends Controller
             $order->delivery_status = 'accepted';
             $order->driver_assigned_at = $order->driver_assigned_at ?? now();
             if ($order->delivery_fee <= 0) {
-                $order->delivery_fee = (float) ($order->extra_fee > 0 ? $order->extra_fee : 2500);
+                $order->delivery_fee = $order->resolveDeliveryFee();
             }
             if ($order->status === 'pending') {
                 $order->status = 'processing';
@@ -243,10 +259,7 @@ class DriverController extends Controller
             $order->driver_notes = $request->notes;
             $order->save();
 
-            $remainingActive = Order::where('assigned_driver_id', $user->id)
-                ->whereNotIn('status', ['completed', 'cancelled'])
-                ->count();
-            $driver->update(['duty_status' => $remainingActive > 0 ? 'busy' : 'available']);
+            Driver::syncDutyStatusForUser($user->id);
 
             return response()->json(['message' => 'داواکارییەکە گەڕێندرایەوە بۆ لیستەکە']);
         }
@@ -272,9 +285,7 @@ class DriverController extends Controller
                 $order->status = 'completed';
                 $order->payment_status = 'paid';
 
-                $fee = $order->delivery_fee > 0
-                    ? (float) $order->delivery_fee
-                    : ((float) $order->extra_fee > 0 ? (float) $order->extra_fee : 2500.0);
+                $fee = $order->resolveDeliveryFee();
                 $order->delivery_fee = $fee;
 
                 \App\Models\Transaction::where('payable_type', Order::class)
@@ -311,10 +322,7 @@ class DriverController extends Controller
 
             $order->save();
 
-            $remainingActive = Order::where('assigned_driver_id', $user->id)
-                ->whereNotIn('status', ['completed', 'cancelled'])
-                ->count();
-            $driver->update(['duty_status' => $remainingActive > 0 ? 'busy' : 'available']);
+            Driver::syncDutyStatusForUser($user->id);
         });
 
         OrderNotificationService::notifyDeliveryStage($order->fresh(), $next);
@@ -330,9 +338,6 @@ class DriverController extends Controller
         $patientDetails = is_array($order->patient_details)
             ? $order->patient_details
             : (json_decode((string) $order->patient_details, true) ?: []);
-        $locationDetails = is_array($order->location_details)
-            ? $order->location_details
-            : (json_decode((string) $order->location_details, true) ?: []);
 
         $serviceType = strtolower((string) $order->service_type);
         $isLab = str_contains($serviceType, 'lab');
@@ -371,8 +376,7 @@ class DriverController extends Controller
             }
         }
 
-        $patientLat = $locationDetails['latitude'] ?? $locationDetails['lat'] ?? null;
-        $patientLng = $locationDetails['longitude'] ?? $locationDetails['lng'] ?? null;
+        $loc = $order->resolvePatientLocation();
 
         return [
             'id' => $order->id,
@@ -382,7 +386,7 @@ class DriverController extends Controller
             'status' => $order->status,
             'delivery_status' => $order->delivery_status ?? 'unassigned',
             'total_price' => (float) $order->total_price,
-            'delivery_fee' => (float) ($order->delivery_fee > 0 ? $order->delivery_fee : ($order->extra_fee > 0 ? $order->extra_fee : 2500)),
+            'delivery_fee' => $order->resolveDeliveryFee(),
             'payment_method' => $order->payment_method,
             'payment_status' => $order->payment_status ?? 'pending',
             'driver_assigned_at' => $order->driver_assigned_at?->toIso8601String(),
@@ -399,10 +403,10 @@ class DriverController extends Controller
             'patient' => [
                 'name' => $patientDetails['name'] ?? ($order->patient?->name ?? 'نەخۆش'),
                 'phone' => $patientDetails['phone'] ?? ($order->patient?->phone ?? ''),
-                'address' => $locationDetails['address'] ?? ($locationDetails['full_address'] ?? ($locationDetails['city'] ?? '')),
-                'lat' => $patientLat !== null ? (float) $patientLat : null,
-                'lng' => $patientLng !== null ? (float) $patientLng : null,
-                'notes' => $patientDetails['notes'] ?? ($patientDetails['note'] ?? ''),
+                'address' => $loc['address'],
+                'lat' => $loc['lat'],
+                'lng' => $loc['lng'],
+                'notes' => $loc['notes'],
             ],
             'items' => collect($order->items ?? [])->map(fn ($it) => [
                 'name' => $it->item_name ?? $it->name ?? 'خزمەتگوزاری',

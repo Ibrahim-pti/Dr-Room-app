@@ -29,6 +29,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
   bool _isDutyLoading = false;
   String? _error;
   String? _busyOrderId;
+  int _unreadNotifications = 0;
 
   Map<String, dynamic> _driver = {};
   Map<String, dynamic> _stats = {};
@@ -81,6 +82,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         setState(() {
           _driver = driverMap;
           _stats = Map<String, dynamic>.from(data['stats'] ?? {});
+          _unreadNotifications = int.tryParse('${_stats['unread_notifications'] ?? 0}') ?? 0;
           _activeOrders = List<dynamic>.from(data['active_orders'] ?? []);
           _availableOrders = List<dynamic>.from(data['available_orders'] ?? []);
           _completedOrders = List<dynamic>.from(data['completed_orders'] ?? []);
@@ -335,6 +337,101 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     );
   }
 
+  Future<void> _openNotificationsSheet() async {
+    try {
+      await ApiClient.post('/notifications/mark-read');
+      if (mounted) setState(() => _unreadNotifications = 0);
+    } catch (_) {}
+
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.65,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.getSurface(context),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'ئاگادارییەکان',
+                    style: TextStyle(fontFamily: 'Rabar', fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
+                ],
+              ),
+              const Divider(height: 16),
+              Expanded(
+                child: FutureBuilder<List<dynamic>>(
+                  future: () async {
+                    final res = await ApiClient.get('/notifications');
+                    if (res.statusCode == 200) {
+                      final decoded = jsonDecode(res.body);
+                      if (decoded is List) return decoded;
+                      if (decoded is Map && decoded['data'] is List) {
+                        return List<dynamic>.from(decoded['data']);
+                      }
+                    }
+                    return <dynamic>[];
+                  }(),
+                  builder: (_, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final list = snap.data ?? [];
+                    if (list.isEmpty) {
+                      return const Center(
+                        child: Text('هیچ ئاگادارییەک نییە', style: TextStyle(fontFamily: 'Rabar')),
+                      );
+                    }
+                    return ListView.separated(
+                      itemCount: list.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (_, i) {
+                        final n = list[i] is Map ? list[i] as Map : {};
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.getBackground(context),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.getBorder(context)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                (n['title'] ?? 'ئاگاداری').toString(),
+                                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                (n['message'] ?? '').toString(),
+                                style: TextStyle(fontFamily: 'Rabar', fontSize: 12, color: AppColors.getTextSubtitle(context)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _toast(String msg, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -554,7 +651,39 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
+          InkWell(
+            onTap: _openNotificationsSheet,
+            borderRadius: BorderRadius.circular(12),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.getBackground(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.getBorder(context)),
+                  ),
+                  child: const Icon(Iconsax.notification, size: 19, color: Color(0xFF2563EB)),
+                ),
+                if (_unreadNotifications > 0)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+                      child: Text(
+                        _unreadNotifications > 9 ? '9+' : '$_unreadNotifications',
+                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white, height: 1),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
           _isDutyLoading
               ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
               : Switch.adaptive(
@@ -865,21 +994,31 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           if (orderStatus != 'completed' && orderStatus != 'cancelled') ...[
             const SizedBox(height: 14),
             if (isPool)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: isBusy ? null : () => _claimOrder(order),
-                  icon: isBusy
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Iconsax.tick_circle, size: 18),
-                  label: const Text('وەرگرتنی ئەم داواکارییە', style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
+              Builder(
+                builder: (_) {
+                  final isOffline = (_driver['duty_status'] ?? 'offline').toString() == 'offline';
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: isBusy
+                          ? null
+                          : (isOffline ? () => _toggleDuty(true) : () => _claimOrder(order)),
+                      icon: isBusy
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Icon(isOffline ? Iconsax.flash_1 : Iconsax.tick_circle, size: 18),
+                      label: Text(
+                        isOffline ? 'سەرەتا خۆت ئۆنلاین بکە بۆ وەرگرتن' : 'وەرگرتنی ئەم داواکارییە',
+                        style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isOffline ? const Color(0xFFF59E0B) : const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  );
+                },
               )
             else
               _buildProgressionActions(order, stage, isLab, isBusy),

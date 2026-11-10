@@ -103,13 +103,15 @@ class AdminOrderController extends Controller
             return response()->json(['message' => 'شۆفێری دیاریکراو پەسەندکراو نییە یان نەدۆزرایەوە.'], 400);
         }
 
+        $previousDriverId = $order->assigned_driver_id;
+
         $order->assigned_driver_id = $driverUser->id;
         $order->delivery_status = 'assigned';
         $order->driver_assigned_at = now();
         if ($request->filled('delivery_fee')) {
             $order->delivery_fee = (float) $request->delivery_fee;
         } elseif ($order->delivery_fee <= 0) {
-            $order->delivery_fee = (float) ($order->extra_fee > 0 ? $order->extra_fee : 2500);
+            $order->delivery_fee = $order->resolveDeliveryFee();
         }
         if ($order->status === 'pending') {
             $order->status = 'processing';
@@ -118,6 +120,9 @@ class AdminOrderController extends Controller
 
         if ($driverUser->driver) {
             $driverUser->driver->update(['duty_status' => 'busy']);
+        }
+        if ($previousDriverId && (int) $previousDriverId !== (int) $driverUser->id) {
+            \App\Models\Driver::syncDutyStatusForUser((int) $previousDriverId);
         }
 
         OrderNotificationService::notifyDriverAssigned($order, $driverUser);
@@ -142,6 +147,17 @@ class AdminOrderController extends Controller
 
         if ($request->status === 'completed') {
             $order->payment_status = 'paid';
+            if ($order->assigned_driver_id && $order->delivery_status !== 'delivered') {
+                $order->delivery_status = 'delivered';
+                $order->driver_delivered_at = $order->driver_delivered_at ?? now();
+                $fee = $order->resolveDeliveryFee();
+                $order->delivery_fee = $fee;
+
+                $drv = \App\Models\Driver::firstOrCreate(['user_id' => $order->assigned_driver_id]);
+                $drv->increment('completed_deliveries');
+                $drv->increment('total_earnings', $fee);
+            }
+
             \App\Models\Transaction::where('payable_type', Order::class)
                 ->where('payable_id', $order->id)
                 ->where('status', 'pending')
@@ -170,6 +186,9 @@ class AdminOrderController extends Controller
                 }
             }
         } elseif ($request->status === 'cancelled') {
+            if ($order->assigned_driver_id && $order->delivery_status !== 'delivered') {
+                $order->delivery_status = 'cancelled';
+            }
             \App\Models\Transaction::where('payable_type', Order::class)
                 ->where('payable_id', $order->id)
                 ->where('status', 'pending')
@@ -179,6 +198,10 @@ class AdminOrderController extends Controller
         }
 
         $order->save();
+
+        if ($order->assigned_driver_id && in_array($request->status, ['completed', 'cancelled'], true)) {
+            \App\Models\Driver::syncDutyStatusForUser((int) $order->assigned_driver_id);
+        }
 
         OrderNotificationService::notifyStatusChanged($order, $request->status);
 

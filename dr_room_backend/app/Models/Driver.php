@@ -25,5 +25,30 @@ class Driver extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Keep driver duty_status accurate ('busy' if active orders remain, otherwise
+     * 'available') without forcing an offline driver online.
+     */
+    public static function syncDutyStatusForUser(?int $driverUserId): void
+    {
+        if (!$driverUserId) {
+            return;
+        }
+
+        $driver = self::where('user_id', $driverUserId)->first();
+        if (!$driver || $driver->duty_status === 'offline') {
+            return;
+        }
+
+        $activeCount = Order::where('assigned_driver_id', $driverUserId)
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->count();
+
+        $nextDuty = $activeCount > 0 ? 'busy' : 'available';
+        if ($driver->duty_status !== $nextDuty) {
+            $driver->update(['duty_status' => $nextDuty]);
+        }
+    }
 }
 

@@ -67,6 +67,18 @@ class CheckoutProvider extends ChangeNotifier {
         'transaction_reference': transactionReference,
         'payment_status': transactionReference != null ? 'paid' : 'pending',
         'patient_details': patientDetails,
+        if (patientDetails['lat'] != null ||
+            patientDetails['latitude'] != null ||
+            patientDetails['location'] != null ||
+            patientDetails['address'] != null)
+          'location_details': {
+            if (patientDetails['lat'] != null) 'latitude': patientDetails['lat'],
+            if (patientDetails['lng'] != null) 'longitude': patientDetails['lng'],
+            if (patientDetails['latitude'] != null) 'latitude': patientDetails['latitude'],
+            if (patientDetails['longitude'] != null) 'longitude': patientDetails['longitude'],
+            if (patientDetails['location'] != null) 'address': patientDetails['location'],
+            if (patientDetails['address'] != null) 'address': patientDetails['address'],
+          },
         'items': cart.items.map((e) => e.toJson()).toList(),
       };
 

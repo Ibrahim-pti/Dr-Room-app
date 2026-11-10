@@ -126,6 +126,7 @@ class AdminTransactionController extends Controller
             'patient:id,name,phone',
             'assignedNurse:id,name,phone',
             'assignedLab:id,name,phone',
+            'assignedDriver:id,name,phone',
             'items'
         ])
         ->whereBetween('created_at', [$startDate, $endDate]);
@@ -140,6 +141,7 @@ class AdminTransactionController extends Controller
         $providerName = 'تەواوی دابینکارەکان (گشتی)';
         $providerPhone = '+964 750 000 0000';
         $providerRole = 'سەکۆی فەرمی دکتۆر ڕۆم';
+        $isDriverStatement = ($providerType === 'driver');
 
         if ($providerId && $providerType !== 'all') {
             $providerUser = \App\Models\User::find($providerId);
@@ -155,6 +157,10 @@ class AdminTransactionController extends Controller
                 } elseif ($providerType === 'pharmacy' || $providerUser->role === 'pharmacy') {
                     $providerRole = 'دەرمانخانەی هاوبەش';
                     $query->where('assigned_pharmacy_id', $providerId);
+                } elseif ($providerType === 'driver' || $providerUser->role === 'driver') {
+                    $isDriverStatement = true;
+                    $providerRole = 'کارمەندی گەیاندن (دلیڤەری)';
+                    $query->where('assigned_driver_id', $providerId);
                 }
             }
         } elseif ($providerType === 'nurse') {
@@ -163,21 +169,31 @@ class AdminTransactionController extends Controller
         } elseif ($providerType === 'lab') {
             $providerRole = 'تەواوی تاقیگەکان';
             $query->where(fn($q) => $q->whereNotNull('assigned_lab_id')->orWhere('service_type', 'lab_test'));
+        } elseif ($providerType === 'driver') {
+            $isDriverStatement = true;
+            $providerRole = 'تەواوی کارمەندانی گەیاندن';
+            $query->whereNotNull('assigned_driver_id');
         }
 
         $orders = $query->latest()->get();
 
         $totalOrders = $orders->count();
-        $grossRevenue = (float) $orders->sum('total_price');
+        if ($isDriverStatement) {
+            $grossRevenue = (float) $orders->sum(fn ($o) => $o->resolveDeliveryFee());
+            $totalCommission = 0.0;
+            $netPayout = $grossRevenue;
+        } else {
+            $grossRevenue = (float) $orders->sum('total_price');
 
-        $totalCommission = (float) $orders->sum(function ($order) {
-            if ($order->commission_amount > 0) {
-                return (float) $order->commission_amount;
-            }
-            return (float) ($order->total_price * 0.10);
-        });
+            $totalCommission = (float) $orders->sum(function ($order) {
+                if ($order->commission_amount > 0) {
+                    return (float) $order->commission_amount;
+                }
+                return (float) ($order->total_price * 0.10);
+            });
 
-        $netPayout = max(0.0, $grossRevenue - $totalCommission);
+            $netPayout = max(0.0, $grossRevenue - $totalCommission);
+        }
 
         $kurdishMonths = [
             1 => 'کانوونی دووەم (١)',
@@ -194,8 +210,16 @@ class AdminTransactionController extends Controller
             12 => 'کانوونی یەکەم (١٢)',
         ];
 
-        $transactions = $orders->map(function ($order, $idx) {
-            $comm = (float) ($order->commission_amount > 0 ? $order->commission_amount : $order->total_price * 0.10);
+        $transactions = $orders->map(function ($order, $idx) use ($isDriverStatement) {
+            if ($isDriverStatement) {
+                $amount = $order->resolveDeliveryFee();
+                $comm = 0.0;
+                $net = $amount;
+            } else {
+                $amount = (float) $order->total_price;
+                $comm = (float) ($order->commission_amount > 0 ? $order->commission_amount : $order->total_price * 0.10);
+                $net = max(0.0, $amount - $comm);
+            }
             $serviceName = 'خزمەتگوزاری پزیشکی';
             if ($order->items && $order->items->isNotEmpty()) {
                 $serviceName = $order->items->pluck('item_name')->filter()->join('، ');
@@ -215,9 +239,9 @@ class AdminTransactionController extends Controller
                 'date' => $order->created_at ? $order->created_at->format('Y-m-d') : '',
                 'patient_name' => $order->patient->name ?? 'نەخۆش',
                 'service' => $serviceName,
-                'amount' => (float) $order->total_price,
+                'amount' => $amount,
                 'commission' => $comm,
-                'net_payout' => max(0.0, (float) $order->total_price - $comm),
+                'net_payout' => $net,
                 'payment_method' => $order->payment_method ?? 'کاش',
                 'status' => $order->payment_status ?? $order->status,
             ];
@@ -276,11 +300,18 @@ class AdminTransactionController extends Controller
             ->orderBy('name')
             ->get();
 
+        $drivers = \App\Models\User::where('role', 'driver')
+            ->where('status', 'approved')
+            ->select('id', 'name', 'phone')
+            ->orderBy('name')
+            ->get();
+
         return response()->json([
             'success' => true,
             'data' => [
                 'labs' => $labs,
                 'nurses' => $nurses,
+                'drivers' => $drivers,
             ],
         ]);
     }

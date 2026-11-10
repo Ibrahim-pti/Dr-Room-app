@@ -309,10 +309,11 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
   Future<void> _openExportReportModal() async {
     int selectedYear = DateTime.now().year;
     int selectedMonth = DateTime.now().month;
-    String providerType = 'all'; // 'all', 'lab', 'nurse'
+    String providerType = 'all'; // 'all', 'lab', 'nurse', 'driver'
     int? selectedProviderId;
     List<dynamic> labs = [];
     List<dynamic> nurses = [];
+    List<dynamic> drivers = [];
     bool isGeneratingPdf = false;
     String? modalError;
 
@@ -323,6 +324,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
         final body = jsonDecode(res.body);
         labs = body['data']?['labs'] ?? [];
         nurses = body['data']?['nurses'] ?? [];
+        drivers = body['data']?['drivers'] ?? [];
       }
     } catch (_) {}
 
@@ -550,7 +552,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                     const Text('دابینکاری خزمەتگوزاری (Provider)', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
 
-                    // Type Chips: All, Lab, Nurse
+                    // Type Chips: All, Lab, Nurse, Driver (2 clean rows)
                     Row(
                       children: [
                         _buildFilterTypeChip('all', 'هەموو دابینکارەکان', providerType, (t) {
@@ -566,11 +568,22 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                             selectedProviderId = labs.isNotEmpty ? int.tryParse('${labs.first['id']}') : null;
                           });
                         }),
-                        const SizedBox(width: 8),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
                         _buildFilterTypeChip('nurse', 'پەرستارەکان', providerType, (t) {
                           setModalState(() {
                             providerType = t;
                             selectedProviderId = nurses.isNotEmpty ? int.tryParse('${nurses.first['id']}') : null;
+                          });
+                        }),
+                        const SizedBox(width: 8),
+                        _buildFilterTypeChip('driver', 'کارمەندانی گەیاندن', providerType, (t) {
+                          setModalState(() {
+                            providerType = t;
+                            selectedProviderId = drivers.isNotEmpty ? int.tryParse('${drivers.first['id']}') : null;
                           });
                         }),
                       ],
@@ -631,6 +644,36 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                               ...nurses.map((n) => DropdownMenuItem<int?>(
                                 value: int.tryParse('${n['id']}'),
                                 child: Text(n['name'] ?? 'پەرستار', style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                              )),
+                            ],
+                            onChanged: (val) => setModalState(() => selectedProviderId = val),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ] else if (providerType == 'driver' && drivers.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<int?>(
+                            value: drivers.any((d) => int.tryParse('${d['id']}') == selectedProviderId)
+                                ? selectedProviderId
+                                : null,
+                            isExpanded: true,
+                            hint: const Text('شۆفێر دیاریبکە', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                            items: [
+                              const DropdownMenuItem<int?>(
+                                value: null,
+                                child: Text('تەواوی کارمەندانی گەیاندن (گشتی)', style: TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                              ),
+                              ...drivers.map((d) => DropdownMenuItem<int?>(
+                                value: int.tryParse('${d['id']}'),
+                                child: Text(d['name'] ?? 'شۆفێر', style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
                               )),
                             ],
                             onChanged: (val) => setModalState(() => selectedProviderId = val),

@@ -32,7 +32,7 @@
 </head>
 <body class="bg-[#FFF6F0] text-slate-900 min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-lg bg-white rounded-3xl border border-orange-100 shadow-xl shadow-orange-950/5 p-7 sm:p-10 text-center">
+    <div class="w-full max-w-lg bg-white rounded-3xl border border-orange-100 p-7 sm:p-10 text-center">
         <div class="flex items-center justify-center gap-2.5 mb-6">
             <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl border border-orange-100 p-1 object-contain">
             <span class="text-xl font-black" dir="ltr">Dr<span class="text-[#FF5A00]">Room</span> Delivery</span>
@@ -79,7 +79,7 @@
         </div>
 
         <div class="mt-6 flex flex-col sm:flex-row gap-3">
-            <a href="{{ $mainSiteHref }}" class="flex-1 py-3 px-4 rounded-xl bg-[#FF5A00] hover:bg-[#E04F00] text-white text-xs font-extrabold shadow-md shadow-orange-500/20 transition">
+            <a href="{{ $mainSiteHref }}" class="flex-1 py-3 px-4 rounded-xl bg-[#FF5A00] hover:bg-[#E04F00] text-white text-xs font-extrabold transition">
                 {{ __('delivery.back_home') }}
             </a>
             <form method="POST" action="{{ route('delivery.logout') }}" class="flex-1">
