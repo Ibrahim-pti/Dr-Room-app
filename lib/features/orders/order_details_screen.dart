@@ -87,9 +87,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           setState(() {
             _currentOrder = updatedOrder;
           });
-          if (updatedOrder.driverLat != null && updatedOrder.driverLng != null) {
+          if (updatedOrder.driverLat != null &&
+              updatedOrder.driverLng != null) {
             _driverMapController?.animateCamera(
-              CameraUpdate.newLatLng(LatLng(updatedOrder.driverLat!, updatedOrder.driverLng!)),
+              CameraUpdate.newLatLng(
+                LatLng(updatedOrder.driverLat!, updatedOrder.driverLng!),
+              ),
             );
           }
         }
@@ -108,75 +111,92 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final lang = context.locale.languageCode.toLowerCase();
     switch (status) {
       case OrderStatus.pending:
-        if (lang == 'kmr') return _currentOrder.statusLabelKmr ?? 'چاڤەڕێی پشتڕاستکرنێیە';
-        if (lang == 'ar') return _currentOrder.statusLabelAr ?? 'قيد الانتظار والتأكيد';
-        if (lang == 'en') return _currentOrder.statusLabelEn ?? 'Pending Confirmation';
+        if (lang == 'kmr')
+          return _currentOrder.statusLabelKmr ?? 'چاڤەڕێی پشتڕاستکرنێیە';
+        if (lang == 'ar')
+          return _currentOrder.statusLabelAr ?? 'قيد الانتظار والتأكيد';
+        if (lang == 'en')
+          return _currentOrder.statusLabelEn ?? 'Pending Confirmation';
         return _currentOrder.statusLabelCkb ?? 'چاوەڕوانی پشتڕاستکردنەوەیە';
       case OrderStatus.processing:
-        if (lang == 'kmr') return _currentOrder.statusLabelKmr ?? 'د قۆناغا بجهئینانێ دایە';
-        if (lang == 'ar') return _currentOrder.statusLabelAr ?? 'قيد التنفيذ والمتابعة';
+        if (lang == 'kmr')
+          return _currentOrder.statusLabelKmr ?? 'د قۆناغا بجهئینانێ دایە';
+        if (lang == 'ar')
+          return _currentOrder.statusLabelAr ?? 'قيد التنفيذ والمتابعة';
         if (lang == 'en') return _currentOrder.statusLabelEn ?? 'In Progress';
         return _currentOrder.statusLabelCkb ?? 'لە قۆناغی جێبەجێکردندایە';
       case OrderStatus.completed:
         if (lang == 'kmr') return _currentOrder.statusLabelKmr ?? 'تەواوکرایە';
         if (lang == 'ar') return _currentOrder.statusLabelAr ?? 'مكتمل بنجاح';
-        if (lang == 'en') return _currentOrder.statusLabelEn ?? 'Completed Successfully';
+        if (lang == 'en')
+          return _currentOrder.statusLabelEn ?? 'Completed Successfully';
         return _currentOrder.statusLabelCkb ?? 'تەواوکراوە';
       case OrderStatus.cancelled:
-        if (lang == 'kmr') return _currentOrder.statusLabelKmr ?? 'هاتیە هەلوەشاندن';
+        if (lang == 'kmr')
+          return _currentOrder.statusLabelKmr ?? 'هاتیە هەلوەشاندن';
         if (lang == 'ar') return _currentOrder.statusLabelAr ?? 'ملغي';
         if (lang == 'en') return _currentOrder.statusLabelEn ?? 'Cancelled';
         return _currentOrder.statusLabelCkb ?? 'هەڵوەشێنراوەتەوە';
     }
   }
 
-  Widget _buildDriverTrackingCard(bool isDark, Color cardBg, Color borderColor) {
+  Widget _buildDriverTrackingCard(
+    bool isDark,
+    Color cardBg,
+    Color borderColor,
+  ) {
     final lang = context.locale.languageCode.toLowerCase();
     final stage = (_currentOrder.deliveryStatus ?? 'assigned').toLowerCase();
 
     final stageText = switch (stage) {
       'accepted' => switch (lang) {
-          'ar' => 'قبل المندوب الطلب',
-          'en' => 'Driver accepted your order',
-          'kmr' => 'شۆفێری داخوازی وەرگرت',
-          _ => 'شۆفێر داواکارییەکەی وەرگرت',
-        },
+        'ar' => 'قبل المندوب الطلب',
+        'en' => 'Driver accepted your order',
+        'kmr' => 'شۆفێری داخوازی وەرگرت',
+        _ => 'شۆفێر داواکارییەکەی وەرگرت',
+      },
       'picked_up' => switch (lang) {
-          'ar' => 'تم استلام الطلب من المزود',
-          'en' => 'Picked up',
-          'kmr' => 'وەرگرتن هاتە کرن',
-          _ => 'وەرگیراوە و ئامادەیە بۆ گەیاندن',
-        },
+        'ar' => 'تم استلام الطلب من المزود',
+        'en' => 'Picked up',
+        'kmr' => 'وەرگرتن هاتە کرن',
+        _ => 'وەرگیراوە و ئامادەیە بۆ گەیاندن',
+      },
       'on_the_way' => switch (lang) {
-          'ar' => 'المندوب في الطريق الآن 🛵',
-          'en' => 'Driver is on the way 🛵',
-          'kmr' => 'شۆفێر د ڕێکێ دایە 🛵',
-          _ => 'کارمەندی گەیاندن لە ڕێگادایە 🛵',
-        },
+        'ar' => 'المندوب في الطريق الآن 🛵',
+        'en' => 'Driver is on the way 🛵',
+        'kmr' => 'شۆفێر د ڕێکێ دایە 🛵',
+        _ => 'کارمەندی گەیاندن لە ڕێگادایە 🛵',
+      },
       'arrived' => switch (lang) {
-          'ar' => 'وصل المندوب إلى موقعك 📍',
-          'en' => 'Driver has arrived 📍',
-          'kmr' => 'شۆفێر گەهشت 📍',
-          _ => 'کارمەندی گەیاندن گەیشتە شوێنەکە 📍',
-        },
+        'ar' => 'وصل المندوب إلى موقعك 📍',
+        'en' => 'Driver has arrived 📍',
+        'kmr' => 'شۆفێر گەهشت 📍',
+        _ => 'کارمەندی گەیاندن گەیشتە شوێنەکە 📍',
+      },
       'delivered' => switch (lang) {
-          'ar' => 'تم التسليم بنجاح ✅',
-          'en' => 'Delivered successfully ✅',
-          'kmr' => 'گەهاندن تمام بوو ✅',
-          _ => 'بە سەرکەوتوویی ڕادەستکرا ✅',
-        },
+        'ar' => 'تم التسليم بنجاح ✅',
+        'en' => 'Delivered successfully ✅',
+        'kmr' => 'گەهاندن تمام بوو ✅',
+        _ => 'بە سەرکەوتوویی ڕادەستکرا ✅',
+      },
       _ => switch (lang) {
-          'ar' => 'تم إرسال الطلب إلى أقرب مندوب، بانتظار القبول...',
-          'en' => 'Sent to nearest courier, awaiting acceptance...',
-          'kmr' => 'بۆ نێزیکترین شۆفێری هاتە هنارتن...',
-          _ => 'نێردراوە بۆ نزیکترین شۆفێر · چاوەڕوانی قبوڵکردن...',
-        },
+        'ar' => 'تم إرسال الطلب إلى أقرب مندوب، بانتظار القبول...',
+        'en' => 'Sent to nearest courier, awaiting acceptance...',
+        'kmr' => 'بۆ نێزیکترین شۆفێری هاتە هنارتن...',
+        _ => 'نێردراوە بۆ نزیکترین شۆفێر · چاوەڕوانی قبوڵکردن...',
+      },
     };
 
     final vehicleText = switch (_currentOrder.driverVehicleType) {
       'car' => lang == 'en' ? 'Car' : (lang == 'ar' ? 'سيارة' : 'ئۆتۆمبێل'),
-      'refrigerated_van' => lang == 'en' ? 'Cooler Transport' : (lang == 'ar' ? 'سيارة مبردة' : 'ساردکەرەوەی تاقیگە'),
-      _ => lang == 'en' ? 'Motorcycle' : (lang == 'ar' ? 'دراجة نارية' : 'ماتۆڕسکیل'),
+      'refrigerated_van' =>
+        lang == 'en'
+            ? 'Cooler Transport'
+            : (lang == 'ar' ? 'سيارة مبردة' : 'ساردکەرەوەی تاقیگە'),
+      _ =>
+        lang == 'en'
+            ? 'Motorcycle'
+            : (lang == 'ar' ? 'دراجة نارية' : 'ماتۆڕسکیل'),
     };
 
     final dLat = _currentOrder.driverLat;
@@ -191,7 +211,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Marker(
           markerId: const MarkerId('live_driver'),
           position: LatLng(dLat, dLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueAzure,
+          ),
           infoWindow: InfoWindow(title: _currentOrder.driverName ?? 'Driver'),
         ),
       );
@@ -201,8 +223,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Marker(
           markerId: const MarkerId('patient_dest'),
           position: LatLng(pLat, pLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          infoWindow: InfoWindow(title: lang == 'en' ? 'Your Location' : 'شوێنی تۆ'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueGreen,
+          ),
+          infoWindow: InfoWindow(
+            title: lang == 'en' ? 'Your Location' : 'شوێنی تۆ',
+          ),
         ),
       );
     }
@@ -226,7 +252,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   color: const Color(0xFF10B981).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Iconsax.truck_fast, color: Color(0xFF10B981), size: 24),
+                child: const Icon(
+                  Iconsax.truck_fast,
+                  color: Color(0xFF10B981),
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -245,7 +275,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     Text(
                       '$vehicleText${(_currentOrder.driverPlateNumber?.isNotEmpty ?? false) ? ' · ${_currentOrder.driverPlateNumber}' : ''}',
                       style: _kStyle(
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                         fontSize: 11.5,
                       ),
                     ),
@@ -255,12 +287,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               if (_currentOrder.driverPhone?.isNotEmpty ?? false)
                 IconButton.filled(
                   onPressed: () async {
-                    final clean = _currentOrder.driverPhone!.replaceAll(RegExp(r'[^0-9+]'), '');
+                    final clean = _currentOrder.driverPhone!.replaceAll(
+                      RegExp(r'[^0-9+]'),
+                      '',
+                    );
                     final uri = Uri.parse('tel:$clean');
                     if (await canLaunchUrl(uri)) await launchUrl(uri);
                   },
                   icon: const Icon(Iconsax.call, size: 18, color: Colors.white),
-                  style: IconButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                  ),
                 ),
             ],
           ),
@@ -271,7 +308,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF10B981).withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.25)),
+              border: Border.all(
+                color: const Color(0xFF10B981).withValues(alpha: 0.25),
+              ),
             ),
             child: Text(
               stageText,
@@ -314,17 +353,23 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       case OrderStatus.pending:
         if (lang == 'kmr') return 'داخوازییا تە گەهشت و چاڤەڕێی پشتڕاستکرنێیە.';
         if (lang == 'ar') return 'تم استلام طلبك وهو بانتظار التأكيد.';
-        if (lang == 'en') return 'Your order has been received and is awaiting confirmation.';
+        if (lang == 'en')
+          return 'Your order has been received and is awaiting confirmation.';
         return 'داواکارییەکەت گەیشت و لەلایەن تاقیگەوە چاوەڕوانی پشتڕاستکردنەوەیە.';
       case OrderStatus.processing:
-        if (lang == 'kmr') return 'داخوازییا تە د قۆناغا ئەنجامدان و دووڤچوونێ دایە.';
-        if (lang == 'ar') return 'طلبك قيد التنفيذ والمتابعة من قبل الفريق الطبي.';
-        if (lang == 'en') return 'Your order is currently being processed and prepared.';
+        if (lang == 'kmr')
+          return 'داخوازییا تە د قۆناغا ئەنجامدان و دووڤچوونێ دایە.';
+        if (lang == 'ar')
+          return 'طلبك قيد التنفيذ والمتابعة من قبل الفريق الطبي.';
+        if (lang == 'en')
+          return 'Your order is currently being processed and prepared.';
         return 'داواکارییەکەت لە قۆناغی ئەنجامدان و بەدواداچووندایە.';
       case OrderStatus.completed:
-        if (lang == 'kmr') return 'هەمی پشکنین و خزمەتگوزاری ب سەرکەفتیانە هاتنە تمامکرن.';
+        if (lang == 'kmr')
+          return 'هەمی پشکنین و خزمەتگوزاری ب سەرکەفتیانە هاتنە تمامکرن.';
         if (lang == 'ar') return 'تم إكمال جميع الفحوصات والخدمات بنجاح.';
-        if (lang == 'en') return 'All services and examinations have been successfully completed.';
+        if (lang == 'en')
+          return 'All services and examinations have been successfully completed.';
         return 'هەموو پشکنینەکان بە سەرکەوتوویی تەواو کران.';
       case OrderStatus.cancelled:
         if (lang == 'kmr') return 'ئەڤ داخوازییە هاتیە هەلوەشاندن.';
@@ -536,7 +581,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            _getStatusDescription(_currentOrder.status, context),
+                            _getStatusDescription(
+                              _currentOrder.status,
+                              context,
+                            ),
                             style: _kStyle(
                               color: isDark
                                   ? Colors.white70
@@ -598,7 +646,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _currentOrder.localizedPharmacyName(context) ?? _currentOrder.assignedPharmacyName!,
+                              _currentOrder.localizedPharmacyName(context) ??
+                                  _currentOrder.assignedPharmacyName!,
                               style: _kStyle(
                                 color: isDark
                                     ? Colors.white
@@ -611,7 +660,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             Text(
                               'executing_pharmacy'.tr(),
                               style: _kStyle(
-                                color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                color:
+                                    (Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B)),
                                 fontSize: 12,
                               ),
                             ),
@@ -656,7 +709,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                              color: const Color(
+                                0xFF3B82F6,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
@@ -669,7 +724,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           Text(
                             'prescription_photo'.tr(),
                             style: _kStyle(
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -681,7 +738,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         borderRadius: BorderRadius.circular(16),
                         child: GestureDetector(
                           onTap: () {
-                            final provider = ApiClient.getImageProvider(_currentOrder.prescriptionImage);
+                            final provider = ApiClient.getImageProvider(
+                              _currentOrder.prescriptionImage,
+                            );
                             if (provider == null) return;
                             showDialog(
                               context: context,
@@ -694,13 +753,20 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                     InteractiveViewer(
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(16),
-                                        child: Image(image: provider, fit: BoxFit.contain),
+                                        child: Image(
+                                          image: provider,
+                                          fit: BoxFit.contain,
+                                        ),
                                       ),
                                     ),
                                     IconButton(
                                       icon: const CircleAvatar(
                                         backgroundColor: Colors.black54,
-                                        child: Icon(Icons.close, color: Colors.white, size: 20),
+                                        child: Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
                                       ),
                                       onPressed: () => Navigator.pop(context),
                                     ),
@@ -713,23 +779,32 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             alignment: Alignment.bottomRight,
                             children: [
                               Image(
-                                image: ApiClient.getImageProvider(_currentOrder.prescriptionImage)!,
+                                image: ApiClient.getImageProvider(
+                                  _currentOrder.prescriptionImage,
+                                )!,
                                 height: 180,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                                 errorBuilder: (c, e, s) => Container(
                                   height: 100,
                                   alignment: Alignment.center,
-                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                  color: isDark
+                                      ? const Color(0xFF0F172A)
+                                      : const Color(0xFFF1F5F9),
                                   child: Text(
                                     'could_not_load_image'.tr(),
-                                    style: _kStyle(color: const Color(0xFF94A3B8)),
+                                    style: _kStyle(
+                                      color: const Color(0xFF94A3B8),
+                                    ),
                                   ),
                                 ),
                               ),
                               Container(
                                 margin: const EdgeInsets.all(8),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withValues(alpha: 0.65),
                                   borderRadius: BorderRadius.circular(8),
@@ -737,9 +812,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 child: const Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.zoom_in, color: Colors.white, size: 14),
+                                    Icon(
+                                      Icons.zoom_in,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
                                     SizedBox(width: 4),
-                                    Icon(Iconsax.eye, color: Colors.white, size: 14),
+                                    Icon(
+                                      Iconsax.eye,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -828,7 +911,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       _buildDetailRow(
                         context,
                         'payment_method'.tr(),
-                        _formatPaymentMethod(_currentOrder.paymentMethod, context),
+                        _formatPaymentMethod(
+                          _currentOrder.paymentMethod,
+                          context,
+                        ),
                         isDark: isDark,
                       ),
                     ],
@@ -874,7 +960,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   String _formatPaymentMethod(String? raw, BuildContext context) {
     if (raw == null || raw.isEmpty) return 'cash_on_delivery'.tr();
     final lower = raw.toLowerCase();
-    if (lower.contains('delivery') || lower.contains('cash') || lower.contains('کاش')) {
+    if (lower.contains('delivery') ||
+        lower.contains('cash') ||
+        lower.contains('کاش')) {
       return 'cash_on_delivery'.tr();
     } else if (lower.contains('fastpay')) {
       return 'FastPay';
@@ -882,7 +970,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       return 'FIB بانکی یەکەمی عێراق';
     } else if (lower.contains('zain')) {
       return 'Zain Cash';
-    } else if (lower.contains('qi') || lower.contains('card') || lower.contains('stripe')) {
+    } else if (lower.contains('qi') ||
+        lower.contains('card') ||
+        lower.contains('stripe')) {
       return 'کی کارد / کارتی بانکی';
     }
     return raw;
@@ -901,7 +991,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Text(
           label,
           style: _kStyle(
-            color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            color: (Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF94A3B8)
+                : const Color(0xFF64748B)),
             fontSize: isTotal ? 14.5 : 13.5,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
           ),
