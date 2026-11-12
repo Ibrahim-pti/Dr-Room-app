@@ -618,6 +618,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           keyboardType: TextInputType.visiblePassword,
+                          textDirection: TextDirection.ltr,
+                          textAlign: TextAlign.start,
                           autocorrect: false,
                           enableSuggestions: false,
                           inputFormatters: [
@@ -712,6 +714,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirmPassword,
                           keyboardType: TextInputType.visiblePassword,
+                          textDirection: TextDirection.ltr,
+                          textAlign: TextAlign.start,
                           autocorrect: false,
                           enableSuggestions: false,
                           inputFormatters: [

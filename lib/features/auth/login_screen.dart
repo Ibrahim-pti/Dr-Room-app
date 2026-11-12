@@ -806,6 +806,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: newPassController,
                             obscureText: obscureNew,
                             keyboardType: TextInputType.visiblePassword,
+                            textDirection: TextDirection.ltr,
+                            textAlign: TextAlign.start,
                             autocorrect: false,
                             enableSuggestions: false,
                             inputFormatters: [
@@ -847,6 +849,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: confirmPassController,
                             obscureText: obscureConfirm,
                             keyboardType: TextInputType.visiblePassword,
+                            textDirection: TextDirection.ltr,
+                            textAlign: TextAlign.start,
                             autocorrect: false,
                             enableSuggestions: false,
                             inputFormatters: [
@@ -1299,6 +1303,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           keyboardType: TextInputType.visiblePassword,
+                          textDirection: TextDirection.ltr,
+                          textAlign: TextAlign.start,
                           autocorrect: false,
                           enableSuggestions: false,
                           inputFormatters: [
