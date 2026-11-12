@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
 
 class DeliveryWebController extends Controller
 {
@@ -79,16 +81,97 @@ class DeliveryWebController extends Controller
                 ->withInput($request->except('password', 'password_confirmation'));
         }
 
-        $vehicleType = in_array($request->vehicle_type, ['motorcycle', 'car', 'refrigerated_van'], true)
-            ? $request->vehicle_type
-            : 'motorcycle';
-        $serviceScope = in_array($request->service_scope, ['pharmacy', 'lab_sample', 'both'], true)
-            ? $request->service_scope
-            : 'both';
+        if (!$request->boolean('agree_terms')) {
+            return back()
+                ->withErrors(['agree_terms' => __('delivery.err_terms')])
+                ->withInput($request->except('password', 'password_confirmation'));
+        }
+
+        $fileValidator = Validator::make($request->all(), [
+            'id_document' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'license' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'cv' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ]);
+
+        if ($fileValidator->fails()) {
+            return back()
+                ->withErrors(['files' => __('delivery.err_file')])
+                ->withInput($request->except('password', 'password_confirmation'));
+        }
+
+        $applicantRole = in_array($request->applicant_role, ['phlebotomist', 'mobile_nurse', 'both', 'courier'], true)
+            ? $request->applicant_role
+            : 'phlebotomist';
+
+        $gender = in_array($request->gender, ['male', 'female'], true)
+            ? $request->gender
+            : null;
+
+        $educationLevel = trim((string) $request->education_level);
+        $educationLevel = $educationLevel !== '' ? $educationLevel : null;
+
+        $experienceYears = is_numeric($request->experience_years)
+            ? max(0, min(60, (int) $request->experience_years))
+            : 0;
+
+        $allowedSkills = [
+            'venipuncture', 'pediatric_draw', 'cannula_iv', 'injections',
+            'wound_care', 'vital_signs', 'cold_chain', 'pharma_handling',
+        ];
+        $clinicalSkills = collect((array) $request->input('clinical_skills', []))
+            ->map(fn ($s) => (string) $s)
+            ->filter(fn ($s) => in_array($s, $allowedSkills, true))
+            ->values()
+            ->all();
+
+        $serviceAreas = trim((string) $request->service_areas);
+        $serviceAreas = $serviceAreas !== '' ? $serviceAreas : null;
+
+        $availabilityShift = in_array($request->availability_shift, ['morning', 'evening', 'full_flex'], true)
+            ? $request->availability_shift
+            : 'full_flex';
+
+        $workDays = in_array($request->work_days, ['daily', 'weekdays', 'part_time'], true)
+            ? $request->work_days
+            : 'daily';
+
+        $willingToTravel = $request->input('willing_to_travel', '1') === '1';
+        $hasPrivateCar = $request->input('has_private_car', '0') === '1';
+
+        if ($applicantRole === 'courier') {
+            $vehicleType = in_array($request->vehicle_type, ['motorcycle', 'car', 'refrigerated_van'], true)
+                ? $request->vehicle_type
+                : 'motorcycle';
+            $serviceScope = in_array($request->service_scope, ['pharmacy', 'lab_sample', 'both'], true)
+                ? $request->service_scope
+                : 'pharmacy';
+        } else {
+            $vehicleType = $hasPrivateCar ? 'car' : 'motorcycle';
+            $serviceScope = $applicantRole === 'phlebotomist' ? 'lab_sample' : 'both';
+        }
+
         $city = trim((string) ($request->city ?: 'هەولێر'));
         $plateNumber = trim((string) ($request->plate_number ?? ''));
 
-        $user = DB::transaction(function () use ($request, $localPhone, $city, $vehicleType, $serviceScope, $plateNumber) {
+        $user = DB::transaction(function () use (
+            $request,
+            $localPhone,
+            $city,
+            $vehicleType,
+            $serviceScope,
+            $plateNumber,
+            $applicantRole,
+            $gender,
+            $educationLevel,
+            $experienceYears,
+            $clinicalSkills,
+            $serviceAreas,
+            $availabilityShift,
+            $workDays,
+            $willingToTravel,
+            $hasPrivateCar
+        ) {
             $created = User::create([
                 'name' => trim((string) $request->name),
                 'phone' => $localPhone,
@@ -97,33 +180,105 @@ class DeliveryWebController extends Controller
                 'status' => 'pending',
             ]);
 
-            Driver::create([
+            $docPaths = [];
+            foreach (['id_document', 'certificate', 'license', 'cv'] as $fileField) {
+                if ($request->hasFile($fileField) && $request->file($fileField)->isValid()) {
+                    $docPaths[$fileField . '_path'] = $request->file($fileField)->store(
+                        "driver_docs/{$created->id}",
+                        'public'
+                    );
+                }
+            }
+
+            $fieldProfile = [
+                'applicant_role' => $applicantRole,
+                'gender' => $gender,
+                'education_level' => $educationLevel,
+                'experience_years' => $experienceYears,
+                'clinical_skills' => $clinicalSkills,
+                'service_areas' => $serviceAreas,
+                'availability_shift' => $availabilityShift,
+                'work_days' => $workDays,
+                'willing_to_travel' => $willingToTravel,
+                'has_private_car' => $hasPrivateCar,
+                'id_document_path' => $docPaths['id_document_path'] ?? null,
+                'certificate_path' => $docPaths['certificate_path'] ?? null,
+                'license_path' => $docPaths['license_path'] ?? null,
+                'cv_path' => $docPaths['cv_path'] ?? null,
+            ];
+
+            $driverData = [
                 'user_id' => $created->id,
                 'city' => $city,
                 'vehicle_type' => $vehicleType,
                 'plate_number' => $plateNumber !== '' ? $plateNumber : null,
                 'service_scope' => $serviceScope,
                 'duty_status' => 'offline',
-            ]);
+                'notes' => json_encode($fieldProfile, JSON_UNESCAPED_UNICODE),
+            ];
+
+            $optionalColumns = [
+                'applicant_role' => $applicantRole,
+                'gender' => $gender,
+                'education_level' => $educationLevel,
+                'experience_years' => $experienceYears,
+                'clinical_skills' => $clinicalSkills,
+                'service_areas' => $serviceAreas,
+                'availability_shift' => $availabilityShift,
+                'work_days' => $workDays,
+                'willing_to_travel' => $willingToTravel,
+                'has_private_car' => $hasPrivateCar,
+                'id_document_path' => $docPaths['id_document_path'] ?? null,
+                'certificate_path' => $docPaths['certificate_path'] ?? null,
+                'license_path' => $docPaths['license_path'] ?? null,
+                'cv_path' => $docPaths['cv_path'] ?? null,
+            ];
+
+            foreach ($optionalColumns as $col => $val) {
+                if (Schema::hasColumn('drivers', $col)) {
+                    $driverData[$col] = $val;
+                }
+            }
+
+            Driver::create($driverData);
 
             return $created;
         });
 
-        // Notify admins about the new delivery driver application
+        // Notify admins about the new field/medical team application
         try {
             $adminIds = User::whereIn('role', ['admin', 'staff'])->pluck('id')->all();
-            $title = 'داواکاری نوێی کارمەندی گەیاندن 🛵';
-            $msg = "{$user->name} ({$localPhone}) داواکاری بوون بە کارمەندی گەیاندنی تۆمارکرد.";
+            $roleTitleKu = match ($applicantRole) {
+                'phlebotomist' => 'وەرگرتنی نموونەی خوێن و تاقیگە',
+                'mobile_nurse' => 'پەرستاری ماڵان',
+                'both' => 'پەرستاری + وەرگرتنی نموونەی خوێن',
+                default => 'گەیاندنی دەرمان و پێداویستی تەندروستی',
+            };
+            $roleTitleAr = match ($applicantRole) {
+                'phlebotomist' => 'أخصائي سحب عينات ومختبر',
+                'mobile_nurse' => 'ممرض رعاية منزلية',
+                'both' => 'تمريض + سحب عينات',
+                default => 'توصيل أدوية ومستلزمات طبية',
+            };
+            $roleTitleEn = match ($applicantRole) {
+                'phlebotomist' => 'Home Phlebotomist',
+                'mobile_nurse' => 'Mobile Nurse',
+                'both' => 'Nurse + Phlebotomist',
+                default => 'Medicine Courier',
+            };
+
+            $title = 'داواکاری نوێی تیمی پزیشکی گەڕۆک 🩺';
+            $msg = "{$user->name} ({$localPhone}) داواکاری پەیوەندیکردن ({$roleTitleKu}) لە شاری {$city} تۆمارکرد.";
 
             foreach ($adminIds as $adminId) {
                 AppNotification::create([
                     'user_id' => $adminId,
                     'title' => $title,
-                    'title_ar' => 'طلب تسجيل مندوب توصيل جديد 🛵',
-                    'title_en' => 'New Delivery Driver Application 🛵',
+                    'title_ar' => 'طلب انضمام جديد للفريق الميداني 🩺',
+                    'title_en' => 'New Field Team Application 🩺',
                     'message' => $msg,
-                    'message_ar' => "تقدم {$user->name} ({$localPhone}) بطلب للعمل كمندوب توصيل.",
-                    'message_en' => "{$user->name} ({$localPhone}) applied to join as a delivery driver.",
+                    'message_ar' => "تقدم {$user->name} ({$localPhone}) بطلب ({$roleTitleAr}) في {$city}.",
+                    'message_en' => "{$user->name} ({$localPhone}) applied as {$roleTitleEn} in {$city}.",
                     'type' => 'admin_notice',
                 ]);
             }

@@ -368,6 +368,84 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
         _ => 'دەرمان + تاقیگە',
       };
 
+  String _applicantRoleLabel(String? r) => switch (r) {
+        'phlebotomist' => 'وەرگرتنی خوێن و تاقیگە',
+        'mobile_nurse' => 'پەرستاری ماڵان',
+        'both' => 'پەرستاری + شیکاری',
+        'courier' => 'گەیاندنی دەرمان',
+        _ => 'تیمی گەڕۆک',
+      };
+
+  String? _educationLabel(String? e) => switch (e) {
+        'diploma_lab' => 'دبلۆم شیکاری نەخۆشی',
+        'bsc_lab' => 'بەکالۆریۆس شیکاری',
+        'diploma_nursing' => 'دبلۆم پەرستاری',
+        'bsc_nursing' => 'بەکالۆریۆس پەرستاری',
+        'high_school_course' => 'خولی پەرستاری',
+        'other' => 'بڕوانامەی گشتی',
+        _ => null,
+      };
+
+  String? _shiftLabel(String? s) => switch (s) {
+        'morning' => 'شیفتی بەیانی',
+        'evening' => 'شیفتی ئێوارە و شەو',
+        'full_flex' => 'تەواوی ڕۆژ (نەرم)',
+        _ => null,
+      };
+
+  String _skillLabel(String s) => switch (s) {
+        'venipuncture' => 'کێشانی خوێن',
+        'pediatric_draw' => 'خوێنی منداڵان',
+        'cannula_iv' => 'کانۆلا و سروم',
+        'injections' => 'دەرزیدان',
+        'wound_care' => 'پانسمان',
+        'vital_signs' => 'نیشانە زیندووەکان',
+        'cold_chain' => 'تیوب و ساردکەر (CBC/ESR)',
+        'pharma_handling' => 'گەیاندنی دەرمانی هەستیار',
+        _ => s,
+      };
+
+  Future<void> _openDocUrl(String? rawUrl) async {
+    final u = (rawUrl ?? '').trim();
+    if (u.isEmpty) return;
+    final uri = Uri.tryParse(u);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Widget _docLinkChip(String label, String? url) {
+    if ((url ?? '').trim().isEmpty) return const SizedBox.shrink();
+    return InkWell(
+      onTap: () => _openDocUrl(url),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF3EB),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFFDBA74)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Iconsax.document_text, size: 12, color: Color(0xFFC2410C)),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF9A3412),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _lastSeenText(dynamic secRaw) {
     final sec = int.tryParse('${secRaw ?? ''}');
     if (sec == null) return 'شوێن نەنێردراوە';
@@ -715,13 +793,72 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                   spacing: 8,
                   runSpacing: 6,
                   children: [
+                    _tagChip(_applicantRoleLabel(d['applicant_role']?.toString()), Iconsax.health),
                     _tagChip('${d['city'] ?? 'هەولێر'}', Iconsax.location),
-                    _tagChip(_vehicleLabel(d['vehicle_type']?.toString()), Iconsax.car),
+                    _tagChip(
+                      (d['applicant_role']?.toString() ?? 'phlebotomist') == 'courier'
+                          ? _vehicleLabel(d['vehicle_type']?.toString())
+                          : (d['has_private_car'] == true ? 'ئۆتۆمبێلی تایبەت' : 'بێ ئۆتۆمبێل'),
+                      Iconsax.car,
+                    ),
                     _tagChip(_scopeLabel(d['service_scope']?.toString()), Iconsax.box),
+                    if (_educationLabel(d['education_level']?.toString()) != null)
+                      _tagChip(_educationLabel(d['education_level']?.toString())!, Iconsax.teacher),
+                    if ((int.tryParse('${d['experience_years'] ?? 0}') ?? 0) > 0)
+                      _tagChip('${d['experience_years']} ساڵ ئەزموون', Iconsax.briefcase),
+                    if (_shiftLabel(d['availability_shift']?.toString()) != null)
+                      _tagChip(_shiftLabel(d['availability_shift']?.toString())!, Iconsax.clock),
+                    if ((d['service_areas'] ?? '').toString().trim().isNotEmpty)
+                      _tagChip('${d['service_areas']}', Iconsax.map_1),
                     if ((d['plate_number'] ?? '').toString().isNotEmpty)
                       _tagChip('${d['plate_number']}', Iconsax.card),
                   ],
                 ),
+                if (d['clinical_skills'] is List && (d['clinical_skills'] as List).isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 5,
+                    children: [
+                      for (final sk in (d['clinical_skills'] as List))
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFA7F3D0)),
+                          ),
+                          child: Text(
+                            _skillLabel(sk.toString()),
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF065F46),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+                if ([
+                  d['id_document_url'],
+                  d['certificate_url'],
+                  d['license_url'],
+                  d['cv_url'],
+                ].any((u) => (u ?? '').toString().trim().isNotEmpty)) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _docLinkChip('ناسنامە', d['id_document_url']?.toString()),
+                      _docLinkChip('بڕوانامە', d['certificate_url']?.toString()),
+                      _docLinkChip('مۆڵەت', d['license_url']?.toString()),
+                      _docLinkChip('CV', d['cv_url']?.toString()),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 14),
                 Row(
                   children: [
@@ -942,11 +1079,13 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
             ],
           ),
           const SizedBox(height: 10),
-          Row(
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
             children: [
+              _tagChip(_applicantRoleLabel(d['applicant_role']?.toString()), Iconsax.health),
               _tagChip('${d['city'] ?? 'هەولێر'} · ${_vehicleLabel(d['vehicle_type']?.toString())}', Iconsax.location),
-              const SizedBox(width: 6),
-              _tagChip('${d['completed_deliveries'] ?? 0} گەیاندن · ${_formatIqd(d['total_earnings'])}', Iconsax.box_tick),
+              _tagChip('${d['completed_deliveries'] ?? 0} ئەرک · ${_formatIqd(d['total_earnings'])}', Iconsax.box_tick),
             ],
           ),
           const SizedBox(height: 10),

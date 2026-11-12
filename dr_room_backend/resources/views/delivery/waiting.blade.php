@@ -2,6 +2,8 @@
     $loc = $locale ?? app()->getLocale();
     $isRtl = in_array($loc, ['ar', 'ckb', 'kmr']);
     $status = $user->status ?? 'pending';
+    $profile = $user->driver ? $user->driver->resolvedFieldProfile() : [];
+    $applicantRole = $profile['applicant_role'] ?? 'phlebotomist';
     $isSubdomain = str_starts_with(strtolower(request()->getHost()), 'delivery.');
     $mainSiteHref = $isSubdomain
         ? str_ireplace('://delivery.', '://', url('/'))
@@ -30,12 +32,15 @@
         }
     </script>
 </head>
-<body class="bg-[#FFF6F0] text-slate-900 min-h-screen flex items-center justify-center p-4">
+<body class="bg-[#F4EFE6] text-[#1C1A17] min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-lg bg-white rounded-3xl border border-orange-100 p-7 sm:p-10 text-center">
+    <div class="w-full max-w-lg bg-[#FFFCF7] rounded-3xl border-[1.5px] border-[#1C1A17] p-7 sm:p-10 text-center">
         <div class="flex items-center justify-center gap-2.5 mb-6">
-            <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl border border-orange-100 p-1 object-contain">
-            <span class="text-xl font-black" dir="ltr">Dr<span class="text-[#FF5A00]">Room</span> Delivery</span>
+            <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl border-[1.5px] border-[#1C1A17] bg-white p-1 object-contain">
+            <div class="text-start">
+                <span class="text-xl font-black block leading-none" dir="ltr">Dr<span class="text-[#FF5A00]">Room</span></span>
+                <span class="text-[11px] font-extrabold text-[#5F574D]">{{ __('delivery.brand_tag') }}</span>
+            </div>
         </div>
 
         @if($status === 'approved')
@@ -67,14 +72,17 @@
             <p class="text-sm text-slate-600 mt-3 leading-[1.8]">{{ __('delivery.wait_subtitle') }}</p>
         @endif
 
-        <div class="mt-6 p-4 rounded-2xl bg-[#FFF9F5] border border-orange-100 text-start flex items-center justify-between gap-3">
+        <div class="mt-6 p-4 rounded-2xl bg-[#FAF5ED] border border-[#D8CFC2] text-start flex items-center justify-between gap-3">
             <div>
-                <p class="text-[11px] font-bold text-slate-400">{{ __('delivery.registered_phone') }}</p>
-                <p class="text-sm font-black text-slate-900 mt-0.5" dir="ltr">{{ $user->phone }}</p>
+                <p class="text-[11px] font-bold text-[#6E665B]">{{ __('delivery.registered_phone') }}</p>
+                <p class="text-sm font-black text-[#1C1A17] mt-0.5" dir="ltr">{{ $user->phone }}</p>
+                <span class="inline-block mt-1.5 px-2.5 py-0.5 rounded-full bg-[#FFE6D6] border border-[#1C1A17]/20 text-[#C43F00] text-[10.5px] font-extrabold">
+                    {{ __("delivery.role_short_{$applicantRole}") }}
+                </span>
             </div>
             <div class="text-end">
-                <p class="text-xs font-extrabold text-slate-700">{{ $user->name }}</p>
-                <p class="text-[11px] text-slate-500">{{ $user->driver->city ?? '' }}</p>
+                <p class="text-xs font-extrabold text-[#1C1A17]">{{ $user->name }}</p>
+                <p class="text-[11px] font-bold text-[#5F574D] mt-0.5">{{ $user->driver->city ?? '' }}</p>
             </div>
         </div>
 

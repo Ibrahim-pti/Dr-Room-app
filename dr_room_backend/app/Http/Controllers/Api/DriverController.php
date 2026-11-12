@@ -95,7 +95,7 @@ class DriverController extends Controller
 
         return response()->json([
             'data' => [
-                'driver' => [
+                'driver' => array_merge([
                     'id' => $driver->id,
                     'user_id' => $user->id,
                     'name' => $user->name,
@@ -112,7 +112,7 @@ class DriverController extends Controller
                     'rating' => (float) $driver->rating,
                     'completed_deliveries' => (int) $driver->completed_deliveries,
                     'total_earnings' => (float) $driver->total_earnings,
-                ],
+                ], $driver->resolvedFieldProfile()),
                 'stats' => [
                     'active_count' => $activeOrders->count(),
                     'available_count' => $availableOrders->count(),

@@ -57,7 +57,24 @@ class AdminDriverController extends Controller
                     ->orderByDesc('id')
                     ->get(['id', 'service_type', 'delivery_status', 'location_details']);
 
-                return [
+                $profile = $d?->resolvedFieldProfile() ?? [
+                    'applicant_role' => 'phlebotomist',
+                    'gender' => null,
+                    'education_level' => null,
+                    'experience_years' => null,
+                    'clinical_skills' => [],
+                    'service_areas' => null,
+                    'availability_shift' => null,
+                    'work_days' => null,
+                    'willing_to_travel' => true,
+                    'has_private_car' => false,
+                    'id_document_url' => null,
+                    'certificate_url' => null,
+                    'license_url' => null,
+                    'cv_url' => null,
+                ];
+
+                return array_merge([
                     'id' => $u->id,
                     'driver_id' => $d?->id,
                     'name' => $u->name,
@@ -83,7 +100,7 @@ class AdminDriverController extends Controller
                         'delivery_status' => $o->delivery_status,
                     ])->values(),
                     'created_at' => $u->created_at?->format('Y-m-d H:i'),
-                ];
+                ], $profile);
             })
             ->values();
 

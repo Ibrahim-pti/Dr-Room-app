@@ -82,11 +82,13 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         setState(() {
           _driver = driverMap;
           _stats = Map<String, dynamic>.from(data['stats'] ?? {});
-          _unreadNotifications = int.tryParse('${_stats['unread_notifications'] ?? 0}') ?? 0;
+          _unreadNotifications =
+              int.tryParse('${_stats['unread_notifications'] ?? 0}') ?? 0;
           _activeOrders = List<dynamic>.from(data['active_orders'] ?? []);
           _availableOrders = List<dynamic>.from(data['available_orders'] ?? []);
           _completedOrders = List<dynamic>.from(data['completed_orders'] ?? []);
-          if (driverMap['current_lat'] != null && driverMap['current_lng'] != null) {
+          if (driverMap['current_lat'] != null &&
+              driverMap['current_lng'] != null) {
             _lastLat = double.tryParse(driverMap['current_lat'].toString());
             _lastLng = double.tryParse(driverMap['current_lng'].toString());
           }
@@ -142,7 +144,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         if (mounted) {
-          setState(() => _gpsStatusMessage = 'دەسەڵاتی شوێن (Location) پێویستە');
+          setState(
+            () => _gpsStatusMessage = 'دەسەڵاتی شوێن (Location) پێویستە',
+          );
         }
         return;
       }
@@ -154,10 +158,10 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         ),
       );
 
-      final res = await ApiClient.post('/driver/location', body: {
-        'lat': pos.latitude,
-        'lng': pos.longitude,
-      });
+      final res = await ApiClient.post(
+        '/driver/location',
+        body: {'lat': pos.latitude, 'lng': pos.longitude},
+      );
 
       if (!mounted) return;
       if (res.statusCode == 200) {
@@ -179,7 +183,10 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
 
     try {
       final nextDuty = goOnline ? 'available' : 'offline';
-      final res = await ApiClient.post('/driver/duty', body: {'duty_status': nextDuty});
+      final res = await ApiClient.post(
+        '/driver/duty',
+        body: {'duty_status': nextDuty},
+      );
       if (!mounted) return;
 
       final body = jsonDecode(res.body);
@@ -190,7 +197,10 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           _sendCurrentGps();
         }
       } else {
-        _toast(body['message']?.toString() ?? 'نەتوانرا دۆخ بگۆڕدرێت', isError: true);
+        _toast(
+          body['message']?.toString() ?? 'نەتوانرا دۆخ بگۆڕدرێت',
+          isError: true,
+        );
       }
     } catch (e) {
       if (mounted) _toast('$e', isError: true);
@@ -211,7 +221,10 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         setState(() => _orderSubTab = 0);
         await _loadDashboard(silent: true);
       } else {
-        _toast(body['message']?.toString() ?? 'داواکاری بەردەست نەماوە', isError: true);
+        _toast(
+          body['message']?.toString() ?? 'داواکاری بەردەست نەماوە',
+          isError: true,
+        );
       }
     } catch (e) {
       if (mounted) _toast('$e', isError: true);
@@ -220,43 +233,68 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     }
   }
 
-  Future<void> _advanceOrderStatus(dynamic order, String nextStatus, {bool confirm = false}) async {
+  Future<void> _advanceOrderStatus(
+    dynamic order,
+    String nextStatus, {
+    bool confirm = false,
+  }) async {
     final id = order['id'].toString();
     if (confirm) {
       final paymentMethod = (order['payment_method'] ?? '').toString();
       final totalStr = _formatIqd(order['total_price']);
-      final isCash = paymentMethod.toLowerCase().contains('cash') || paymentMethod.contains('کاش');
+      final isCash =
+          paymentMethod.toLowerCase().contains('cash') ||
+          paymentMethod.contains('کاش');
       final approved = await showDialog<bool>(
         context: context,
         builder: (dCtx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(
-            nextStatus == 'rejected' ? 'ڕەتکردنەوەی داواکاری' : 'دڵنیابوونەوە لە تەواوکردن',
-            style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold),
+            nextStatus == 'rejected'
+                ? 'ڕەتکردنەوەی داواکاری'
+                : 'دڵنیابوونەوە لە تەواوکردن',
+            style: const TextStyle(
+              fontFamily: 'Rabar',
+              fontWeight: FontWeight.bold,
+            ),
           ),
           content: Text(
             nextStatus == 'rejected'
                 ? 'دڵنیایت لە گەڕاندنەوەی داواکاری #$id بۆ لیستەکە؟'
                 : (isCash
-                    ? 'ئایا داواکاری #$id ڕادەستکرا و بڕی $totalStr بە کاش وەرگیرا؟'
-                    : 'ئایا داواکاری #$id بە سەرکەوتوویی ڕادەستکرا؟'),
+                      ? 'ئایا داواکاری #$id ڕادەستکرا و بڕی $totalStr بە کاش وەرگیرا؟'
+                      : 'ئایا داواکاری #$id بە سەرکەوتوویی ڕادەستکرا؟'),
             style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dCtx, false),
-              child: const Text('پاشگەزبوونەوە', style: TextStyle(fontFamily: 'Rabar')),
+              child: const Text(
+                'پاشگەزبوونەوە',
+                style: TextStyle(fontFamily: 'Rabar'),
+              ),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(dCtx, true),
               style: ElevatedButton.styleFrom(
-                backgroundColor: nextStatus == 'rejected' ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                backgroundColor: nextStatus == 'rejected'
+                    ? const Color(0xFFEF4444)
+                    : const Color(0xFF10B981),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: Text(
-                nextStatus == 'rejected' ? 'بەڵێ، ڕەتی بکەرەوە' : 'بەڵێ، ڕادەستکرا',
-                style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold),
+                nextStatus == 'rejected'
+                    ? 'بەڵێ، ڕەتی بکەرەوە'
+                    : 'بەڵێ، ڕادەستکرا',
+                style: const TextStyle(
+                  fontFamily: 'Rabar',
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -267,16 +305,20 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
 
     setState(() => _busyOrderId = id);
     try {
-      final res = await ApiClient.post('/driver/orders/$id/status', body: {
-        'delivery_status': nextStatus,
-      });
+      final res = await ApiClient.post(
+        '/driver/orders/$id/status',
+        body: {'delivery_status': nextStatus},
+      );
       if (!mounted) return;
       final body = jsonDecode(res.body);
       if (res.statusCode == 200) {
         _toast(body['message']?.toString() ?? 'دۆخەکە نوێکرایەوە');
         await _loadDashboard(silent: true);
       } else {
-        _toast(body['message']?.toString() ?? 'نوێکردنەوە سەرکەوتوو نەبوو', isError: true);
+        _toast(
+          body['message']?.toString() ?? 'نوێکردنەوە سەرکەوتوو نەبوو',
+          isError: true,
+        );
       }
     } catch (e) {
       if (mounted) _toast('$e', isError: true);
@@ -300,12 +342,20 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     }
   }
 
-  Future<void> _openMaps(double? lat, double? lng, String fallbackAddress) async {
+  Future<void> _openMaps(
+    double? lat,
+    double? lng,
+    String fallbackAddress,
+  ) async {
     Uri uri;
     if (lat != null && lng != null) {
-      uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
+      uri = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
+      );
     } else if (fallbackAddress.trim().isNotEmpty) {
-      uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(fallbackAddress)}');
+      uri = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(fallbackAddress)}',
+      );
     } else {
       _toast('شوێن لەسەر نەخشە تۆمارنەکراوە', isError: true);
       return;
@@ -364,9 +414,16 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                 children: [
                   const Text(
                     'ئاگادارییەکان',
-                    style: TextStyle(fontFamily: 'Rabar', fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
+                  IconButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.close),
+                  ),
                 ],
               ),
               const Divider(height: 16),
@@ -390,7 +447,10 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     final list = snap.data ?? [];
                     if (list.isEmpty) {
                       return const Center(
-                        child: Text('هیچ ئاگادارییەک نییە', style: TextStyle(fontFamily: 'Rabar')),
+                        child: Text(
+                          'هیچ ئاگادارییەک نییە',
+                          style: TextStyle(fontFamily: 'Rabar'),
+                        ),
                       );
                     }
                     return ListView.separated(
@@ -403,19 +463,29 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                           decoration: BoxDecoration(
                             color: AppColors.getBackground(context),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppColors.getBorder(context)),
+                            border: Border.all(
+                              color: AppColors.getBorder(context),
+                            ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 (n['title'] ?? 'ئاگاداری').toString(),
-                                style: const TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 (n['message'] ?? '').toString(),
-                                style: TextStyle(fontFamily: 'Rabar', fontSize: 12, color: AppColors.getTextSubtitle(context)),
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 12,
+                                  color: AppColors.getTextSubtitle(context),
+                                ),
                               ),
                             ],
                           ),
@@ -437,7 +507,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg, style: const TextStyle(fontFamily: 'Rabar')),
-        backgroundColor: isError ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+        backgroundColor: isError
+            ? const Color(0xFFEF4444)
+            : const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -450,26 +522,26 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
   }
 
   String _vehicleLabel(String? v) => switch (v) {
-        'car' => 'ئۆتۆمبێل',
-        'refrigerated_van' => 'ساردکەرەوەی تاقیگە',
-        _ => 'ماتۆڕسکیل',
-      };
+    'car' => 'ئۆتۆمبێل',
+    'refrigerated_van' => 'ساردکەرەوەی تاقیگە',
+    _ => 'ماتۆڕسکیل',
+  };
 
   String _scopeLabel(String? s) => switch (s) {
-        'pharmacy' => 'دەرمان تەنها',
-        'lab_sample' => 'نموونەی تاقیگە تەنها',
-        _ => 'دەرمان + نموونەی تاقیگە',
-      };
+    'pharmacy' => 'دەرمان تەنها',
+    'lab_sample' => 'نموونەی تاقیگە تەنها',
+    _ => 'دەرمان + نموونەی تاقیگە',
+  };
 
   String _deliveryStageLabel(String? s, bool isLab) => switch (s) {
-        'assigned' => 'دیاریکراوە بۆت',
-        'accepted' => 'قبوڵکراوە',
-        'picked_up' => isLab ? 'نموونە وەرگیرا' : 'لە دەرمانخانە وەرگیرا',
-        'on_the_way' => 'لە ڕێگادایە',
-        'arrived' => 'گەیشتە شوێنەکە',
-        'delivered' => isLab ? 'ڕادەستی تاقیگە کرا' : 'ڕادەستکرا',
-        _ => 'چاوەڕوان',
-      };
+    'assigned' => 'دیاریکراوە بۆت',
+    'accepted' => 'قبوڵکراوە',
+    'picked_up' => isLab ? 'نموونە وەرگیرا' : 'لە دەرمانخانە وەرگیرا',
+    'on_the_way' => 'لە ڕێگادایە',
+    'arrived' => 'گەیشتە شوێنەکە',
+    'delivered' => isLab ? 'ڕادەستی تاقیگە کرا' : 'ڕادەستکرا',
+    _ => 'چاوەڕوان',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -490,7 +562,10 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                 Container(
                   width: double.infinity,
                   margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEF3C7),
                     borderRadius: BorderRadius.circular(12),
@@ -498,17 +573,33 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Iconsax.location_slash, size: 16, color: Color(0xFFD97706)),
+                      const Icon(
+                        Iconsax.location_slash,
+                        size: 16,
+                        color: Color(0xFFD97706),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _gpsStatusMessage!,
-                          style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF92400E),
+                          ),
                         ),
                       ),
                       TextButton(
                         onPressed: _sendCurrentGps,
-                        child: const Text('چالاککردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'چالاککردن',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -517,33 +608,44 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _error != null
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Iconsax.info_circle, size: 48, color: Colors.amber),
-                                  const SizedBox(height: 12),
-                                  Text(_error!, textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'Rabar')),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton.icon(
-                                    onPressed: _loadDashboard,
-                                    icon: const Icon(Icons.refresh, size: 18),
-                                    label: const Text('دووبارە هەوڵبدەرەوە', style: TextStyle(fontFamily: 'Rabar')),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : IndexedStack(
-                            index: _tabIndex,
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              _buildTasksTab(isDark),
-                              _buildLiveMapTab(isDark),
-                              _buildProfileTab(isDark),
+                              const Icon(
+                                Iconsax.info_circle,
+                                size: 48,
+                                color: Colors.amber,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                _error!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontFamily: 'Rabar'),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: _loadDashboard,
+                                icon: const Icon(Icons.refresh, size: 18),
+                                label: const Text(
+                                  'دووبارە هەوڵبدەرەوە',
+                                  style: TextStyle(fontFamily: 'Rabar'),
+                                ),
+                              ),
                             ],
                           ),
+                        ),
+                      )
+                    : IndexedStack(
+                        index: _tabIndex,
+                        children: [
+                          _buildTasksTab(isDark),
+                          _buildLiveMapTab(isDark),
+                          _buildProfileTab(isDark),
+                        ],
+                      ),
               ),
             ],
           ),
@@ -551,7 +653,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
             color: AppColors.getSurface(context),
-            border: Border(top: BorderSide(color: AppColors.getBorder(context))),
+            border: Border(
+              top: BorderSide(color: AppColors.getBorder(context)),
+            ),
           ),
           padding: EdgeInsets.only(
             left: 16,
@@ -562,7 +666,12 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavButton(0, Iconsax.truck_fast, 'داواکارییەکان', badge: _activeOrders.length),
+              _buildNavButton(
+                0,
+                Iconsax.truck_fast,
+                'داواکارییەکان',
+                badge: _activeOrders.length,
+              ),
               _buildNavButton(1, Iconsax.map_1, 'نەخشە'),
               _buildNavButton(2, Iconsax.user_square, 'پڕۆفایل و داهات'),
             ],
@@ -572,10 +681,20 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     );
   }
 
+  String _applicantRoleLabel(String? r) => switch (r) {
+        'phlebotomist' => 'وەرگرتنی خوێن و تاقیگە',
+        'mobile_nurse' => 'پەرستاری ماڵان',
+        'both' => 'پەرستاری + شیکاری',
+        'courier' => 'گەیاندنی دەرمان',
+        _ => 'تیمی گەڕۆکی DrRoom',
+      };
+
   Widget _buildHeader(bool isDark, String duty, bool isOnline) {
-    final driverName = (_driver['name'] ?? 'کارمەندی گەیاندن').toString();
+    final roleCode = _driver['applicant_role']?.toString();
+    final isCourier = roleCode == 'courier';
+    final driverName = (_driver['name'] ?? _applicantRoleLabel(roleCode)).toString();
     final dutyLabel = switch (duty) {
-      'busy' => 'لە گەیاندندایت',
+      'busy' => 'لە ئەرکدایت',
       'available' => 'ئۆنلاین · ئامادەیت',
       _ => 'ئۆفلاین',
     };
@@ -602,7 +721,11 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               color: dutyColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(Iconsax.truck_fast, color: dutyColor, size: 22),
+            child: Icon(
+              isCourier ? Iconsax.truck_fast : Iconsax.health,
+              color: dutyColor,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -626,12 +749,15 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     Container(
                       width: 8,
                       height: 8,
-                      decoration: BoxDecoration(color: dutyColor, shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: dutyColor,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        dutyLabel,
+                        '$dutyLabel · ${_applicantRoleLabel(roleCode)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -644,7 +770,11 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     ),
                     if (_lastGpsSentAt != null && isOnline) ...[
                       const SizedBox(width: 6),
-                      const Icon(Iconsax.gps, size: 12, color: Color(0xFF10B981)),
+                      const Icon(
+                        Iconsax.gps,
+                        size: 12,
+                        color: Color(0xFF10B981),
+                      ),
                     ],
                   ],
                 ),
@@ -665,18 +795,35 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.getBorder(context)),
                   ),
-                  child: const Icon(Iconsax.notification, size: 19, color: Color(0xFF2563EB)),
+                  child: const Icon(
+                    Iconsax.notification,
+                    size: 19,
+                    color: Color(0xFF2563EB),
+                  ),
                 ),
                 if (_unreadNotifications > 0)
                   Positioned(
                     top: -4,
                     right: -4,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        shape: BoxShape.circle,
+                      ),
                       child: Text(
-                        _unreadNotifications > 9 ? '9+' : '$_unreadNotifications',
-                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white, height: 1),
+                        _unreadNotifications > 9
+                            ? '9+'
+                            : '$_unreadNotifications',
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1,
+                        ),
                       ),
                     ),
                   ),
@@ -685,7 +832,11 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           ),
           const SizedBox(width: 6),
           _isDutyLoading
-              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
               : Switch.adaptive(
                   value: isOnline,
                   activeTrackColor: const Color(0xFF10B981),
@@ -696,7 +847,12 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     );
   }
 
-  Widget _buildNavButton(int index, IconData icon, String label, {int badge = 0}) {
+  Widget _buildNavButton(
+    int index,
+    IconData icon,
+    String label, {
+    int badge = 0,
+  }) {
     final active = _tabIndex == index;
     return InkWell(
       onTap: () => setState(() => _tabIndex = index),
@@ -705,7 +861,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFF2563EB).withValues(alpha: 0.12) : Colors.transparent,
+          color: active
+              ? const Color(0xFF2563EB).withValues(alpha: 0.12)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
@@ -714,19 +872,36 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Icon(icon, size: 20, color: active ? const Color(0xFF2563EB) : const Color(0xFF94A3B8)),
+                Icon(
+                  icon,
+                  size: 20,
+                  color: active
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF94A3B8),
+                ),
                 if (badge > 0)
                   Positioned(
                     top: -5,
                     right: -6,
                     child: Container(
                       padding: const EdgeInsets.all(3),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                      decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        shape: BoxShape.circle,
+                      ),
                       child: Center(
                         child: Text(
                           '$badge',
-                          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white, height: 1),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            height: 1,
+                          ),
                         ),
                       ),
                     ),
@@ -740,7 +915,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                 fontFamily: 'Rabar',
                 fontSize: 12,
                 fontWeight: active ? FontWeight.bold : FontWeight.w500,
-                color: active ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                color: active
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF64748B),
               ),
             ),
           ],
@@ -782,13 +959,24 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Iconsax.box_tick, size: 54, color: Colors.grey.withValues(alpha: 0.5)),
+                              Icon(
+                                Iconsax.box_tick,
+                                size: 54,
+                                color: Colors.grey.withValues(alpha: 0.5),
+                              ),
                               const SizedBox(height: 12),
                               Text(
                                 _orderSubTab == 0
                                     ? 'هیچ گەیاندنێکی چالاکت نییە'
-                                    : (_orderSubTab == 1 ? 'هیچ داواکارییەکی ئامادە نییە' : 'هێشتا گەیاندن تەواو نەکراوە'),
-                                style: TextStyle(fontFamily: 'Rabar', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.getTextSubtitle(context)),
+                                    : (_orderSubTab == 1
+                                          ? 'هیچ داواکارییەکی ئامادە نییە'
+                                          : 'هێشتا گەیاندن تەواو نەکراوە'),
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.getTextSubtitle(context),
+                                ),
                               ),
                             ],
                           ),
@@ -803,7 +991,11 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                     itemCount: currentList.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (_, i) => _buildOrderCard(currentList[i], isDark, isPool: _orderSubTab == 1),
+                    itemBuilder: (_, i) => _buildOrderCard(
+                      currentList[i],
+                      isDark,
+                      isPool: _orderSubTab == 1,
+                    ),
                   ),
                 ),
         ),
@@ -819,9 +1011,15 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFF2563EB) : AppColors.getSurface(context),
+            color: selected
+                ? const Color(0xFF2563EB)
+                : AppColors.getSurface(context),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: selected ? const Color(0xFF2563EB) : AppColors.getBorder(context)),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF2563EB)
+                  : AppColors.getBorder(context),
+            ),
           ),
           child: Text(
             label,
@@ -832,7 +1030,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               fontFamily: 'Rabar',
               fontSize: 11.5,
               fontWeight: FontWeight.bold,
-              color: selected ? Colors.white : AppColors.getTextSubtitle(context),
+              color: selected
+                  ? Colors.white
+                  : AppColors.getTextSubtitle(context),
             ),
           ),
         ),
@@ -850,7 +1050,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     final patient = (order['patient'] is Map) ? order['patient'] as Map : {};
     final items = (order['items'] is List) ? order['items'] as List : [];
 
-    final serviceColor = isLab ? const Color(0xFF8B5CF6) : const Color(0xFF0D9488);
+    final serviceColor = isLab
+        ? const Color(0xFF8B5CF6)
+        : const Color(0xFF0D9488);
     final pickupLat = double.tryParse('${pickup['lat'] ?? ''}');
     final pickupLng = double.tryParse('${pickup['lng'] ?? ''}');
     final destLat = double.tryParse('${patient['lat'] ?? ''}');
@@ -863,7 +1065,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         color: AppColors.getSurface(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isOffer ? const Color(0xFFF59E0B) : AppColors.getBorder(context),
+          color: isOffer
+              ? const Color(0xFFF59E0B)
+              : AppColors.getBorder(context),
           width: isOffer ? 1.5 : 1,
         ),
       ),
@@ -887,7 +1091,12 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                   Expanded(
                     child: Text(
                       'داواکاری نوێ لە نزیکت · چاوەڕوانی قبوڵکردنی تۆیە',
-                      style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF92400E),
+                      ),
                     ),
                   ),
                 ],
@@ -897,32 +1106,52 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: serviceColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   isLab ? 'نموونەی تاقیگە' : 'گەیاندنی دەرمان',
-                  style: TextStyle(fontFamily: 'Rabar', fontSize: 11, fontWeight: FontWeight.bold, color: serviceColor),
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: serviceColor,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 order['order_number'] ?? '#$id',
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.getTextTitle(context)),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.getTextTitle(context),
+                ),
               ),
               if (distKm != null) ...[
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF10B981).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '${distKm.toStringAsFixed(1)} کم',
-                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF059669),
+                    ),
                   ),
                 ),
               ],
@@ -930,18 +1159,26 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (isOffer ? const Color(0xFFF59E0B) : const Color(0xFF2563EB)).withValues(alpha: 0.12),
+                  color:
+                      (isOffer
+                              ? const Color(0xFFF59E0B)
+                              : const Color(0xFF2563EB))
+                          .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   isPool
                       ? 'ئامادە بۆ وەرگرتن'
-                      : (isOffer ? 'داواکاری نوێ' : _deliveryStageLabel(stage, isLab)),
+                      : (isOffer
+                            ? 'داواکاری نوێ'
+                            : _deliveryStageLabel(stage, isLab)),
                   style: TextStyle(
                     fontFamily: 'Rabar',
                     fontSize: 10.5,
                     fontWeight: FontWeight.bold,
-                    color: isOffer ? const Color(0xFFD97706) : const Color(0xFF2563EB),
+                    color: isOffer
+                        ? const Color(0xFFD97706)
+                        : const Color(0xFF2563EB),
                   ),
                 ),
               ),
@@ -964,7 +1201,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
 
           // Stop 2: Patient Location
           _buildStopTile(
-            title: isLab ? 'ماڵی نەخۆش (وەرگرتنی نموونە)' : 'شوێنی نەخۆش (گەیاندن)',
+            title: isLab
+                ? 'ماڵی نەخۆش (وەرگرتنی نموونە)'
+                : 'شوێنی نەخۆش (گەیاندن)',
             name: (patient['name'] ?? 'نەخۆش').toString(),
             address: (patient['address'] ?? '').toString(),
             phone: (patient['phone'] ?? '').toString(),
@@ -980,12 +1219,18 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               width: double.infinity,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                color: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 'تێبینی: ${patient['notes']}',
-                style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: AppColors.getTextSubtitle(context)),
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 11.5,
+                  color: AppColors.getTextSubtitle(context),
+                ),
               ),
             ),
           ],
@@ -998,7 +1243,10 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               children: items.take(4).map((it) {
                 final m = it is Map ? it : {};
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.getBackground(context),
                     borderRadius: BorderRadius.circular(8),
@@ -1020,20 +1268,42 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('کۆی پسوڵە', style: TextStyle(fontFamily: 'Rabar', fontSize: 10.5, color: AppColors.getTextSubtitle(context))),
+                  Text(
+                    'کۆی پسوڵە',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 10.5,
+                      color: AppColors.getTextSubtitle(context),
+                    ),
+                  ),
                   Text(
                     _formatIqd(order['total_price']),
-                    style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.getTextTitle(context)),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.getTextTitle(context),
+                    ),
                   ),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('کرێی گەیاندن', style: TextStyle(fontFamily: 'Rabar', fontSize: 10.5, color: AppColors.getTextSubtitle(context))),
+                  Text(
+                    'کرێی گەیاندن',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 10.5,
+                      color: AppColors.getTextSubtitle(context),
+                    ),
+                  ),
                   Text(
                     _formatIqd(order['delivery_fee']),
-                    style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF10B981),
+                    ),
                   ),
                 ],
               ),
@@ -1045,25 +1315,48 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             if (isPool)
               Builder(
                 builder: (_) {
-                  final isOffline = (_driver['duty_status'] ?? 'offline').toString() == 'offline';
+                  final isOffline =
+                      (_driver['duty_status'] ?? 'offline').toString() ==
+                      'offline';
                   return SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: isBusy
                           ? null
-                          : (isOffline ? () => _toggleDuty(true) : () => _claimOrder(order)),
+                          : (isOffline
+                                ? () => _toggleDuty(true)
+                                : () => _claimOrder(order)),
                       icon: isBusy
-                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : Icon(isOffline ? Iconsax.flash_1 : Iconsax.tick_circle, size: 18),
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Icon(
+                              isOffline ? Iconsax.flash_1 : Iconsax.tick_circle,
+                              size: 18,
+                            ),
                       label: Text(
-                        isOffline ? 'سەرەتا خۆت ئۆنلاین بکە بۆ وەرگرتن' : 'وەرگرتنی ئەم داواکارییە',
-                        style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold),
+                        isOffline
+                            ? 'سەرەتا خۆت ئۆنلاین بکە بۆ وەرگرتن'
+                            : 'وەرگرتنی ئەم داواکارییە',
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isOffline ? const Color(0xFFF59E0B) : const Color(0xFF2563EB),
+                        backgroundColor: isOffline
+                            ? const Color(0xFFF59E0B)
+                            : const Color(0xFF2563EB),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   );
@@ -1077,42 +1370,110 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     );
   }
 
-  Widget _buildProgressionActions(dynamic order, String stage, bool isLab, bool isBusy) {
-    final (String nextStage, String buttonLabel, Color color, bool needsConfirm) = switch (stage) {
-      'assigned' => ('accepted', 'قبوڵکردنی داواکاری', const Color(0xFF10B981), false),
-      'accepted' => ('picked_up', isLab ? 'نموونە وەرگیرا' : 'لە دەرمانخانە وەرگیرا', const Color(0xFF8B5CF6), false),
-      'picked_up' => ('on_the_way', 'لە ڕێگادام', const Color(0xFFF59E0B), false),
-      'on_the_way' => ('arrived', 'گەیشتمە شوێنەکە', const Color(0xFF0D9488), false),
-      _ => ('delivered', isLab ? 'گەیەنرایە تاقیگە (تەواو)' : 'ڕادەستکرا (تەواو)', const Color(0xFF10B981), true),
+  Widget _buildProgressionActions(
+    dynamic order,
+    String stage,
+    bool isLab,
+    bool isBusy,
+  ) {
+    final (
+      String nextStage,
+      String buttonLabel,
+      Color color,
+      bool needsConfirm,
+    ) = switch (stage) {
+      'assigned' => (
+        'accepted',
+        'قبوڵکردنی داواکاری',
+        const Color(0xFF10B981),
+        false,
+      ),
+      'accepted' => (
+        'picked_up',
+        isLab ? 'نموونە وەرگیرا' : 'لە دەرمانخانە وەرگیرا',
+        const Color(0xFF8B5CF6),
+        false,
+      ),
+      'picked_up' => (
+        'on_the_way',
+        'لە ڕێگادام',
+        const Color(0xFFF59E0B),
+        false,
+      ),
+      'on_the_way' => (
+        'arrived',
+        'گەیشتمە شوێنەکە',
+        const Color(0xFF0D9488),
+        false,
+      ),
+      _ => (
+        'delivered',
+        isLab ? 'گەیەنرایە تاقیگە (تەواو)' : 'ڕادەستکرا (تەواو)',
+        const Color(0xFF10B981),
+        true,
+      ),
     };
 
     return Row(
       children: [
         if (stage == 'assigned' || stage == 'accepted') ...[
           OutlinedButton(
-            onPressed: isBusy ? null : () => _advanceOrderStatus(order, 'rejected', confirm: true),
+            onPressed: isBusy
+                ? null
+                : () => _advanceOrderStatus(order, 'rejected', confirm: true),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFFEF4444),
               side: const BorderSide(color: Color(0xFFEF4444)),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: const Text('ڕەتکردنەوە', style: TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'ڕەتکردنەوە',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           const SizedBox(width: 8),
         ],
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: isBusy ? null : () => _advanceOrderStatus(order, nextStage, confirm: needsConfirm),
+            onPressed: isBusy
+                ? null
+                : () => _advanceOrderStatus(
+                    order,
+                    nextStage,
+                    confirm: needsConfirm,
+                  ),
             icon: isBusy
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Icon(Iconsax.arrow_left_2, size: 18),
-            label: Text(buttonLabel, style: const TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold)),
+            label: Text(
+              buttonLabel,
+              style: const TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
@@ -1153,11 +1514,24 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontFamily: 'Rabar', fontSize: 10.5, fontWeight: FontWeight.bold, color: accentColor)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: accentColor,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   name.isNotEmpty ? name : 'دیاری نەکراوە',
-                  style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.getTextTitle(context)),
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.getTextTitle(context),
+                  ),
                 ),
                 if (address.trim().isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -1165,7 +1539,11 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     address,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: AppColors.getTextSubtitle(context)),
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 11.5,
+                      color: AppColors.getTextSubtitle(context),
+                    ),
                   ),
                 ],
               ],
@@ -1174,14 +1552,22 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           if (phone.isNotEmpty)
             IconButton(
               onPressed: () => _callPhone(phone),
-              icon: const Icon(Iconsax.call, size: 18, color: Color(0xFF10B981)),
+              icon: const Icon(
+                Iconsax.call,
+                size: 18,
+                color: Color(0xFF10B981),
+              ),
               tooltip: 'پەیوەندی',
               visualDensity: VisualDensity.compact,
             ),
           if (lat != null && lng != null || address.trim().isNotEmpty)
             IconButton(
               onPressed: () => _openMaps(lat, lng, address),
-              icon: const Icon(Iconsax.routing, size: 18, color: Color(0xFF2563EB)),
+              icon: const Icon(
+                Iconsax.routing,
+                size: 18,
+                color: Color(0xFF2563EB),
+              ),
               tooltip: 'نەخشە',
               visualDensity: VisualDensity.compact,
             ),
@@ -1200,7 +1586,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           markerId: const MarkerId('driver_self'),
           position: LatLng(_lastLat!, _lastLng!),
           infoWindow: const InfoWindow(title: 'شوێنی ئێستای من'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueAzure,
+          ),
         ),
       );
     }
@@ -1218,7 +1606,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               title: 'نەخۆش: ${p['name'] ?? ''}',
               snippet: 'داواکاری ${o['order_number'] ?? '#${o['id']}'}',
             ),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueGreen,
+            ),
           ),
         );
       }
@@ -1232,7 +1622,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             markerId: MarkerId('pickup_${o['id']}'),
             position: LatLng(pkLat, pkLng),
             infoWindow: InfoWindow(title: '${pk['name'] ?? ''}'),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueOrange,
+            ),
           ),
         );
       }
@@ -1269,12 +1661,20 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     'داواکاری چالاک: ${_activeOrders.length} · دواین GPS: ${_lastLat != null ? '${_lastLat!.toStringAsFixed(4)}, ${_lastLng!.toStringAsFixed(4)}' : 'نادیار'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 IconButton(
                   onPressed: _sendCurrentGps,
-                  icon: const Icon(Icons.my_location, size: 18, color: Color(0xFF10B981)),
+                  icon: const Icon(
+                    Icons.my_location,
+                    size: 18,
+                    color: Color(0xFF10B981),
+                  ),
                   visualDensity: VisualDensity.compact,
                 ),
               ],
@@ -1296,11 +1696,21 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           Row(
             children: [
               Expanded(
-                child: _buildMiniStat('گەیاندنی ئەمڕۆ', '${_stats['today_deliveries'] ?? 0}', Iconsax.box_tick, const Color(0xFF2563EB)),
+                child: _buildMiniStat(
+                  'گەیاندنی ئەمڕۆ',
+                  '${_stats['today_deliveries'] ?? 0}',
+                  Iconsax.box_tick,
+                  const Color(0xFF2563EB),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _buildMiniStat('داهاتی ئەمڕۆ', _formatIqd(_stats['today_earnings']), Iconsax.wallet_2, const Color(0xFF10B981)),
+                child: _buildMiniStat(
+                  'داهاتی ئەمڕۆ',
+                  _formatIqd(_stats['today_earnings']),
+                  Iconsax.wallet_2,
+                  const Color(0xFF10B981),
+                ),
               ),
             ],
           ),
@@ -1308,11 +1718,21 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           Row(
             children: [
               Expanded(
-                child: _buildMiniStat('کۆی گەیاندن', '${_stats['total_deliveries'] ?? 0}', Iconsax.award, const Color(0xFF8B5CF6)),
+                child: _buildMiniStat(
+                  'کۆی گەیاندن',
+                  '${_stats['total_deliveries'] ?? 0}',
+                  Iconsax.award,
+                  const Color(0xFF8B5CF6),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _buildMiniStat('کۆی داهات', _formatIqd(_stats['total_earnings']), Iconsax.money_recive, const Color(0xFFF59E0B)),
+                child: _buildMiniStat(
+                  'کۆی داهات',
+                  _formatIqd(_stats['total_earnings']),
+                  Iconsax.money_recive,
+                  const Color(0xFFF59E0B),
+                ),
               ),
             ],
           ),
@@ -1329,30 +1749,75 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('زانیاری کارمەندی گەیاندن', style: TextStyle(fontFamily: 'Rabar', fontSize: 14, fontWeight: FontWeight.bold)),
+                Text(
+                  _driver['applicant_role'] == 'courier'
+                      ? 'زانیاری تیمی گەیاندنی تەندروستی'
+                      : 'زانیاری ئەندامی تیمی پزیشکی گەڕۆک',
+                  style: const TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const Divider(height: 22),
                 _buildInfoRow('ناو', (_driver['name'] ?? '').toString()),
+                const SizedBox(height: 10),
+                _buildInfoRow(
+                  'پسپۆڕی',
+                  _applicantRoleLabel(_driver['applicant_role']?.toString()),
+                ),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('ژمارەی مۆبایل', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: AppColors.getTextSubtitle(context))),
+                    Text(
+                      'ژمارەی مۆبایل',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 12.5,
+                        color: AppColors.getTextSubtitle(context),
+                      ),
+                    ),
                     Directionality(
                       textDirection: TextDirection.ltr,
-                      child: Text('\u200E$phone', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                      child: Text(
+                        '\u200E$phone',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 _buildInfoRow('شار', (_driver['city'] ?? 'هەولێر').toString()),
                 const SizedBox(height: 10),
-                _buildInfoRow('ئامێری گواستنەوە', _vehicleLabel(_driver['vehicle_type']?.toString())),
+                _buildInfoRow(
+                  _driver['applicant_role'] == 'courier' ? 'ئامێری گواستنەوە' : 'هاتوچۆ',
+                  _driver['applicant_role'] == 'courier'
+                      ? _vehicleLabel(_driver['vehicle_type']?.toString())
+                      : (_driver['has_private_car'] == true ? 'ئۆتۆمبێلی تایبەت' : 'بێ ئۆتۆمبێل'),
+                ),
+                if ((_driver['service_areas'] ?? '').toString().trim().isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _buildInfoRow(
+                    'ناوچەی کار',
+                    (_driver['service_areas']).toString(),
+                  ),
+                ],
                 if ((_driver['plate_number'] ?? '').toString().isNotEmpty) ...[
                   const SizedBox(height: 10),
-                  _buildInfoRow('ژمارەی تابلۆ', (_driver['plate_number']).toString()),
+                  _buildInfoRow(
+                    'ژمارەی تابلۆ',
+                    (_driver['plate_number']).toString(),
+                  ),
                 ],
                 const SizedBox(height: 10),
-                _buildInfoRow('بوار', _scopeLabel(_driver['service_scope']?.toString())),
+                _buildInfoRow(
+                  'بوار',
+                  _scopeLabel(_driver['service_scope']?.toString()),
+                ),
               ],
             ),
           ),
@@ -1361,12 +1826,20 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           ElevatedButton.icon(
             onPressed: _logout,
             icon: const Icon(Iconsax.logout, size: 18),
-            label: const Text('چوونەدەرەوە لە هەژمار', style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
+            label: const Text(
+              'چوونەدەرەوە لە هەژمار',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
           ),
         ],
@@ -1390,12 +1863,30 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               Icon(icon, size: 16, color: color),
               const SizedBox(width: 6),
               Expanded(
-                child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: 'Rabar', fontSize: 11, color: AppColors.getTextSubtitle(context))),
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11,
+                    color: AppColors.getTextSubtitle(context),
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(val, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
+          Text(
+            val,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
@@ -1405,12 +1896,26 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(k, style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5, color: AppColors.getTextSubtitle(context))),
+        Text(
+          k,
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 12.5,
+            color: AppColors.getTextSubtitle(context),
+          ),
+        ),
         Flexible(
-          child: Text(v, textAlign: TextAlign.end, style: const TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.w600)),
+          child: Text(
+            v,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ],
     );
   }
 }
-
