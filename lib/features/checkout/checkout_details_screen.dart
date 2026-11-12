@@ -686,6 +686,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                                   icon: Iconsax.call,
                                   hint: 'phone_number_hint'.tr(),
                                   keyboardType: TextInputType.phone,
+                                  textDirection: TextDirection.ltr,
                                   inputFormatters: [
                                     FilteringTextInputFormatter.digitsOnly,
                                     LengthLimitingTextInputFormatter(11),

@@ -447,7 +447,7 @@
   "patient_gender": "Patient Gender",
   "patient_name_hint": "e.g. John Doe",
   "full_name_hint": "Enter full name",
-  "phone_number_hint": "0750 000 0000",
+  "phone_number_hint": "\u200E0750 000 0000",
   "age_hint": "30",
   "required_field": "Required",
   "select_gender_error": "Please select gender",

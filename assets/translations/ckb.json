@@ -447,7 +447,7 @@
   "patient_gender": "ڕەگەزی نەخۆش",
   "patient_name_hint": "وەک: ئاراس ئەحمەد",
   "full_name_hint": "ناوی سیانی بنووسە",
-  "phone_number_hint": "0750 000 0000",
+  "phone_number_hint": "\u200E0750 000 0000",
   "age_hint": "٣٠",
   "required_field": "پڕبکەرەوە",
   "select_gender_error": "تکایە ڕەگەز دیاری بکە",

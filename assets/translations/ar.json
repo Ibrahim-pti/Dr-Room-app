@@ -447,7 +447,7 @@
   "patient_gender": "جنس المريض",
   "patient_name_hint": "مثل: أحمد علي",
   "full_name_hint": "اكتب الاسم الثلاثي",
-  "phone_number_hint": "0750 000 0000",
+  "phone_number_hint": "\u200E0750 000 0000",
   "age_hint": "٣٠",
   "required_field": "مطلوب",
   "select_gender_error": "يرجى تحديد الجنس",

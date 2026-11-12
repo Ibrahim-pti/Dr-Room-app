@@ -243,6 +243,7 @@ class _PharmacyCheckoutScreenState
       child: TextFormField(
         controller: controller,
         keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+        textDirection: isPhone ? TextDirection.ltr : null,
         style: _kStyle(
           color: isDark ? Colors.white : const Color(0xFF0F172A),
           fontWeight: FontWeight.bold,
@@ -252,6 +253,7 @@ class _PharmacyCheckoutScreenState
           labelText: label,
           labelStyle: _kStyle(color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)), fontSize: 13.5),
           hintText: hint,
+          hintTextDirection: isPhone ? TextDirection.ltr : null,
           hintStyle: _kStyle(color: const Color(0xFF94A3B8), fontSize: 13),
           prefixIcon: Icon(icon, color: const Color(0xFF3B82F6), size: 20),
           filled: true,
