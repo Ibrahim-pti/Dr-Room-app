@@ -546,13 +546,13 @@
                         </span>
                     </div>
 
-                    <div class="mt-4">
-                        <h2 class="text-xl sm:text-2xl font-black text-[var(--ink)] leading-[1.65]">{{ __('delivery.form_title') }}</h2>
-                        <p class="text-xs sm:text-[13px] text-[var(--muted)] mt-1.5 leading-[1.85]">{{ __('delivery.form_subtitle') }}</p>
+                    <div class="mt-4 text-start">
+                        <h2 class="text-xl sm:text-2xl font-black text-[var(--ink)] leading-[1.65] text-start">{{ __('delivery.form_title') }}</h2>
+                        <p class="text-xs sm:text-[13px] text-[var(--muted)] mt-1.5 leading-[1.85] text-start">{{ __('delivery.form_subtitle') }}</p>
                     </div>
 
                     <!-- Interactive 4-Step Progress Bar -->
-                    <div class="grid grid-cols-4 gap-2.5 mt-5 mb-6">
+                    <div class="grid grid-cols-4 items-start gap-2.5 mt-5 mb-6">
                         @foreach([
                             1 => __('delivery.step_1_short'),
                             2 => __('delivery.step_2_short'),
@@ -561,10 +561,10 @@
                         ] as $idx => $stepTitle)
                             <button type="button"
                                     @click="if ({{ $idx }} <= step) step = {{ $idx }}"
-                                    class="text-start group cursor-pointer focus:outline-none">
-                                <div class="h-1.5 rounded-full transition-colors duration-200"
+                                    class="w-full flex flex-col items-stretch justify-start text-start group cursor-pointer focus:outline-none">
+                                <div class="w-full h-1.5 rounded-full transition-colors duration-200"
                                      :class="step >= {{ $idx }} ? 'bg-[var(--accent)]' : 'bg-[#EAE2D6]'"></div>
-                                <p class="mt-2 text-[10.5px] sm:text-[11px] font-extrabold leading-[1.5]"
+                                <p class="mt-2 w-full text-start text-[10.5px] sm:text-[11px] font-extrabold leading-[1.6]"
                                    :class="step === {{ $idx }} ? 'text-[var(--accent-deep)]' : (step > {{ $idx }} ? 'text-[var(--ink)]' : 'text-[var(--muted)]')">
                                     {{ $idx }}. {{ $stepTitle }}
                                 </p>
