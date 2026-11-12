@@ -141,7 +141,7 @@ return [
 
     // Step 4: Verification Uploads & Terms
     'step4_title' => 'Identity & Credential Verification',
-    'step4_desc' => 'Uploading your documents helps our medical team approve your profile faster (JPG, PNG, or PDF up to 5MB).',
+    'step4_desc' => 'Uploading your documents helps our medical team approve your profile faster (JPG, PNG, or PDF).',
     'doc_id' => 'National ID / Civil Card',
     'doc_certificate' => 'Nursing or Laboratory Degree Certificate',
     'doc_license' => 'Professional Syndicate / Driving License (if available)',
@@ -260,7 +260,7 @@ return [
     'err_password' => 'Password must be at least 6 characters.',
     'err_password_confirm' => 'Password confirmation does not match.',
     'err_terms' => 'Please confirm accuracy and agree to patient confidentiality terms.',
-    'err_file' => 'Please upload JPG, PNG, or PDF files up to 5MB each.',
+    'err_file' => 'Please upload valid JPG, PNG, or PDF files.',
 
     // Short labels
     'vehicle_short_motorcycle' => 'Motorcycle',

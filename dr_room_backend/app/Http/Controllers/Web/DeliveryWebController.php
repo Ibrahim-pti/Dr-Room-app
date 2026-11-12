@@ -88,10 +88,10 @@ class DeliveryWebController extends Controller
         }
 
         $fileValidator = Validator::make($request->all(), [
-            'id_document' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            'certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            'license' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            'cv' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'id_document' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:20480'],
+            'certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:20480'],
+            'license' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:20480'],
+            'cv' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:20480'],
         ]);
 
         if ($fileValidator->fails()) {
