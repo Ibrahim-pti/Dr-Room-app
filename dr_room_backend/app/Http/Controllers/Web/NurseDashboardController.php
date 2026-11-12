@@ -22,20 +22,20 @@ class NurseDashboardController extends Controller
 
         // Fetch appointments specific to this nurse
         $todayAppointments = Order::where('assigned_nurse_id', $userId)
-            ->whereIn('service_type', ['Nursing Services', 'nursing'])
+            ->forNursing()
             ->whereDate('created_at', today())
             ->count();
         
         // Total unique patients
         $totalPatients = Order::where('assigned_nurse_id', $userId)
-            ->whereIn('service_type', ['Nursing Services', 'nursing'])
+            ->forNursing()
             ->distinct('patient_id')
             ->count('patient_id');
         
         // Upcoming appointments
         $upcomingAppointments = Order::where('assigned_nurse_id', $userId)
-            ->whereIn('service_type', ['Nursing Services', 'nursing'])
-            ->whereIn('status', ['pending', 'processing'])
+            ->forNursing()
+            ->whereIn('status', ['pending', 'confirmed', 'approved', 'processing', 'in_progress'])
             ->with(['patient', 'items'])
             ->orderBy('created_at', 'desc')
             ->take(5)
@@ -43,7 +43,7 @@ class NurseDashboardController extends Controller
 
         // Unassigned requests that any nurse can claim
         $unassignedRequests = Order::whereNull('assigned_nurse_id')
-            ->whereIn('service_type', ['Nursing Services', 'nursing'])
+            ->forNursing()
             ->where('status', 'pending')
             ->with(['patient', 'items'])
             ->orderBy('created_at', 'desc')
@@ -57,7 +57,7 @@ class NurseDashboardController extends Controller
             return [
                 'label' => $day->translatedFormat('D'),
                 'count' => Order::where('assigned_nurse_id', $userId)
-                    ->whereIn('service_type', ['Nursing Services', 'nursing'])
+                    ->forNursing()
                     ->whereDate('created_at', $day)
                     ->count(),
             ];
@@ -65,13 +65,13 @@ class NurseDashboardController extends Controller
 
         // Completed vs Pending for dashboard cards
         $completedAppointments = Order::where('assigned_nurse_id', $userId)
-            ->whereIn('service_type', ['Nursing Services', 'nursing'])
+            ->forNursing()
             ->where('status', 'completed')
             ->count();
 
         $pendingAppointments = Order::where('assigned_nurse_id', $userId)
-            ->whereIn('service_type', ['Nursing Services', 'nursing'])
-            ->whereIn('status', ['pending', 'processing'])
+            ->forNursing()
+            ->whereIn('status', ['pending', 'confirmed', 'approved', 'processing', 'in_progress'])
             ->count();
 
         return view('nurse.dashboard.index', compact(

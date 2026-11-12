@@ -94,9 +94,20 @@ class LabResultController extends Controller
             ]);
         }
 
-        // If linked to an order, automatically mark order as completed if status is completed
-        if ($order && $request->status === 'completed') {
-            $order->update(['status' => 'completed']);
+        // If linked to an order, verify ownership & automatically mark order completed with financials
+        if ($order) {
+            $userId = (int) Auth::id();
+            if ($order->assigned_lab_id !== null && (int) $order->assigned_lab_id !== $userId) {
+                abort(403);
+            }
+            if ($order->assigned_lab_id === null && $order->isLabService()) {
+                $order->assigned_lab_id = $userId;
+            }
+            if ($request->status === 'completed') {
+                $order->markCompletedWithFinancials();
+            } else {
+                $order->save();
+            }
         }
 
         // Send In-App notification to patient

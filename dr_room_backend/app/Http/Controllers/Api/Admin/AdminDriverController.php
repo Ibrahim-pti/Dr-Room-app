@@ -54,6 +54,10 @@ class AdminDriverController extends Controller
                 $d = $u->driver;
                 $activeOrders = Order::where('assigned_driver_id', $u->id)
                     ->whereNotIn('status', ['completed', 'cancelled'])
+                    ->where(function ($q) {
+                        $q->whereNull('delivery_status')
+                          ->orWhere('delivery_status', '!=', 'delivered');
+                    })
                     ->orderByDesc('id')
                     ->get(['id', 'service_type', 'delivery_status', 'location_details']);
 
@@ -131,6 +135,10 @@ class AdminDriverController extends Controller
                 $d = $u->driver;
                 $activeOrder = Order::where('assigned_driver_id', $u->id)
                     ->whereNotIn('status', ['completed', 'cancelled'])
+                    ->where(function ($q) {
+                        $q->whereNull('delivery_status')
+                          ->orWhere('delivery_status', '!=', 'delivered');
+                    })
                     ->orderByDesc('id')
                     ->first();
 

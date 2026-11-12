@@ -3,7 +3,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dr_room/features/ai_assistant/services/ai_clinical_service.dart';
 
 void main() {
-  test('AiClinicalVisionService analyzes medical image via real Gemini Vision', () async {
+  test('AiClinicalVisionService local fallback analyzes medical image across modes', () {
+    final sampleFile = File('assets/images/report.png');
+    expect(sampleFile.existsSync(), isTrue);
+
+    for (final mode in ['lab', 'medicine', 'prescription']) {
+      final result = AiClinicalVisionService.instance.getIntelligentMedicineResult(
+        imageFile: sampleFile,
+        mode: mode,
+        language: 'ckb',
+      );
+
+      expect(result, isA<Map<String, dynamic>>());
+      expect(result['title'], isNotNull);
+      expect(result['summary'], isNotNull);
+      expect(result['markers'], isA<List>());
+      expect(result['recommendations'], isNotNull);
+      expect(result['warnings'], isNotNull);
+    }
+  });
+
+  test('AiClinicalVisionService analyzeMedicalImage returns valid result or falls back cleanly', () async {
     final sampleFile = File('assets/images/report.png');
     expect(sampleFile.existsSync(), isTrue);
 
@@ -18,10 +38,5 @@ void main() {
     expect(result['markers'], isA<List>());
     expect(result['recommendations'], isNotNull);
     expect(result['warnings'], isNotNull);
-
-    print('REAL AI RESPONSE FOR REPORT:');
-    print('Title: ${result['title']}');
-    print('Summary: ${result['summary']}');
-    print('Markers count: ${(result['markers'] as List).length}');
-  });
+  }, timeout: const Timeout(Duration(seconds: 45)));
 }

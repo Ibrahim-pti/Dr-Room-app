@@ -18,10 +18,13 @@ class PharmacyDashboardController extends Controller
 
         // Same scope PharmacyOrderController uses: unclaimed pharmacy orders
         // plus everything already assigned to this pharmacy.
-        $visibleOrders = fn() => Order::where('service_type', 'pharmacy')
+        $visibleOrders = fn() => Order::forPharmacy()
             ->where(function ($query) {
-                $query->where('status', 'pending')
-                    ->orWhere('assigned_pharmacy_id', Auth::id());
+                $query->where('assigned_pharmacy_id', Auth::id())
+                    ->orWhere(function ($unassigned) {
+                        $unassigned->whereNull('assigned_pharmacy_id')
+                            ->where('status', 'pending');
+                    });
             });
 
         $todayOrders = $visibleOrders()->whereDate('created_at', today())->count();

@@ -93,8 +93,16 @@ class OrderController extends Controller
                 $assignedLabId = $request->patient_details['lab_id'];
             }
 
+            // If it's a pharmacy ID (pharmacies.id) instead of users.id, resolve user_id
+            if ($assignedPharmacyId && !\App\Models\User::where('id', $assignedPharmacyId)->where('role', 'pharmacy')->exists()) {
+                $pharmacyRecord = \App\Models\Pharmacy::find($assignedPharmacyId);
+                if ($pharmacyRecord && $pharmacyRecord->user_id) {
+                    $assignedPharmacyId = $pharmacyRecord->user_id;
+                }
+            }
+
             // If it's a lab service and assignedLabId corresponds to a Lab model ID instead of User ID, resolve user_id
-            if ($assignedLabId) {
+            if ($assignedLabId && !\App\Models\User::where('id', $assignedLabId)->where('role', 'lab')->exists()) {
                 $labRecord = \App\Models\Lab::find($assignedLabId);
                 if ($labRecord && $labRecord->user_id) {
                     $assignedLabId = $labRecord->user_id;
@@ -103,7 +111,7 @@ class OrderController extends Controller
 
             // The app sends the Nurse model ID (from /nurses or /labs/staff), but
             // orders.assigned_nurse_id references users.id — resolve it here.
-            if ($assignedNurseId) {
+            if ($assignedNurseId && !\App\Models\User::where('id', $assignedNurseId)->where('role', 'nurse')->exists()) {
                 $nurseRecord = \App\Models\Nurse::find($assignedNurseId);
                 if ($nurseRecord && $nurseRecord->user_id) {
                     $assignedNurseId = $nurseRecord->user_id;
@@ -119,12 +127,22 @@ class OrderController extends Controller
 
             // Coupon & Commission Calculations
             $couponCode = $request->coupon_code ? strtoupper(trim($request->coupon_code)) : null;
-            $discountAmount = (float) ($request->discount_amount ?? 0);
+            $discountAmount = max(0.0, (float) ($request->discount_amount ?? 0));
+            $effectiveTotal = (float) $request->total_price;
             if ($couponCode) {
                 $coupon = \App\Models\Coupon::where('code', $couponCode)->first();
-                if ($coupon) {
-                    $coupon->increment('used_count');
+                if (!$coupon) {
+                    DB::rollBack();
+                    return response()->json(['message' => 'کۆدی داشکاندن نادروستە یان بوونی نییە'], 422);
                 }
+                $couponCheck = $coupon->isValidFor((float) $request->subtotal);
+                if (!$couponCheck['valid']) {
+                    DB::rollBack();
+                    return response()->json(['message' => $couponCheck['message']], 422);
+                }
+                $discountAmount = (float) $couponCheck['discount'];
+                $effectiveTotal = max(0.0, round((float) $request->subtotal + (float) $request->extra_fee - $discountAmount, 2));
+                $coupon->increment('used_count');
             }
 
             $serviceType = strtolower($request->service_type ?? '');
@@ -136,15 +154,15 @@ class OrderController extends Controller
             } elseif (str_contains($serviceType, 'nurse') || str_contains($serviceType, 'nursing')) {
                 $commRate = (float) \App\Models\AppSetting::get('commission_nursing_rate', 10);
             }
-            $commAmount = round(($request->total_price * $commRate) / 100, 2);
-            $providerNetAmount = round(max(0, $request->total_price - $commAmount), 2);
+            $commAmount = round(($effectiveTotal * $commRate) / 100, 2);
+            $providerNetAmount = round(max(0, $effectiveTotal - $commAmount), 2);
 
             $order = Order::create([
                 'patient_id' => Auth::id(),
                 'service_type' => $request->service_type,
                 'subtotal' => $request->subtotal,
                 'extra_fee' => $request->extra_fee,
-                'total_price' => $request->total_price,
+                'total_price' => $effectiveTotal,
                 'coupon_code' => $couponCode,
                 'discount_amount' => $discountAmount,
                 'commission_rate' => $commRate,

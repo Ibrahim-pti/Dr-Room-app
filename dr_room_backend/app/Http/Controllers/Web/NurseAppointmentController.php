@@ -15,14 +15,14 @@ class NurseAppointmentController extends Controller
         
         // Appointments assigned to this nurse
         $appointments = Order::where('assigned_nurse_id', $userId)
-            ->whereIn('service_type', ['Nursing Services', 'nursing'])
+            ->forNursing()
             ->with('patient')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
             
         // Pending requests without a nurse
         $unassignedRequests = Order::whereNull('assigned_nurse_id')
-            ->whereIn('service_type', ['Nursing Services', 'nursing'])
+            ->forNursing()
             ->where('status', 'pending')
             ->with('patient')
             ->orderBy('created_at', 'desc')
@@ -34,16 +34,20 @@ class NurseAppointmentController extends Controller
     public function updateStatus(Request $request, Order $appointment)
     {
         // Ensure the appointment belongs to the logged in nurse
-        if ($appointment->assigned_nurse_id !== Auth::id()) {
+        if ((int) $appointment->assigned_nurse_id !== (int) Auth::id()) {
             abort(403);
         }
 
         $request->validate([
-            'status' => 'required|in:pending,processing,completed,cancelled'
+            'status' => 'required|in:pending,confirmed,approved,processing,in_progress,completed,cancelled'
         ]);
 
-        $appointment->status = $request->status;
-        $appointment->save();
+        if ($request->status === 'completed') {
+            $appointment->markCompletedWithFinancials();
+        } else {
+            $appointment->status = $request->status;
+            $appointment->save();
+        }
 
         \App\Services\OrderNotificationService::notifyStatusChanged($appointment, $request->status);
 
@@ -52,15 +56,22 @@ class NurseAppointmentController extends Controller
 
     public function acceptRequest(Order $appointment)
     {
-        // Only allow accepting if it's currently unassigned
-        if ($appointment->assigned_nurse_id !== null) {
+        if (!$appointment->isNursingService()) {
+            abort(403);
+        }
+
+        $updated = Order::where('id', $appointment->id)
+            ->whereNull('assigned_nurse_id')
+            ->update([
+                'assigned_nurse_id' => Auth::id(),
+                'status' => 'processing',
+            ]);
+
+        if ($updated === 0) {
             return back()->with('error', 'ئەم داواکارییە پێشتر لەلایەن پەرستارێکی ترەوە وەرگیراوە.');
         }
 
-        $appointment->assigned_nurse_id = Auth::id();
-        $appointment->status = 'processing'; // Auto processing when accepted
-        $appointment->save();
-
+        $appointment->refresh();
         \App\Services\OrderNotificationService::notifyStatusChanged($appointment, 'processing');
 
         return back()->with('success', 'داواکارییەکە بە سەرکەوتوویی وەرگیرا.');

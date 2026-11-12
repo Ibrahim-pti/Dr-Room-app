@@ -16,7 +16,7 @@ class NursePatientController extends Controller
 
         // Get patients who have orders or appointments with this nurse
         $patientIds = \App\Models\Order::where('assigned_nurse_id', $userId)
-            ->whereIn('service_type', ['Nursing Services', 'nursing'])
+            ->forNursing()
             ->pluck('patient_id')
             ->filter();
 
@@ -30,8 +30,7 @@ class NursePatientController extends Controller
         $patients = User::whereIn('id', $patientIds)
             ->withCount([
                 'orders as total_visits' => function($q) use ($userId) {
-                    $q->where('assigned_nurse_id', $userId)
-                      ->whereIn('service_type', ['Nursing Services', 'nursing']);
+                    $q->where('assigned_nurse_id', $userId)->forNursing();
                 },
                 'nurseAppointments as total_appointments' => function($q) use ($nurse) {
                     if ($nurse) {
@@ -44,7 +43,7 @@ class NursePatientController extends Controller
             ->with([
                 'orders' => function($q) use ($userId) {
                     $q->where('assigned_nurse_id', $userId)
-                      ->whereIn('service_type', ['Nursing Services', 'nursing'])
+                      ->forNursing()
                       ->orderBy('created_at', 'desc');
                 },
                 'nurseAppointments' => function($q) use ($nurse) {

@@ -13,6 +13,18 @@ class Order extends Model
 
     protected $guarded = [];
 
+    public const LAB_SERVICE_TYPES = [
+        'lab', 'Lab', 'lab_test', 'Lab Tests', 'Lab Test', 'تاقیگە',
+    ];
+
+    public const NURSING_SERVICE_TYPES = [
+        'nursing', 'Nursing', 'Nursing Services', 'home_nursing', 'Home Nursing', 'nurse', 'nursing_care',
+    ];
+
+    public const PHARMACY_SERVICE_TYPES = [
+        'pharmacy', 'Pharmacy', 'medication', 'medications', 'دەرمان', 'دەرمانخانە',
+    ];
+
     protected $casts = [
         'patient_details' => 'array',
         'location_details' => 'array',
@@ -164,5 +176,89 @@ class Order extends Model
         }
 
         return 2500.0;
+    }
+
+    public function scopeForLab($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereIn('service_type', self::LAB_SERVICE_TYPES)
+              ->orWhere('service_type', 'like', '%lab%')
+              ->orWhere('service_type', 'like', '%تاقیگە%');
+        });
+    }
+
+    public function scopeForNursing($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereIn('service_type', self::NURSING_SERVICE_TYPES)
+              ->orWhere('service_type', 'like', '%nurs%');
+        });
+    }
+
+    public function scopeForPharmacy($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereIn('service_type', self::PHARMACY_SERVICE_TYPES)
+              ->orWhere('service_type', 'like', '%pharmac%')
+              ->orWhere('service_type', 'like', '%medic%')
+              ->orWhere('service_type', 'like', '%دەرمان%');
+        });
+    }
+
+    public function isLabService(): bool
+    {
+        $st = strtolower(trim((string) $this->service_type));
+        return str_contains($st, 'lab') || str_contains($st, 'تاقیگە');
+    }
+
+    public function isNursingService(): bool
+    {
+        $st = strtolower(trim((string) $this->service_type));
+        return str_contains($st, 'nurs');
+    }
+
+    public function isPharmacyService(): bool
+    {
+        $st = strtolower(trim((string) $this->service_type));
+        return str_contains($st, 'pharmac') || str_contains($st, 'medic') || str_contains($st, 'دەرمان');
+    }
+
+    /**
+     * Mark an order completed, settle pending cash/online transactions,
+     * and award patient loyalty points once (idempotent).
+     */
+    public function markCompletedWithFinancials(): void
+    {
+        $this->status = 'completed';
+        $this->payment_status = 'paid';
+
+        Transaction::where('payable_type', self::class)
+            ->where('payable_id', $this->id)
+            ->where('status', 'pending')
+            ->update([
+                'status' => 'completed',
+                'paid_at' => now(),
+            ]);
+
+        if (($this->loyalty_points_earned ?? 0) <= 0 && $this->patient) {
+            $enabled = AppSetting::get('loyalty_enabled', true);
+            if ($enabled) {
+                $ptsPer1000 = (float) AppSetting::get('loyalty_points_per_1000_iqd', 1);
+                $earned = (int) floor(($this->total_price / 1000) * $ptsPer1000);
+                if ($earned > 0) {
+                    $this->loyalty_points_earned = $earned;
+                    $this->patient->increment('loyalty_points', $earned);
+                    LoyaltyTransaction::create([
+                        'user_id' => $this->patient_id,
+                        'points' => $earned,
+                        'type' => 'earned_order',
+                        'description' => "پاداشتی خاڵەکان بۆ داواکاری #{$this->id}",
+                        'order_id' => $this->id,
+                    ]);
+                }
+            }
+        }
+
+        $this->save();
     }
 }

@@ -13,10 +13,13 @@ class PharmacyOrderController extends Controller
     {
         $status = $request->query('status');
         
-        $baseQuery = Order::with('items')->where('service_type', 'pharmacy')
+        $baseQuery = Order::with('items')->forPharmacy()
             ->where(function($query) {
-                $query->where('status', 'pending')
-                      ->orWhere('assigned_pharmacy_id', Auth::id());
+                $query->where('assigned_pharmacy_id', Auth::id())
+                      ->orWhere(function ($unassigned) {
+                          $unassigned->whereNull('assigned_pharmacy_id')
+                                     ->where('status', 'pending');
+                      });
             });
 
         $counts = [
@@ -40,9 +43,9 @@ class PharmacyOrderController extends Controller
     {
         $order = Order::with('items')->findOrFail($id);
         
-        // Ensure this order is either pending or belongs to this pharmacy
-        if ($order->service_type !== 'pharmacy' || 
-           ($order->status !== 'pending' && $order->assigned_pharmacy_id !== Auth::id())) {
+        // Ensure this order is either unassigned pending or belongs to this pharmacy
+        if (!$order->isPharmacyService() || 
+           ((int) $order->assigned_pharmacy_id !== (int) Auth::id() && !($order->status === 'pending' && $order->assigned_pharmacy_id === null))) {
             abort(403);
         }
 
@@ -53,19 +56,28 @@ class PharmacyOrderController extends Controller
     {
         $order = Order::findOrFail($id);
         
-        if ($order->service_type !== 'pharmacy') abort(403);
+        if (!$order->isPharmacyService()) abort(403);
         
         $request->validate([
             'status' => 'required|in:accepted,completed,cancelled'
         ]);
 
         if ($request->status === 'accepted') {
-            if ($order->status !== 'pending') {
+            $updated = Order::where('id', $order->id)
+                ->where('status', 'pending')
+                ->where(function ($q) {
+                    $q->whereNull('assigned_pharmacy_id')
+                      ->orWhere('assigned_pharmacy_id', Auth::id());
+                })
+                ->update([
+                    'status' => 'accepted',
+                    'assigned_pharmacy_id' => Auth::id(),
+                ]);
+
+            if ($updated === 0) {
                 return back()->withErrors(['error' => 'ئەم داواکارییە پێشتر وەرگیراوە.']);
             }
-            $order->status = 'accepted';
-            $order->assigned_pharmacy_id = Auth::id();
-            $order->save();
+            $order->refresh();
 
             if (!$order->assigned_driver_id && $order->needsDeliveryDriver()) {
                 try {
@@ -79,12 +91,16 @@ class PharmacyOrderController extends Controller
         }
 
         // For other status updates, ensure the pharmacy owns the order
-        if ($order->assigned_pharmacy_id !== Auth::id()) {
+        if ((int) $order->assigned_pharmacy_id !== (int) Auth::id()) {
             abort(403);
         }
 
-        $order->status = $request->status;
-        $order->save();
+        if ($request->status === 'completed') {
+            $order->markCompletedWithFinancials();
+        } else {
+            $order->status = $request->status;
+            $order->save();
+        }
 
         if ($order->assigned_driver_id && in_array($request->status, ['completed', 'cancelled'], true)) {
             \App\Models\Driver::syncDutyStatusForUser((int) $order->assigned_driver_id);

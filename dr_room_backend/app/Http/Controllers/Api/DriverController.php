@@ -27,6 +27,10 @@ class DriverController extends Controller
 
         $activeOrders = Order::where('assigned_driver_id', $user->id)
             ->whereNotIn('status', ['completed', 'cancelled'])
+            ->where(function ($q) {
+                $q->whereNull('delivery_status')
+                  ->orWhere('delivery_status', '!=', 'delivered');
+            })
             ->with($withRelations)
             ->orderByRaw("CASE WHEN delivery_status = 'assigned' THEN 0 ELSE 1 END")
             ->orderByDesc('driver_assigned_at')
@@ -36,7 +40,10 @@ class DriverController extends Controller
             ->values();
 
         $completedOrders = Order::where('assigned_driver_id', $user->id)
-            ->where('status', 'completed')
+            ->where(function ($q) {
+                $q->where('status', 'completed')
+                  ->orWhere('delivery_status', 'delivered');
+            })
             ->with($withRelations)
             ->orderByDesc('driver_delivered_at')
             ->orderByDesc('id')
@@ -80,18 +87,27 @@ class DriverController extends Controller
             ->values();
 
         $todayDelivered = Order::where('assigned_driver_id', $user->id)
-            ->where('status', 'completed')
+            ->where(function ($q) {
+                $q->where('status', 'completed')
+                  ->orWhere('delivery_status', 'delivered');
+            })
             ->whereDate('driver_delivered_at', today())
             ->count();
 
         $monthDelivered = Order::where('assigned_driver_id', $user->id)
-            ->where('status', 'completed')
+            ->where(function ($q) {
+                $q->where('status', 'completed')
+                  ->orWhere('delivery_status', 'delivered');
+            })
             ->whereMonth('driver_delivered_at', now()->month)
             ->whereYear('driver_delivered_at', now()->year)
             ->count();
 
         $todayEarnings = (float) Order::where('assigned_driver_id', $user->id)
-            ->where('status', 'completed')
+            ->where(function ($q) {
+                $q->where('status', 'completed')
+                  ->orWhere('delivery_status', 'delivered');
+            })
             ->whereDate('driver_delivered_at', today())
             ->sum('delivery_fee');
 
@@ -397,7 +413,7 @@ class DriverController extends Controller
         $driver = Driver::firstOrCreate(['user_id' => $user->id]);
         $order = Order::where('id', $id)->where('assigned_driver_id', $user->id)->firstOrFail();
 
-        if (in_array($order->status, ['completed', 'cancelled'], true)) {
+        if (in_array($order->status, ['completed', 'cancelled'], true) || $order->delivery_status === 'delivered') {
             return response()->json(['message' => 'ئەم داواکارییە پێشتر داخراوە.'], 422);
         }
 
@@ -446,38 +462,17 @@ class DriverController extends Controller
                 $order->status = 'processing';
             } elseif ($next === 'delivered') {
                 $order->driver_delivered_at = now();
-                $order->status = 'completed';
-                $order->payment_status = 'paid';
-
                 $fee = $order->resolveDeliveryFee();
                 $order->delivery_fee = $fee;
 
-                \App\Models\Transaction::where('payable_type', Order::class)
-                    ->where('payable_id', $order->id)
-                    ->where('status', 'pending')
-                    ->update([
-                        'status' => 'completed',
-                        'paid_at' => now(),
-                    ]);
-
-                // Award loyalty points to patient if enabled and not yet awarded
-                if (($order->loyalty_points_earned ?? 0) <= 0 && $order->patient) {
-                    $enabled = \App\Models\AppSetting::get('loyalty_enabled', true);
-                    if ($enabled) {
-                        $ptsPer1000 = (float) \App\Models\AppSetting::get('loyalty_points_per_1000_iqd', 1);
-                        $earned = (int) floor(($order->total_price / 1000) * $ptsPer1000);
-                        if ($earned > 0) {
-                            $order->loyalty_points_earned = $earned;
-                            $order->patient->increment('loyalty_points', $earned);
-                            \App\Models\LoyaltyTransaction::create([
-                                'user_id' => $order->patient_id,
-                                'points' => $earned,
-                                'type' => 'earned_order',
-                                'description' => "پاداشتی خاڵەکان بۆ داواکاری #{$order->id}",
-                                'order_id' => $order->id,
-                            ]);
-                        }
+                // Lab sample delivery ends the courier leg, while the lab order
+                // remains in_progress until the lab publishes results.
+                if ($order->isLabService()) {
+                    if (in_array($order->status, ['pending', 'accepted', 'confirmed', 'processing'], true)) {
+                        $order->status = 'in_progress';
                     }
+                } else {
+                    $order->markCompletedWithFinancials();
                 }
 
                 $driver->increment('completed_deliveries');

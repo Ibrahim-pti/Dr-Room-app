@@ -20,7 +20,7 @@ use App\Models\Article;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class DatabaseSeeder extends Seeder
+class DemoDatabaseSeeder extends Seeder
 {
     public function run(): void
     {

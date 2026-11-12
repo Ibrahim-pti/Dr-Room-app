@@ -487,7 +487,7 @@ Return ONLY strict valid JSON:
           },
           body: jsonEncode(payload),
         )
-        .timeout(const Duration(seconds: 25));
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
@@ -690,7 +690,7 @@ Return ONLY valid JSON matching this exact structure:
           },
           body: jsonEncode(payload),
         )
-        .timeout(const Duration(seconds: 25));
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
