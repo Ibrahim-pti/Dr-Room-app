@@ -54,15 +54,21 @@ class DriverController extends Controller
         if ($driver->service_scope === 'pharmacy') {
             $poolQuery->where(function ($q) {
                 $q->where('service_type', 'like', '%pharmac%')
-                  ->orWhere('service_type', 'like', '%medic%');
+                  ->orWhere('service_type', 'like', '%medic%')
+                  ->orWhere('service_type', 'like', '%دەرمان%');
             });
         } elseif ($driver->service_scope === 'lab_sample') {
-            $poolQuery->where('service_type', 'like', '%lab%');
+            $poolQuery->where(function ($q) {
+                $q->where('service_type', 'like', '%lab%')
+                  ->orWhere('service_type', 'like', '%تاقیگە%');
+            });
         } else {
             $poolQuery->where(function ($q) {
                 $q->where('service_type', 'like', '%pharmac%')
                   ->orWhere('service_type', 'like', '%lab%')
-                  ->orWhere('service_type', 'like', '%medic%');
+                  ->orWhere('service_type', 'like', '%medic%')
+                  ->orWhere('service_type', 'like', '%تاقیگە%')
+                  ->orWhere('service_type', 'like', '%دەرمان%');
             });
         }
 

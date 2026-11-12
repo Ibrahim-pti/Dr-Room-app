@@ -74,9 +74,9 @@ class _MainShellState extends State<MainShell> {
 
   late final List<Widget> _screens = [
     HomeScreen(key: _homeKey),
-    const AiSymptomCheckerScreen(),
+    const AiSymptomCheckerScreen(showBackButton: false),
     const MedicalRecordsScreen(),
-    MyRequestsScreen(key: _requestsKey),
+    MyRequestsScreen(key: _requestsKey, showBackButton: false),
     const SettingsScreen(),
   ];
 

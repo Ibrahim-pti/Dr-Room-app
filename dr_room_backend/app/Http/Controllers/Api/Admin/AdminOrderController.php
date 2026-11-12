@@ -199,6 +199,15 @@ class AdminOrderController extends Controller
 
         $order->save();
 
+        if (
+            $request->status === 'processing' &&
+            !$order->assigned_driver_id &&
+            $order->needsDeliveryDriver()
+        ) {
+            app(\App\Services\DriverDispatchService::class)->dispatchNearest($order);
+            $order->refresh();
+        }
+
         if ($order->assigned_driver_id && in_array($request->status, ['completed', 'cancelled'], true)) {
             \App\Models\Driver::syncDutyStatusForUser((int) $order->assigned_driver_id);
         }
@@ -207,7 +216,7 @@ class AdminOrderController extends Controller
 
         return response()->json([
             'message' => 'Order status updated successfully',
-            'order' => $order->load(['items', 'patient', 'assignedNurse'])
+            'order' => $order->load(['items', 'patient', 'assignedNurse', 'assignedDriver.driver'])
         ]);
     }
 

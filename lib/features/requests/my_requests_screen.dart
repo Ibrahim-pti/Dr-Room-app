@@ -6,8 +6,13 @@ import '../orders/orders_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
   final String? fixedCategory;
+  final bool showBackButton;
 
-  const MyRequestsScreen({super.key, this.fixedCategory});
+  const MyRequestsScreen({
+    super.key,
+    this.fixedCategory,
+    this.showBackButton = true,
+  });
 
   @override
   State<MyRequestsScreen> createState() => MyRequestsScreenState();
@@ -83,7 +88,7 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
-        leading: Navigator.canPop(context)
+        leading: (widget.showBackButton && Navigator.canPop(context))
             ? IconButton(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
