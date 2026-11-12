@@ -12,7 +12,7 @@ import 'services/ai_clinical_service.dart';
 class AiSymptomCheckerScreen extends StatefulWidget {
   final String? initialMode; // 'lab' or 'nursing'
   final File? initialImage;
-  final bool showBackButton;
+  final bool? showBackButton;
 
   const AiSymptomCheckerScreen({
     super.key,
@@ -51,7 +51,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
       setState(() {
         _userScans
           ..clear()
-          ..addAll(decoded.whereType<Map>().map((e) => Map<String, dynamic>.from(e)));
+          ..addAll(
+            decoded.whereType<Map>().map((e) => Map<String, dynamic>.from(e)),
+          );
       });
     } catch (e) {
       debugPrint('Failed to load scan history: $e');
@@ -137,16 +139,23 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               child: Container(
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(28),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.12),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.45 : 0.12,
+                      ),
                       blurRadius: 24,
                       offset: const Offset(0, -4),
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -158,7 +167,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                           width: 44,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                            color: isDark
+                                ? const Color(0xFF475569)
+                                : const Color(0xFFCBD5E1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -187,7 +198,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                             child: Text(
                               'ai_image_note_title'.tr(),
                               style: _kStyle(
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -197,7 +210,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                             onPressed: () => Navigator.pop(ctx),
                             icon: Icon(
                               Icons.close_rounded,
-                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
                               size: 20,
                             ),
                           ),
@@ -221,12 +236,13 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                               right: 10,
                               child: GestureDetector(
                                 onTap: () async {
-                                  final XFile? rePicked = await _picker.pickImage(
-                                    source: source,
-                                    maxWidth: 1800,
-                                    maxHeight: 1800,
-                                    imageQuality: 88,
-                                  );
+                                  final XFile? rePicked = await _picker
+                                      .pickImage(
+                                        source: source,
+                                        maxWidth: 1800,
+                                        maxHeight: 1800,
+                                        imageQuality: 88,
+                                      );
                                   if (rePicked != null) {
                                     setModalState(() {
                                       currentImage = File(rePicked.path);
@@ -234,18 +250,27 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                                   }
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.black.withValues(alpha: 0.65),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.25),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.25,
+                                      ),
                                     ),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.refresh_rounded, color: Colors.white, size: 14),
+                                      const Icon(
+                                        Icons.refresh_rounded,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
                                       const SizedBox(width: 6),
                                       Text(
                                         'ai_change_image'.tr(),
@@ -270,10 +295,14 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                       // Text Input Field at bottom of Image
                       Container(
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                          color: isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                            color: const Color(
+                              0xFF3B82F6,
+                            ).withValues(alpha: 0.35),
                           ),
                         ),
                         child: TextField(
@@ -282,18 +311,25 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                           minLines: 1,
                           textInputAction: TextInputAction.done,
                           style: _kStyle(
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                             fontSize: 13.5,
                           ),
                           decoration: InputDecoration(
                             hintText: 'ai_image_note_hint'.tr(),
                             hintStyle: _kStyle(
-                              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                              color: isDark
+                                  ? const Color(0xFF64748B)
+                                  : const Color(0xFF94A3B8),
                               fontSize: 12,
                               height: 1.4,
                             ),
                             prefixIcon: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                               child: Icon(
                                 Icons.edit_note_rounded,
                                 color: Color(0xFF3B82F6),
@@ -301,7 +337,10 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                               ),
                             ),
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
                           ),
                         ),
                       ),
@@ -320,7 +359,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                             child: TextButton(
                               onPressed: () => Navigator.pop(ctx),
                               style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 13),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 13,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -328,7 +369,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                               child: Text(
                                 'ai_cancel'.tr(),
                                 style: _kStyle(
-                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -348,15 +391,22 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                                 );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 13),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 13,
+                                ),
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
-                                    colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                                    colors: [
+                                      Color(0xFF2563EB),
+                                      Color(0xFF1D4ED8),
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(14),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                                      color: const Color(
+                                        0xFF2563EB,
+                                      ).withValues(alpha: 0.35),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -365,7 +415,11 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.auto_awesome, color: Colors.white, size: 17),
+                                    const Icon(
+                                      Icons.auto_awesome,
+                                      color: Colors.white,
+                                      size: 17,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       'ai_analyze_image_btn'.tr(),
@@ -413,15 +467,18 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
     try {
       final currentLang = mounted ? context.locale.languageCode : 'ckb';
-      final realResult = await AiClinicalVisionService.instance.analyzeMedicalImage(
-        imageFile: imageFile,
-        mode: _currentMode,
-        userNote: userNote,
-        language: currentLang,
-      );
+      final realResult = await AiClinicalVisionService.instance
+          .analyzeMedicalImage(
+            imageFile: imageFile,
+            mode: _currentMode,
+            userNote: userNote,
+            language: currentLang,
+          );
 
       if (mounted) {
-        realResult['date'] = DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now());
+        realResult['date'] = DateFormat(
+          'yyyy-MM-dd hh:mm a',
+        ).format(DateTime.now());
 
         setState(() {
           _analysisStep = 3;
@@ -469,14 +526,17 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
 
     try {
       final currentLang = mounted ? context.locale.languageCode : 'ckb';
-      final realResult = await AiClinicalVisionService.instance.searchMedicineByName(
-        query: cleanQuery,
-        mode: _currentMode,
-        language: currentLang,
-      );
+      final realResult = await AiClinicalVisionService.instance
+          .searchMedicineByName(
+            query: cleanQuery,
+            mode: _currentMode,
+            language: currentLang,
+          );
 
       if (mounted) {
-        realResult['date'] = DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now());
+        realResult['date'] = DateFormat(
+          'yyyy-MM-dd hh:mm a',
+        ).format(DateTime.now());
 
         setState(() {
           _analysisStep = 3;
@@ -510,7 +570,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
@@ -529,7 +591,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     width: 44,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                      color: isDark
+                          ? const Color(0xFF475569)
+                          : const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
@@ -556,7 +620,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                       child: Text(
                         'ai_search_medicine'.tr(),
                         style: _kStyle(
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -568,7 +634,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                 Text(
                   'ai_search_medicine_desc'.tr(),
                   style: _kStyle(
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                     fontSize: 12,
                   ),
                 ),
@@ -577,7 +645,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                 // TextField for medicine input
                 Container(
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    color: isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
@@ -600,12 +670,21 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     decoration: InputDecoration(
                       hintText: 'ai_search_medicine_hint'.tr(),
                       hintStyle: _kStyle(
-                        color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        color: isDark
+                            ? const Color(0xFF64748B)
+                            : const Color(0xFF94A3B8),
                         fontSize: 12.5,
                       ),
-                      prefixIcon: const Icon(Icons.search, color: Color(0xFF3B82F6), size: 20),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFF3B82F6),
+                        size: 20,
+                      ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -632,7 +711,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                         child: Text(
                           'ai_cancel'.tr(),
                           style: _kStyle(
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),
@@ -659,7 +740,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                                color: const Color(
+                                  0xFF2563EB,
+                                ).withValues(alpha: 0.35),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -668,7 +751,11 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.auto_awesome, color: Colors.white, size: 16),
+                              const Icon(
+                                Icons.auto_awesome,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 'ai_search_btn'.tr(),
@@ -694,7 +781,10 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
     );
   }
 
-  Widget _buildDisclaimerBanner({required bool isDark, EdgeInsetsGeometry? margin}) {
+  Widget _buildDisclaimerBanner({
+    required bool isDark,
+    EdgeInsetsGeometry? margin,
+  }) {
     return Container(
       margin: margin,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -728,7 +818,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             child: Text(
               'ai_disclaimer_notice'.tr(),
               style: _kStyle(
-                color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
+                color: isDark
+                    ? const Color(0xFFFCD34D)
+                    : const Color(0xFF92400E),
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 height: 1.45,
@@ -745,13 +837,15 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
-        leading: (widget.showBackButton && Navigator.canPop(context))
+        leading: ((widget.showBackButton ?? true) && Navigator.canPop(context))
             ? IconButton(
                 icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
@@ -801,7 +895,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               tooltip: 'ai_scan_another'.tr(),
               icon: Icon(
                 Iconsax.refresh,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
                 size: 20,
               ),
               onPressed: _resetScanner,
@@ -837,7 +933,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
   // ── 1. Initial Interactive Scanner Hub ──
   Widget _buildInitialScannerHub(bool isDark) {
     final isLab = _currentMode == 'lab';
-    final primaryColor = isLab ? const Color(0xFF2563EB) : const Color(0xFF0D9488);
+    final primaryColor = isLab
+        ? const Color(0xFF2563EB)
+        : const Color(0xFF0D9488);
 
     return Column(
       children: [
@@ -871,10 +969,42 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             alignment: Alignment.center,
             children: [
               // 4 Corner brackets
-              Positioned(top: 20, left: 20, child: _buildCornerBracket(isTop: true, isLeft: true, color: primaryColor)),
-              Positioned(top: 20, right: 20, child: _buildCornerBracket(isTop: true, isLeft: false, color: primaryColor)),
-              Positioned(bottom: 20, left: 20, child: _buildCornerBracket(isTop: false, isLeft: true, color: primaryColor)),
-              Positioned(bottom: 20, right: 20, child: _buildCornerBracket(isTop: false, isLeft: false, color: primaryColor)),
+              Positioned(
+                top: 20,
+                left: 20,
+                child: _buildCornerBracket(
+                  isTop: true,
+                  isLeft: true,
+                  color: primaryColor,
+                ),
+              ),
+              Positioned(
+                top: 20,
+                right: 20,
+                child: _buildCornerBracket(
+                  isTop: true,
+                  isLeft: false,
+                  color: primaryColor,
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                left: 20,
+                child: _buildCornerBracket(
+                  isTop: false,
+                  isLeft: true,
+                  color: primaryColor,
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                right: 20,
+                child: _buildCornerBracket(
+                  isTop: false,
+                  isLeft: false,
+                  color: primaryColor,
+                ),
+              ),
 
               // Center Icon & Prompt
               Column(
@@ -886,7 +1016,10 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     decoration: BoxDecoration(
                       color: primaryColor.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
-                      border: Border.all(color: primaryColor.withValues(alpha: 0.4), width: 2),
+                      border: Border.all(
+                        color: primaryColor.withValues(alpha: 0.4),
+                        width: 2,
+                      ),
                     ),
                     child: Icon(
                       Icons.document_scanner_rounded,
@@ -911,7 +1044,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                       'ai_scan_box_desc'.tr(),
                       textAlign: TextAlign.center,
                       style: _kStyle(
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                         fontSize: 11.5,
                         height: 1.35,
                       ),
@@ -933,7 +1068,10 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               child: GestureDetector(
                 onTap: () => _pickAndAnalyze(ImageSource.camera),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: isLab
@@ -952,7 +1090,11 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 20),
+                      const Icon(
+                        Icons.camera_alt_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'ai_camera'.tr(),
@@ -976,16 +1118,23 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               child: GestureDetector(
                 onTap: () => _pickAndAnalyze(ImageSource.gallery),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.2 : 0.04,
+                        ),
                         blurRadius: 10,
                         offset: const Offset(0, 3),
                       ),
@@ -1000,7 +1149,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                         'ai_gallery'.tr(),
                         style: TextStyle(
                           fontFamily: 'Rabar',
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1031,7 +1182,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.15 : 0.06),
+                    color: const Color(
+                      0xFF3B82F6,
+                    ).withValues(alpha: isDark ? 0.15 : 0.06),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -1061,7 +1214,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                         Text(
                           'ai_search_medicine'.tr(),
                           style: _kStyle(
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1070,7 +1225,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                         Text(
                           'ai_search_medicine_desc'.tr(),
                           style: _kStyle(
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                             fontSize: 11,
                           ),
                         ),
@@ -1080,7 +1237,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 14,
-                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    color: isDark
+                        ? const Color(0xFF64748B)
+                        : const Color(0xFF94A3B8),
                   ),
                 ],
               ),
@@ -1109,7 +1268,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.2 : 0.06),
+            color: const Color(
+              0xFF2563EB,
+            ).withValues(alpha: isDark ? 0.2 : 0.06),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -1139,28 +1300,37 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     top: 0,
                     left: 0,
                     right: 0,
-                    child: Container(
-                      height: 3,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.transparent,
-                            Color(0xFF10B981),
-                            Color(0xFF2563EB),
-                            Colors.transparent,
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0xFF10B981),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                    )
-                        .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                        .moveY(begin: 0, end: 215, duration: 1200.ms, curve: Curves.easeInOut),
+                    child:
+                        Container(
+                              height: 3,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.transparent,
+                                    Color(0xFF10B981),
+                                    Color(0xFF2563EB),
+                                    Colors.transparent,
+                                  ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0xFF10B981),
+                                    blurRadius: 10,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                            )
+                            .animate(
+                              onPlay: (controller) =>
+                                  controller.repeat(reverse: true),
+                            )
+                            .moveY(
+                              begin: 0,
+                              end: 215,
+                              duration: 1200.ms,
+                              curve: Curves.easeInOut,
+                            ),
                   ),
                 ],
               ),
@@ -1172,8 +1342,12 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF2563EB).withValues(alpha: isDark ? 0.2 : 0.08),
-                    const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.25 : 0.12),
+                    const Color(
+                      0xFF2563EB,
+                    ).withValues(alpha: isDark ? 0.2 : 0.08),
+                    const Color(
+                      0xFF3B82F6,
+                    ).withValues(alpha: isDark ? 0.25 : 0.12),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(20),
@@ -1190,9 +1364,21 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                       color: const Color(0xFF2563EB).withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.auto_awesome, color: Color(0xFF3B82F6), size: 30)
-                        .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                        .scale(begin: const Offset(1, 1), end: const Offset(1.15, 1.15), duration: 1000.ms),
+                    child:
+                        const Icon(
+                              Icons.auto_awesome,
+                              color: Color(0xFF3B82F6),
+                              size: 30,
+                            )
+                            .animate(
+                              onPlay: (controller) =>
+                                  controller.repeat(reverse: true),
+                            )
+                            .scale(
+                              begin: const Offset(1, 1),
+                              end: const Offset(1.15, 1.15),
+                              duration: 1000.ms,
+                            ),
                   ),
                   const SizedBox(height: 14),
                   Text(
@@ -1255,7 +1441,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             shape: BoxShape.circle,
             color: isDone
                 ? const Color(0xFF10B981)
-                : (isActive ? const Color(0xFF2563EB) : const Color(0xFF64748B).withValues(alpha: 0.2)),
+                : (isActive
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF64748B).withValues(alpha: 0.2)),
           ),
           child: isDone
               ? const Icon(Icons.check, color: Colors.white, size: 16)
@@ -1278,7 +1466,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             style: _kStyle(
               color: isDone
                   ? const Color(0xFF10B981)
-                  : (isActive ? (isDark ? Colors.white : const Color(0xFF0F172A)) : const Color(0xFF94A3B8)),
+                  : (isActive
+                        ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                        : const Color(0xFF94A3B8)),
               fontSize: 12.5,
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
             ),
@@ -1334,7 +1524,11 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 30),
+                  child: const Icon(
+                    Icons.document_scanner_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
                 ),
               const SizedBox(width: 14),
               Expanded(
@@ -1342,7 +1536,10 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.25),
                         borderRadius: BorderRadius.circular(8),
@@ -1385,7 +1582,8 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         _buildDisclaimerBanner(isDark: isDark),
 
         // Patient User Note Card
-        if (res['user_note'] != null && res['user_note'].toString().trim().isNotEmpty) ...[
+        if (res['user_note'] != null &&
+            res['user_note'].toString().trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
@@ -1430,7 +1628,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                       Text(
                         res['user_note'].toString(),
                         style: _kStyle(
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                           fontSize: 12.5,
                           height: 1.45,
                         ),
@@ -1454,7 +1654,8 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         ),
 
         // Target Age Card (بۆ تەمەن چەندە)
-        if (res['target_age'] != null && res['target_age'].toString().trim().isNotEmpty) ...[
+        if (res['target_age'] != null &&
+            res['target_age'].toString().trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           _buildMedicalInfoCard(
             title: 'ai_target_age_title'.tr(),
@@ -1466,7 +1667,8 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         ],
 
         // Allergies & Contraindications Card (هەستیارییەکان)
-        if (res['allergies'] != null && res['allergies'].toString().trim().isNotEmpty) ...[
+        if (res['allergies'] != null &&
+            res['allergies'].toString().trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           _buildMedicalInfoCard(
             title: 'ai_allergies_title'.tr(),
@@ -1487,7 +1689,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
               ),
             ),
             child: Column(
@@ -1495,7 +1699,11 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               children: [
                 Row(
                   children: [
-                    Icon(Icons.format_list_bulleted_rounded, color: primaryColor, size: 20),
+                    Icon(
+                      Icons.format_list_bulleted_rounded,
+                      color: primaryColor,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -1504,7 +1712,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                           fontFamily: 'Rabar',
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                       ),
                     ),
@@ -1515,9 +1725,14 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                   final isAbnormal = m['isNormal'] == false;
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                      color: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: isDark
@@ -1539,7 +1754,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                                   fontFamily: 'Rabar',
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
                                   height: 1.35,
                                 ),
                               ),
@@ -1553,10 +1770,11 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: (isAbnormal
-                                          ? const Color(0xFFEF4444)
-                                          : const Color(0xFF10B981))
-                                      .withValues(alpha: 0.12),
+                                  color:
+                                      (isAbnormal
+                                              ? const Color(0xFFEF4444)
+                                              : const Color(0xFF10B981))
+                                          .withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -1692,7 +1910,11 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.search_rounded, color: Color(0xFF3B82F6), size: 18),
+                  const Icon(
+                    Icons.search_rounded,
+                    color: Color(0xFF3B82F6),
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'ai_search_medicine'.tr(),
@@ -1793,17 +2015,26 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
             if (recentList.isEmpty) {
               return Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 28,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
                   ),
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.history_rounded, size: 32, color: Color(0xFF94A3B8)),
+                    const Icon(
+                      Icons.history_rounded,
+                      size: 32,
+                      color: Color(0xFF94A3B8),
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       'ai_no_recent_scans'.tr(),
@@ -1826,81 +2057,91 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
               itemBuilder: (context, idx) {
                 final item = recentList[idx];
 
-            return Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                ),
-              ),
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    _currentMode = (item['mode'] ?? 'medicine').toString();
-                    _scanResult = item;
-                  });
-                },
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2563EB).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(
-                        Icons.document_scanner_rounded,
-                        color: Color(0xFF2563EB),
-                        size: 22,
-                      ),
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['title'],
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold,
-                            ),
+                  ),
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        _currentMode = (item['mode'] ?? 'medicine').toString();
+                        _scanResult = item;
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF2563EB,
+                            ).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item['category'],
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              color: Color(0xFF64748B),
-                              fontSize: 11,
-                            ),
+                          child: const Icon(
+                            Icons.document_scanner_rounded,
+                            color: Color(0xFF2563EB),
+                            size: 22,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['title'],
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item['category'],
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  color: Color(0xFF64748B),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 14,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ],
                     ),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 14,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ],
-                ),
-              ),
-              );
-            },
-          );
-        },
-      ),
-    ],
-  );
-}
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
 
-  Widget _buildCornerBracket({required bool isTop, required bool isLeft, required Color color}) {
+  Widget _buildCornerBracket({
+    required bool isTop,
+    required bool isLeft,
+    required Color color,
+  }) {
     return Container(
       width: 22,
       height: 22,

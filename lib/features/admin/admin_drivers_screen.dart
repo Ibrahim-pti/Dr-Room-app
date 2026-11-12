@@ -79,7 +79,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
       final params = <String>[
         if (_search.isNotEmpty) 'search=${Uri.encodeComponent(_search)}',
         if (_dutyFilter == 'blocked') 'status=blocked',
-        if (_dutyFilter == 'available' || _dutyFilter == 'busy' || _dutyFilter == 'offline')
+        if (_dutyFilter == 'available' ||
+            _dutyFilter == 'busy' ||
+            _dutyFilter == 'offline')
           'duty_status=$_dutyFilter',
       ];
       final query = params.isNotEmpty ? '?${params.join('&')}' : '';
@@ -90,7 +92,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
         final body = jsonDecode(res.body);
         setState(() {
           _drivers = List<dynamic>.from(body['data'] ?? []);
-          _meta = body['meta'] is Map ? Map<String, dynamic>.from(body['meta']) : {};
+          _meta = body['meta'] is Map
+              ? Map<String, dynamic>.from(body['meta'])
+              : {};
           _isLoading = false;
         });
       } else {
@@ -100,7 +104,11 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _error = '$e'; _isLoading = false; });
+      if (mounted)
+        setState(() {
+          _error = '$e';
+          _isLoading = false;
+        });
     }
   }
 
@@ -112,7 +120,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
       setState(() {
         _liveMapDrivers = list;
         if (_selectedMapDriver != null) {
-          final match = list.where((d) => d['id'] == _selectedMapDriver!['id']).toList();
+          final match = list
+              .where((d) => d['id'] == _selectedMapDriver!['id'])
+              .toList();
           if (match.isNotEmpty) {
             _selectedMapDriver = Map<String, dynamic>.from(match.first);
           }
@@ -120,7 +130,11 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
       });
     } catch (_) {
       if (!silent && mounted) {
-        AdminUi.toast(context, 'نەتوانرا نەخشەی زیندوو نوێبکرێتەوە', isError: true);
+        AdminUi.toast(
+          context,
+          'نەتوانرا نەخشەی زیندوو نوێبکرێتەوە',
+          isError: true,
+        );
       }
     }
   }
@@ -167,7 +181,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
 
   Future<void> _toggleBlock(dynamic d) async {
     try {
-      final res = await ApiClient.patch('/admin/drivers/${d['id']}/toggle-block');
+      final res = await ApiClient.patch(
+        '/admin/drivers/${d['id']}/toggle-block',
+      );
       if (!mounted) return;
       if (res.statusCode == 200) {
         final msg = jsonDecode(res.body)['message']?.toString() ?? 'دۆخ گۆڕدرا';
@@ -196,8 +212,17 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
         context: context,
         builder: (ctx) => StatefulBuilder(
           builder: (dCtx, setDState) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text('زیادکردنی کارمەندی گەیاندن', style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold, fontSize: 16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text(
+              'زیادکردنی کارمەندی گەیاندن',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -206,7 +231,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                     controller: nameCtrl,
                     decoration: InputDecoration(
                       labelText: 'ناوی تەواو',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -216,7 +243,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                     textDirection: TextDirection.ltr,
                     decoration: InputDecoration(
                       labelText: 'ژمارەی مۆبایل (0750...)',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -226,16 +255,32 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                     textDirection: TextDirection.ltr,
                     decoration: InputDecoration(
                       labelText: 'وشەی تێپەڕ (لانیکەم ٦ پیت)',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     initialValue: city,
-                    decoration: InputDecoration(labelText: 'شار', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-                    items: const ['هەولێر', 'سلێمانی', 'دهۆک', 'کەرکوک', 'هەڵەبجە']
-                        .map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontFamily: 'Rabar'))))
-                        .toList(),
+                    decoration: InputDecoration(
+                      labelText: 'شار',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    items:
+                        const ['هەولێر', 'سلێمانی', 'دهۆک', 'کەرکوک', 'هەڵەبجە']
+                            .map(
+                              (c) => DropdownMenuItem(
+                                value: c,
+                                child: Text(
+                                  c,
+                                  style: const TextStyle(fontFamily: 'Rabar'),
+                                ),
+                              ),
+                            )
+                            .toList(),
                     onChanged: (v) {
                       if (v != null) setDState(() => city = v);
                     },
@@ -243,11 +288,34 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     initialValue: vehicle,
-                    decoration: InputDecoration(labelText: 'ئامێر', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                    decoration: InputDecoration(
+                      labelText: 'ئامێر',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     items: const [
-                      DropdownMenuItem(value: 'motorcycle', child: Text('ماتۆڕسکیل', style: TextStyle(fontFamily: 'Rabar'))),
-                      DropdownMenuItem(value: 'car', child: Text('ئۆتۆمبێل', style: TextStyle(fontFamily: 'Rabar'))),
-                      DropdownMenuItem(value: 'refrigerated_van', child: Text('ساردکەرەوەی تاقیگە', style: TextStyle(fontFamily: 'Rabar'))),
+                      DropdownMenuItem(
+                        value: 'motorcycle',
+                        child: Text(
+                          'ماتۆڕسکیل',
+                          style: TextStyle(fontFamily: 'Rabar'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'car',
+                        child: Text(
+                          'ئۆتۆمبێل',
+                          style: TextStyle(fontFamily: 'Rabar'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'refrigerated_van',
+                        child: Text(
+                          'ساردکەرەوەی تاقیگە',
+                          style: TextStyle(fontFamily: 'Rabar'),
+                        ),
+                      ),
                     ],
                     onChanged: (v) {
                       if (v != null) setDState(() => vehicle = v);
@@ -256,11 +324,34 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     initialValue: scope,
-                    decoration: InputDecoration(labelText: 'بوار', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                    decoration: InputDecoration(
+                      labelText: 'بوار',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     items: const [
-                      DropdownMenuItem(value: 'both', child: Text('دەرمان + نموونەی تاقیگە', style: TextStyle(fontFamily: 'Rabar'))),
-                      DropdownMenuItem(value: 'pharmacy', child: Text('دەرمان تەنها', style: TextStyle(fontFamily: 'Rabar'))),
-                      DropdownMenuItem(value: 'lab_sample', child: Text('نموونەی تاقیگە تەنها', style: TextStyle(fontFamily: 'Rabar'))),
+                      DropdownMenuItem(
+                        value: 'both',
+                        child: Text(
+                          'دەرمان + نموونەی تاقیگە',
+                          style: TextStyle(fontFamily: 'Rabar'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'pharmacy',
+                        child: Text(
+                          'دەرمان تەنها',
+                          style: TextStyle(fontFamily: 'Rabar'),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'lab_sample',
+                        child: Text(
+                          'نموونەی تاقیگە تەنها',
+                          style: TextStyle(fontFamily: 'Rabar'),
+                        ),
+                      ),
                     ],
                     onChanged: (v) {
                       if (v != null) setDState(() => scope = v);
@@ -272,7 +363,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                     textDirection: TextDirection.ltr,
                     decoration: InputDecoration(
                       labelText: 'ژمارەی تابلۆ (ئارەزوومەندانە)',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ],
@@ -281,7 +374,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
             actions: [
               TextButton(
                 onPressed: saving ? null : () => Navigator.pop(dCtx),
-                child: const Text('پاشگەزبوونەوە', style: TextStyle(fontFamily: 'Rabar')),
+                child: const Text(
+                  'پاشگەزبوونەوە',
+                  style: TextStyle(fontFamily: 'Rabar'),
+                ),
               ),
               ElevatedButton(
                 onPressed: saving
@@ -290,38 +386,63 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                         if (nameCtrl.text.trim().isEmpty ||
                             phoneCtrl.text.trim().isEmpty ||
                             passCtrl.text.length < 6) {
-                          AdminUi.toast(context, 'تکایە ناو، مۆبایل و وشەی تێپەڕ (٦ پیت+) بنووسە', isError: true);
+                          AdminUi.toast(
+                            context,
+                            'تکایە ناو، مۆبایل و وشەی تێپەڕ (٦ پیت+) بنووسە',
+                            isError: true,
+                          );
                           return;
                         }
                         setDState(() => saving = true);
                         try {
-                          final res = await ApiClient.post('/admin/drivers', body: {
-                            'name': nameCtrl.text.trim(),
-                            'phone': phoneCtrl.text.trim(),
-                            'password': passCtrl.text,
-                            'city': city,
-                            'vehicle_type': vehicle,
-                            'service_scope': scope,
-                            'plate_number': plateCtrl.text.trim(),
-                          });
+                          final res = await ApiClient.post(
+                            '/admin/drivers',
+                            body: {
+                              'name': nameCtrl.text.trim(),
+                              'phone': phoneCtrl.text.trim(),
+                              'password': passCtrl.text,
+                              'city': city,
+                              'vehicle_type': vehicle,
+                              'service_scope': scope,
+                              'plate_number': plateCtrl.text.trim(),
+                            },
+                          );
                           if (dCtx.mounted) Navigator.pop(dCtx);
                           if (!mounted) return;
                           if (res.statusCode == 201 || res.statusCode == 200) {
                             AdminUi.toast(context, 'کارمەندی گەیاندن زیادکرا');
                             _loadAll();
                           } else {
-                            AdminUi.toast(context, AdminUi.readError(res), isError: true);
+                            AdminUi.toast(
+                              context,
+                              AdminUi.readError(res),
+                              isError: true,
+                            );
                           }
                         } catch (e) {
-                          if (mounted) AdminUi.toast(context, '$e', isError: true);
+                          if (mounted)
+                            AdminUi.toast(context, '$e', isError: true);
                         } finally {
                           if (dCtx.mounted) setDState(() => saving = false);
                         }
                       },
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
                 child: saving
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('زیادکردن', style: TextStyle(fontFamily: 'Rabar')),
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'زیادکردن',
+                        style: TextStyle(fontFamily: 'Rabar'),
+                      ),
               ),
             ],
           ),
@@ -348,7 +469,8 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     if (clean.isEmpty) return;
     if (clean.startsWith('07')) clean = '964${clean.substring(1)}';
     final uri = Uri.parse('https://wa.me/$clean');
-    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (await canLaunchUrl(uri))
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   String _formatIqd(dynamic v) {
@@ -357,53 +479,53 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
   }
 
   String _vehicleLabel(String? v) => switch (v) {
-        'car' => 'ئۆتۆمبێل',
-        'refrigerated_van' => 'ساردکەرەوە',
-        _ => 'ماتۆڕ',
-      };
+    'car' => 'ئۆتۆمبێل',
+    'refrigerated_van' => 'ساردکەرەوە',
+    _ => 'ماتۆڕ',
+  };
 
   String _scopeLabel(String? s) => switch (s) {
-        'pharmacy' => 'دەرمان',
-        'lab_sample' => 'تاقیگە',
-        _ => 'دەرمان + تاقیگە',
-      };
+    'pharmacy' => 'دەرمان',
+    'lab_sample' => 'تاقیگە',
+    _ => 'دەرمان + تاقیگە',
+  };
 
   String _applicantRoleLabel(String? r) => switch (r) {
-        'phlebotomist' => 'وەرگرتنی خوێن و تاقیگە',
-        'mobile_nurse' => 'پەرستاری ماڵان',
-        'both' => 'پەرستاری + شیکاری',
-        'courier' => 'گەیاندنی دەرمان',
-        _ => 'تیمی گەڕۆک',
-      };
+    'phlebotomist' => 'وەرگرتنی خوێن و تاقیگە',
+    'mobile_nurse' => 'پەرستاری ماڵان',
+    'both' => 'پەرستاری + شیکاری',
+    'courier' => 'گەیاندنی دەرمان',
+    _ => 'تیمی گەڕۆک',
+  };
 
   String? _educationLabel(String? e) => switch (e) {
-        'diploma_lab' => 'دبلۆم شیکاری نەخۆشی',
-        'bsc_lab' => 'بەکالۆریۆس شیکاری',
-        'diploma_nursing' => 'دبلۆم پەرستاری',
-        'bsc_nursing' => 'بەکالۆریۆس پەرستاری',
-        'high_school_course' => 'خولی پەرستاری',
-        'other' => 'بڕوانامەی گشتی',
-        _ => null,
-      };
+    'diploma_lab' => 'دبلۆم شیکاری نەخۆشی',
+    'bsc_lab' => 'بەکالۆریۆس شیکاری',
+    'diploma_nursing' => 'دبلۆم پەرستاری',
+    'bsc_nursing' => 'بەکالۆریۆس پەرستاری',
+    'high_school_course' => 'خولی پەرستاری',
+    'other' => 'بڕوانامەی گشتی',
+    _ => null,
+  };
 
   String? _shiftLabel(String? s) => switch (s) {
-        'morning' => 'شیفتی بەیانی',
-        'evening' => 'شیفتی ئێوارە و شەو',
-        'full_flex' => 'تەواوی ڕۆژ / بەپێی نەخۆش',
-        _ => null,
-      };
+    'morning' => 'شیفتی بەیانی',
+    'evening' => 'شیفتی ئێوارە و شەو',
+    'full_flex' => 'تەواوی ڕۆژ / بەپێی نەخۆش',
+    _ => null,
+  };
 
   String _skillLabel(String s) => switch (s) {
-        'venipuncture' => 'کێشانی خوێن',
-        'pediatric_draw' => 'خوێنی منداڵان',
-        'cannula_iv' => 'کانۆلا و سروم',
-        'injections' => 'دەرزیدان',
-        'wound_care' => 'پانسمان',
-        'vital_signs' => 'نیشانە زیندووەکان',
-        'cold_chain' => 'تیوب و ساردکەر (CBC/ESR)',
-        'pharma_handling' => 'گەیاندنی دەرمانی هەستیار',
-        _ => s,
-      };
+    'venipuncture' => 'کێشانی خوێن',
+    'pediatric_draw' => 'خوێنی منداڵان',
+    'cannula_iv' => 'کانۆلا و سروم',
+    'injections' => 'دەرزیدان',
+    'wound_care' => 'پانسمان',
+    'vital_signs' => 'نیشانە زیندووەکان',
+    'cold_chain' => 'تیوب و ساردکەر (CBC/ESR)',
+    'pharma_handling' => 'گەیاندنی دەرمانی هەستیار',
+    _ => s,
+  };
 
   Future<void> _openDocUrl(String? rawUrl) async {
     final u = (rawUrl ?? '').trim();
@@ -429,7 +551,11 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Iconsax.document_text, size: 12, color: Color(0xFFC2410C)),
+            const Icon(
+              Iconsax.document_text,
+              size: 12,
+              color: Color(0xFFC2410C),
+            ),
             const SizedBox(width: 4),
             Text(
               label,
@@ -457,7 +583,8 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
 
   Color _dutyColor(String? duty, String? status) {
     if (status == 'pending') return const Color(0xFFF59E0B);
-    if (status == 'blocked' || status == 'rejected') return const Color(0xFFEF4444);
+    if (status == 'blocked' || status == 'rejected')
+      return const Color(0xFFEF4444);
     return switch (duty) {
       'available' => const Color(0xFF10B981),
       'busy' => const Color(0xFF2563EB),
@@ -506,9 +633,16 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
               labelColor: const Color(0xFF2563EB),
               unselectedLabelColor: const Color(0xFF64748B),
               indicatorColor: const Color(0xFF2563EB),
-              labelStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 12, fontWeight: FontWeight.bold),
+              labelStyle: const TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
               tabs: [
-                const Tab(icon: Icon(Iconsax.map_1, size: 18), text: 'نەخشەی زیندوو'),
+                const Tab(
+                  icon: Icon(Iconsax.map_1, size: 18),
+                  text: 'نەخشەی زیندوو',
+                ),
                 Tab(
                   icon: Badge(
                     isLabelVisible: pendingCount > 0,
@@ -517,14 +651,18 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                   ),
                   text: 'داواکاری نوێ',
                 ),
-                const Tab(icon: Icon(Iconsax.people, size: 18), text: 'هەموو شۆفێرەکان'),
+                const Tab(
+                  icon: Icon(Iconsax.people, size: 18),
+                  text: 'هەموو شۆفێرەکان',
+                ),
               ],
             ),
           ),
           Expanded(
             child: TabBarView(
               controller: _tabCtrl,
-              physics: const NeverScrollableScrollPhysics(), // Don't steal GoogleMap horizontal pan
+              physics:
+                  const NeverScrollableScrollPhysics(), // Don't steal GoogleMap horizontal pan
               children: [
                 _buildLiveMapTab(),
                 _buildPendingTab(),
@@ -561,7 +699,8 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
           icon: BitmapDescriptor.defaultMarkerWithHue(hue),
           infoWindow: InfoWindow(
             title: (d['name'] ?? '').toString(),
-            snippet: '${_dutyLabel(duty, 'approved')} · ${_lastSeenText(d['last_seen_seconds'])}',
+            snippet:
+                '${_dutyLabel(duty, 'approved')} · ${_lastSeenText(d['last_seen_seconds'])}',
           ),
           onTap: () {
             setState(() => _selectedMapDriver = Map<String, dynamic>.from(d));
@@ -570,7 +709,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
       );
 
       final activeOrder = d['active_order'];
-      if (activeOrder is Map && activeOrder['dest_lat'] != null && activeOrder['dest_lng'] != null) {
+      if (activeOrder is Map &&
+          activeOrder['dest_lat'] != null &&
+          activeOrder['dest_lng'] != null) {
         final dLat = double.tryParse('${activeOrder['dest_lat']}');
         final dLng = double.tryParse('${activeOrder['dest_lng']}');
         if (dLat != null && dLng != null) {
@@ -578,8 +719,12 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
             Marker(
               markerId: MarkerId('order_${activeOrder['id']}'),
               position: LatLng(dLat, dLng),
-              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
-              infoWindow: InfoWindow(title: 'ئامانجی داواکاری #${activeOrder['id']}'),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueRose,
+              ),
+              infoWindow: InfoWindow(
+                title: 'ئامانجی داواکاری #${activeOrder['id']}',
+              ),
             ),
           );
         }
@@ -592,7 +737,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     return Stack(
       children: [
         GoogleMap(
-          initialCameraPosition: CameraPosition(target: initialCenter, zoom: 12.8),
+          initialCameraPosition: CameraPosition(
+            target: initialCenter,
+            zoom: 12.8,
+          ),
           cameraTargetBounds: ErbilMapService.erbilCameraBounds,
           markers: markers,
           zoomControlsEnabled: false,
@@ -621,7 +769,11 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                     _loadAll();
                     _loadLiveMap();
                   },
-                  icon: const Icon(Icons.refresh, size: 18, color: Color(0xFF2563EB)),
+                  icon: const Icon(
+                    Icons.refresh,
+                    size: 18,
+                    color: Color(0xFF2563EB),
+                  ),
                   visualDensity: VisualDensity.compact,
                 ),
               ],
@@ -662,9 +814,20 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 9, height: 9, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
+        Container(
+          width: 9,
+          height: 9,
+          decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 5),
-        Text(text, style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.bold)),
+        Text(
+          text,
+          style: const TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 11.5,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
@@ -672,7 +835,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
   Widget _buildMapDriverCard(Map<String, dynamic> d) {
     final duty = (d['duty_status'] ?? 'offline').toString();
     final color = _dutyColor(duty, 'approved');
-    final activeOrder = d['active_order'] is Map ? d['active_order'] as Map : null;
+    final activeOrder = d['active_order'] is Map
+        ? d['active_order'] as Map
+        : null;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -680,7 +845,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
         color: AppColors.getSurface(context),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.getBorder(context)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 12)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 12),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -697,16 +864,33 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text((d['name'] ?? '').toString(), style: const TextStyle(fontFamily: 'Rabar', fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text(
+                      (d['name'] ?? '').toString(),
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     Text(
                       '${_dutyLabel(duty, 'approved')} · ${_vehicleLabel(d['vehicle_type']?.toString())} · ${_lastSeenText(d['last_seen_seconds'])}',
-                      style: TextStyle(fontFamily: 'Rabar', fontSize: 11, color: color),
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 11,
+                        color: color,
+                      ),
                     ),
                   ],
                 ),
               ),
-              IconButton(onPressed: () => _callPhone(d['phone']?.toString()), icon: const Icon(Iconsax.call, color: Color(0xFF2563EB))),
-              IconButton(onPressed: () => _openWhatsApp(d['phone']?.toString()), icon: const Icon(Iconsax.message, color: Color(0xFF10B981))),
+              IconButton(
+                onPressed: () => _callPhone(d['phone']?.toString()),
+                icon: const Icon(Iconsax.call, color: Color(0xFF2563EB)),
+              ),
+              IconButton(
+                onPressed: () => _openWhatsApp(d['phone']?.toString()),
+                icon: const Icon(Iconsax.message, color: Color(0xFF10B981)),
+              ),
             ],
           ),
           if (activeOrder != null) ...[
@@ -770,22 +954,37 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                         color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Iconsax.user_add, color: Color(0xFFF59E0B)),
+                      child: const Icon(
+                        Iconsax.user_add,
+                        color: Color(0xFFF59E0B),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text((d['name'] ?? '').toString(), style: AdminUi.title),
+                          Text(
+                            (d['name'] ?? '').toString(),
+                            style: AdminUi.title,
+                          ),
                           Directionality(
                             textDirection: TextDirection.ltr,
-                            child: Text('\u200E$phone', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B))),
+                            child: Text(
+                              '\u200E$phone',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    IconButton(onPressed: () => _callPhone(phone), icon: const Icon(Iconsax.call, color: Color(0xFF2563EB))),
+                    IconButton(
+                      onPressed: () => _callPhone(phone),
+                      icon: const Icon(Iconsax.call, color: Color(0xFF2563EB)),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -793,28 +992,50 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                   spacing: 8,
                   runSpacing: 6,
                   children: [
-                    _tagChip(_applicantRoleLabel(d['applicant_role']?.toString()), Iconsax.health),
+                    _tagChip(
+                      _applicantRoleLabel(d['applicant_role']?.toString()),
+                      Iconsax.health,
+                    ),
                     _tagChip('${d['city'] ?? 'هەولێر'}', Iconsax.location),
                     _tagChip(
-                      (d['applicant_role']?.toString() ?? 'phlebotomist') == 'courier'
+                      (d['applicant_role']?.toString() ?? 'phlebotomist') ==
+                              'courier'
                           ? _vehicleLabel(d['vehicle_type']?.toString())
-                          : (d['has_private_car'] == true ? 'ئۆتۆمبێلی تایبەت' : 'بێ ئۆتۆمبێل'),
+                          : (d['has_private_car'] == true
+                                ? 'ئۆتۆمبێلی تایبەت'
+                                : 'بێ ئۆتۆمبێل'),
                       Iconsax.car,
                     ),
-                    _tagChip(_scopeLabel(d['service_scope']?.toString()), Iconsax.box),
-                    if (_educationLabel(d['education_level']?.toString()) != null)
-                      _tagChip(_educationLabel(d['education_level']?.toString())!, Iconsax.teacher),
-                    if ((int.tryParse('${d['experience_years'] ?? 0}') ?? 0) > 0)
-                      _tagChip('${d['experience_years']} ساڵ ئەزموون', Iconsax.briefcase),
-                    if (_shiftLabel(d['availability_shift']?.toString()) != null)
-                      _tagChip(_shiftLabel(d['availability_shift']?.toString())!, Iconsax.clock),
+                    _tagChip(
+                      _scopeLabel(d['service_scope']?.toString()),
+                      Iconsax.box,
+                    ),
+                    if (_educationLabel(d['education_level']?.toString()) !=
+                        null)
+                      _tagChip(
+                        _educationLabel(d['education_level']?.toString())!,
+                        Iconsax.teacher,
+                      ),
+                    if ((int.tryParse('${d['experience_years'] ?? 0}') ?? 0) >
+                        0)
+                      _tagChip(
+                        '${d['experience_years']} ساڵ ئەزموون',
+                        Iconsax.briefcase,
+                      ),
+                    if (_shiftLabel(d['availability_shift']?.toString()) !=
+                        null)
+                      _tagChip(
+                        _shiftLabel(d['availability_shift']?.toString())!,
+                        Iconsax.clock,
+                      ),
                     if ((d['service_areas'] ?? '').toString().trim().isNotEmpty)
                       _tagChip('${d['service_areas']}', Iconsax.map_1),
                     if ((d['plate_number'] ?? '').toString().isNotEmpty)
                       _tagChip('${d['plate_number']}', Iconsax.card),
                   ],
                 ),
-                if (d['clinical_skills'] is List && (d['clinical_skills'] as List).isNotEmpty) ...[
+                if (d['clinical_skills'] is List &&
+                    (d['clinical_skills'] as List).isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 6,
@@ -822,7 +1043,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                     children: [
                       for (final sk in (d['clinical_skills'] as List))
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFECFDF5),
                             borderRadius: BorderRadius.circular(8),
@@ -853,7 +1077,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                     runSpacing: 6,
                     children: [
                       _docLinkChip('ناسنامە', d['id_document_url']?.toString()),
-                      _docLinkChip('بڕوانامە', d['certificate_url']?.toString()),
+                      _docLinkChip(
+                        'بڕوانامە',
+                        d['certificate_url']?.toString(),
+                      ),
                       _docLinkChip('مۆڵەت', d['license_url']?.toString()),
                       _docLinkChip('CV', d['cv_url']?.toString()),
                     ],
@@ -866,11 +1093,19 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                       child: OutlinedButton.icon(
                         onPressed: () => _rejectDriver(d),
                         icon: const Icon(Iconsax.close_circle, size: 17),
-                        label: const Text('ڕەتکردنەوە', style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
+                        label: const Text(
+                          'ڕەتکردنەوە',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFFEF4444),
                           side: const BorderSide(color: Color(0xFFEF4444)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
@@ -879,11 +1114,19 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                       child: ElevatedButton.icon(
                         onPressed: () => _approveDriver(d),
                         icon: const Icon(Iconsax.tick_circle, size: 17),
-                        label: const Text('پەسەندکردن', style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
+                        label: const Text(
+                          'پەسەندکردن',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF10B981),
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
@@ -910,7 +1153,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
         children: [
           Icon(icon, size: 13, color: const Color(0xFF64748B)),
           const SizedBox(width: 4),
-          Text(label, style: const TextStyle(fontFamily: 'Rabar', fontSize: 11)),
+          Text(
+            label,
+            style: const TextStyle(fontFamily: 'Rabar', fontSize: 11),
+          ),
         ],
       ),
     );
@@ -950,7 +1196,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                       : null,
                   filled: true,
                   fillColor: AppColors.getBackground(context),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -967,7 +1216,9 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 11.5,
-                            color: sel ? Colors.white : AppColors.getTextSubtitle(context),
+                            color: sel
+                                ? Colors.white
+                                : AppColors.getTextSubtitle(context),
                           ),
                         ),
                         selected: sel,
@@ -988,27 +1239,38 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _error != null
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(_error!, style: AdminUi.subtitle),
-                          const SizedBox(height: 12),
-                          ElevatedButton(onPressed: _loadAll, child: const Text('دووبارە هەوڵبدەرەوە', style: TextStyle(fontFamily: 'Rabar'))),
-                        ],
-                      ),
-                    )
-                  : _drivers.isEmpty
-                      ? Center(child: Text('هیچ کارمەندێک نەدۆزرایەوە', style: AdminUi.title))
-                      : RefreshIndicator(
-                          onRefresh: _loadAll,
-                          child: ListView.separated(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _drivers.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 10),
-                            itemBuilder: (_, i) => _buildDriverRosterCard(_drivers[i]),
-                          ),
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_error!, style: AdminUi.subtitle),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: _loadAll,
+                        child: const Text(
+                          'دووبارە هەوڵبدەرەوە',
+                          style: TextStyle(fontFamily: 'Rabar'),
                         ),
+                      ),
+                    ],
+                  ),
+                )
+              : _drivers.isEmpty
+              ? Center(
+                  child: Text(
+                    'هیچ کارمەندێک نەدۆزرایەوە',
+                    style: AdminUi.title,
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadAll,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _drivers.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                    itemBuilder: (_, i) => _buildDriverRosterCard(_drivers[i]),
+                  ),
+                ),
         ),
       ],
     );
@@ -1053,14 +1315,22 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: color.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             _dutyLabel(duty, status),
-                            style: TextStyle(fontFamily: 'Rabar', fontSize: 10, fontWeight: FontWeight.bold, color: color),
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: color,
+                            ),
                           ),
                         ),
                       ],
@@ -1070,7 +1340,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                       textDirection: TextDirection.ltr,
                       child: Text(
                         '\u200E$phone',
-                        style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B)),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: const Color(0xFF64748B),
+                        ),
                       ),
                     ),
                   ],
@@ -1083,9 +1356,18 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
             spacing: 6,
             runSpacing: 6,
             children: [
-              _tagChip(_applicantRoleLabel(d['applicant_role']?.toString()), Iconsax.health),
-              _tagChip('${d['city'] ?? 'هەولێر'} · ${_vehicleLabel(d['vehicle_type']?.toString())}', Iconsax.location),
-              _tagChip('${d['completed_deliveries'] ?? 0} ئەرک · ${_formatIqd(d['total_earnings'])}', Iconsax.box_tick),
+              _tagChip(
+                _applicantRoleLabel(d['applicant_role']?.toString()),
+                Iconsax.health,
+              ),
+              _tagChip(
+                '${d['city'] ?? 'هەولێر'} · ${_vehicleLabel(d['vehicle_type']?.toString())}',
+                Iconsax.location,
+              ),
+              _tagChip(
+                '${d['completed_deliveries'] ?? 0} ئەرک · ${_formatIqd(d['total_earnings'])}',
+                Iconsax.box_tick,
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -1093,44 +1375,75 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
             children: [
               IconButton(
                 onPressed: () => _callPhone(phone),
-                icon: const Icon(Iconsax.call, size: 18, color: Color(0xFF2563EB)),
+                icon: const Icon(
+                  Iconsax.call,
+                  size: 18,
+                  color: Color(0xFF2563EB),
+                ),
                 tooltip: 'پەیوەندی',
               ),
               IconButton(
                 onPressed: () => _openWhatsApp(phone),
-                icon: const Icon(Iconsax.message, size: 18, color: Color(0xFF10B981)),
+                icon: const Icon(
+                  Iconsax.message,
+                  size: 18,
+                  color: Color(0xFF10B981),
+                ),
                 tooltip: 'واتسئاپ',
               ),
               if (d['current_lat'] != null && d['current_lng'] != null)
                 TextButton.icon(
                   onPressed: () {
                     _tabCtrl.animateTo(0);
-                    setState(() => _selectedMapDriver = Map<String, dynamic>.from(d));
+                    setState(
+                      () => _selectedMapDriver = Map<String, dynamic>.from(d),
+                    );
                     _mapCtrl?.animateCamera(
                       CameraUpdate.newLatLngZoom(
-                        LatLng(double.parse('${d['current_lat']}'), double.parse('${d['current_lng']}')),
+                        LatLng(
+                          double.parse('${d['current_lat']}'),
+                          double.parse('${d['current_lng']}'),
+                        ),
                         15,
                       ),
                     );
                   },
                   icon: const Icon(Iconsax.gps, size: 15),
-                  label: Text(_lastSeenText(d['last_seen_seconds']), style: const TextStyle(fontFamily: 'Rabar', fontSize: 11)),
+                  label: Text(
+                    _lastSeenText(d['last_seen_seconds']),
+                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 11),
+                  ),
                 ),
               const Spacer(),
               if (status == 'pending')
                 ElevatedButton(
                   onPressed: () => _approveDriver(d),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
-                  child: const Text('پەسەندکردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text(
+                    'پەسەندکردن',
+                    style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5),
+                  ),
                 )
               else
                 OutlinedButton(
                   onPressed: () => _toggleBlock(d),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: isBlocked ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                    side: BorderSide(color: isBlocked ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
+                    foregroundColor: isBlocked
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFFEF4444),
+                    side: BorderSide(
+                      color: isBlocked
+                          ? const Color(0xFF10B981)
+                          : const Color(0xFFEF4444),
+                    ),
                   ),
-                  child: Text(isBlocked ? 'چالاککردن' : 'بلۆککردن', style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5)),
+                  child: Text(
+                    isBlocked ? 'چالاککردن' : 'بلۆککردن',
+                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5),
+                  ),
                 ),
             ],
           ),
@@ -1139,4 +1452,3 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     );
   }
 }
-
