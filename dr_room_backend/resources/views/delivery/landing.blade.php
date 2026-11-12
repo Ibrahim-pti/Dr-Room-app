@@ -89,7 +89,6 @@
             background: var(--surface);
             border: 1px solid #EAE1D5;
             border-radius: 22px;
-            box-shadow: 0 12px 32px -12px rgba(28, 26, 23, 0.08);
         }
 
         .kicker {
@@ -103,7 +102,6 @@
             border-radius: 999px;
             background: var(--surface);
             color: var(--ink);
-            box-shadow: 0 2px 8px rgba(28, 26, 23, 0.04);
         }
 
         .hero-headline {
@@ -112,7 +110,7 @@
             letter-spacing: -0.01em;
         }
 
-        /* Crisp bordered input boxes with clean elevation and clear focus ring */
+        /* Crisp flat bordered input boxes */
         .field-box {
             width: 100%;
             min-height: 48px;
@@ -120,17 +118,15 @@
             background: #FFFFFF;
             border: 1.5px solid #DED5C8;
             border-radius: 13px;
-            box-shadow: 0 1px 2px rgba(28, 26, 23, 0.03);
             font-size: 14px;
             font-weight: 600;
             color: var(--ink);
             outline: none;
-            transition: border-color .16s ease, box-shadow .16s ease;
+            transition: border-color .16s ease;
         }
         .field-box::placeholder { color: #9A9082; font-weight: 500; font-size: 13px; }
         .field-box:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255, 90, 0, 0.14);
         }
 
         .phone-group {
@@ -139,13 +135,11 @@
             background: #FFFFFF;
             border: 1.5px solid #DED5C8;
             border-radius: 13px;
-            box-shadow: 0 1px 2px rgba(28, 26, 23, 0.03);
             overflow: hidden;
-            transition: border-color .16s ease, box-shadow .16s ease;
+            transition: border-color .16s ease;
         }
         .phone-group:focus-within {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255, 90, 0, 0.14);
         }
         .phone-group input {
             flex: 1;
@@ -181,15 +175,13 @@
             background: #FFFFFF;
             text-align: start;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(28, 26, 23, 0.03);
-            transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+            transition: border-color .16s ease, background-color .16s ease;
         }
         .role-card:hover { border-color: #CFC3B2; background: #FFFDF9; }
         .role-card.is-on {
             border: 1.5px solid var(--accent);
             background: #FFF4EC;
             color: var(--ink);
-            box-shadow: 0 8px 20px -8px rgba(255, 90, 0, 0.25);
         }
         .role-card.is-on .role-sub { color: #6B5D52; }
         .role-icon {
@@ -223,7 +215,6 @@
             font-weight: 800;
             line-height: 1.5;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(28, 26, 23, 0.03);
             transition: all .15s ease;
         }
         .opt-pill:hover { border-color: #C7BBAA; background: #FFFDF9; }
@@ -266,14 +257,13 @@
             color: #FFFFFF;
             border: 0;
             border-radius: 14px;
-            box-shadow: 0 10px 22px -8px rgba(255, 90, 0, 0.55);
             font-size: 14.5px;
             font-weight: 800;
             cursor: pointer;
-            transition: background-color .15s ease, transform .12s ease;
+            transition: background-color .15s ease;
         }
-        .btn-main:hover { background: var(--accent-deep); transform: translateY(-1px); }
-        .btn-main:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+        .btn-main:hover { background: var(--accent-deep); }
+        .btn-main:disabled { opacity: .65; cursor: not-allowed; }
 
         .btn-secondary {
             height: 50px;
@@ -482,8 +472,8 @@
                     </div>
                 </div>
 
-                <!-- High-Contrast Feature Highlight Card (Soft Borderless Elevation) -->
-                <div class="rounded-[22px] bg-gradient-to-br from-[#FF630A] via-[#F25400] to-[#D64400] text-white p-6 shadow-[0_18px_36px_-14px_rgba(214,68,0,0.42)]">
+                <!-- High-Contrast Feature Highlight Card (Flat & Clean) -->
+                <div class="rounded-[22px] bg-[#EC5200] text-white p-6">
                     <div class="flex items-start justify-between gap-4">
                         <div class="space-y-2">
                             <span class="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-[10.5px] font-extrabold tracking-wider">
@@ -971,7 +961,7 @@
 
     <!-- Trust & Verification Band -->
     <section class="w-full px-5 sm:px-8 lg:px-14 2xl:px-20 pb-14">
-        <div class="rounded-[26px] bg-[#1F1C18] text-white p-7 sm:p-10 shadow-[0_18px_40px_-14px_rgba(28,26,23,0.3)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-start">
+        <div class="rounded-[26px] bg-[#1F1C18] text-white p-7 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-start">
             <div class="lg:col-span-7 space-y-3">
                 <span class="inline-block px-3 py-1 rounded-full bg-[var(--accent)] text-white text-[11px] font-extrabold">
                     {{ __('delivery.trust_badge') }}

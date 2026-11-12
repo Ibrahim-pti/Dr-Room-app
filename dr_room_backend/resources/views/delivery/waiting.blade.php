@@ -34,7 +34,7 @@
 </head>
 <body class="bg-[#F4EFE6] text-[#1C1A17] min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-lg bg-[#FFFCF7] rounded-3xl border border-[#EAE1D5] shadow-[0_14px_34px_-12px_rgba(28,26,23,0.08)] p-7 sm:p-10 text-center">
+    <div class="w-full max-w-lg bg-[#FFFCF7] rounded-3xl border border-[#EAE1D5] p-7 sm:p-10 text-center">
         <div class="flex items-center justify-center gap-2.5 mb-6">
             <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl border border-[#EAE1D5] bg-white p-1 object-contain">
             <div class="text-start">
