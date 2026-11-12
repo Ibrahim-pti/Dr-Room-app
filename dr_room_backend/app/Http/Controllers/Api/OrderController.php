@@ -322,6 +322,9 @@ class OrderController extends Controller
                 'avatar' => $imgUrl,
                 'image_url' => $imgUrl,
                 'phone' => $u->phone ?? ($p->phone ?? null),
+                'location' => $p?->location,
+                'latitude' => $p && $p->latitude !== null ? (float) $p->latitude : null,
+                'longitude' => $p && $p->longitude !== null ? (float) $p->longitude : null,
             ];
         }
 
@@ -356,6 +359,9 @@ class OrderController extends Controller
                 'avatar' => $imgUrl,
                 'image_url' => $imgUrl,
                 'phone' => $u->phone ?? ($l->phone ?? null),
+                'location' => $l?->location,
+                'latitude' => $l && $l->latitude !== null ? (float) $l->latitude : null,
+                'longitude' => $l && $l->longitude !== null ? (float) $l->longitude : null,
             ];
         }
 

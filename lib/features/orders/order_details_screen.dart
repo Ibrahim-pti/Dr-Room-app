@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -7,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/live_route_service.dart';
 import '../../core/providers/order_provider.dart';
 import 'widgets/order_progress_timeline.dart';
 
@@ -23,6 +27,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   late OrderModel _currentOrder;
   Timer? _pollingTimer;
   GoogleMapController? _driverMapController;
+  double _driverHeading = 0.0;
+  LiveRouteResult? _trackingRoute;
+  List<LatLng> _secondaryPreviewPoints = const [];
+  String? _routeSignature;
+  bool _hasFittedDriverMap = false;
+  BitmapDescriptor? _courierIcon;
+  BitmapDescriptor? _pickupIcon;
+  BitmapDescriptor? _patientIcon;
 
   TextStyle _kStyle({
     double fontSize = 14,
@@ -43,12 +55,28 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void initState() {
     super.initState();
     _currentOrder = widget.order;
+    _initTrackingIcons();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _fetchFreshOrder();
+        _refreshTrackingRoute();
       }
     });
     _startPolling();
+  }
+
+  Future<void> _initTrackingIcons() async {
+    final icons = await Future.wait([
+      LiveRouteService.getCourierMarker(primary: const Color(0xFF2563EB)),
+      LiveRouteService.getTargetMarker(color: const Color(0xFFF59E0B), isPickup: true),
+      LiveRouteService.getTargetMarker(color: const Color(0xFF10B981), isPickup: false),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _courierIcon = icons[0];
+      _pickupIcon = icons[1];
+      _patientIcon = icons[2];
+    });
   }
 
   Future<void> _fetchFreshOrder() async {
@@ -63,12 +91,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         setState(() {
           _currentOrder = updatedOrder;
         });
+        _refreshTrackingRoute();
       }
     } catch (_) {}
   }
 
   void _startPolling() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+    _pollingTimer = Timer.periodic(const Duration(milliseconds: 2500), (timer) async {
       if (!mounted) return;
       await context.read<OrderProvider>().fetchOrders();
 
@@ -78,26 +107,153 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           orElse: () => _currentOrder,
         );
 
+        final latChanged = updatedOrder.driverLat != _currentOrder.driverLat ||
+            updatedOrder.driverLng != _currentOrder.driverLng;
+
         if (updatedOrder.status != _currentOrder.status ||
             updatedOrder.assignedNurseId != _currentOrder.assignedNurseId ||
             updatedOrder.deliveryStatus != _currentOrder.deliveryStatus ||
             updatedOrder.assignedDriverId != _currentOrder.assignedDriverId ||
-            updatedOrder.driverLat != _currentOrder.driverLat ||
-            updatedOrder.driverLng != _currentOrder.driverLng) {
+            latChanged) {
+          double nextHeading = _driverHeading;
+          if (latChanged &&
+              _currentOrder.driverLat != null &&
+              _currentOrder.driverLng != null &&
+              updatedOrder.driverLat != null &&
+              updatedOrder.driverLng != null) {
+            final moved = Geolocator.distanceBetween(
+              _currentOrder.driverLat!,
+              _currentOrder.driverLng!,
+              updatedOrder.driverLat!,
+              updatedOrder.driverLng!,
+            );
+            if (moved >= 4.0) {
+              nextHeading = LiveRouteService.calculateBearing(
+                LatLng(_currentOrder.driverLat!, _currentOrder.driverLng!),
+                LatLng(updatedOrder.driverLat!, updatedOrder.driverLng!),
+              );
+            }
+          }
+
           setState(() {
             _currentOrder = updatedOrder;
+            _driverHeading = nextHeading;
           });
+          _refreshTrackingRoute();
           if (updatedOrder.driverLat != null &&
               updatedOrder.driverLng != null) {
-            _driverMapController?.animateCamera(
-              CameraUpdate.newLatLng(
-                LatLng(updatedOrder.driverLat!, updatedOrder.driverLng!),
-              ),
-            );
+            _fitTrackingMapCamera();
           }
         }
       }
     });
+  }
+
+  Future<void> _refreshTrackingRoute() async {
+    final dLat = _currentOrder.driverLat;
+    final dLng = _currentOrder.driverLng;
+    final pLat = _currentOrder.patientLat;
+    final pLng = _currentOrder.patientLng;
+    final pkLat = _currentOrder.pickupLat;
+    final pkLng = _currentOrder.pickupLng;
+
+    if (dLat == null || dLng == null) return;
+    final driverPos = LatLng(dLat, dLng);
+    final patientPos = (pLat != null && pLng != null) ? LatLng(pLat, pLng) : null;
+    final pickupPos = (pkLat != null && pkLng != null) ? LatLng(pkLat, pkLng) : null;
+
+    final stage = (_currentOrder.deliveryStatus ?? 'assigned').toLowerCase();
+    final targetPos = (!_currentOrder.isLab &&
+            (stage == 'assigned' || stage == 'accepted') &&
+            pickupPos != null)
+        ? pickupPos
+        : (patientPos ?? pickupPos);
+    final secondaryPos = (targetPos == pickupPos && patientPos != null)
+        ? patientPos
+        : null;
+
+    if (targetPos == null) return;
+
+    final sig =
+        '${_currentOrder.id}_${stage}_${driverPos.latitude.toStringAsFixed(3)}_${driverPos.longitude.toStringAsFixed(3)}_${targetPos.latitude.toStringAsFixed(4)}';
+    if (sig == _routeSignature && _trackingRoute != null) {
+      setState(() {
+        _trackingRoute = LiveRouteResult(
+          points: [driverPos, ..._trackingRoute!.points.skip(1)],
+          distanceMeters: Geolocator.distanceBetween(
+            driverPos.latitude,
+            driverPos.longitude,
+            targetPos.latitude,
+            targetPos.longitude,
+          ),
+          durationSeconds: _trackingRoute!.durationSeconds,
+          isRoadRoute: _trackingRoute!.isRoadRoute,
+        );
+      });
+      return;
+    }
+
+    _routeSignature = sig;
+    final route = await LiveRouteService.fetchRoute(driverPos, targetPos);
+    List<LatLng> sec = const [];
+    if (secondaryPos != null) {
+      final secRes = await LiveRouteService.fetchRoute(targetPos, secondaryPos);
+      sec = secRes.points;
+    }
+    if (!mounted) return;
+    setState(() {
+      _trackingRoute = route;
+      _secondaryPreviewPoints = sec;
+    });
+    if (!_hasFittedDriverMap) {
+      _hasFittedDriverMap = true;
+      _fitTrackingMapCamera();
+    }
+  }
+
+  Future<void> _fitTrackingMapCamera() async {
+    final ctrl = _driverMapController;
+    if (ctrl == null) return;
+
+    final pts = <LatLng>[];
+    if (_currentOrder.driverLat != null && _currentOrder.driverLng != null) {
+      pts.add(LatLng(_currentOrder.driverLat!, _currentOrder.driverLng!));
+    }
+    if (_currentOrder.patientLat != null && _currentOrder.patientLng != null) {
+      final pt = LatLng(_currentOrder.patientLat!, _currentOrder.patientLng!);
+      if (pts.isEmpty ||
+          Geolocator.distanceBetween(
+                pts.first.latitude,
+                pts.first.longitude,
+                pt.latitude,
+                pt.longitude,
+              ) <
+              150000) {
+        pts.add(pt);
+      }
+    }
+    if (_currentOrder.pickupLat != null && _currentOrder.pickupLng != null) {
+      final pk = LatLng(_currentOrder.pickupLat!, _currentOrder.pickupLng!);
+      if (pts.isEmpty ||
+          Geolocator.distanceBetween(
+                pts.first.latitude,
+                pts.first.longitude,
+                pk.latitude,
+                pk.longitude,
+              ) <
+              150000) {
+        pts.add(pk);
+      }
+    }
+
+    if (pts.isEmpty) return;
+    if (pts.length == 1) {
+      await ctrl.animateCamera(CameraUpdate.newLatLngZoom(pts.first, 15.2));
+      return;
+    }
+    await ctrl.animateCamera(
+      CameraUpdate.newLatLngBounds(LiveRouteService.buildBounds(pts), 55),
+    );
   }
 
   @override
@@ -148,45 +304,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final lang = context.locale.languageCode.toLowerCase();
     final stage = (_currentOrder.deliveryStatus ?? 'assigned').toLowerCase();
 
-    final stageText = switch (stage) {
-      'accepted' => switch (lang) {
-        'ar' => 'قبل المندوب الطلب',
-        'en' => 'Driver accepted your order',
-        'kmr' => 'شۆفێری داخوازی وەرگرت',
-        _ => 'شۆفێر داواکارییەکەی وەرگرت',
-      },
-      'picked_up' => switch (lang) {
-        'ar' => 'تم استلام الطلب من المزود',
-        'en' => 'Picked up',
-        'kmr' => 'وەرگرتن هاتە کرن',
-        _ => 'وەرگیراوە و ئامادەیە بۆ گەیاندن',
-      },
-      'on_the_way' => switch (lang) {
-        'ar' => 'المندوب في الطريق الآن 🛵',
-        'en' => 'Driver is on the way 🛵',
-        'kmr' => 'شۆفێر د ڕێکێ دایە 🛵',
-        _ => 'کارمەندی گەیاندن لە ڕێگادایە 🛵',
-      },
-      'arrived' => switch (lang) {
-        'ar' => 'وصل المندوب إلى موقعك 📍',
-        'en' => 'Driver has arrived 📍',
-        'kmr' => 'شۆفێر گەهشت 📍',
-        _ => 'کارمەندی گەیاندن گەیشتە شوێنەکە 📍',
-      },
-      'delivered' => switch (lang) {
-        'ar' => 'تم التسليم بنجاح ✅',
-        'en' => 'Delivered successfully ✅',
-        'kmr' => 'گەهاندن تمام بوو ✅',
-        _ => 'بە سەرکەوتوویی ڕادەستکرا ✅',
-      },
-      _ => switch (lang) {
-        'ar' => 'تم إرسال الطلب إلى أقرب مندوب، بانتظار القبول...',
-        'en' => 'Sent to nearest courier, awaiting acceptance...',
-        'kmr' => 'بۆ نێزیکترین شۆفێری هاتە هنارتن...',
-        _ => 'نێردراوە بۆ نزیکترین شۆفێر · چاوەڕوانی قبوڵکردن...',
-      },
-    };
-
     final vehicleText = switch (_currentOrder.driverVehicleType) {
       'car' => lang == 'en' ? 'Car' : (lang == 'ar' ? 'سيارة' : 'ئۆتۆمبێل'),
       'refrigerated_van' =>
@@ -203,7 +320,28 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final dLng = _currentOrder.driverLng;
     final pLat = _currentOrder.patientLat;
     final pLng = _currentOrder.patientLng;
-    final showLiveMap = dLat != null && dLng != null && stage != 'delivered';
+    final pkLat = _currentOrder.pickupLat;
+    final pkLng = _currentOrder.pickupLng;
+    final showLiveMap =
+        ((dLat != null && dLng != null) || (pLat != null && pLng != null)) &&
+        stage != 'delivered';
+
+    double? targetDistMeters = _trackingRoute?.distanceMeters;
+    if (targetDistMeters == null &&
+        dLat != null &&
+        dLng != null &&
+        pLat != null &&
+        pLng != null) {
+      targetDistMeters = Geolocator.distanceBetween(dLat, dLng, pLat, pLng);
+    }
+
+    final proximity = LiveRouteService.describeProximity(
+      stage: stage,
+      distanceMeters: targetDistMeters,
+      etaMinutes: _trackingRoute?.etaMinutes,
+      isLab: _currentOrder.isLab,
+      lang: lang,
+    );
 
     final markers = <Marker>{};
     if (dLat != null && dLng != null) {
@@ -211,10 +349,33 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Marker(
           markerId: const MarkerId('live_driver'),
           position: LatLng(dLat, dLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueAzure,
-          ),
+          rotation: _driverHeading,
+          flat: true,
+          anchor: const Offset(0.5, 0.5),
+          zIndexInt: 3,
+          icon: _courierIcon ??
+              BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueAzure,
+              ),
           infoWindow: InfoWindow(title: _currentOrder.driverName ?? 'Driver'),
+        ),
+      );
+    }
+    if (pkLat != null && pkLng != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('pickup_stop'),
+          position: LatLng(pkLat, pkLng),
+          anchor: const Offset(0.5, 0.5),
+          zIndexInt: 2,
+          icon: _pickupIcon ??
+              BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueOrange,
+              ),
+          infoWindow: InfoWindow(
+            title: _currentOrder.pickupName ??
+                (_currentOrder.isLab ? 'Lab' : 'Pharmacy'),
+          ),
         ),
       );
     }
@@ -223,15 +384,60 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Marker(
           markerId: const MarkerId('patient_dest'),
           position: LatLng(pLat, pLng),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueGreen,
-          ),
+          anchor: const Offset(0.5, 0.5),
+          zIndexInt: 2,
+          icon: _patientIcon ??
+              BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen,
+              ),
           infoWindow: InfoWindow(
             title: lang == 'en' ? 'Your Location' : 'شوێنی تۆ',
           ),
         ),
       );
     }
+
+    final polylines = <Polyline>{};
+    if (_trackingRoute != null && _trackingRoute!.points.length >= 2) {
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('driver_route'),
+          points: _trackingRoute!.points,
+          color: const Color(0xFF2563EB),
+          width: 5,
+          jointType: JointType.round,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+        ),
+      );
+    }
+    if (_secondaryPreviewPoints.length >= 2) {
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('patient_leg_preview'),
+          points: _secondaryPreviewPoints,
+          color: const Color(0xFF10B981),
+          width: 4,
+          patterns: [PatternItem.dash(14), PatternItem.gap(8)],
+          jointType: JointType.round,
+        ),
+      );
+    }
+
+    final stageOrder = ['accepted', 'picked_up', 'on_the_way', 'arrived', 'delivered'];
+    final currentIdx = stageOrder.indexOf(stage).clamp(0, 4);
+    final stageChips = switch (lang) {
+      'en' => const ['Accepted', 'Picked up', 'On the way', 'Arrived'],
+      'ar' => const ['مقبول', 'تم الاستلام', 'في الطريق', 'وصل'],
+      'kmr' => const ['وەرگرت', 'ئامادە', 'د ڕێکێدا', 'گەهشت'],
+      _ => const ['قبوڵکرا', 'وەرگیرا', 'لە ڕێگادا', 'گەیشت'],
+    };
+
+    final initialTarget = (dLat != null && dLng != null)
+        ? LatLng(dLat, dLng)
+        : (pLat != null && pLng != null)
+            ? LatLng(pLat, pLng)
+            : const LatLng(36.1911, 44.0092);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -249,12 +455,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                  color: proximity.color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
+                child: Icon(
                   Iconsax.truck_fast,
-                  color: Color(0xFF10B981),
+                  color: proximity.color,
                   size: 24,
                 ),
               ),
@@ -304,40 +510,142 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
+              color: proximity.color.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                color: proximity.color.withValues(alpha: 0.28),
               ),
             ),
-            child: Text(
-              stageText,
-              style: _kStyle(
-                color: const Color(0xFF059669),
-                fontSize: 12.5,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    proximity.headline,
+                    style: _kStyle(
+                      color: proximity.color,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                if (proximity.detail.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: proximity.color,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      proximity.detail,
+                      style: _kStyle(
+                        color: Colors.white,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
             ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: List.generate(stageChips.length, (i) {
+              final reached = currentIdx >= i;
+              return Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        color: reached
+                            ? proximity.color
+                            : (isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0)),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      stageChips[i],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: _kStyle(
+                        fontSize: 10,
+                        fontWeight:
+                            reached ? FontWeight.bold : FontWeight.normal,
+                        color: reached
+                            ? proximity.color
+                            : const Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ),
           if (showLiveMap) ...[
             const SizedBox(height: 12),
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
               child: SizedBox(
-                height: 185,
+                height: 230,
                 width: double.infinity,
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(dLat, dLng),
-                    zoom: 14.2,
-                  ),
-                  markers: markers,
-                  zoomControlsEnabled: false,
-                  myLocationButtonEnabled: false,
-                  mapToolbarEnabled: false,
-                  onMapCreated: (c) => _driverMapController = c,
+                child: Stack(
+                  children: [
+                    GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: initialTarget,
+                        zoom: 14.5,
+                      ),
+                      markers: markers,
+                      polylines: polylines,
+                      zoomControlsEnabled: false,
+                      myLocationButtonEnabled: false,
+                      mapToolbarEnabled: false,
+                      compassEnabled: true,
+                      gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                        Factory<OneSequenceGestureRecognizer>(
+                          () => EagerGestureRecognizer(),
+                        ),
+                      },
+                      onMapCreated: (c) {
+                        _driverMapController = c;
+                        _fitTrackingMapCamera();
+                      },
+                    ),
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Material(
+                        color: cardBg.withValues(alpha: 0.94),
+                        borderRadius: BorderRadius.circular(10),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: _fitTrackingMapCamera,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Icon(
+                              Icons.zoom_out_map,
+                              size: 18,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -104,6 +104,9 @@ class OrderModel {
   final String? driverLastLocationAt;
   final double? patientLat;
   final double? patientLng;
+  final double? pickupLat;
+  final double? pickupLng;
+  final String? pickupName;
 
   final String? paymentMethod;
   final List<dynamic>? items;
@@ -157,6 +160,9 @@ class OrderModel {
     this.driverLastLocationAt,
     this.patientLat,
     this.patientLng,
+    this.pickupLat,
+    this.pickupLng,
+    this.pickupName,
     this.paymentMethod,
     this.items,
     this.prescriptionImage,
@@ -171,6 +177,9 @@ class OrderModel {
     final pharmacy = json['assigned_pharmacy'] is Map<String, dynamic>
         ? json['assigned_pharmacy'] as Map<String, dynamic>
         : (json['assigned_pharmacy'] is Map ? Map<String, dynamic>.from(json['assigned_pharmacy'] as Map) : null);
+    final lab = json['assigned_lab'] is Map<String, dynamic>
+        ? json['assigned_lab'] as Map<String, dynamic>
+        : (json['assigned_lab'] is Map ? Map<String, dynamic>.from(json['assigned_lab'] as Map) : null);
     final driver = json['assigned_driver'] is Map<String, dynamic>
         ? json['assigned_driver'] as Map<String, dynamic>
         : (json['assigned_driver'] is Map ? Map<String, dynamic>.from(json['assigned_driver'] as Map) : null);
@@ -218,6 +227,8 @@ class OrderModel {
     final resolvedPrescription = (rawPrescription != null && rawPrescription.trim().isNotEmpty)
         ? ApiClient.getImageUrl(rawPrescription.trim())
         : null;
+    final isLabOrder = (json['service_type']?.toString().toLowerCase() ?? '').contains('lab');
+    final pickupSource = isLabOrder ? lab : pharmacy;
 
     return OrderModel(
       id: json['id']?.toString() ?? '',
@@ -262,6 +273,9 @@ class OrderModel {
       driverLastLocationAt: driver?['last_location_at']?.toString(),
       patientLat: double.tryParse('${locDetails?['latitude'] ?? locDetails?['lat'] ?? patientDetails?['latitude'] ?? patientDetails?['lat'] ?? ''}'),
       patientLng: double.tryParse('${locDetails?['longitude'] ?? locDetails?['lng'] ?? patientDetails?['longitude'] ?? patientDetails?['lng'] ?? ''}'),
+      pickupLat: double.tryParse('${pickupSource?['latitude'] ?? ''}'),
+      pickupLng: double.tryParse('${pickupSource?['longitude'] ?? ''}'),
+      pickupName: pickupSource?['name']?.toString(),
       paymentMethod: json['payment_method']?.toString(),
       items: json['items'] is List ? json['items'] : null,
       prescriptionImage: resolvedPrescription,
@@ -323,6 +337,9 @@ class OrderModel {
       driverLastLocationAt: driverLastLocationAt,
       patientLat: patientLat,
       patientLng: patientLng,
+      pickupLat: pickupLat,
+      pickupLng: pickupLng,
+      pickupName: pickupName,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       items: items ?? this.items,
       prescriptionImage: prescriptionImage ?? this.prescriptionImage,

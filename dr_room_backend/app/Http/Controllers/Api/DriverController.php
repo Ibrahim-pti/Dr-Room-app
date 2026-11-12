@@ -187,14 +187,27 @@ class DriverController extends Controller
         $request->validate([
             'lat' => 'required|numeric|between:-90,90',
             'lng' => 'required|numeric|between:-180,180',
+            'speed' => 'nullable|numeric|min:0',
+            'heading' => 'nullable|numeric|between:0,360',
         ]);
 
         $user = $request->user();
         $driver = Driver::firstOrCreate(['user_id' => $user->id]);
 
+        $prevLat = $driver->current_lat !== null ? (float) $driver->current_lat : null;
+        $prevLng = $driver->current_lng !== null ? (float) $driver->current_lng : null;
+        $newLat = (float) $request->lat;
+        $newLng = (float) $request->lng;
+
+        $movedMeters = ($prevLat !== null && $prevLng !== null)
+            ? DriverDispatchService::distanceKm($prevLat, $prevLng, $newLat, $newLng) * 1000.0
+            : null;
+        $speedMps = is_numeric($request->input('speed')) ? (float) $request->input('speed') : 0.0;
+        $isMoving = $speedMps >= 1.4 || ($movedMeters !== null && $movedMeters >= 45.0);
+
         $driver->update([
-            'current_lat' => (float) $request->lat,
-            'current_lng' => (float) $request->lng,
+            'current_lat' => $newLat,
+            'current_lng' => $newLng,
             'last_location_at' => now(),
         ]);
 
@@ -202,10 +215,117 @@ class DriverController extends Controller
             $this->dispatch->autoAssignWaitingOrdersForDriver($user, $driver);
         }
 
+        $autoUpdates = $this->evaluateAutoGeofences($user, $newLat, $newLng, $isMoving);
+
         return response()->json([
             'success' => true,
             'last_location_at' => $driver->last_location_at?->toIso8601String(),
+            'auto_updates' => $autoUpdates,
         ]);
+    }
+
+    /**
+     * Talabat-style automatic proximity state transitions when the courier/staff
+     * moves along the route and approaches pickup or the patient's destination.
+     */
+    private function evaluateAutoGeofences(User $user, float $dLat, float $dLng, bool $isMoving): array
+    {
+        $orders = Order::where('assigned_driver_id', $user->id)
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->whereIn('delivery_status', ['accepted', 'picked_up', 'on_the_way'])
+            ->with(['assignedPharmacy.pharmacy', 'assignedLab.lab'])
+            ->get();
+
+        $updates = [];
+
+        foreach ($orders as $order) {
+            $oldStage = (string) $order->delivery_status;
+            $isLab = str_contains(strtolower((string) $order->service_type), 'lab');
+
+            $pickupLat = null;
+            $pickupLng = null;
+            if ($isLab && $order->assignedLab?->lab) {
+                $l = $order->assignedLab->lab;
+                $pickupLat = is_numeric($l->latitude) ? (float) $l->latitude : null;
+                $pickupLng = is_numeric($l->longitude) ? (float) $l->longitude : null;
+            } elseif ($order->assignedPharmacy?->pharmacy) {
+                $p = $order->assignedPharmacy->pharmacy;
+                $pickupLat = is_numeric($p->latitude) ? (float) $p->latitude : null;
+                $pickupLng = is_numeric($p->longitude) ? (float) $p->longitude : null;
+            }
+
+            $patientLoc = $order->resolvePatientLocation();
+            $patientLat = $patientLoc['lat'];
+            $patientLng = $patientLoc['lng'];
+
+            $distToPickupM = ($pickupLat !== null && $pickupLng !== null)
+                ? DriverDispatchService::distanceKm($dLat, $dLng, $pickupLat, $pickupLng) * 1000.0
+                : null;
+            $distToPatientM = ($patientLat !== null && $patientLng !== null)
+                ? DriverDispatchService::distanceKm($dLat, $dLng, $patientLat, $patientLng) * 1000.0
+                : null;
+
+            $nextStage = null;
+
+            if ($isLab) {
+                if ($order->driver_picked_up_at === null) {
+                    if (in_array($oldStage, ['accepted', 'on_the_way'], true) && $distToPatientM !== null && $distToPatientM <= 150.0) {
+                        $nextStage = 'arrived';
+                    } elseif ($oldStage === 'accepted' && $isMoving && ($distToPatientM === null || $distToPatientM > 150.0)) {
+                        $nextStage = 'on_the_way';
+                    }
+                } elseif ($oldStage === 'picked_up' && (($distToPatientM === null && $isMoving) || ($distToPatientM !== null && $distToPatientM > 200.0))) {
+                    $nextStage = 'on_the_way';
+                }
+            } else {
+                if ($oldStage === 'accepted') {
+                    if ($distToPickupM !== null) {
+                        if ($distToPickupM <= 150.0 && ($distToPatientM === null || $distToPatientM > 150.0)) {
+                            $nextStage = 'picked_up';
+                        } elseif ($distToPatientM !== null && $distToPatientM <= 150.0) {
+                            $nextStage = 'arrived';
+                        }
+                    } else {
+                        if ($distToPatientM !== null && $distToPatientM <= 150.0) {
+                            $nextStage = 'arrived';
+                        } elseif ($isMoving && $distToPatientM !== null && $distToPatientM > 150.0) {
+                            $nextStage = 'on_the_way';
+                        }
+                    }
+                } elseif ($oldStage === 'picked_up') {
+                    if ($distToPatientM !== null && $distToPatientM <= 150.0) {
+                        $nextStage = 'arrived';
+                    } elseif (($distToPickupM !== null && $distToPickupM > 200.0) || ($distToPickupM === null && $isMoving)) {
+                        $nextStage = 'on_the_way';
+                    }
+                } elseif ($oldStage === 'on_the_way') {
+                    if ($distToPatientM !== null && $distToPatientM <= 150.0) {
+                        $nextStage = 'arrived';
+                    }
+                }
+            }
+
+            if ($nextStage !== null && $nextStage !== $oldStage) {
+                $order->delivery_status = $nextStage;
+                if ($nextStage === 'picked_up' && $order->driver_picked_up_at === null) {
+                    $order->driver_picked_up_at = now();
+                }
+                if ($order->status === 'pending') {
+                    $order->status = 'processing';
+                }
+                $order->save();
+
+                OrderNotificationService::notifyDeliveryStage($order->fresh(), $nextStage);
+
+                $updates[] = [
+                    'order_id' => $order->id,
+                    'from' => $oldStage,
+                    'to' => $nextStage,
+                ];
+            }
+        }
+
+        return $updates;
     }
 
     public function claimOrder(Request $request, $id)

@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/utils/erbil_map_service.dart';
+import '../../core/utils/live_route_service.dart';
 import '../../main.dart';
 
 class DriverDashboardShell extends StatefulWidget {
@@ -39,17 +40,34 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
 
   Timer? _refreshTimer;
   Timer? _gpsTimer;
+  StreamSubscription<Position>? _positionSub;
   double? _lastLat;
   double? _lastLng;
+  double? _lastUploadedLat;
+  double? _lastUploadedLng;
+  double _lastHeading = 0.0;
+  double _lastSpeedMps = 0.0;
   DateTime? _lastGpsSentAt;
   String? _gpsStatusMessage;
+  bool _locationPermissionGranted = false;
+  bool _followDriver = true;
+  bool _hasInitialFitted = false;
   GoogleMapController? _mapController;
+
+  LiveRouteResult? _activeRoute;
+  List<LatLng> _secondaryRoutePoints = const [];
+  String? _routeCacheSignature;
+  BitmapDescriptor? _courierIcon;
+  BitmapDescriptor? _pickupIcon;
+  BitmapDescriptor? _patientIcon;
 
   @override
   void initState() {
     super.initState();
+    _initMapIcons();
+    _ensureLocationAndFetch();
     _loadDashboard();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted) _loadDashboard(silent: true);
     });
   }
@@ -58,8 +76,23 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
   void dispose() {
     _refreshTimer?.cancel();
     _gpsTimer?.cancel();
+    _positionSub?.cancel();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _initMapIcons() async {
+    final icons = await Future.wait([
+      LiveRouteService.getCourierMarker(primary: const Color(0xFF2563EB)),
+      LiveRouteService.getTargetMarker(color: const Color(0xFFF59E0B), isPickup: true),
+      LiveRouteService.getTargetMarker(color: const Color(0xFF10B981), isPickup: false),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _courierIcon = icons[0];
+      _pickupIcon = icons[1];
+      _patientIcon = icons[2];
+    });
   }
 
   Future<void> _loadDashboard({bool silent = false}) async {
@@ -96,6 +129,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         });
 
         _syncGpsTimerForDuty(duty);
+        _refreshActiveRoute();
       } else if (!silent) {
         setState(() {
           _error = 'کێشە لە بارکردنی زانیاری کارمەندی گەیاندن ڕوویدا';
@@ -112,44 +146,198 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     }
   }
 
+  Future<bool> _ensureLocationPermission() async {
+    final enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) {
+      if (mounted) {
+        setState(() {
+          _locationPermissionGranted = false;
+          _gpsStatusMessage = 'تکایە GPSـی مۆبایلەکەت هەڵبکە';
+        });
+      }
+      return false;
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        setState(() {
+          _locationPermissionGranted = false;
+          _gpsStatusMessage = 'دەسەڵاتی شوێن (Location) پێویستە';
+        });
+      }
+      return false;
+    }
+
+    if (!_locationPermissionGranted && mounted) {
+      setState(() {
+        _locationPermissionGranted = true;
+        _gpsStatusMessage = null;
+      });
+    } else {
+      _locationPermissionGranted = true;
+    }
+    return true;
+  }
+
+  Future<void> _ensureLocationAndFetch() async {
+    final ok = await _ensureLocationPermission();
+    if (!ok || !mounted) return;
+
+    try {
+      final last = await Geolocator.getLastKnownPosition();
+      if (last != null && mounted) {
+        _onPositionUpdate(last, uploadToServer: false);
+      }
+    } catch (_) {}
+
+    await _sendCurrentGps();
+  }
+
   void _syncGpsTimerForDuty(String duty) {
     final shouldTrack = duty == 'available' || duty == 'busy';
     if (shouldTrack) {
+      _startPositionStream();
       if (_gpsTimer == null || !_gpsTimer!.isActive) {
         _sendCurrentGps();
-        _gpsTimer = Timer.periodic(const Duration(seconds: 12), (_) {
+        _gpsTimer = Timer.periodic(const Duration(seconds: 10), (_) {
           if (mounted) _sendCurrentGps();
         });
       }
     } else {
+      _positionSub?.cancel();
+      _positionSub = null;
       _gpsTimer?.cancel();
       _gpsTimer = null;
     }
   }
 
+  Future<void> _startPositionStream() async {
+    if (_positionSub != null) return;
+    final ok = await _ensureLocationPermission();
+    if (!ok || !mounted) return;
+
+    _positionSub = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 5,
+      ),
+    ).listen(
+      (pos) {
+        if (!mounted) return;
+        _onPositionUpdate(pos, uploadToServer: true);
+      },
+      onError: (_) {},
+    );
+  }
+
+  Future<void> _onPositionUpdate(
+    Position pos, {
+    bool uploadToServer = true,
+  }) async {
+    final prev = (_lastLat != null && _lastLng != null)
+        ? LatLng(_lastLat!, _lastLng!)
+        : null;
+    final next = LatLng(pos.latitude, pos.longitude);
+
+    double heading = _lastHeading;
+    if (pos.heading >= 0 && pos.speed > 0.6) {
+      heading = pos.heading;
+    } else if (prev != null &&
+        Geolocator.distanceBetween(
+              prev.latitude,
+              prev.longitude,
+              next.latitude,
+              next.longitude,
+            ) >=
+            5.0) {
+      heading = LiveRouteService.calculateBearing(prev, next);
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _lastLat = pos.latitude;
+      _lastLng = pos.longitude;
+      _lastHeading = heading;
+      _lastSpeedMps = pos.speed;
+      _gpsStatusMessage = null;
+      _locationPermissionGranted = true;
+    });
+
+    if (_tabIndex == 1 && _mapController != null) {
+      if (!_hasInitialFitted) {
+        _hasInitialFitted = true;
+        _fitLiveRouteCamera();
+      } else if (_followDriver) {
+        _mapController!.animateCamera(CameraUpdate.newLatLng(next));
+      }
+    }
+
+    _refreshActiveRoute();
+
+    if (!uploadToServer) return;
+
+    final now = DateTime.now();
+    final elapsedSec = _lastGpsSentAt != null
+        ? now.difference(_lastGpsSentAt!).inSeconds
+        : 999;
+    final movedSinceUpload = (_lastUploadedLat != null && _lastUploadedLng != null)
+        ? Geolocator.distanceBetween(
+            _lastUploadedLat!,
+            _lastUploadedLng!,
+            pos.latitude,
+            pos.longitude,
+          )
+        : 999.0;
+
+    if (elapsedSec >= 4 || movedSinceUpload >= 25.0) {
+      await _uploadLocationToServer(pos);
+    }
+  }
+
+  Future<void> _uploadLocationToServer(Position pos) async {
+    try {
+      final res = await ApiClient.post(
+        '/driver/location',
+        body: {
+          'lat': pos.latitude,
+          'lng': pos.longitude,
+          'speed': pos.speed,
+          'heading': pos.heading >= 0 ? pos.heading : _lastHeading,
+        },
+      );
+
+      if (!mounted) return;
+      if (res.statusCode == 200) {
+        _lastUploadedLat = pos.latitude;
+        _lastUploadedLng = pos.longitude;
+        _lastGpsSentAt = DateTime.now();
+
+        final decoded = jsonDecode(res.body);
+        final autoUpdates = decoded is Map ? decoded['auto_updates'] : null;
+        if (autoUpdates is List && autoUpdates.isNotEmpty) {
+          final first = autoUpdates.first;
+          final toStage = first is Map ? first['to']?.toString() : null;
+          if (toStage != null) {
+            final label = _deliveryStageLabel(toStage, false);
+            _toast('دۆخ خۆکارانە نوێکرایەوە: $label 📍');
+          }
+          await _loadDashboard(silent: true);
+        }
+      }
+    } catch (_) {
+      // Non-fatal; retry on next tick
+    }
+  }
+
   Future<void> _sendCurrentGps() async {
     try {
-      final enabled = await Geolocator.isLocationServiceEnabled();
-      if (!enabled) {
-        if (mounted) {
-          setState(() => _gpsStatusMessage = 'تکایە GPSـی مۆبایلەکەت هەڵبکە');
-        }
-        return;
-      }
-
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          setState(
-            () => _gpsStatusMessage = 'دەسەڵاتی شوێن (Location) پێویستە',
-          );
-        }
-        return;
-      }
+      final ok = await _ensureLocationPermission();
+      if (!ok || !mounted) return;
 
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
@@ -158,23 +346,196 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         ),
       );
 
-      final res = await ApiClient.post(
-        '/driver/location',
-        body: {'lat': pos.latitude, 'lng': pos.longitude},
-      );
-
-      if (!mounted) return;
-      if (res.statusCode == 200) {
-        setState(() {
-          _lastLat = pos.latitude;
-          _lastLng = pos.longitude;
-          _lastGpsSentAt = DateTime.now();
-          _gpsStatusMessage = null;
-        });
-      }
+      await _onPositionUpdate(pos, uploadToServer: false);
+      await _uploadLocationToServer(pos);
     } catch (_) {
       // Non-fatal; retry on next tick
     }
+  }
+
+  dynamic _resolvePrimaryOrder() {
+    if (_activeOrders.isEmpty) return null;
+    for (final o in _activeOrders) {
+      final s = (o['delivery_status'] ?? '').toString();
+      if (s == 'on_the_way' || s == 'arrived' || s == 'picked_up') {
+        return o;
+      }
+    }
+    for (final o in _activeOrders) {
+      if ((o['delivery_status'] ?? '').toString() == 'accepted') {
+        return o;
+      }
+    }
+    return _activeOrders.first;
+  }
+
+  ({
+    LatLng? primaryTarget,
+    String targetLabel,
+    String targetAddress,
+    String targetPhone,
+    LatLng? secondaryTarget,
+  }) _resolveNavigationTarget(dynamic order) {
+    if (order == null) {
+      return (
+        primaryTarget: null,
+        targetLabel: '',
+        targetAddress: '',
+        targetPhone: '',
+        secondaryTarget: null,
+      );
+    }
+
+    final stage = (order['delivery_status'] ?? 'assigned').toString();
+    final isLab = order['is_lab'] == true;
+    final pk = order['pickup'] is Map ? order['pickup'] as Map : {};
+    final pt = order['patient'] is Map ? order['patient'] as Map : {};
+
+    final pkLat = double.tryParse('${pk['lat'] ?? ''}');
+    final pkLng = double.tryParse('${pk['lng'] ?? ''}');
+    final ptLat = double.tryParse('${pt['lat'] ?? ''}');
+    final ptLng = double.tryParse('${pt['lng'] ?? ''}');
+
+    final pkPos = (pkLat != null && pkLng != null) ? LatLng(pkLat, pkLng) : null;
+    final ptPos = (ptLat != null && ptLng != null) ? LatLng(ptLat, ptLng) : null;
+
+    if (isLab) {
+      final alreadyCollected = order['driver_picked_up_at'] != null;
+      if (alreadyCollected && pkPos != null) {
+        return (
+          primaryTarget: pkPos,
+          targetLabel: (pk['name'] ?? 'تاقیگە').toString(),
+          targetAddress: (pk['address'] ?? '').toString(),
+          targetPhone: (pk['phone'] ?? '').toString(),
+          secondaryTarget: null,
+        );
+      }
+      return (
+        primaryTarget: ptPos ?? pkPos,
+        targetLabel: (pt['name'] ?? 'ماڵی نەخۆش').toString(),
+        targetAddress: (pt['address'] ?? '').toString(),
+        targetPhone: (pt['phone'] ?? '').toString(),
+        secondaryTarget: pkPos,
+      );
+    }
+
+    if ((stage == 'assigned' || stage == 'accepted') && pkPos != null) {
+      return (
+        primaryTarget: pkPos,
+        targetLabel: (pk['name'] ?? 'دەرمانخانە').toString(),
+        targetAddress: (pk['address'] ?? '').toString(),
+        targetPhone: (pk['phone'] ?? '').toString(),
+        secondaryTarget: ptPos,
+      );
+    }
+
+    return (
+      primaryTarget: ptPos ?? pkPos,
+      targetLabel: (pt['name'] ?? 'نەخۆش').toString(),
+      targetAddress: (pt['address'] ?? '').toString(),
+      targetPhone: (pt['phone'] ?? '').toString(),
+      secondaryTarget: null,
+    );
+  }
+
+  Future<void> _refreshActiveRoute() async {
+    if (_lastLat == null || _lastLng == null) return;
+    final order = _resolvePrimaryOrder();
+    if (order == null) {
+      if (_activeRoute != null || _secondaryRoutePoints.isNotEmpty) {
+        setState(() {
+          _activeRoute = null;
+          _secondaryRoutePoints = const [];
+          _routeCacheSignature = null;
+        });
+      }
+      return;
+    }
+
+    final origin = LatLng(_lastLat!, _lastLng!);
+    final nav = _resolveNavigationTarget(order);
+    if (nav.primaryTarget == null) return;
+
+    final sig =
+        '${order['id']}_${order['delivery_status']}_${origin.latitude.toStringAsFixed(3)}_${origin.longitude.toStringAsFixed(3)}_${nav.primaryTarget!.latitude.toStringAsFixed(4)}';
+    if (sig == _routeCacheSignature && _activeRoute != null) {
+      // Keep starting vertex glued smoothly to live driver coordinate
+      setState(() {
+        _activeRoute = LiveRouteResult(
+          points: [origin, ..._activeRoute!.points.skip(1)],
+          distanceMeters: Geolocator.distanceBetween(
+            origin.latitude,
+            origin.longitude,
+            nav.primaryTarget!.latitude,
+            nav.primaryTarget!.longitude,
+          ),
+          durationSeconds: _activeRoute!.durationSeconds,
+          isRoadRoute: _activeRoute!.isRoadRoute,
+        );
+      });
+      return;
+    }
+
+    _routeCacheSignature = sig;
+    final primary = await LiveRouteService.fetchRoute(origin, nav.primaryTarget!);
+    List<LatLng> secondary = const [];
+    if (nav.secondaryTarget != null) {
+      final secRes = await LiveRouteService.fetchRoute(
+        nav.primaryTarget!,
+        nav.secondaryTarget!,
+      );
+      secondary = secRes.points;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _activeRoute = primary;
+      _secondaryRoutePoints = secondary;
+    });
+  }
+
+  Future<void> _fitLiveRouteCamera() async {
+    final ctrl = _mapController;
+    if (ctrl == null) return;
+
+    final pts = <LatLng>[];
+    if (_lastLat != null && _lastLng != null) {
+      pts.add(LatLng(_lastLat!, _lastLng!));
+    }
+
+    final order = _resolvePrimaryOrder();
+    final nav = _resolveNavigationTarget(order);
+    if (nav.primaryTarget != null) {
+      // Only include target in fit bounds if it's reasonably near driver or if driver has no GPS
+      if (pts.isEmpty) {
+        pts.add(nav.primaryTarget!);
+      } else {
+        final gap = Geolocator.distanceBetween(
+          pts.first.latitude,
+          pts.first.longitude,
+          nav.primaryTarget!.latitude,
+          nav.primaryTarget!.longitude,
+        );
+        if (gap < 150000) {
+          pts.add(nav.primaryTarget!);
+          if (nav.secondaryTarget != null) pts.add(nav.secondaryTarget!);
+        }
+      }
+    }
+
+    if (pts.isEmpty) {
+      await ctrl.animateCamera(
+        CameraUpdate.newLatLngZoom(ErbilMapService.erbilCenter, 13.5),
+      );
+      return;
+    }
+    if (pts.length == 1) {
+      await ctrl.animateCamera(CameraUpdate.newLatLngZoom(pts.first, 15.8));
+      return;
+    }
+    await ctrl.animateCamera(
+      CameraUpdate.newLatLngBounds(LiveRouteService.buildBounds(pts), 75),
+    );
   }
 
   Future<void> _toggleDuty(bool goOnline) async {
@@ -855,7 +1216,14 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
   }) {
     final active = _tabIndex == index;
     return InkWell(
-      onTap: () => setState(() => _tabIndex = index),
+      onTap: () {
+        setState(() => _tabIndex = index);
+        if (index == 1) {
+          _hasInitialFitted = false;
+          _ensureLocationAndFetch();
+          _refreshActiveRoute();
+        }
+      },
       borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
@@ -1406,6 +1774,19 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         const Color(0xFF0D9488),
         false,
       ),
+      'arrived' => (isLab && order['driver_picked_up_at'] == null)
+          ? (
+              'picked_up',
+              'نموونە وەرگیرا',
+              const Color(0xFF8B5CF6),
+              false,
+            )
+          : (
+              'delivered',
+              isLab ? 'گەیەنرایە تاقیگە (تەواو)' : 'ڕادەستکرا (تەواو)',
+              const Color(0xFF10B981),
+              true,
+            ),
       _ => (
         'delivered',
         isLab ? 'گەیەنرایە تاقیگە (تەواو)' : 'ڕادەستکرا (تەواو)',
@@ -1577,18 +1958,32 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
   }
 
   Widget _buildLiveMapTab(bool isDark) {
-    final center = LatLng(_lastLat ?? 36.1911, _lastLng ?? 44.0092);
-    final markers = <Marker>{};
+    final primaryOrder = _resolvePrimaryOrder();
+    final nav = _resolveNavigationTarget(primaryOrder);
+    final driverPos = (_lastLat != null && _lastLng != null)
+        ? LatLng(_lastLat!, _lastLng!)
+        : null;
+    final initialCenter =
+        driverPos ?? nav.primaryTarget ?? ErbilMapService.erbilCenter;
 
-    if (_lastLat != null && _lastLng != null) {
+    final markers = <Marker>{};
+    if (driverPos != null) {
       markers.add(
         Marker(
           markerId: const MarkerId('driver_self'),
-          position: LatLng(_lastLat!, _lastLng!),
-          infoWindow: const InfoWindow(title: 'شوێنی ئێستای من'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueAzure,
+          position: driverPos,
+          rotation: _lastHeading,
+          flat: true,
+          anchor: const Offset(0.5, 0.5),
+          zIndexInt: 3,
+          infoWindow: InfoWindow(
+            title: 'شوێنی ئێستای من',
+            snippet: _lastSpeedMps > 0.5
+                ? '${(_lastSpeedMps * 3.6).toStringAsFixed(0)} کم/کاتژمێر'
+                : 'GPS چالاکە',
           ),
+          icon: _courierIcon ??
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         ),
       );
     }
@@ -1602,13 +1997,16 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           Marker(
             markerId: MarkerId('dest_${o['id']}'),
             position: LatLng(pLat, pLng),
+            anchor: const Offset(0.5, 0.5),
+            zIndexInt: 2,
             infoWindow: InfoWindow(
               title: 'نەخۆش: ${p['name'] ?? ''}',
               snippet: 'داواکاری ${o['order_number'] ?? '#${o['id']}'}',
             ),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueGreen,
-            ),
+            icon: _patientIcon ??
+                BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueGreen,
+                ),
           ),
         );
       }
@@ -1621,25 +2019,87 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           Marker(
             markerId: MarkerId('pickup_${o['id']}'),
             position: LatLng(pkLat, pkLng),
+            anchor: const Offset(0.5, 0.5),
+            zIndexInt: 2,
             infoWindow: InfoWindow(title: '${pk['name'] ?? ''}'),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueOrange,
-            ),
+            icon: _pickupIcon ??
+                BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueOrange,
+                ),
           ),
         );
       }
     }
 
+    final polylines = <Polyline>{};
+    if (_activeRoute != null && _activeRoute!.points.length >= 2) {
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('active_route'),
+          points: _activeRoute!.points,
+          color: const Color(0xFF2563EB),
+          width: 5,
+          jointType: JointType.round,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+        ),
+      );
+    }
+    if (_secondaryRoutePoints.length >= 2) {
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('secondary_leg'),
+          points: _secondaryRoutePoints,
+          color: const Color(0xFF10B981),
+          width: 4,
+          patterns: [PatternItem.dash(16), PatternItem.gap(10)],
+          jointType: JointType.round,
+        ),
+      );
+    }
+
+    double? directMeters = _activeRoute?.distanceMeters;
+    if (directMeters == null && driverPos != null && nav.primaryTarget != null) {
+      directMeters = Geolocator.distanceBetween(
+        driverPos.latitude,
+        driverPos.longitude,
+        nav.primaryTarget!.latitude,
+        nav.primaryTarget!.longitude,
+      );
+    }
+
+    final primaryStage =
+        (primaryOrder?['delivery_status'] ?? 'assigned').toString();
+    final primaryIsLab = primaryOrder?['is_lab'] == true;
+    final proximity = LiveRouteService.describeProximity(
+      stage: primaryStage,
+      distanceMeters: directMeters,
+      etaMinutes: _activeRoute?.etaMinutes,
+      isLab: primaryIsLab,
+      lang: 'ckb',
+    );
+
     return Stack(
       children: [
         GoogleMap(
-          initialCameraPosition: CameraPosition(target: center, zoom: 13.5),
-          cameraTargetBounds: ErbilMapService.erbilCameraBounds,
+          initialCameraPosition: CameraPosition(
+            target: initialCenter,
+            zoom: 14.8,
+          ),
           markers: markers,
-          myLocationEnabled: true,
-          myLocationButtonEnabled: true,
+          polylines: polylines,
+          compassEnabled: true,
+          myLocationEnabled: _locationPermissionGranted,
+          myLocationButtonEnabled: false,
           zoomControlsEnabled: false,
-          onMapCreated: (c) => _mapController = c,
+          onCameraMoveStarted: () {
+            // Let user pan freely without snapping back until they tap Follow
+          },
+          onMapCreated: (c) {
+            _mapController = c;
+            _hasInitialFitted = true;
+            _fitLiveRouteCamera();
+          },
         ),
         Positioned(
           top: 12,
@@ -1648,28 +2108,78 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.getSurface(context).withValues(alpha: 0.94),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.getBorder(context)),
+              color: AppColors.getSurface(context).withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: proximity.isUrgentClose
+                    ? proximity.color.withValues(alpha: 0.5)
+                    : AppColors.getBorder(context),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Iconsax.gps, color: Color(0xFF2563EB), size: 18),
-                const SizedBox(width: 8),
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: (primaryOrder != null
+                            ? proximity.color
+                            : const Color(0xFF2563EB))
+                        .withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Iconsax.gps,
+                    color: primaryOrder != null
+                        ? proximity.color
+                        : const Color(0xFF2563EB),
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    'داواکاری چالاک: ${_activeOrders.length} · دواین GPS: ${_lastLat != null ? '${_lastLat!.toStringAsFixed(4)}, ${_lastLng!.toStringAsFixed(4)}' : 'نادیار'}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        primaryOrder != null
+                            ? proximity.headline
+                            : 'داواکاری چالاک: ${_activeOrders.length}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: primaryOrder != null
+                              ? proximity.color
+                              : AppColors.getTextTitle(context),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        primaryOrder != null && proximity.detail.isNotEmpty
+                            ? '${proximity.detail} · ئاڕاستەی تۆماتیک چالاکە'
+                            : (_lastLat != null
+                                ? 'شوێنی من: ${_lastLat!.toStringAsFixed(4)}, ${_lastLng!.toStringAsFixed(4)}'
+                                : 'چاوەڕوانی نیشانەی GPS...'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 10.5,
+                          color: AppColors.getTextSubtitle(context),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 IconButton(
-                  onPressed: _sendCurrentGps,
+                  onPressed: () {
+                    setState(() => _followDriver = true);
+                    _ensureLocationAndFetch();
+                    _fitLiveRouteCamera();
+                  },
                   icon: const Icon(
                     Icons.my_location,
                     size: 18,
@@ -1681,6 +2191,154 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             ),
           ),
         ),
+        Positioned(
+          left: 14,
+          bottom: primaryOrder != null ? 185 : 22,
+          child: Column(
+            children: [
+              FloatingActionButton.small(
+                heroTag: 'driver_follow_btn',
+                onPressed: () {
+                  setState(() => _followDriver = !_followDriver);
+                  if (_followDriver && driverPos != null) {
+                    _mapController?.animateCamera(
+                      CameraUpdate.newLatLngZoom(driverPos, 16.0),
+                    );
+                  }
+                },
+                backgroundColor: _followDriver
+                    ? const Color(0xFF2563EB)
+                    : AppColors.getSurface(context),
+                foregroundColor: _followDriver
+                    ? Colors.white
+                    : AppColors.getTextTitle(context),
+                elevation: 2,
+                child: const Icon(Icons.navigation_rounded, size: 18),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton.small(
+                heroTag: 'driver_fit_btn',
+                onPressed: () {
+                  setState(() => _followDriver = false);
+                  _fitLiveRouteCamera();
+                },
+                backgroundColor: AppColors.getSurface(context),
+                foregroundColor: const Color(0xFF0F172A),
+                elevation: 2,
+                child: const Icon(Icons.zoom_out_map, size: 18),
+              ),
+            ],
+          ),
+        ),
+        if (primaryOrder != null)
+          Positioned(
+            right: 12,
+            left: 12,
+            bottom: 14,
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.getSurface(context),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.getBorder(context)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: proximity.color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${primaryOrder['order_number'] ?? '#${primaryOrder['id']}'} · ${_deliveryStageLabel(primaryStage, primaryIsLab)}',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: proximity.color,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      if (nav.targetPhone.isNotEmpty)
+                        IconButton(
+                          onPressed: () => _callPhone(nav.targetPhone),
+                          icon: const Icon(
+                            Iconsax.call,
+                            size: 18,
+                            color: Color(0xFF10B981),
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      if (nav.primaryTarget != null)
+                        IconButton(
+                          onPressed: () => _openMaps(
+                            nav.primaryTarget!.latitude,
+                            nav.primaryTarget!.longitude,
+                            nav.targetAddress,
+                          ),
+                          icon: const Icon(
+                            Iconsax.routing,
+                            size: 18,
+                            color: Color(0xFF2563EB),
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nav.targetLabel.isNotEmpty
+                                  ? nav.targetLabel
+                                  : 'ئامانجی داهاتوو',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (nav.targetAddress.isNotEmpty)
+                              Text(
+                                nav.targetAddress,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 11,
+                                  color: AppColors.getTextSubtitle(context),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildProgressionActions(
+                    primaryOrder,
+                    primaryStage,
+                    primaryIsLab,
+                    _busyOrderId == primaryOrder['id'].toString(),
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }
