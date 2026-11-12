@@ -87,38 +87,40 @@
 
         .card {
             background: var(--surface);
-            border: 1.5px solid var(--ink);
-            border-radius: 20px;
+            border: 1px solid #EAE1D5;
+            border-radius: 22px;
+            box-shadow: 0 12px 32px -12px rgba(28, 26, 23, 0.08);
         }
 
         .kicker {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
             font-size: 12px;
             font-weight: 800;
-            padding: 5px 12px;
-            border: 1.5px solid var(--ink);
+            padding: 6px 14px;
+            border: 1px solid #EAE1D5;
             border-radius: 999px;
             background: var(--surface);
             color: var(--ink);
+            box-shadow: 0 2px 8px rgba(28, 26, 23, 0.04);
         }
 
         .hero-headline {
             font-weight: 900;
-            line-height: 1.45;
+            line-height: 1.78 !important;
             letter-spacing: -0.01em;
         }
 
-        /* Clear bordered input boxes with subtle elevation and unmistakable focus */
+        /* Crisp bordered input boxes with clean elevation and clear focus ring */
         .field-box {
             width: 100%;
-            min-height: 46px;
+            min-height: 48px;
             padding: 10px 14px;
             background: #FFFFFF;
-            border: 1.5px solid #B9AE9E;
-            border-radius: 12px;
-            box-shadow: 0 1px 2px rgba(28, 26, 23, 0.05);
+            border: 1.5px solid #DED5C8;
+            border-radius: 13px;
+            box-shadow: 0 1px 2px rgba(28, 26, 23, 0.03);
             font-size: 14px;
             font-weight: 600;
             color: var(--ink);
@@ -128,22 +130,22 @@
         .field-box::placeholder { color: #9A9082; font-weight: 500; font-size: 13px; }
         .field-box:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255, 90, 0, 0.16);
+            box-shadow: 0 0 0 3px rgba(255, 90, 0, 0.14);
         }
 
         .phone-group {
             display: flex;
             align-items: stretch;
             background: #FFFFFF;
-            border: 1.5px solid #B9AE9E;
-            border-radius: 12px;
-            box-shadow: 0 1px 2px rgba(28, 26, 23, 0.05);
+            border: 1.5px solid #DED5C8;
+            border-radius: 13px;
+            box-shadow: 0 1px 2px rgba(28, 26, 23, 0.03);
             overflow: hidden;
             transition: border-color .16s ease, box-shadow .16s ease;
         }
         .phone-group:focus-within {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(255, 90, 0, 0.16);
+            box-shadow: 0 0 0 3px rgba(255, 90, 0, 0.14);
         }
         .phone-group input {
             flex: 1;
@@ -173,35 +175,37 @@
             align-items: flex-start;
             gap: 12px;
             width: 100%;
-            padding: 12px 14px;
-            border: 1.5px solid #C8BEB0;
-            border-radius: 14px;
+            padding: 13px 14px;
+            border: 1px solid #E5DDD0;
+            border-radius: 15px;
             background: #FFFFFF;
             text-align: start;
             cursor: pointer;
-            box-shadow: 0 1px 2px rgba(28, 26, 23, 0.04);
-            transition: border-color .15s ease, background-color .15s ease, transform .12s ease;
+            box-shadow: 0 2px 6px rgba(28, 26, 23, 0.03);
+            transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
         }
-        .role-card:hover { border-color: var(--ink); background: #FFFDF8; }
+        .role-card:hover { border-color: #CFC3B2; background: #FFFDF9; }
         .role-card.is-on {
-            border-color: var(--ink);
-            background: var(--ink);
-            color: var(--surface);
+            border: 1.5px solid var(--accent);
+            background: #FFF4EC;
+            color: var(--ink);
+            box-shadow: 0 8px 20px -8px rgba(255, 90, 0, 0.25);
         }
-        .role-card.is-on .role-sub { color: #D7CEC2; }
+        .role-card.is-on .role-sub { color: #6B5D52; }
         .role-icon {
             width: 38px;
             height: 38px;
             border-radius: 11px;
-            border: 1.5px solid currentColor;
+            background: #FAF5ED;
+            color: var(--accent-deep);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            transition: background-color .16s ease, color .16s ease;
         }
         .role-card.is-on .role-icon {
             background: var(--accent);
-            border-color: var(--accent);
             color: #FFFFFF;
         }
 
@@ -211,63 +215,65 @@
             justify-content: center;
             gap: 8px;
             padding: 10px 14px;
-            border: 1.5px solid #C8BEB0;
+            border: 1px solid #E3DAD0;
             border-radius: 12px;
             background: #FFFFFF;
             color: var(--ink);
             font-size: 12.5px;
             font-weight: 800;
+            line-height: 1.5;
             cursor: pointer;
-            box-shadow: 0 1px 2px rgba(28, 26, 23, 0.04);
+            box-shadow: 0 1px 3px rgba(28, 26, 23, 0.03);
             transition: all .15s ease;
         }
-        .opt-pill:hover { border-color: var(--ink); }
+        .opt-pill:hover { border-color: #C7BBAA; background: #FFFDF9; }
         .opt-pill.is-on {
-            background: var(--ink);
-            border-color: var(--ink);
-            color: var(--surface);
+            background: #FFF2E8;
+            border: 1.5px solid var(--accent);
+            color: #B93A00;
         }
 
         .skill-chip {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 9px 12px;
-            border: 1.5px solid #C8BEB0;
+            padding: 10px 12px;
+            border: 1px solid #E3DAD0;
             border-radius: 12px;
             background: #FFFFFF;
             font-size: 12px;
             font-weight: 700;
-            line-height: 1.5;
+            line-height: 1.6;
             cursor: pointer;
             transition: all .15s ease;
             text-align: start;
         }
-        .skill-chip:hover { border-color: var(--ink); }
+        .skill-chip:hover { border-color: #C7BBAA; }
         .skill-chip.is-on {
-            border-color: var(--accent-deep);
-            background: #FFF1E8;
+            border: 1.5px solid var(--accent);
+            background: #FFF4EC;
             color: var(--ink);
         }
 
         .btn-main {
             height: 50px;
-            padding: 0 20px;
+            padding: 0 22px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             background: var(--accent);
             color: #FFFFFF;
-            border: 1.5px solid var(--ink);
+            border: 0;
             border-radius: 14px;
+            box-shadow: 0 10px 22px -8px rgba(255, 90, 0, 0.55);
             font-size: 14.5px;
             font-weight: 800;
             cursor: pointer;
-            transition: background-color .15s ease;
+            transition: background-color .15s ease, transform .12s ease;
         }
-        .btn-main:hover { background: var(--accent-deep); }
-        .btn-main:disabled { opacity: .65; cursor: not-allowed; }
+        .btn-main:hover { background: var(--accent-deep); transform: translateY(-1px); }
+        .btn-main:disabled { opacity: .65; cursor: not-allowed; transform: none; }
 
         .btn-secondary {
             height: 50px;
@@ -278,39 +284,45 @@
             gap: 8px;
             background: #FFFFFF;
             color: var(--ink);
-            border: 1.5px solid var(--ink);
+            border: 1px solid #DDD3C4;
             border-radius: 14px;
             font-size: 14px;
             font-weight: 800;
             cursor: pointer;
-            transition: background-color .15s ease;
+            transition: background-color .15s ease, border-color .15s ease;
         }
-        .btn-secondary:hover { background: #F5EFE6; }
+        .btn-secondary:hover { background: #F8F3EB; border-color: #C4B7A5; }
 
         .btn-ghost {
             display: inline-flex;
             align-items: center;
             height: 38px;
             padding: 0 14px;
-            border: 1.5px solid var(--ink);
+            border: 1px solid #DFD5C7;
             border-radius: 12px;
-            background: transparent;
+            background: var(--surface);
             color: var(--ink);
             font-size: 13px;
             font-weight: 800;
             white-space: nowrap;
             text-decoration: none;
+            transition: all .15s ease;
         }
-        .btn-ghost:hover { background: var(--ink); color: var(--surface); }
+        .btn-ghost:hover { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 
-        .rule-dash { border-top: 1.5px dashed var(--line); }
+        .rule-dash { border-top: 1px solid #E8DFD3; }
 
         .outline-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: #FFF1E7;
+            color: var(--accent-deep);
             font-weight: 900;
-            font-size: 42px;
-            line-height: 1;
-            color: transparent;
-            -webkit-text-stroke: 1.5px var(--ink);
+            font-size: 16px;
         }
     </style>
 </head>
@@ -389,20 +401,20 @@
       }">
 
     <!-- Header -->
-    <header class="border-b-[1.5px] border-[var(--ink)] bg-[var(--paper)] sticky top-0 z-40">
+    <header class="border-b border-[#E6DDD0] bg-[#F4EFE6]/95 backdrop-blur-md sticky top-0 z-40">
         <div class="w-full px-5 sm:px-8 lg:px-14 2xl:px-20 h-[72px] flex items-center justify-between gap-3">
             <a href="{{ $mainSiteHref }}" class="flex items-center gap-3 min-w-0">
-                <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-10 h-10 object-contain flex-shrink-0 border-[1.5px] border-[var(--ink)] rounded-xl bg-[var(--surface)] p-1">
+                <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-10 h-10 object-contain flex-shrink-0 border border-[#E6DDD0] rounded-xl bg-[var(--surface)] p-1">
                 <div class="flex items-center gap-2 min-w-0">
                     <span class="text-lg font-black leading-none" dir="ltr">Dr<span class="text-[var(--accent)]">Room</span></span>
-                    <span class="hidden sm:inline-block kicker !text-[11px] !py-0.5">{{ __('delivery.brand_tag') }}</span>
+                    <span class="hidden sm:inline-block kicker !text-[11px] !py-1">{{ __('delivery.brand_tag') }}</span>
                 </div>
             </a>
 
             <div class="flex items-center gap-2">
-                <a href="{{ $mainSiteHref }}" class="hidden md:inline-flex btn-ghost !border-transparent hover:!border-[var(--ink)]">{{ __('delivery.nav_home') }}</a>
+                <a href="{{ $mainSiteHref }}" class="hidden md:inline-flex btn-ghost !border-transparent !bg-transparent hover:!bg-[var(--surface)] hover:!border-[#E6DDD0] hover:!text-[var(--ink)]">{{ __('delivery.nav_home') }}</a>
                 <a href="{{ route('staff.landing') }}" class="hidden sm:inline-flex btn-ghost">{{ __('delivery.nav_staff') }}</a>
-                <a href="#apply-form" class="hidden lg:inline-flex btn-ghost !bg-[var(--accent)] !text-white !border-[var(--ink)]">{{ __('delivery.nav_join') }}</a>
+                <a href="#apply-form" class="hidden lg:inline-flex btn-ghost !bg-[var(--accent)] !text-white !border-transparent hover:!bg-[var(--accent-deep)]">{{ __('delivery.nav_join') }}</a>
 
                 <div class="relative">
                     <button type="button" @click="langOpen = !langOpen" @click.away="langOpen = false" class="btn-ghost gap-1.5">
@@ -445,46 +457,46 @@
                         {{ __('delivery.badge') }}
                     </span>
 
-                    <h1 class="hero-headline text-3xl sm:text-4xl xl:text-[46px] text-[var(--ink)]">
-                        {{ __('delivery.hero_title_1') }}
-                        <span class="block text-[var(--accent-deep)] mt-1">{{ __('delivery.hero_title_2') }}</span>
+                    <h1 class="hero-headline text-[28px] sm:text-[36px] xl:text-[42px] !leading-[1.78] text-[var(--ink)]">
+                        <span class="block">{{ __('delivery.hero_title_1') }}</span>
+                        <span class="block text-[var(--accent-deep)] mt-2">{{ __('delivery.hero_title_2') }}</span>
                     </h1>
 
-                    <p class="text-sm sm:text-base text-[var(--muted)] leading-[1.95] max-w-2xl font-medium">
+                    <p class="text-sm sm:text-[15.5px] text-[var(--muted)] leading-[2] max-w-2xl font-medium">
                         {{ __('delivery.hero_desc') }}
                     </p>
 
                     <div class="flex flex-wrap gap-2.5 pt-1">
-                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--line)] text-xs font-extrabold text-[var(--ink)]">
+                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface)] border border-[#E6DDD0] text-xs font-extrabold text-[var(--ink)]">
                             <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                             {{ __('delivery.hero_pill_1') }}
                         </span>
-                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--line)] text-xs font-extrabold text-[var(--ink)]">
+                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface)] border border-[#E6DDD0] text-xs font-extrabold text-[var(--ink)]">
                             <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             {{ __('delivery.hero_pill_2') }}
                         </span>
-                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--line)] text-xs font-extrabold text-[var(--ink)]">
+                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface)] border border-[#E6DDD0] text-xs font-extrabold text-[var(--ink)]">
                             <svg class="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             {{ __('delivery.hero_pill_3') }}
                         </span>
                     </div>
                 </div>
 
-                <!-- High-Contrast Feature Highlight Card (Fixed AAA Readability) -->
-                <div class="rounded-[20px] border-[1.5px] border-[var(--ink)] bg-[#DD4800] text-white p-5 sm:p-6">
+                <!-- High-Contrast Feature Highlight Card (Soft Borderless Elevation) -->
+                <div class="rounded-[22px] bg-gradient-to-br from-[#FF630A] via-[#F25400] to-[#D64400] text-white p-6 shadow-[0_18px_36px_-14px_rgba(214,68,0,0.42)]">
                     <div class="flex items-start justify-between gap-4">
                         <div class="space-y-2">
-                            <span class="inline-block px-2.5 py-1 rounded-full bg-[var(--ink)] text-white text-[10.5px] font-extrabold tracking-wider">
+                            <span class="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-[10.5px] font-extrabold tracking-wider">
                                 {{ __('delivery.highlight_badge') }}
                             </span>
-                            <h2 class="text-lg sm:text-xl font-black text-white leading-[1.6]">
+                            <h2 class="text-lg sm:text-xl font-black text-white leading-[1.7]">
                                 {{ __('delivery.feat_1_title') }}
                             </h2>
-                            <p class="text-sm text-white/95 leading-[1.85] font-medium">
+                            <p class="text-sm text-white/95 leading-[1.9] font-medium">
                                 {{ __('delivery.feat_1_desc') }}
                             </p>
                         </div>
-                        <div class="w-12 h-12 rounded-2xl bg-[var(--ink)] text-white flex items-center justify-center flex-shrink-0">
+                        <div class="w-12 h-12 rounded-2xl bg-white/15 text-white flex items-center justify-center flex-shrink-0">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                             </svg>
@@ -492,30 +504,32 @@
                     </div>
                 </div>
 
-                <!-- 3 Secondary Benefit Cards (Completing the 4-benefit matrix) -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                    <div class="card p-4 space-y-2">
-                        <div class="w-9 h-9 rounded-xl border border-[var(--ink)] bg-[#FFF3EB] text-[var(--accent-deep)] flex items-center justify-center">
+                <!-- 3 Secondary Benefit Cards (Spacious 2-col layout with zero cramped text) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div class="card p-5 space-y-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-[#FFF1E7] text-[var(--accent-deep)] flex items-center justify-center">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
-                        <h3 class="text-xs sm:text-[13px] font-black leading-[1.6]">{{ __('delivery.feat_2_title') }}</h3>
-                        <p class="text-[11.5px] text-[var(--muted)] leading-[1.75]">{{ __('delivery.feat_2_desc') }}</p>
+                        <h3 class="text-sm font-black leading-[1.65]">{{ __('delivery.feat_2_title') }}</h3>
+                        <p class="text-xs text-[var(--muted)] leading-[1.85]">{{ __('delivery.feat_2_desc') }}</p>
                     </div>
 
-                    <div class="card p-4 space-y-2">
-                        <div class="w-9 h-9 rounded-xl border border-[var(--ink)] bg-[#FFF3EB] text-[var(--accent-deep)] flex items-center justify-center">
+                    <div class="card p-5 space-y-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-[#FFF1E7] text-[var(--accent-deep)] flex items-center justify-center">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                         </div>
-                        <h3 class="text-xs sm:text-[13px] font-black leading-[1.6]">{{ __('delivery.feat_3_title') }}</h3>
-                        <p class="text-[11.5px] text-[var(--muted)] leading-[1.75]">{{ __('delivery.feat_3_desc') }}</p>
+                        <h3 class="text-sm font-black leading-[1.65]">{{ __('delivery.feat_3_title') }}</h3>
+                        <p class="text-xs text-[var(--muted)] leading-[1.85]">{{ __('delivery.feat_3_desc') }}</p>
                     </div>
 
-                    <div class="card p-4 space-y-2">
-                        <div class="w-9 h-9 rounded-xl border border-[var(--ink)] bg-[#FFF3EB] text-[var(--accent-deep)] flex items-center justify-center">
+                    <div class="card p-5 sm:col-span-2 flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-[#FFF1E7] text-[var(--accent-deep)] flex items-center justify-center flex-shrink-0">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
                         </div>
-                        <h3 class="text-xs sm:text-[13px] font-black leading-[1.6]">{{ __('delivery.feat_4_title') }}</h3>
-                        <p class="text-[11.5px] text-[var(--muted)] leading-[1.75]">{{ __('delivery.feat_4_desc') }}</p>
+                        <div class="space-y-1">
+                            <h3 class="text-sm font-black leading-[1.65]">{{ __('delivery.feat_4_title') }}</h3>
+                            <p class="text-xs text-[var(--muted)] leading-[1.85]">{{ __('delivery.feat_4_desc') }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -523,22 +537,22 @@
             <!-- 4-Step Interactive Medical Recruitment Form Column -->
             <div class="lg:col-span-6" id="apply-form">
                 <div class="card p-5 sm:p-8 text-start">
-                    <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b-[1.5px] border-dashed border-[var(--line)]">
-                        <span class="px-3 py-1 rounded-full bg-[var(--ink)] text-white text-[11px] font-extrabold">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-[#EFE8DC]">
+                        <span class="px-3 py-1 rounded-full bg-[#FFF2E8] text-[var(--accent-deep)] text-[11px] font-extrabold">
                             {{ __('delivery.form_badge') }}
                         </span>
-                        <span class="text-xs font-extrabold text-[var(--accent-deep)]">
-                            {{ __('delivery.step_of') }} <span x-text="step"></span> / 4
+                        <span class="text-xs font-extrabold text-[var(--muted)]">
+                            {{ __('delivery.step_of') }} <span class="text-[var(--accent-deep)]" x-text="step"></span> / 4
                         </span>
                     </div>
 
                     <div class="mt-4">
-                        <h2 class="text-xl sm:text-2xl font-black text-[var(--ink)] leading-[1.55]">{{ __('delivery.form_title') }}</h2>
-                        <p class="text-xs sm:text-[13px] text-[var(--muted)] mt-1.5 leading-[1.8]">{{ __('delivery.form_subtitle') }}</p>
+                        <h2 class="text-xl sm:text-2xl font-black text-[var(--ink)] leading-[1.65]">{{ __('delivery.form_title') }}</h2>
+                        <p class="text-xs sm:text-[13px] text-[var(--muted)] mt-1.5 leading-[1.85]">{{ __('delivery.form_subtitle') }}</p>
                     </div>
 
                     <!-- Interactive 4-Step Progress Bar -->
-                    <div class="grid grid-cols-4 gap-2 mt-5 mb-6">
+                    <div class="grid grid-cols-4 gap-2.5 mt-5 mb-6">
                         @foreach([
                             1 => __('delivery.step_1_short'),
                             2 => __('delivery.step_2_short'),
@@ -548,10 +562,10 @@
                             <button type="button"
                                     @click="if ({{ $idx }} <= step) step = {{ $idx }}"
                                     class="text-start group cursor-pointer focus:outline-none">
-                                <div class="h-2 rounded-full transition-colors duration-200"
-                                     :class="step >= {{ $idx }} ? 'bg-[var(--accent)]' : 'bg-[#E5DDD0]'"></div>
-                                <p class="mt-1.5 text-[10.5px] sm:text-[11px] font-extrabold leading-tight"
-                                   :class="step === {{ $idx }} ? 'text-[var(--ink)]' : 'text-[var(--muted)]'">
+                                <div class="h-1.5 rounded-full transition-colors duration-200"
+                                     :class="step >= {{ $idx }} ? 'bg-[var(--accent)]' : 'bg-[#EAE2D6]'"></div>
+                                <p class="mt-2 text-[10.5px] sm:text-[11px] font-extrabold leading-[1.5]"
+                                   :class="step === {{ $idx }} ? 'text-[var(--accent-deep)]' : (step > {{ $idx }} ? 'text-[var(--ink)]' : 'text-[var(--muted)]')">
                                     {{ $idx }}. {{ $stepTitle }}
                                 </p>
                             </button>
@@ -915,14 +929,14 @@
                     ['tag' => __('delivery.compare_nurse_tag'), 'title' => __('delivery.compare_nurse_title'), 'points' => __('delivery.compare_nurse_points'), 'highlight' => false],
                     ['tag' => __('delivery.compare_courier_tag'), 'title' => __('delivery.compare_courier_title'), 'points' => __('delivery.compare_courier_points'), 'highlight' => false],
                 ] as $track)
-                    <div class="card p-6 space-y-4 {{ $track['highlight'] ? '!bg-[#FFF8F3]' : '' }}">
-                        <span class="inline-block px-3 py-1 rounded-full border border-[var(--ink)] bg-white text-[11px] font-extrabold">
+                    <div class="card p-6 space-y-4 {{ $track['highlight'] ? '!bg-[#FFF9F4] !border-[#FFD7BE]' : '' }}">
+                        <span class="inline-block px-3 py-1 rounded-full bg-[#FFF2E8] text-[var(--accent-deep)] text-[11px] font-extrabold">
                             {{ $track['tag'] }}
                         </span>
-                        <h3 class="text-lg font-black text-[var(--ink)]">{{ $track['title'] }}</h3>
+                        <h3 class="text-lg font-black text-[var(--ink)] leading-[1.6]">{{ $track['title'] }}</h3>
                         <ul class="space-y-2.5">
                             @foreach((array) $track['points'] as $pt)
-                                <li class="flex items-start gap-2.5 text-xs sm:text-[13px] text-[var(--muted)] leading-[1.75] font-medium">
+                                <li class="flex items-start gap-2.5 text-xs sm:text-[13px] text-[var(--muted)] leading-[1.8] font-medium">
                                     <span class="w-5 h-5 rounded-full bg-[var(--accent-soft)] text-[var(--accent-deep)] flex items-center justify-center flex-shrink-0 mt-0.5 font-black text-[11px]">✓</span>
                                     <span>{{ $pt }}</span>
                                 </li>
@@ -939,16 +953,16 @@
         <div class="w-full px-5 sm:px-8 lg:px-14 2xl:px-20 py-14 sm:py-18 text-start">
             <div class="max-w-2xl mb-10 space-y-2.5">
                 <span class="kicker">{{ __('delivery.how_badge') }}</span>
-                <h2 class="text-2xl sm:text-3xl font-black text-[var(--ink)] leading-[1.45]">{{ __('delivery.how_title') }}</h2>
-                <p class="text-sm text-[var(--muted)] leading-[1.85]">{{ __('delivery.how_sub') }}</p>
+                <h2 class="text-2xl sm:text-3xl font-black text-[var(--ink)] leading-[1.6]">{{ __('delivery.how_title') }}</h2>
+                <p class="text-sm text-[var(--muted)] leading-[1.9]">{{ __('delivery.how_sub') }}</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 @foreach((array) $wfSteps as $idx => $wf)
                     <div class="card p-5 space-y-3">
                         <span class="outline-num">{{ str_pad((string) ($idx + 1), 2, '0', STR_PAD_LEFT) }}</span>
-                        <h3 class="text-sm font-black text-[var(--ink)] leading-[1.6]">{{ $wf['t'] ?? '' }}</h3>
-                        <p class="text-xs text-[var(--muted)] leading-[1.8]">{{ $wf['d'] ?? '' }}</p>
+                        <h3 class="text-sm font-black text-[var(--ink)] leading-[1.65]">{{ $wf['t'] ?? '' }}</h3>
+                        <p class="text-xs text-[var(--muted)] leading-[1.85]">{{ $wf['d'] ?? '' }}</p>
                     </div>
                 @endforeach
             </div>
@@ -957,19 +971,19 @@
 
     <!-- Trust & Verification Band -->
     <section class="w-full px-5 sm:px-8 lg:px-14 2xl:px-20 pb-14">
-        <div class="rounded-[24px] border-[1.5px] border-[var(--ink)] bg-[var(--ink)] text-white p-7 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-start">
+        <div class="rounded-[26px] bg-[#1F1C18] text-white p-7 sm:p-10 shadow-[0_18px_40px_-14px_rgba(28,26,23,0.3)] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-start">
             <div class="lg:col-span-7 space-y-3">
                 <span class="inline-block px-3 py-1 rounded-full bg-[var(--accent)] text-white text-[11px] font-extrabold">
                     {{ __('delivery.trust_badge') }}
                 </span>
-                <h2 class="text-2xl sm:text-3xl font-black leading-[1.5]">{{ __('delivery.trust_title') }}</h2>
-                <p class="text-sm text-[#D7CEC2] leading-[1.9] max-w-2xl">{{ __('delivery.trust_desc') }}</p>
+                <h2 class="text-2xl sm:text-3xl font-black leading-[1.65]">{{ __('delivery.trust_title') }}</h2>
+                <p class="text-sm text-[#D7CEC2] leading-[1.95] max-w-2xl">{{ __('delivery.trust_desc') }}</p>
             </div>
             <div class="lg:col-span-5 space-y-3">
                 @foreach((array) __('delivery.trust_points') as $tp)
-                    <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/10 border border-white/15">
+                    <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/10">
                         <span class="w-6 h-6 rounded-full bg-[var(--accent)] text-white flex items-center justify-center flex-shrink-0 text-xs font-black">✓</span>
-                        <span class="text-xs sm:text-[13px] font-bold leading-[1.7] text-white">{{ $tp }}</span>
+                        <span class="text-xs sm:text-[13px] font-bold leading-[1.75] text-white">{{ $tp }}</span>
                     </div>
                 @endforeach
             </div>
@@ -982,7 +996,7 @@
             <div class="max-w-3xl mx-auto">
                 <div class="mb-8 space-y-2.5 text-center">
                     <span class="kicker">{{ __('delivery.faq_badge') }}</span>
-                    <h2 class="text-2xl sm:text-3xl font-black text-[var(--ink)]">{{ __('delivery.faq_title') }}</h2>
+                    <h2 class="text-2xl sm:text-3xl font-black text-[var(--ink)] leading-[1.6]">{{ __('delivery.faq_title') }}</h2>
                 </div>
 
                 <div class="space-y-3">
@@ -990,13 +1004,13 @@
                         <div class="card overflow-hidden">
                             <button type="button"
                                     @click="openFaq = openFaq === {{ $fIdx }} ? -1 : {{ $fIdx }}"
-                                    class="w-full px-5 py-4 flex items-center justify-between gap-4 text-start font-extrabold text-sm text-[var(--ink)]">
+                                    class="w-full px-5 py-4 flex items-center justify-between gap-4 text-start font-extrabold text-sm text-[var(--ink)] leading-[1.65]">
                                 <span>{{ $fq['q'] ?? '' }}</span>
-                                <span class="w-7 h-7 rounded-full border border-[var(--ink)] flex items-center justify-center flex-shrink-0 text-base leading-none"
+                                <span class="w-7 h-7 rounded-full bg-[#F5EFE6] text-[var(--accent-deep)] flex items-center justify-center flex-shrink-0 text-base leading-none font-black"
                                       x-text="openFaq === {{ $fIdx }} ? '−' : '+'"></span>
                             </button>
                             <div x-show="openFaq === {{ $fIdx }}" x-collapse style="display: none;"
-                                 class="px-5 pb-4 pt-1 text-xs sm:text-[13px] text-[var(--muted)] leading-[1.9] border-t border-dashed border-[var(--line)]">
+                                 class="px-5 pb-4 pt-2 text-xs sm:text-[13px] text-[var(--muted)] leading-[1.95] border-t border-[#EFE8DC]">
                                 {{ $fq['a'] ?? '' }}
                             </div>
                         </div>
@@ -1007,14 +1021,14 @@
     </section>
 
     <!-- Complete Footer -->
-    <footer class="border-t-[1.5px] border-[var(--ink)] bg-[var(--surface)] text-start">
+    <footer class="border-t border-[#E6DDD0] bg-[var(--surface)] text-start">
         <div class="w-full px-5 sm:px-8 lg:px-14 2xl:px-20 py-10 grid grid-cols-1 md:grid-cols-12 gap-8">
             <div class="md:col-span-5 space-y-3">
                 <div class="flex items-center gap-2.5">
-                    <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-9 h-9 rounded-xl border border-[var(--ink)] p-1 object-contain">
+                    <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-9 h-9 rounded-xl border border-[#E6DDD0] p-1 object-contain">
                     <span class="text-lg font-black" dir="ltr">Dr<span class="text-[var(--accent)]">Room</span></span>
                 </div>
-                <p class="text-xs text-[var(--muted)] leading-[1.85] max-w-md">{{ __('delivery.footer_brand_desc') }}</p>
+                <p class="text-xs text-[var(--muted)] leading-[1.9] max-w-md">{{ __('delivery.footer_brand_desc') }}</p>
             </div>
 
             <div class="md:col-span-3 space-y-2.5">
@@ -1029,10 +1043,10 @@
             <div class="md:col-span-4 space-y-2.5">
                 <h4 class="text-xs font-black uppercase tracking-wide text-[var(--ink)]">{{ __('delivery.footer_col_contact') }}</h4>
                 <p class="text-xs font-bold text-[var(--ink)]">{{ __('delivery.footer_support_hours') }}</p>
-                <p class="text-[11.5px] text-[var(--muted)] leading-[1.8]">{{ __('delivery.footer_privacy_note') }}</p>
+                <p class="text-[11.5px] text-[var(--muted)] leading-[1.85]">{{ __('delivery.footer_privacy_note') }}</p>
             </div>
         </div>
-        <div class="border-t border-dashed border-[var(--line)] px-5 sm:px-8 lg:px-14 2xl:px-20 py-5 text-center">
+        <div class="border-t border-[#EFE8DC] px-5 sm:px-8 lg:px-14 2xl:px-20 py-5 text-center">
             <p class="text-xs font-bold text-[var(--muted)]">{{ __('delivery.footer_copy') }}</p>
         </div>
     </footer>

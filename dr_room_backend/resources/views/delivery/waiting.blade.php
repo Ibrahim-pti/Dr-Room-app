@@ -34,9 +34,9 @@
 </head>
 <body class="bg-[#F4EFE6] text-[#1C1A17] min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-lg bg-[#FFFCF7] rounded-3xl border-[1.5px] border-[#1C1A17] p-7 sm:p-10 text-center">
+    <div class="w-full max-w-lg bg-[#FFFCF7] rounded-3xl border border-[#EAE1D5] shadow-[0_14px_34px_-12px_rgba(28,26,23,0.08)] p-7 sm:p-10 text-center">
         <div class="flex items-center justify-center gap-2.5 mb-6">
-            <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl border-[1.5px] border-[#1C1A17] bg-white p-1 object-contain">
+            <img src="{{ asset('images/logo.png') }}" alt="DrRoom" class="w-11 h-11 rounded-2xl border border-[#EAE1D5] bg-white p-1 object-contain">
             <div class="text-start">
                 <span class="text-xl font-black block leading-none" dir="ltr">Dr<span class="text-[#FF5A00]">Room</span></span>
                 <span class="text-[11px] font-extrabold text-[#5F574D]">{{ __('delivery.brand_tag') }}</span>
