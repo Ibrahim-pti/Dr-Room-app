@@ -70,7 +70,7 @@ return [
     'gender_male' => 'Male',
     'gender_female' => 'Female',
     'password' => 'Password',
-    'password_placeholder' => 'At least 6 characters',
+    'password_placeholder' => '',
     'password_confirm' => 'Confirm Password',
     'password_confirm_placeholder' => 'Re-enter your password',
 

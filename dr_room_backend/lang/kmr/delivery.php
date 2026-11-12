@@ -70,7 +70,7 @@ return [
     'gender_male' => 'نێر',
     'gender_female' => 'مێ',
     'password' => 'پەیڤا تێپەر',
-    'password_placeholder' => 'کێمترین ٦ پیت یان ژمارە بن',
+    'password_placeholder' => '',
     'password_confirm' => 'دووبارەکرنا پەیڤا تێپەر',
     'password_confirm_placeholder' => 'پەیڤا تێپەر دووبارە بنڤیسە',
 

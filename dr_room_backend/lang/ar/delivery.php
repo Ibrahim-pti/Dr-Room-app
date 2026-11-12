@@ -70,7 +70,7 @@ return [
     'gender_male' => 'ذكر',
     'gender_female' => 'أنثى',
     'password' => 'كلمة المرور',
-    'password_placeholder' => '٦ أحرف أو أرقام على الأقل',
+    'password_placeholder' => '',
     'password_confirm' => 'تأكيد كلمة المرور',
     'password_confirm_placeholder' => 'أعد كتابة كلمة المرور',
 

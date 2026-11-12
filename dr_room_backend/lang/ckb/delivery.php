@@ -70,7 +70,7 @@ return [
     'gender_male' => 'نێر',
     'gender_female' => 'مێ',
     'password' => 'وشەی تێپەڕ',
-    'password_placeholder' => 'لانیکەم ٦ پیت یان ژمارە',
+    'password_placeholder' => '',
     'password_confirm' => 'دووبارەکردنەوەی وشەی تێپەڕ',
     'password_confirm_placeholder' => 'وشەی تێپەڕەکە دووبارە بنووسە',
 
