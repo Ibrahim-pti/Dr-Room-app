@@ -389,7 +389,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
   String? _shiftLabel(String? s) => switch (s) {
         'morning' => 'شیفتی بەیانی',
         'evening' => 'شیفتی ئێوارە و شەو',
-        'full_flex' => 'تەواوی ڕۆژ (نەرم)',
+        'full_flex' => 'تەواوی ڕۆژ / بەپێی نەخۆش',
         _ => null,
       };
 
