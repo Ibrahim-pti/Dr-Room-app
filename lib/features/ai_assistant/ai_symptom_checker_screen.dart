@@ -12,7 +12,7 @@ import 'services/ai_clinical_service.dart';
 class AiSymptomCheckerScreen extends StatefulWidget {
   final String? initialMode; // 'lab' or 'nursing'
   final File? initialImage;
-  final bool? showBackButton;
+  final bool showBackButton;
 
   const AiSymptomCheckerScreen({
     super.key,
@@ -751,7 +751,7 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
-        leading: ((widget.showBackButton ?? true) && Navigator.canPop(context))
+        leading: (widget.showBackButton && Navigator.canPop(context))
             ? IconButton(
                 icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
