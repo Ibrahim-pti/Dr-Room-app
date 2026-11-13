@@ -1017,10 +1017,11 @@
                 <div>
                     &copy; {{ date('Y') }} DrRoom. {{ __('landing.rights_reserved') }}.
                 </div>
-                <div class="flex gap-6">
+                <div class="flex flex-wrap items-center justify-center gap-6">
                     <a href="/privacy-policy" class="text-blue-600 font-bold hover:underline transition">{{ __('landing.privacy') }}</a>
                     <a href="/privacy-policy" class="hover:text-slate-600 transition">{{ __('landing.terms') }}</a>
                     <a href="/staff/login" class="text-blue-600 font-bold hover:underline transition">{{ __('landing.staff_login') }}</a>
+                    <a href="/news/ibrahim-software" class="text-slate-500 hover:text-blue-600 transition" dir="ltr">Platform Engineering: IBRAHIM SOFTWARE</a>
                 </div>
             </div>
         </div>

@@ -525,6 +525,7 @@
             <a href="#about">{{ __('staff_landing.about') }}</a>
             <a href="#features">{{ __('staff_landing.features') }}</a>
             <a href="/{{ app()->getLocale() }}">{{ __('staff_landing.back_to_main') }}</a>
+            <a href="/news/ibrahim-software" dir="ltr">Platform Engineering: IBRAHIM SOFTWARE</a>
         </div>
         <p>{{ __('staff_landing.footer_contact') }} <a href="tel:+9647506148003" dir="ltr">+964 750 614 8003</a> / <a href="tel:+9647764114040" dir="ltr">+964 776 411 4040</a> | <a href="mailto:drrroomapp@gmail.com">drrroomapp@gmail.com</a></p>
         <p>&copy; {{ date('Y') }} DrRoom. {{ __('staff_landing.all_rights_reserved') }}</p>

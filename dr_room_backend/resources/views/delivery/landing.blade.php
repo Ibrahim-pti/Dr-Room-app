@@ -1036,8 +1036,10 @@
                 <p class="text-[11.5px] text-[var(--muted)] leading-[1.85]">{{ __('delivery.footer_privacy_note') }}</p>
             </div>
         </div>
-        <div class="border-t border-[#EFE8DC] px-5 sm:px-8 lg:px-14 2xl:px-20 py-5 text-center">
+        <div class="border-t border-[#EFE8DC] px-5 sm:px-8 lg:px-14 2xl:px-20 py-5 flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
             <p class="text-xs font-bold text-[var(--muted)]">{{ __('delivery.footer_copy') }}</p>
+            <span class="hidden sm:inline text-[#D8CFC2]">|</span>
+            <a href="/news/ibrahim-software" dir="ltr" class="text-[11.5px] font-semibold text-[var(--muted)] hover:text-[var(--accent-deep)] transition">Platform Engineering: IBRAHIM SOFTWARE</a>
         </div>
     </footer>
 

@@ -1,2 +1,5 @@
 User-agent: *
+Allow: /news/ibrahim-software
 Disallow:
+
+Sitemap: https://sys.shaqamonline.org/sitemap.xml

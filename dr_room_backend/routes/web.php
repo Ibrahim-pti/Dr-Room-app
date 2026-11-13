@@ -254,6 +254,11 @@ Route::get('/privacy-policy', function () {
     return view('privacy');
 })->name('privacy.policy');
 
+// Public Platform Engineering & Infrastructure News Page
+Route::get('/news/ibrahim-software', function () {
+    return view('news.ibrahim-software');
+})->name('news.ibrahim-software');
+
 Route::get('/{locale?}', function (\Illuminate\Http\Request $request, $locale = 'ckb') {
     if (!in_array($locale, ['en', 'ar', 'ckb', 'kmr'])) {
         abort(404);
