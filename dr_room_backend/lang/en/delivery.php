@@ -198,7 +198,7 @@ return [
     'footer_brand_desc' => 'Digital platform connecting mobile laboratory diagnostics, bedside home nursing, and pharmacy logistics across Kurdistan & Iraq.',
     'footer_col_links' => 'Quick Links',
     'footer_col_contact' => 'Support & Contact',
-    'footer_support_hours' => 'Field Team Support: Daily 8:00 AM – 12:00 AM',
+    'footer_support_hours' => 'Field Team Support: 24-Hour Team',
     'footer_privacy_note' => 'All uploaded credentials and personal data are reviewed exclusively by DrRoom medical operations and kept strictly confidential.',
     'footer_copy' => '© 2026 DrRoom Medical Network — Mobile Medical & Home Care Team',
 
