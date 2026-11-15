@@ -84,7 +84,7 @@
 
                             <!-- Date -->
                             <td class="px-6 py-4 text-xs text-slate-500" dir="ltr">
-                                {{ $result->created_at->format('Y/m/d H:i') }}
+                                {{ $result->created_at?->timezone('Asia/Baghdad')->format('Y/m/d h:i A') }}
                             </td>
 
                             <!-- Actions -->

@@ -57,7 +57,7 @@
                 @forelse($recentOrders as $order)
                 <tr style="border-bottom: 1px solid #f1f5f9;">
                     <td style="padding: 16px; font-weight: 600; color: #1e293b;">#{{ $order->id }}</td>
-                    <td style="padding: 16px; color: #64748b; font-size: 0.95rem;">{{ $order->created_at->format('Y-m-d H:i') }}</td>
+                    <td style="padding: 16px; color: #64748b; font-size: 0.95rem;">{{ $order->created_at?->timezone('Asia/Baghdad')->format('Y-m-d h:i A') }}</td>
                     <td style="padding: 16px; color: #0d9488; font-weight: 700;">+ IQD {{ number_format($order->total_price) }}</td>
                 </tr>
                 @empty
