@@ -330,15 +330,6 @@
                                             پاشەکەوت
                                         </button>
                                     </div>
-
-                                    @if(!empty($estLabels['ckb']))
-                                        <div style="font-size: 0.72rem; font-weight: 800; color: #0369a1; background: #e0f2fe; border: 1px solid #bae6fd; padding: 3px 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: space-between; gap: 6px;">
-                                            <span>⏱ {{ $estLabels['ckb'] }}</span>
-                                            @if($order->estimated_ready_at && !in_array($order->status, ['completed', 'cancelled'], true))
-                                                <span dir="ltr" style="color: #0c4a6e;">({{ $order->estimated_ready_at->format('h:i A') }})</span>
-                                            @endif
-                                        </div>
-                                    @endif
                                 </form>
                             </td>
 
@@ -504,8 +495,8 @@ function openOrderModal(data) {
                     <span style="color: #2563eb; font-weight: 800;">${data.status}</span>
                 </div>
                 <div>
-                    <span style="font-size: 0.72rem; color: #64748b; display: block;">کاتی پێشبینیکراو:</span>
-                    <span style="color: #0369a1; font-weight: 800;">⏱ ${data.estimated_duration_label || 'دیارینەکراوە'}${data.estimated_ready_at ? ` (${data.estimated_ready_at})` : ''}</span>
+                    <span style="font-size: 0.72rem; color: #64748b; display: block;">کاتی خەیانراو:</span>
+                    <span style="color: #0369a1; font-weight: 800;">⏱ ${data.estimated_duration_label || 'دیارینەکراوە'}</span>
                 </div>
             </div>
         </div>

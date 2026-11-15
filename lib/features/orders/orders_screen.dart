@@ -531,7 +531,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  estDuration,
+                                  '${'estimated_time'.tr()}: $estDuration',
                                   style: _kStyle(
                                     color: const Color(0xFF0284C7),
                                     fontSize: 10.5,

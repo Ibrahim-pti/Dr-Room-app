@@ -103,7 +103,7 @@ class OrderNotificationService
         ) {
             $labels = $order->estimatedDurationLabels();
             if (!empty($labels['ckb'])) {
-                $messageKu .= " (کاتی پێشبینیکراو: {$labels['ckb']})";
+                $messageKu .= " (کاتی خەیانراو: {$labels['ckb']})";
             }
             if (!empty($labels['ar'])) {
                 $messageAr .= " (الوقت المتوقع: {$labels['ar']})";

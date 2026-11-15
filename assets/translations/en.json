@@ -1190,6 +1190,6 @@
   "deep_analytics": "Advanced Analytics & Reports",
   "top_lab_tests": "Top Requested Lab Tests",
   "tests_by_category": "Tests by Category",
-  "estimated_time": "Estimated Time",
+  "estimated_time": "Estimated Duration",
   "estimated_ready_at": "Estimated Ready At"
 }

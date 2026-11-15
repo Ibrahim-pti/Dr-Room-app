@@ -927,10 +927,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                   const SizedBox(width: 6),
                                   Flexible(
                                     child: Text(
-                                      _currentOrder.estimatedReadyAt != null &&
-                                              _currentOrder.status.isActive
-                                          ? '${'estimated_time'.tr()}: ${_currentOrder.localizedEstimatedDuration(context)!} (${'estimated_ready_at'.tr()} ${DateFormat('hh:mm a', 'en').format(_currentOrder.estimatedReadyAt!)})'
-                                          : '${'estimated_time'.tr()}: ${_currentOrder.localizedEstimatedDuration(context)!}',
+                                      '${'estimated_time'.tr()}: ${_currentOrder.localizedEstimatedDuration(context)!}',
                                       style: _kStyle(
                                         color: const Color(0xFF0369A1),
                                         fontSize: 11.5,
@@ -1261,10 +1258,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       _buildDetailRow(
                         context,
                         'estimated_time'.tr(),
-                        _currentOrder.estimatedReadyAt != null &&
-                                _currentOrder.status.isActive
-                            ? '${_currentOrder.localizedEstimatedDuration(context)!} (${DateFormat('hh:mm a', 'en').format(_currentOrder.estimatedReadyAt!)})'
-                            : _currentOrder.localizedEstimatedDuration(context)!,
+                        _currentOrder.localizedEstimatedDuration(context)!,
                         isDark: isDark,
                       ),
                     ],
