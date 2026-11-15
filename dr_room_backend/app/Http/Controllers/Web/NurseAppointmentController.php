@@ -16,7 +16,7 @@ class NurseAppointmentController extends Controller
         // Appointments assigned to this nurse
         $appointments = Order::where('assigned_nurse_id', $userId)
             ->forNursing()
-            ->with('patient')
+            ->with(['patient', 'items'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
             
@@ -24,7 +24,7 @@ class NurseAppointmentController extends Controller
         $unassignedRequests = Order::whereNull('assigned_nurse_id')
             ->forNursing()
             ->where('status', 'pending')
-            ->with('patient')
+            ->with(['patient', 'items'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -39,8 +39,26 @@ class NurseAppointmentController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:pending,confirmed,approved,processing,in_progress,completed,cancelled'
+            'status' => 'required|in:pending,confirmed,approved,processing,in_progress,completed,cancelled',
+            'estimated_duration_minutes' => 'nullable|integer|min:1|max:43200',
         ]);
+
+        $previousStatus = $appointment->status;
+        $previousEstimated = $appointment->estimated_duration_minutes;
+        $isTerminal = in_array($request->status, ['completed', 'cancelled'], true);
+
+        if ($request->has('estimated_duration_minutes')) {
+            if ($request->filled('estimated_duration_minutes')) {
+                $mins = (int) $request->input('estimated_duration_minutes');
+                $appointment->estimated_duration_minutes = $mins;
+                $appointment->estimated_ready_at = $isTerminal ? null : now()->addMinutes($mins);
+            } else {
+                $appointment->estimated_duration_minutes = null;
+                $appointment->estimated_ready_at = null;
+            }
+        } elseif ($isTerminal) {
+            $appointment->estimated_ready_at = null;
+        }
 
         if ($request->status === 'completed') {
             $appointment->markCompletedWithFinancials();
@@ -49,23 +67,40 @@ class NurseAppointmentController extends Controller
             $appointment->save();
         }
 
-        \App\Services\OrderNotificationService::notifyStatusChanged($appointment, $request->status);
+        $statusChanged = $previousStatus !== $request->status;
+        $estimatedChanged = $previousEstimated !== $appointment->estimated_duration_minutes
+            && $appointment->estimated_duration_minutes !== null;
 
-        return back()->with('success', 'دۆخی چاوپێکەوتنەکە نوێکرایەوە.');
+        if ($statusChanged || $estimatedChanged) {
+            \App\Services\OrderNotificationService::notifyStatusChanged($appointment, $request->status);
+        }
+
+        return back()->with('success', 'بارودۆخ و کاتی داواکارییەکە بە سەرکەوتوویی نوێکرایەوە.');
     }
 
-    public function acceptRequest(Order $appointment)
+    public function acceptRequest(Request $request, Order $appointment)
     {
         if (!$appointment->isNursingService()) {
             abort(403);
         }
 
+        $request->validate([
+            'estimated_duration_minutes' => 'nullable|integer|min:1|max:43200',
+        ]);
+
+        $updateData = [
+            'assigned_nurse_id' => Auth::id(),
+            'status' => 'processing',
+        ];
+        if ($request->filled('estimated_duration_minutes')) {
+            $mins = (int) $request->input('estimated_duration_minutes');
+            $updateData['estimated_duration_minutes'] = $mins;
+            $updateData['estimated_ready_at'] = now()->addMinutes($mins);
+        }
+
         $updated = Order::where('id', $appointment->id)
             ->whereNull('assigned_nurse_id')
-            ->update([
-                'assigned_nurse_id' => Auth::id(),
-                'status' => 'processing',
-            ]);
+            ->update($updateData);
 
         if ($updated === 0) {
             return back()->with('error', 'ئەم داواکارییە پێشتر لەلایەن پەرستارێکی ترەوە وەرگیراوە.');

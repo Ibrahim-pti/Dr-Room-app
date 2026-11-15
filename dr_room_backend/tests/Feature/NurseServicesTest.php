@@ -140,6 +140,38 @@ class NurseServicesTest extends TestCase
             ->assertSee('01:14 AM')
             ->assertDontSee('2026-11-15');
 
+        // Accept unassigned nursing request with estimated duration
+        $this->actingAs($nurseUser, 'web')
+            ->post(route('nurse.appointments.accept', $order), [
+                'estimated_duration_minutes' => 30,
+            ])
+            ->assertRedirect();
+
+        $order->refresh();
+        $this->assertSame($nurseUser->id, (int) $order->assigned_nurse_id);
+        $this->assertSame('processing', $order->status);
+        $this->assertSame(30, $order->estimated_duration_minutes);
+        $this->assertNotNull($order->estimated_ready_at);
+
+        // Update status + custom estimated duration from nurse appointments dashboard
+        $this->actingAs($nurseUser, 'web')
+            ->patch(route('nurse.appointments.update_status', $order), [
+                'status' => 'processing',
+                'estimated_duration_minutes' => 45,
+            ])
+            ->assertRedirect();
+
+        $order->refresh();
+        $this->assertSame(45, $order->estimated_duration_minutes);
+
+        // API exposes nurse order status & estimated countdown fields to Flutter app
+        $this->actingAs($patient, 'sanctum')
+            ->getJson('/api/orders/' . $order->id)
+            ->assertOk()
+            ->assertJsonPath('data.status', 'processing')
+            ->assertJsonPath('data.estimated_duration_minutes', 45)
+            ->assertJsonPath('data.estimated_duration_label', '45 خولەک');
+
         $assignedOrder = Order::create([
             'patient_id' => $patient->id,
             'assigned_nurse_id' => $nurseUser->id,
