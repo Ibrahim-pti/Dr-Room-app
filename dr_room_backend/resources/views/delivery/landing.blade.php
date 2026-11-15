@@ -527,7 +527,6 @@
                 <div class="card p-5 sm:p-8 text-start">
                     <div class="text-center">
                         <h2 class="text-xl sm:text-2xl font-black text-[var(--ink)] leading-[1.65] text-center">{{ __('delivery.form_title') }}</h2>
-                        <p class="text-xs sm:text-[13px] text-[var(--muted)] mt-1.5 leading-[1.85] text-center">{{ __('delivery.form_subtitle') }}</p>
                     </div>
 
                     <div class="mt-4 pt-4 border-t border-[#EFE8DC] flex flex-wrap items-center justify-between gap-2">
@@ -537,6 +536,13 @@
                         <span class="text-xs font-extrabold text-[var(--muted)]">
                             {{ __('delivery.step_of') }} <span class="text-[var(--accent-deep)]" x-text="step"></span> / 4
                         </span>
+                    </div>
+
+                    <div class="mt-3.5 flex items-start gap-2.5 rounded-xl bg-[#FFF8F2] border border-[#F3DFCE] px-3.5 py-2.5 text-start">
+                        <svg class="w-4 h-4 text-[var(--accent-deep)] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-xs text-[var(--muted)] leading-[1.85] font-semibold">{{ __('delivery.form_subtitle') }}</p>
                     </div>
 
                     <!-- Interactive 4-Step Progress Bar -->
