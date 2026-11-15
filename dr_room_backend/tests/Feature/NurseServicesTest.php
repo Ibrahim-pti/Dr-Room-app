@@ -172,6 +172,23 @@ class NurseServicesTest extends TestCase
             ->assertJsonPath('data.estimated_duration_minutes', 45)
             ->assertJsonPath('data.estimated_duration_label', '45 خولەک');
 
+        // Switching nurse order status to on_the_way translates cleanly across all 4 languages
+        $this->actingAs($nurseUser, 'web')
+            ->patch(route('nurse.appointments.update_status', $order), [
+                'status' => 'on_the_way',
+                'estimated_duration_minutes' => 15,
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($patient, 'sanctum')
+            ->getJson('/api/orders/' . $order->id)
+            ->assertOk()
+            ->assertJsonPath('data.status', 'on_the_way')
+            ->assertJsonPath('data.status_labels.ckb', 'لە ڕێگادایە')
+            ->assertJsonPath('data.status_labels.kmr', 'د ڕێکێ دایە')
+            ->assertJsonPath('data.status_labels.ar', 'في الطريق إليك')
+            ->assertJsonPath('data.status_labels.en', 'On the Way');
+
         $assignedOrder = Order::create([
             'patient_id' => $patient->id,
             'assigned_nurse_id' => $nurseUser->id,

@@ -534,7 +534,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            order.statusLabel,
+                            order.localizedStatusLabel(context),
                             style: _kStyle(
                               color: order.statusColor,
                               fontSize: 11,

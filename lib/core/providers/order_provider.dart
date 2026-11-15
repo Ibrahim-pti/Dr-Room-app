@@ -18,6 +18,7 @@ enum OrderStatus {
     final value = (raw ?? '').trim().toLowerCase();
     if (value == 'processing' ||
         value == 'in_progress' ||
+        value == 'on_the_way' ||
         value == 'approved' ||
         value == 'confirmed' ||
         value == 'accepted') {
@@ -508,6 +509,31 @@ class OrderModel {
 
   Color get statusColor => status.color;
   String get statusLabel => status.label;
+
+  String localizedStatusLabel(BuildContext context) {
+    final lang = context.locale.languageCode.toLowerCase();
+    if (lang == 'kmr' &&
+        statusLabelKmr != null &&
+        statusLabelKmr!.trim().isNotEmpty) {
+      return statusLabelKmr!.trim();
+    }
+    if (lang == 'ar' &&
+        statusLabelAr != null &&
+        statusLabelAr!.trim().isNotEmpty) {
+      return statusLabelAr!.trim();
+    }
+    if (lang == 'en' &&
+        statusLabelEn != null &&
+        statusLabelEn!.trim().isNotEmpty) {
+      return statusLabelEn!.trim();
+    }
+    if ((lang == 'ckb' || lang == 'ku') &&
+        statusLabelCkb != null &&
+        statusLabelCkb!.trim().isNotEmpty) {
+      return statusLabelCkb!.trim();
+    }
+    return status.label;
+  }
 
   /// Context-aware localized estimated processing duration from the lab/provider.
   String? localizedEstimatedDuration(BuildContext context) {

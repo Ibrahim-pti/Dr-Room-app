@@ -118,6 +118,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             updatedOrder.driverLng != _currentOrder.driverLng;
 
         if (updatedOrder.status != _currentOrder.status ||
+            updatedOrder.statusLabelCkb != _currentOrder.statusLabelCkb ||
             updatedOrder.assignedNurseId != _currentOrder.assignedNurseId ||
             updatedOrder.deliveryStatus != _currentOrder.deliveryStatus ||
             updatedOrder.assignedDriverId != _currentOrder.assignedDriverId ||
