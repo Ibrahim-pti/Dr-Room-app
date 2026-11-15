@@ -29,6 +29,7 @@ class _AdminRecruitmentOptionsScreenState
   bool _isLoading = true;
   String? _error;
   List<dynamic> _options = [];
+  String _scopeFilter = 'all_filter';
 
   @override
   void initState() {
@@ -50,8 +51,38 @@ class _AdminRecruitmentOptionsScreenState
 
   String get _activeType => _tabCtrl.index == 0 ? 'education' : 'skill';
 
-  List<dynamic> _filtered(String type) =>
+  List<dynamic> _byType(String type) =>
       _options.where((o) => o['type'] == type).toList();
+
+  List<dynamic> _filtered(String type) {
+    final byType = _byType(type);
+    if (_scopeFilter == 'all_filter') return byType;
+    return byType
+        .where((o) => (o['role_scope'] ?? 'all').toString() == _scopeFilter)
+        .toList();
+  }
+
+  static String _scopeLabel(String scope) {
+    switch (scope) {
+      case 'phlebotomist':
+        return 'تاقیگە';
+      case 'mobile_nurse':
+        return 'پەرستاری';
+      default:
+        return 'هەردووکی';
+    }
+  }
+
+  static Color _scopeColor(String scope) {
+    switch (scope) {
+      case 'phlebotomist':
+        return const Color(0xFF0D9488);
+      case 'mobile_nurse':
+        return const Color(0xFF7C3AED);
+      default:
+        return const Color(0xFF2563EB);
+    }
+  }
 
   Future<void> _loadOptions() async {
     setState(() {
@@ -149,9 +180,14 @@ class _AdminRecruitmentOptionsScreenState
     final orderCtrl = TextEditingController(
       text: isEditing
           ? '${existing['sort_order'] ?? 0}'
-          : '${_filtered(type).length + 1}',
+          : '${_byType(type).length + 1}',
     );
 
+    String roleScope = isEditing
+        ? (existing['role_scope'] ?? 'all').toString()
+        : (_scopeFilter == 'phlebotomist' || _scopeFilter == 'mobile_nurse'
+            ? _scopeFilter
+            : 'all');
     bool isActive = isEditing ? (existing['is_active'] ?? true) : true;
     bool isTranslating = false;
 
@@ -160,11 +196,30 @@ class _AdminRecruitmentOptionsScreenState
         context: context,
         title: isEditing ? 'دەستکاریکردنی $typeLabel' : 'زیادکردنی $typeLabel',
         subtitle:
-            'ئەم بژاردەیە ڕاستەوخۆ لە هەنگاوی ٢ی فۆڕمی تۆمارکردنی تیمی گەڕۆک دەردەکەوێت.',
+            'ئەم بژاردەیە بەپێی کەتەگۆری هەڵبژێردراو لە هەنگاوی ٢ی وێبسایت دەردەکەوێت.',
         submitLabel: isEditing ? 'پاشەکەوتکردن' : 'زیادکردن',
         builder: (setSheetState, setError) => [
           AdminUi.notice(
             'ناو بە سۆرانی بنووسە و دوگمەی وەرگێڕان دابگرە بۆ وەرگێڕانی خۆکار بۆ بادینی و عەرەبی و ئینگلیزی، یان بە دەست گۆڕانکارییان تێدا بکە.',
+          ),
+          const SizedBox(height: 14),
+
+          AdminUi.label('کەتەگۆری / بەشی تایبەت *'),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final entry in const [
+                ('phlebotomist', 'تاقیگە (وەرگرتنی خوێن)'),
+                ('mobile_nurse', 'پەرستاری ماڵان'),
+                ('all', 'هەردووکی'),
+              ])
+                GestureDetector(
+                  onTap: () => setSheetState(() => roleScope = entry.$1),
+                  child: AdminUi.selectChip(entry.$2, roleScope == entry.$1),
+                ),
+            ],
           ),
           const SizedBox(height: 14),
 
@@ -329,6 +384,7 @@ class _AdminRecruitmentOptionsScreenState
 
           final body = {
             if (!isEditing) 'type': type,
+            'role_scope': roleScope,
             'label_ckb': ckb,
             'label_kmr': kmrCtrl.text.trim(),
             'label_ar': arCtrl.text.trim(),
@@ -365,8 +421,8 @@ class _AdminRecruitmentOptionsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final eduCount = _filtered('education').length;
-    final skillCount = _filtered('skill').length;
+    final eduCount = _byType('education').length;
+    final skillCount = _byType('skill').length;
     final items = _filtered(_activeType);
 
     return Scaffold(
@@ -415,6 +471,30 @@ class _AdminRecruitmentOptionsScreenState
               ],
             ),
           ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+            color: AppColors.getSurface(context),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final f in const [
+                    ('all_filter', 'هەمووی'),
+                    ('phlebotomist', 'تاقیگە'),
+                    ('mobile_nurse', 'پەرستاری'),
+                    ('all', 'هەردووکی'),
+                  ]) ...[
+                    GestureDetector(
+                      onTap: () => setState(() => _scopeFilter = f.$1),
+                      child: AdminUi.selectChip(f.$2, _scopeFilter == f.$1),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ],
+              ),
+            ),
+          ),
           Expanded(
             child: AdminUi.body(
               isLoading: _isLoading,
@@ -426,7 +506,7 @@ class _AdminRecruitmentOptionsScreenState
               child: RefreshIndicator(
                 onRefresh: _loadOptions,
                 child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 90),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
                   itemCount: items.length,
                   itemBuilder: (_, idx) => _buildOptionCard(items[idx]),
                 ),
@@ -435,24 +515,12 @@ class _AdminRecruitmentOptionsScreenState
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openForm(),
-        backgroundColor: const Color(0xFFEA580C),
-        icon: const Icon(Iconsax.add, color: Colors.white),
-        label: Text(
-          _activeType == 'education' ? 'زیادکردنی بڕوانامە' : 'زیادکردنی شارەزایی',
-          style: const TextStyle(
-            fontFamily: 'Rabar',
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
     );
   }
 
   Widget _buildOptionCard(dynamic item) {
     final active = item['is_active'] == true;
+    final scope = (item['role_scope'] ?? 'all').toString();
     final kmr = (item['label_kmr'] ?? '').toString().trim();
     final ar = (item['label_ar'] ?? '').toString().trim();
     final en = (item['label_en'] ?? '').toString().trim();
@@ -483,6 +551,8 @@ class _AdminRecruitmentOptionsScreenState
                   ),
                 ),
               ),
+              const SizedBox(width: 6),
+              AdminUi.chip(_scopeLabel(scope), _scopeColor(scope), small: true),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

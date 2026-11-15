@@ -14,12 +14,32 @@ class RecruitmentOption extends Model
     public const TYPE_EDUCATION = 'education';
     public const TYPE_SKILL = 'skill';
 
+    public const ROLE_ALL = 'all';
+    public const ROLE_PHLEBOTOMIST = 'phlebotomist';
+    public const ROLE_MOBILE_NURSE = 'mobile_nurse';
+
+    public const ROLE_SCOPES = [
+        self::ROLE_ALL,
+        self::ROLE_PHLEBOTOMIST,
+        self::ROLE_MOBILE_NURSE,
+    ];
+
     protected $guarded = [];
 
     protected $casts = [
         'sort_order' => 'integer',
         'is_active'  => 'boolean',
     ];
+
+    public function matchesApplicantRole(string $applicantRole): bool
+    {
+        if (in_array($applicantRole, ['both', 'courier'], true)) {
+            return true;
+        }
+
+        $scope = $this->role_scope ?: self::ROLE_ALL;
+        return $scope === self::ROLE_ALL || $scope === $applicantRole;
+    }
 
     public function labelForLocale(string $locale): string
     {
@@ -43,6 +63,47 @@ class RecruitmentOption extends Model
         }
 
         return (string) $this->option_key;
+    }
+
+    /**
+     * Return list of active options with key, localized label, and role_scope.
+     * Falls back to static translation files if the table has not been migrated yet.
+     */
+    public static function optionsListForLocale(string $type, string $locale = 'ckb'): array
+    {
+        if (!Schema::hasTable('recruitment_options')) {
+            $langKey = $type === self::TYPE_EDUCATION ? 'delivery.education_options' : 'delivery.skills_options';
+            $fallback = __($langKey);
+            if (!is_array($fallback)) {
+                return [];
+            }
+
+            $items = [];
+            foreach ($fallback as $key => $label) {
+                $items[] = [
+                    'key' => (string) $key,
+                    'label' => (string) $label,
+                    'role_scope' => self::ROLE_ALL,
+                ];
+            }
+            return $items;
+        }
+
+        $hasRoleScope = Schema::hasColumn('recruitment_options', 'role_scope');
+
+        return static::query()
+            ->where('type', $type)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (self $opt) => [
+                'key' => (string) $opt->option_key,
+                'label' => $opt->labelForLocale($locale),
+                'role_scope' => $hasRoleScope ? ((string) ($opt->role_scope ?: self::ROLE_ALL)) : self::ROLE_ALL,
+            ])
+            ->values()
+            ->all();
     }
 
     /**

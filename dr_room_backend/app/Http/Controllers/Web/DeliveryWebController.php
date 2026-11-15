@@ -45,6 +45,8 @@ class DeliveryWebController extends Controller
             'locale' => $activeLocale,
             'educationOptions' => RecruitmentOption::optionsMapForLocale(RecruitmentOption::TYPE_EDUCATION, $activeLocale),
             'skillsOptions' => RecruitmentOption::optionsMapForLocale(RecruitmentOption::TYPE_SKILL, $activeLocale),
+            'educationItems' => RecruitmentOption::optionsListForLocale(RecruitmentOption::TYPE_EDUCATION, $activeLocale),
+            'skillItems' => RecruitmentOption::optionsListForLocale(RecruitmentOption::TYPE_SKILL, $activeLocale),
         ]);
     }
 
@@ -121,6 +123,8 @@ class DeliveryWebController extends Controller
         if (Schema::hasTable('recruitment_options')) {
             $allowedSkills = RecruitmentOption::where('type', RecruitmentOption::TYPE_SKILL)
                 ->where('is_active', true)
+                ->get()
+                ->filter(fn (RecruitmentOption $opt) => $opt->matchesApplicantRole($applicantRole))
                 ->pluck('option_key')
                 ->all();
         } else {

@@ -35,8 +35,8 @@ class RecruitmentOptionTest extends TestCase
 
         $this->get('/delivery/en')
             ->assertOk()
-            ->assertSee('B.Sc. in Medical Lab / Biology')
-            ->assertSee('Professional Venipuncture & Blood Draw');
+            ->assertSee('B.Sc. in Medical Lab / Biology', false)
+            ->assertSee('Professional Venipuncture & Blood Draw', false);
     }
 
     public function test_admin_can_crud_recruitment_options_and_reflect_on_web_form(): void
@@ -113,5 +113,116 @@ class RecruitmentOptionTest extends TestCase
             ->assertNoContent();
 
         $this->assertDatabaseMissing('recruitment_options', ['id' => $id]);
+    }
+
+    public function test_role_scope_filters_options_and_enforces_skill_compatibility(): void
+    {
+        $admin = $this->adminUser();
+        $token = $admin->createToken('test')->plainTextToken;
+
+        $this->assertSame(
+            'phlebotomist',
+            RecruitmentOption::where('type', 'skill')->where('option_key', 'venipuncture')->value('role_scope')
+        );
+        $this->assertSame(
+            'mobile_nurse',
+            RecruitmentOption::where('type', 'skill')->where('option_key', 'cannula_iv')->value('role_scope')
+        );
+
+        $labSkill = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/admin/recruitment-options', [
+                'type' => 'skill',
+                'role_scope' => 'phlebotomist',
+                'label_ckb' => 'جیاکردنەوەی سیرەم بە سەنتریفیوج',
+                'label_kmr' => 'جوداکرنا سیرەمی ب سەنتریفیوجێ',
+                'label_ar' => 'فصل السيروم بجهاز الطرد المركزي',
+                'label_en' => 'Centrifuge Serum Separation',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('role_scope', 'phlebotomist');
+
+        $nurseSkill = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/admin/recruitment-options', [
+                'type' => 'skill',
+                'role_scope' => 'mobile_nurse',
+                'label_ckb' => 'لێدانی قەستەرەی میز',
+                'label_kmr' => 'دانانا قەستەرا میزێ',
+                'label_ar' => 'تركيب قسطرة بولية',
+                'label_en' => 'Urinary Catheter Insertion',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('role_scope', 'mobile_nurse');
+
+        $sharedSkill = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/admin/recruitment-options', [
+                'type' => 'skill',
+                'role_scope' => 'all',
+                'label_ckb' => 'پاکژکردنەوەی کەلوپەلی پزیشکی',
+                'label_kmr' => 'پاقژکرنا ئامیرێن پزیشکی',
+                'label_ar' => 'تعقيم الأدوات الطبية',
+                'label_en' => 'Medical Equipment Sterilization',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('role_scope', 'all');
+
+        // Filter endpoint by role_scope works
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/admin/recruitment-options?type=skill&role_scope=phlebotomist')
+            ->assertOk()
+            ->assertJsonFragment(['option_key' => $labSkill->json('option_key')])
+            ->assertJsonMissing(['option_key' => $nurseSkill->json('option_key')]);
+
+        // Public page passes role_scope metadata to Alpine
+        $this->get('/delivery/ckb')
+            ->assertOk()
+            ->assertSee('"role_scope":"phlebotomist"', false)
+            ->assertSee('"role_scope":"mobile_nurse"', false);
+
+        // Phlebotomist registration keeps lab & shared skills, strips nurse-only skill
+        $this->post('/delivery/register', [
+            'name' => 'Lab Applicant',
+            'phone' => '07506667788',
+            'password' => 'pass123456',
+            'password_confirmation' => 'pass123456',
+            'city' => 'هەولێر',
+            'applicant_role' => 'phlebotomist',
+            'education_level' => 'bsc_lab',
+            'clinical_skills' => [
+                $labSkill->json('option_key'),
+                $nurseSkill->json('option_key'),
+                $sharedSkill->json('option_key'),
+            ],
+            'agree_terms' => '1',
+        ])->assertRedirect();
+
+        $labUser = User::where('phone', '07506667788')->firstOrFail();
+        $labProfile = $labUser->driver->resolvedFieldProfile();
+        $this->assertSame(
+            [$labSkill->json('option_key'), $sharedSkill->json('option_key')],
+            $labProfile['clinical_skills']
+        );
+
+        // Both-role applicant keeps both lab and nurse skills
+        $this->post('/delivery/register', [
+            'name' => 'Both Applicant',
+            'phone' => '07506667799',
+            'password' => 'pass123456',
+            'password_confirmation' => 'pass123456',
+            'city' => 'هەولێر',
+            'applicant_role' => 'both',
+            'education_level' => 'bsc_nursing',
+            'clinical_skills' => [
+                $labSkill->json('option_key'),
+                $nurseSkill->json('option_key'),
+            ],
+            'agree_terms' => '1',
+        ])->assertRedirect();
+
+        $bothUser = User::where('phone', '07506667799')->firstOrFail();
+        $bothProfile = $bothUser->driver->resolvedFieldProfile();
+        $this->assertSame(
+            [$labSkill->json('option_key'), $nurseSkill->json('option_key')],
+            $bothProfile['clinical_skills']
+        );
     }
 }

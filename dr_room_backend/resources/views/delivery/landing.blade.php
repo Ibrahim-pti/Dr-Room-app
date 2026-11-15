@@ -8,6 +8,16 @@
     $rolesMeta = __('delivery.roles');
     $educationOpts = (isset($educationOptions) && is_array($educationOptions)) ? $educationOptions : __('delivery.education_options');
     $skillsOpts = (isset($skillsOptions) && is_array($skillsOptions)) ? $skillsOptions : __('delivery.skills_options');
+    $eduItems = (isset($educationItems) && is_array($educationItems))
+        ? $educationItems
+        : collect((array) $educationOpts)->map(fn ($lbl, $k) => ['key' => (string) $k, 'label' => (string) $lbl, 'role_scope' => 'all'])->values()->all();
+    $skItems = (isset($skillItems) && is_array($skillItems))
+        ? $skillItems
+        : collect((array) $skillsOpts)->map(fn ($lbl, $k) => ['key' => (string) $k, 'label' => (string) $lbl, 'role_scope' => 'all'])->values()->all();
+    $initialRole = in_array(old('applicant_role'), ['phlebotomist', 'mobile_nurse', 'both'], true)
+        ? old('applicant_role')
+        : 'phlebotomist';
+    $oldEdu = (string) old('education_level', '');
     $shiftOpts = __('delivery.shifts');
     $workDaysOpts = __('delivery.work_days_options');
     $wfSteps = __('delivery.wf_steps');
@@ -314,8 +324,10 @@
             font-size: 16px;
         }
     </style>
+    <script id="delivery-step2-data" type="application/json">{!! json_encode(['educations' => $eduItems, 'skills' => $skItems], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 </head>
 <body class="min-h-screen flex flex-col antialiased"
+      x-init="initStep2Options()"
       x-data="{
           langOpen: false,
           step: {{ $initialStep }},
@@ -323,7 +335,10 @@
           showPass: false,
           showConfirm: false,
           submitting: false,
-          applicantRole: '{{ in_array(old('applicant_role'), ['phlebotomist', 'mobile_nurse', 'both'], true) ? old('applicant_role') : 'phlebotomist' }}',
+          applicantRole: '{{ $initialRole }}',
+          allEducations: [],
+          allSkills: [],
+          educationLevel: @js($oldEdu),
           gender: '{{ old('gender', 'male') }}',
           experienceYears: {{ (int) old('experience_years', 1) }},
           skills: @js($oldSkills),
@@ -335,6 +350,48 @@
           scope: '{{ old('service_scope', 'both') }}',
           agreed: {{ old('agree_terms') ? 'true' : 'false' }},
           files: { id_document: '', certificate: '', license: '', cv: '' },
+
+          initStep2Options() {
+              try {
+                  const el = document.getElementById('delivery-step2-data');
+                  const parsed = el ? JSON.parse(el.textContent || '{}') : {};
+                  this.allEducations = Array.isArray(parsed.educations) ? parsed.educations : [];
+                  this.allSkills = Array.isArray(parsed.skills) ? parsed.skills : [];
+              } catch (e) {
+                  this.allEducations = [];
+                  this.allSkills = [];
+              }
+              this.syncRoleSelections();
+          },
+
+          roleMatches(scope, role) {
+              if (role === 'both' || role === 'courier') return true;
+              return !scope || scope === 'all' || scope === role;
+          },
+
+          get visibleEducations() {
+              return this.allEducations.filter(item => this.roleMatches(item.role_scope, this.applicantRole));
+          },
+
+          get visibleSkills() {
+              return this.allSkills.filter(item => this.roleMatches(item.role_scope, this.applicantRole));
+          },
+
+          syncRoleSelections() {
+              const edus = this.visibleEducations;
+              if (edus.length > 0 && !edus.some(e => e.key === this.educationLevel)) {
+                  this.educationLevel = edus[0].key;
+              } else if (edus.length === 0) {
+                  this.educationLevel = '';
+              }
+              const validSkills = new Set(this.visibleSkills.map(s => s.key));
+              this.skills = this.skills.filter(s => validSkills.has(s));
+          },
+
+          selectRole(role) {
+              this.applicantRole = role;
+              this.syncRoleSelections();
+          },
 
           toggleSkill(key) {
               if (this.skills.includes(key)) {
@@ -602,7 +659,7 @@
                                     @foreach(['phlebotomist', 'mobile_nurse', 'both'] as $roleKey)
                                         @php $rInfo = $rolesMeta[$roleKey] ?? ['title' => $roleKey, 'desc' => '']; @endphp
                                         <button type="button"
-                                                @click="applicantRole = '{{ $roleKey }}'"
+                                                @click="selectRole('{{ $roleKey }}')"
                                                 :class="applicantRole === '{{ $roleKey }}' ? 'is-on' : ''"
                                                 class="role-card">
                                             <span class="role-icon">
@@ -702,14 +759,10 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 <div x-show="applicantRole !== 'courier'">
                                     <label class="label">{{ __('delivery.education_label') }}</label>
-                                    @php
-                                        $eduArray = (array) $educationOpts;
-                                        $defaultEdu = array_key_exists('bsc_lab', $eduArray) ? 'bsc_lab' : (array_key_first($eduArray) ?? '');
-                                    @endphp
-                                    <select name="education_level" class="field-box cursor-pointer">
-                                        @foreach($eduArray as $edKey => $edLabel)
-                                            <option value="{{ $edKey }}" {{ old('education_level', $defaultEdu) == $edKey ? 'selected' : '' }}>{{ $edLabel }}</option>
-                                        @endforeach
+                                    <select name="education_level" x-model="educationLevel" class="field-box cursor-pointer">
+                                        <template x-for="ed in visibleEducations" :key="ed.key">
+                                            <option :value="ed.key" :selected="educationLevel === ed.key" x-text="ed.label"></option>
+                                        </template>
                                     </select>
                                 </div>
 
@@ -730,18 +783,18 @@
                             <div>
                                 <label class="label">{{ __('delivery.skills_label') }}</label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    @foreach((array) $skillsOpts as $skKey => $skLabel)
+                                    <template x-for="sk in visibleSkills" :key="sk.key">
                                         <button type="button"
-                                                @click="toggleSkill('{{ $skKey }}')"
-                                                :class="skills.includes('{{ $skKey }}') ? 'is-on' : ''"
+                                                @click="toggleSkill(sk.key)"
+                                                :class="skills.includes(sk.key) ? 'is-on' : ''"
                                                 class="skill-chip">
                                             <span class="w-4 h-4 rounded flex items-center justify-center border border-current flex-shrink-0"
-                                                  :class="skills.includes('{{ $skKey }}') ? 'bg-[var(--accent)] border-[var(--accent)] text-white' : ''">
-                                                <svg x-show="skills.includes('{{ $skKey }}')" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                  :class="skills.includes(sk.key) ? 'bg-[var(--accent)] border-[var(--accent)] text-white' : ''">
+                                                <svg x-show="skills.includes(sk.key)" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                             </span>
-                                            <span>{{ $skLabel }}</span>
+                                            <span x-text="sk.label"></span>
                                         </button>
-                                    @endforeach
+                                    </template>
                                 </div>
                                 <template x-for="sk in skills" :key="sk">
                                     <input type="hidden" name="clinical_skills[]" :value="sk">

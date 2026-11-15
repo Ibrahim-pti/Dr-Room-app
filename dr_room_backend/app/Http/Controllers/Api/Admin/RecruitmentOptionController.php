@@ -20,6 +20,10 @@ class RecruitmentOptionController extends Controller
             $query->where('type', $request->string('type')->toString());
         }
 
+        if ($request->filled('role_scope')) {
+            $query->where('role_scope', $request->string('role_scope')->toString());
+        }
+
         return response()->json($query->get());
     }
 
@@ -27,6 +31,7 @@ class RecruitmentOptionController extends Controller
     {
         $data = $request->validate([
             'type'       => ['required', Rule::in([RecruitmentOption::TYPE_EDUCATION, RecruitmentOption::TYPE_SKILL])],
+            'role_scope' => ['nullable', Rule::in(RecruitmentOption::ROLE_SCOPES)],
             'option_key' => 'nullable|string|max:80',
             'label_ckb'  => 'required|string|max:255',
             'label_kmr'  => 'nullable|string|max:255',
@@ -35,6 +40,8 @@ class RecruitmentOptionController extends Controller
             'sort_order' => 'nullable|integer|min:0',
             'is_active'  => 'nullable|boolean',
         ]);
+
+        $data['role_scope'] = $data['role_scope'] ?? RecruitmentOption::ROLE_ALL;
 
         $ckb = trim($data['label_ckb']);
         $data['label_ckb'] = $ckb;
@@ -67,6 +74,7 @@ class RecruitmentOptionController extends Controller
         $option = RecruitmentOption::findOrFail($id);
 
         $data = $request->validate([
+            'role_scope' => ['nullable', Rule::in(RecruitmentOption::ROLE_SCOPES)],
             'label_ckb'  => 'sometimes|required|string|max:255',
             'label_kmr'  => 'nullable|string|max:255',
             'label_ar'   => 'nullable|string|max:255',
