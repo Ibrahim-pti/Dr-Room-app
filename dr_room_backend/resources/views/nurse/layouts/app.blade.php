@@ -9,8 +9,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/css/kurdish-font.css">
     <style>
+        html, body { max-width: 100%; overflow-x: clip; }
         body { font-family: 'Rabar', 'Inter', sans-serif; background: #f0f2f5; margin: 0; }
-        * { font-family: 'Rabar', sans-serif; }
+        *, *::before, *::after { font-family: 'Rabar', sans-serif; box-sizing: border-box; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(20,184,166,0.3); border-radius: 10px; }
@@ -65,7 +66,7 @@
         .sidebar-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
 
-        .dr-main { margin-right: 270px; min-height: 100vh; transition: margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        .dr-main { margin-right: 270px; min-height: 100vh; min-width: 0; transition: margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
         .dr-header { position: sticky; top: 0; z-index: 30; height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
         .dr-header .menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; border: none; background: #f1f5f9; color: #64748b; cursor: pointer; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .dr-header .menu-btn:hover { background: #e2e8f0; color: #334155; }

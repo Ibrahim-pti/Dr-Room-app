@@ -14,7 +14,42 @@
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden w-full">
-        <div class="overflow-x-auto">
+        <!-- Mobile Cards -->
+        <div class="md:hidden divide-y divide-slate-100">
+            @forelse($patients as $patient)
+                @php
+                    $lastOrderDate = $patient->orders->first()?->created_at?->copy()->timezone('Asia/Baghdad');
+                    $lastAppDate = $patient->nurseAppointments->first()?->appointment_date;
+                    $lastVisit = ($lastOrderDate && $lastAppDate)
+                        ? ($lastOrderDate->gt($lastAppDate) ? $lastOrderDate : $lastAppDate)
+                        : ($lastOrderDate ?? $lastAppDate);
+                @endphp
+                <div class="p-4 space-y-2">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">
+                                {{ mb_substr($patient->name ?? 'ن', 0, 1) }}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-semibold text-slate-800 truncate">{{ $patient->name }}</div>
+                                <div class="text-xs text-slate-500 truncate">{{ $patient->email ?? '-' }}</div>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700 shrink-0">
+                            {{ ($patient->total_visits ?? 0) + ($patient->total_appointments ?? 0) }} سەردان
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-slate-600 pt-1">
+                        <span dir="ltr">{{ $patient->phone ?? 'نەزانراو' }}</span>
+                        <span dir="ltr">{{ $lastVisit ? \Carbon\Carbon::parse($lastVisit)->format('Y-m-d') : '-' }}</span>
+                    </div>
+                </div>
+            @empty
+                <div class="px-6 py-12 text-center text-slate-500">هیچ نەخۆشێک نەدۆزرایەوە</div>
+            @endforelse
+        </div>
+
+        <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-right text-sm">
                 <thead class="bg-slate-50 border-b border-slate-100 text-slate-600 font-bold">
                     <tr>

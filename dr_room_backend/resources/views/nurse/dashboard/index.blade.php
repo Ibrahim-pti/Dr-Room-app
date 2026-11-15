@@ -16,7 +16,7 @@
     </div>
 
     <!-- Stats -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @php
             $stats = [
                 ['label' => 'داواکارییەکانی ئەمڕۆ', 'value' => $todayAppointments ?? 0, 'color' => '#0d9488', 'bg' => '#f0fdfa', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'link' => route('nurse.appointments.index')],
@@ -37,10 +37,10 @@
     </div>
 
     <!-- Content Grid -->
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         <!-- New Requests & Appointments -->
-        <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="lg:col-span-2 flex flex-col gap-5">
             <!-- Unassigned / Pending Requests -->
             @if(isset($unassignedRequests) && $unassignedRequests->count() > 0)
             <div style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;display:flex;flex-direction:column;">

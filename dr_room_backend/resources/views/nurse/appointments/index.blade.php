@@ -48,84 +48,190 @@
         </div>
         
         @if($appointments->count() > 0)
-            <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;text-align:right;">
+            <!-- Mobile Cards -->
+            <div class="md:hidden divide-y divide-slate-100">
+                @foreach($appointments as $app)
+                    @php
+                        $localAppCreatedAt = $app->created_at?->timezone('Asia/Baghdad');
+                        $patientDetails = is_string($app->patient_details) ? json_decode($app->patient_details, true) : $app->patient_details;
+                        $prescriptionImg = $patientDetails['prescription_image'] ?? $patientDetails['prescription_url'] ?? null;
+                        $fullPrescUrl = $prescriptionImg
+                            ? ((str_starts_with($prescriptionImg, 'http://') || str_starts_with($prescriptionImg, 'https://'))
+                                ? $prescriptionImg
+                                : (str_starts_with($prescriptionImg, 'storage/') ? asset($prescriptionImg) : asset('storage/' . ltrim($prescriptionImg, '/'))))
+                            : null;
+                        $estPresets = [15, 30, 45, 60, 90, 120, 180, 240, 360, 720, 1440, 2880];
+                        $currentEst = $app->estimated_duration_minutes;
+                        $isCustomEst = $currentEst !== null && !in_array((int) $currentEst, $estPresets, true);
+                    @endphp
+                    <div class="p-4 space-y-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold shrink-0">
+                                    {{ mb_substr($app->patient->name ?? 'ن', 0, 1) }}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-sm font-bold text-slate-900 truncate">{{ $app->patient->name ?? 'نەخۆش' }}</div>
+                                    <div class="text-xs text-slate-500 mt-0.5" dir="ltr" style="text-align:right;">
+                                        {{ $localAppCreatedAt?->format('Y-m-d') }} • {{ $localAppCreatedAt?->format('h:i A') }}
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-sm font-extrabold text-emerald-600 whitespace-nowrap">{{ number_format($app->total_price, 0) }} د.ع</span>
+                        </div>
+
+                        @if($app->items && $app->items->count() > 0)
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach($app->items as $item)
+                                    <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs font-semibold">{{ $item->item_name }}</span>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                            <div>
+                                <span>{{ $patientDetails['location'] ?? 'ناونیشان دیارینەکراوە' }}</span>
+                                @if(!empty($patientDetails['phone']))
+                                    <span class="mx-1 text-slate-300">•</span>
+                                    <span dir="ltr" class="inline-block">{{ $patientDetails['phone'] }}</span>
+                                @endif
+                            </div>
+                            @if($fullPrescUrl)
+                                <a href="{{ $fullPrescUrl }}" target="_blank" class="inline-flex items-center gap-1 bg-emerald-50 text-teal-700 px-2 py-1 rounded-md font-bold border border-emerald-200">
+                                    وێنەی ڕەچەتە
+                                </a>
+                            @endif
+                        </div>
+
+                        <form id="mobile-nurse-order-status-form-{{ $app->id }}" action="{{ route('nurse.appointments.update_status', $app->id) }}" method="POST" class="space-y-2 pt-1">
+                            @csrf
+                            @method('PATCH')
+                            <select name="status" onchange="this.form.submit()"
+                                    class="status-select w-full @if($app->status == 'pending') status-pending @elseif(in_array($app->status, ['approved', 'confirmed', 'processing', 'in_progress', 'on_the_way'])) status-progress @elseif($app->status == 'completed') status-completed @else status-cancelled @endif">
+                                @if($app->status == 'pending')
+                                    <option value="pending" selected>⏳ چاوەڕوانە</option>
+                                @endif
+                                <option value="on_the_way" {{ $app->status == 'on_the_way' ? 'selected' : '' }}>🚗 لە ڕێگادایە</option>
+                                <option value="processing" {{ in_array($app->status, ['processing', 'in_progress', 'approved', 'confirmed']) ? 'selected' : '' }}>🩺 قبوڵکرا / لە کاردایە</option>
+                                <option value="completed" {{ $app->status == 'completed' ? 'selected' : '' }}>✅ تەواوکراوە</option>
+                                <option value="cancelled" {{ $app->status == 'cancelled' ? 'selected' : '' }}>❌ ڕەتکرایەوە</option>
+                            </select>
+
+                            <select id="mobile-nurse-est-preset-{{ $app->id }}"
+                                    onchange="handleNurseEstPresetChange({{ $app->id }}, this, 'mobile-')"
+                                    class="w-full text-xs font-bold px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-700 outline-none">
+                                <option value="" {{ $currentEst === null ? 'selected' : '' }}>⏱ دیاریکردنی کات...</option>
+                                <option value="15" {{ (int)$currentEst === 15 ? 'selected' : '' }}>⏱ ١٥ خولەک</option>
+                                <option value="30" {{ (int)$currentEst === 30 ? 'selected' : '' }}>⏱ ٣٠ خولەک</option>
+                                <option value="45" {{ (int)$currentEst === 45 ? 'selected' : '' }}>⏱ ٤٥ خولەک</option>
+                                <option value="60" {{ (int)$currentEst === 60 ? 'selected' : '' }}>⏱ ١ کاتژمێر</option>
+                                <option value="90" {{ (int)$currentEst === 90 ? 'selected' : '' }}>⏱ ١ کاتژمێر و ٣٠ خولەک</option>
+                                <option value="120" {{ (int)$currentEst === 120 ? 'selected' : '' }}>⏱ ٢ کاتژمێر</option>
+                                <option value="180" {{ (int)$currentEst === 180 ? 'selected' : '' }}>⏱ ٣ کاتژمێر</option>
+                                <option value="240" {{ (int)$currentEst === 240 ? 'selected' : '' }}>⏱ ٤ کاتژمێر</option>
+                                <option value="360" {{ (int)$currentEst === 360 ? 'selected' : '' }}>⏱ ٦ کاتژمێر</option>
+                                <option value="720" {{ (int)$currentEst === 720 ? 'selected' : '' }}>⏱ ١٢ کاتژمێر</option>
+                                <option value="1440" {{ (int)$currentEst === 1440 ? 'selected' : '' }}>⏱ ٢٤ کاتژمێر (١ ڕۆژ)</option>
+                                <option value="2880" {{ (int)$currentEst === 2880 ? 'selected' : '' }}>⏱ ٤٨ کاتژمێر (٢ ڕۆژ)</option>
+                                <option value="custom" {{ $isCustomEst ? 'selected' : '' }}>✏️ کاتی تر (بە خولەک)...</option>
+                            </select>
+
+                            <div id="mobile-nurse-est-custom-box-{{ $app->id }}" style="display:{{ $isCustomEst ? 'flex' : 'none' }};align-items:center;gap:6px;">
+                                <input type="number"
+                                       id="mobile-nurse-est-minutes-{{ $app->id }}"
+                                       name="estimated_duration_minutes"
+                                       min="1"
+                                       max="43200"
+                                       value="{{ $currentEst }}"
+                                       placeholder="خولەک (نم: 90)"
+                                       class="w-full text-xs font-bold px-3 py-2 rounded-lg border border-slate-400 bg-white text-slate-900 outline-none" />
+                                <button type="submit"
+                                        class="bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-extrabold whitespace-nowrap">
+                                    پاشەکەوت
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full border-collapse text-right">
                     <thead>
-                        <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;">
-                            <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#64748b;white-space:nowrap;">نەخۆش</th>
-                            <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#64748b;white-space:nowrap;">خزمەتگوزارییەکان</th>
-                            <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#64748b;white-space:nowrap;">کات و بەروار</th>
-                            <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#64748b;white-space:nowrap;">ناونیشان / ژ.مۆبایل</th>
-                            <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#64748b;white-space:nowrap;">نرخ</th>
-                            <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#64748b;white-space:nowrap;">دۆخ و کاتی چاوەڕوانی</th>
+                        <tr class="bg-slate-50 border-b border-slate-200">
+                            <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-slate-500 whitespace-nowrap">نەخۆش</th>
+                            <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-slate-500 whitespace-nowrap">خزمەتگوزارییەکان</th>
+                            <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-slate-500 whitespace-nowrap">کات و بەروار</th>
+                            <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-slate-500 whitespace-nowrap">ناونیشان / ژ.مۆبایل</th>
+                            <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-slate-500 whitespace-nowrap">نرخ</th>
+                            <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-slate-500 whitespace-nowrap">دۆخ و کاتی چاوەڕوانی</th>
                         </tr>
                     </thead>
                     <tbody>
                     @foreach($appointments as $app)
-                        <tr style="border-bottom:1px solid #f1f5f9;transition:background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                            <td style="padding:16px 24px;">
-                                <div style="display:flex;align-items:center;gap:12px;">
-                                    <div style="width:40px;height:40px;border-radius:50%;background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-weight:bold;">
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                            <td class="px-3 lg:px-4 py-3.5">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-9 h-9 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-sm shrink-0">
                                         {{ mb_substr($app->patient->name ?? 'ن', 0, 1) }}
                                     </div>
-                                    <div>
-                                        <div style="font-size:0.9rem;font-weight:700;color:#0f172a;">{{ $app->patient->name ?? 'نەخۆش' }}</div>
-                                    </div>
+                                    <div class="text-sm font-bold text-slate-900">{{ $app->patient->name ?? 'نەخۆش' }}</div>
                                 </div>
                             </td>
-                            <td style="padding:16px 24px;">
-                                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                            <td class="px-3 lg:px-4 py-3.5">
+                                <div class="flex flex-wrap gap-1.5">
                                     @if($app->items && $app->items->count() > 0)
                                         @foreach($app->items as $item)
-                                            <span style="background:#f1f5f9;color:#475569;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;">
+                                            <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-xs font-semibold">
                                                 {{ $item->item_name }}
                                             </span>
                                         @endforeach
                                     @else
-                                        <span style="color:#94a3b8;font-size:0.8rem;">دیارینەکراوە</span>
+                                        <span class="text-slate-400 text-xs">دیارینەکراوە</span>
                                     @endif
                                 </div>
                             </td>
-                            <td style="padding:16px 24px;white-space:nowrap;">
+                            <td class="px-3 lg:px-4 py-3.5 whitespace-nowrap">
                                 @php $localAppCreatedAt = $app->created_at?->timezone('Asia/Baghdad'); @endphp
-                                <div style="font-size:0.85rem;color:#334155;font-weight:600;text-align:right;white-space:nowrap;" dir="ltr">{{ $localAppCreatedAt?->format('Y-m-d') }}</div>
-                                <div style="font-size:0.75rem;color:#94a3b8;text-align:right;white-space:nowrap;" dir="ltr">{{ $localAppCreatedAt?->format('h:i A') }}</div>
+                                <div class="text-xs text-slate-700 font-semibold whitespace-nowrap" dir="ltr" style="text-align:right;">{{ $localAppCreatedAt?->format('Y-m-d') }}</div>
+                                <div class="text-[11px] text-slate-400 whitespace-nowrap" dir="ltr" style="text-align:right;">{{ $localAppCreatedAt?->format('h:i A') }}</div>
                             </td>
-                            <td style="padding:16px 24px;">
+                            <td class="px-3 lg:px-4 py-3.5">
                                 @php
                                     $patientDetails = is_string($app->patient_details) ? json_decode($app->patient_details, true) : $app->patient_details;
                                     $prescriptionImg = $patientDetails['prescription_image'] ?? $patientDetails['prescription_url'] ?? null;
                                 @endphp
-                                <div style="font-size:0.85rem;color:#334155;">{{ $patientDetails['location'] ?? 'ناونیشان دیارینەکراوە' }}</div>
-                                <div style="font-size:0.75rem;color:#64748b;direction:ltr;text-align:right;white-space:nowrap;">{{ $patientDetails['phone'] ?? '' }}</div>
+                                <div class="text-xs text-slate-700">{{ $patientDetails['location'] ?? 'ناونیشان دیارینەکراوە' }}</div>
+                                <div class="text-[11px] text-slate-500 whitespace-nowrap" dir="ltr" style="text-align:right;">{{ $patientDetails['phone'] ?? '' }}</div>
                                 @if($prescriptionImg)
                                     @php
                                         $fullPrescUrl = (str_starts_with($prescriptionImg, 'http://') || str_starts_with($prescriptionImg, 'https://'))
                                             ? $prescriptionImg
                                             : (str_starts_with($prescriptionImg, 'storage/') ? asset($prescriptionImg) : asset('storage/' . ltrim($prescriptionImg, '/')));
                                     @endphp
-                                    <div style="margin-top: 6px;">
-                                        <a href="{{ $fullPrescUrl }}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#ecfdf5;color:#0d9488;padding:3px 8px;border-radius:6px;font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid #a7f3d0;">
+                                    <div class="mt-1.5">
+                                        <a href="{{ $fullPrescUrl }}" target="_blank" class="inline-flex items-center gap-1 bg-emerald-50 text-teal-700 px-2 py-0.5 rounded-md text-[11px] font-bold border border-emerald-200">
                                             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             وێنەی ڕەچەتە
                                         </a>
                                     </div>
                                 @endif
                             </td>
-                            <td style="padding:16px 24px;white-space:nowrap;">
-                                <div style="font-size:0.9rem;font-weight:700;color:#059669;white-space:nowrap;">{{ number_format($app->total_price, 0) }} د.ع</div>
+                            <td class="px-3 lg:px-4 py-3.5 whitespace-nowrap">
+                                <div class="text-sm font-bold text-emerald-600 whitespace-nowrap">{{ number_format($app->total_price, 0) }} د.ع</div>
                             </td>
-                            <td style="padding:16px 24px;">
+                            <td class="px-3 lg:px-4 py-3.5">
                                 @php
                                     $estPresets = [15, 30, 45, 60, 90, 120, 180, 240, 360, 720, 1440, 2880];
                                     $currentEst = $app->estimated_duration_minutes;
                                     $isCustomEst = $currentEst !== null && !in_array((int) $currentEst, $estPresets, true);
                                 @endphp
-                                <form id="nurse-order-status-form-{{ $app->id }}" action="{{ route('nurse.appointments.update_status', $app->id) }}" method="POST" style="margin:0;display:flex;flex-direction:column;gap:6px;min-width:205px;">
+                                <form id="nurse-order-status-form-{{ $app->id }}" action="{{ route('nurse.appointments.update_status', $app->id) }}" method="POST" class="m-0 flex flex-col gap-1.5 w-full max-w-[190px]">
                                     @csrf
                                     @method('PATCH')
                                     <select name="status" onchange="this.form.submit()"
-                                            class="status-select @if($app->status == 'pending') status-pending @elseif(in_array($app->status, ['approved', 'confirmed', 'processing', 'in_progress', 'on_the_way'])) status-progress @elseif($app->status == 'completed') status-completed @else status-cancelled @endif">
+                                            class="status-select w-full max-w-full @if($app->status == 'pending') status-pending @elseif(in_array($app->status, ['approved', 'confirmed', 'processing', 'in_progress', 'on_the_way'])) status-progress @elseif($app->status == 'completed') status-completed @else status-cancelled @endif">
                                         @if($app->status == 'pending')
                                             <option value="pending" selected>⏳ چاوەڕوانە</option>
                                         @endif
@@ -136,9 +242,9 @@
                                     </select>
 
                                     <select id="nurse-est-preset-{{ $app->id }}"
-                                            onchange="handleNurseEstPresetChange({{ $app->id }}, this)"
-                                            style="font-size:0.76rem;font-weight:700;padding:6px 10px;border-radius:10px;border:1px solid #cbd5e1;background:#f8fafc;color:#334155;cursor:pointer;outline:none;">
-                                        <option value="" {{ $currentEst === null ? 'selected' : '' }}>⏱ دیاریکردنی کات (چەند کاتی دەوێ)...</option>
+                                            onchange="handleNurseEstPresetChange({{ $app->id }}, this, '')"
+                                            class="w-full max-w-full text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-300 bg-slate-50 text-slate-700 cursor-pointer outline-none truncate">
+                                        <option value="" {{ $currentEst === null ? 'selected' : '' }}>⏱ دیاریکردنی کات...</option>
                                         <option value="15" {{ (int)$currentEst === 15 ? 'selected' : '' }}>⏱ ١٥ خولەک</option>
                                         <option value="30" {{ (int)$currentEst === 30 ? 'selected' : '' }}>⏱ ٣٠ خولەک</option>
                                         <option value="45" {{ (int)$currentEst === 45 ? 'selected' : '' }}>⏱ ٤٥ خولەک</option>
@@ -161,10 +267,10 @@
                                                min="1"
                                                max="43200"
                                                value="{{ $currentEst }}"
-                                               placeholder="خولەک (نم: 90)"
-                                               style="width:100%;font-size:0.76rem;font-weight:700;padding:5px 8px;border-radius:8px;border:1px solid #94a3b8;background:#ffffff;color:#0f172a;outline:none;" />
+                                               placeholder="خولەک"
+                                               class="w-full min-w-0 text-xs font-bold px-2 py-1 rounded-lg border border-slate-400 bg-white text-slate-900 outline-none" />
                                         <button type="submit"
-                                                style="background:#0f172a;color:#ffffff;border:none;padding:5px 10px;border-radius:8px;font-size:0.72rem;font-weight:800;cursor:pointer;white-space:nowrap;">
+                                                class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-[11px] font-extrabold whitespace-nowrap shrink-0">
                                             پاشەکەوت
                                         </button>
                                     </div>
@@ -195,68 +301,130 @@
             <span style="background:#fef3c7;color:#b45309;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;">{{ $unassignedRequests->count() }} داواکاری</span>
         </div>
         
-        <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;text-align:right;">
+        <!-- Mobile Cards (Unassigned Requests) -->
+        <div class="md:hidden divide-y divide-amber-100">
+            @foreach($unassignedRequests as $req)
+                @php
+                    $localReqCreatedAt = $req->created_at?->timezone('Asia/Baghdad');
+                    $patientDetails = is_string($req->patient_details) ? json_decode($req->patient_details, true) : $req->patient_details;
+                    $reqPrescriptionImg = $patientDetails['prescription_image'] ?? $patientDetails['prescription_url'] ?? null;
+                    $fullReqPrescUrl = $reqPrescriptionImg
+                        ? ((str_starts_with($reqPrescriptionImg, 'http://') || str_starts_with($reqPrescriptionImg, 'https://'))
+                            ? $reqPrescriptionImg
+                            : (str_starts_with($reqPrescriptionImg, 'storage/') ? asset($reqPrescriptionImg) : asset('storage/' . ltrim($reqPrescriptionImg, '/'))))
+                        : null;
+                @endphp
+                <div class="p-4 space-y-3 bg-white">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="text-sm font-bold text-slate-900 truncate">{{ $req->patient->name ?? 'نەخۆش' }}</div>
+                            <div class="text-xs text-slate-500 mt-0.5" dir="ltr" style="text-align:right;">
+                                {{ $localReqCreatedAt?->format('Y-m-d') }} • {{ $localReqCreatedAt?->format('h:i A') }}
+                            </div>
+                        </div>
+                        <span class="text-sm font-extrabold text-amber-700 whitespace-nowrap">{{ number_format($req->total_price, 0) }} د.ع</span>
+                    </div>
+
+                    @if($req->items && $req->items->count() > 0)
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach($req->items as $item)
+                                <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-md text-xs font-semibold">{{ $item->item_name }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                        <span>{{ $patientDetails['location'] ?? 'ناونیشان دیارینەکراوە' }}</span>
+                        @if($fullReqPrescUrl)
+                            <a href="{{ $fullReqPrescUrl }}" target="_blank" class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-bold border border-amber-200">
+                                وێنەی ڕەچەتە
+                            </a>
+                        @endif
+                    </div>
+
+                    <form action="{{ route('nurse.appointments.accept', $req->id) }}" method="POST" class="flex flex-col gap-2 pt-1">
+                        @csrf
+                        <select name="estimated_duration_minutes" class="w-full text-xs font-bold px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 outline-none">
+                            <option value="">⏱ کاتی گەیشتن (ئارەزوومەندانە)</option>
+                            <option value="15">⏱ ١٥ خولەک</option>
+                            <option value="30">⏱ ٣٠ خولەک</option>
+                            <option value="45">⏱ ٤٥ خولەک</option>
+                            <option value="60">⏱ ١ کاتژمێر</option>
+                            <option value="90">⏱ ١ کاتژمێر و ٣٠ خولەک</option>
+                            <option value="120">⏱ ٢ کاتژمێر</option>
+                        </select>
+                        <button type="submit" class="w-full justify-center bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            وەرگرتنی سەردان
+                        </button>
+                    </form>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- Desktop Table (Unassigned Requests) -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full border-collapse text-right">
                 <thead>
-                    <tr style="background:#fefce8;border-bottom:1px solid #fde68a;">
-                        <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#92400e;text-transform:uppercase;">نەخۆش</th>
-                        <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#92400e;text-transform:uppercase;">خزمەتگوزارییەکان</th>
-                        <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#92400e;text-transform:uppercase;">کات و بەروار</th>
-                        <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#92400e;text-transform:uppercase;">ناونیشان</th>
-                        <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#92400e;text-transform:uppercase;">نرخ</th>
-                        <th style="padding:16px 24px;font-size:0.8rem;font-weight:700;color:#92400e;text-transform:uppercase;">کردارەکان</th>
+                    <tr class="bg-yellow-50/70 border-b border-amber-200">
+                        <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-amber-900 whitespace-nowrap">نەخۆش</th>
+                        <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-amber-900 whitespace-nowrap">خزمەتگوزارییەکان</th>
+                        <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-amber-900 whitespace-nowrap">کات و بەروار</th>
+                        <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-amber-900 whitespace-nowrap">ناونیشان</th>
+                        <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-amber-900 whitespace-nowrap">نرخ</th>
+                        <th class="px-3 lg:px-4 py-3.5 text-xs font-bold text-amber-900 whitespace-nowrap">کردارەکان</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($unassignedRequests as $req)
-                    <tr style="border-bottom:1px solid #fef3c7;background:#fff;">
-                        <td style="padding:16px 24px;">
-                            <div style="font-size:0.9rem;font-weight:700;color:#0f172a;">{{ $req->patient->name ?? 'نەخۆش' }}</div>
+                    <tr class="border-b border-amber-100 bg-white">
+                        <td class="px-3 lg:px-4 py-3.5">
+                            <div class="text-sm font-bold text-slate-900">{{ $req->patient->name ?? 'نەخۆش' }}</div>
                         </td>
-                        <td style="padding:16px 24px;">
-                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                        <td class="px-3 lg:px-4 py-3.5">
+                            <div class="flex flex-wrap gap-1.5">
                                 @if($req->items && $req->items->count() > 0)
                                     @foreach($req->items as $item)
-                                        <span style="background:#fef3c7;color:#b45309;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;">
+                                        <span class="bg-amber-100 text-amber-800 px-2 py-1 rounded-md text-xs font-semibold">
                                             {{ $item->item_name }}
                                         </span>
                                     @endforeach
                                 @endif
                             </div>
                         </td>
-                        <td style="padding:16px 24px;white-space:nowrap;">
+                        <td class="px-3 lg:px-4 py-3.5 whitespace-nowrap">
                             @php $localReqCreatedAt = $req->created_at?->timezone('Asia/Baghdad'); @endphp
-                            <div style="font-size:0.85rem;color:#334155;font-weight:600;text-align:right;white-space:nowrap;" dir="ltr">{{ $localReqCreatedAt?->format('Y-m-d') }}</div>
-                            <div style="font-size:0.75rem;color:#94a3b8;text-align:right;white-space:nowrap;" dir="ltr">{{ $localReqCreatedAt?->format('h:i A') }}</div>
+                            <div class="text-xs text-slate-700 font-semibold whitespace-nowrap" dir="ltr" style="text-align:right;">{{ $localReqCreatedAt?->format('Y-m-d') }}</div>
+                            <div class="text-[11px] text-slate-400 whitespace-nowrap" dir="ltr" style="text-align:right;">{{ $localReqCreatedAt?->format('h:i A') }}</div>
                         </td>
-                        <td style="padding:16px 24px;">
+                        <td class="px-3 lg:px-4 py-3.5">
                             @php
                                 $patientDetails = is_string($req->patient_details) ? json_decode($req->patient_details, true) : $req->patient_details;
                                 $reqPrescriptionImg = $patientDetails['prescription_image'] ?? $patientDetails['prescription_url'] ?? null;
                             @endphp
-                            <div style="font-size:0.85rem;color:#334155;">{{ $patientDetails['location'] ?? 'ناونیشان دیارینەکراوە' }}</div>
+                            <div class="text-xs text-slate-700">{{ $patientDetails['location'] ?? 'ناونیشان دیارینەکراوە' }}</div>
                             @if($reqPrescriptionImg)
                                 @php
                                     $fullReqPrescUrl = (str_starts_with($reqPrescriptionImg, 'http://') || str_starts_with($reqPrescriptionImg, 'https://'))
                                         ? $reqPrescriptionImg
                                         : (str_starts_with($reqPrescriptionImg, 'storage/') ? asset($reqPrescriptionImg) : asset('storage/' . ltrim($reqPrescriptionImg, '/')));
                                 @endphp
-                                <div style="margin-top: 6px;">
-                                    <a href="{{ $fullReqPrescUrl }}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#fef3c7;color:#b45309;padding:3px 8px;border-radius:6px;font-size:0.75rem;font-weight:700;text-decoration:none;border:1px solid #fde68a;">
+                                <div class="mt-1.5">
+                                    <a href="{{ $fullReqPrescUrl }}" target="_blank" class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md text-[11px] font-bold border border-amber-200">
                                         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         وێنەی ڕەچەتە
                                     </a>
                                 </div>
                             @endif
                         </td>
-                        <td style="padding:16px 24px;white-space:nowrap;">
-                            <div style="font-size:0.9rem;font-weight:700;color:#b45309;white-space:nowrap;">{{ number_format($req->total_price, 0) }} د.ع</div>
+                        <td class="px-3 lg:px-4 py-3.5 whitespace-nowrap">
+                            <div class="text-sm font-bold text-amber-700 whitespace-nowrap">{{ number_format($req->total_price, 0) }} د.ع</div>
                         </td>
-                        <td style="padding:16px 24px;">
-                            <form action="{{ route('nurse.appointments.accept', $req->id) }}" method="POST" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
+                        <td class="px-3 lg:px-4 py-3.5">
+                            <form action="{{ route('nurse.appointments.accept', $req->id) }}" method="POST" class="flex flex-col gap-1.5 w-full max-w-[180px]">
                                 @csrf
-                                <select name="estimated_duration_minutes" style="font-size:0.76rem;font-weight:700;padding:7px 10px;border-radius:8px;border:1px solid #fde68a;background:#fffbeb;color:#92400e;cursor:pointer;outline:none;">
-                                    <option value="">⏱ کاتی گەیشتن (ئارەزوومەندانە)</option>
+                                <select name="estimated_duration_minutes" class="w-full max-w-full text-xs font-bold px-2 py-1.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 cursor-pointer outline-none truncate">
+                                    <option value="">⏱ کاتی گەیشتن...</option>
                                     <option value="15">⏱ ١٥ خولەک</option>
                                     <option value="30">⏱ ٣٠ خولەک</option>
                                     <option value="45">⏱ ٤٥ خولەک</option>
@@ -264,7 +432,7 @@
                                     <option value="90">⏱ ١ کاتژمێر و ٣٠ خولەک</option>
                                     <option value="120">⏱ ٢ کاتژمێر</option>
                                 </select>
-                                <button type="submit" style="background:#f59e0b;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:0.8rem;font-weight:bold;cursor:pointer;transition:background 0.2s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
+                                <button type="submit" class="w-full justify-center bg-amber-500 hover:bg-amber-600 text-white py-1.5 px-3 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap transition-colors">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     وەرگرتنی سەردان
                                 </button>
@@ -280,11 +448,11 @@
 </div>
 
 <script>
-function handleNurseEstPresetChange(orderId, selectEl) {
+function handleNurseEstPresetChange(orderId, selectEl, prefix = '') {
     const val = selectEl.value;
-    const customBox = document.getElementById(`nurse-est-custom-box-${orderId}`);
-    const inputEl = document.getElementById(`nurse-est-minutes-${orderId}`);
-    const formEl = document.getElementById(`nurse-order-status-form-${orderId}`);
+    const customBox = document.getElementById(`${prefix}nurse-est-custom-box-${orderId}`);
+    const inputEl = document.getElementById(`${prefix}nurse-est-minutes-${orderId}`);
+    const formEl = document.getElementById(`${prefix}nurse-order-status-form-${orderId}`);
     if (!customBox || !inputEl || !formEl) return;
 
     if (val === 'custom') {
