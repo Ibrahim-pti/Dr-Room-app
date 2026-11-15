@@ -11,8 +11,8 @@ return [
     // Hero
     'hero_title_1' => 'Become part of the',
     'hero_title_2' => 'DrRoom Mobile Medical Team',
-    'hero_desc' => 'Perform home blood sample collection to clinical standards, deliver mobile home-care nursing, or support safe pharmacy & specimen logistics across accredited laboratories.',
-    'hero_pill_1' => 'Clinical Phlebotomy & Nursing',
+    'hero_desc' => 'Perform home blood sample collection to clinical standards, deliver mobile home-care nursing, and specimens across accredited laboratories.',
+    'hero_pill_1' => 'Nursing & Lab Staff',
     'hero_pill_2' => 'Transparent Per-Visit Pay',
     'hero_pill_3' => 'Flexible Independent Schedule',
 
