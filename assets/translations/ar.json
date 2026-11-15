@@ -1191,5 +1191,7 @@
   "top_lab_tests": "أكثر الفحوصات طلباً",
   "tests_by_category": "توزيع الفحوصات حسب التصنيف",
   "estimated_time": "الوقت المستغرق",
-  "estimated_ready_at": "جاهز في الساعة"
+  "estimated_ready_at": "جاهز في الساعة",
+  "remaining_time": "الوقت المتبقي",
+  "almost_ready": "سيكون جاهزاً قريباً"
 }

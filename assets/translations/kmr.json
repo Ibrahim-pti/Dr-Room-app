@@ -1191,5 +1191,7 @@
   "top_lab_tests": "زێدەترین تاقیکرنێن داخازکری",
   "tests_by_category": "بەلاڤبوونا تاقیکرنان ل دیڤ جۆری",
   "estimated_time": "دەمێ پێدڤی",
-  "estimated_ready_at": "ئامادەبوون ل دەمژمێر"
+  "estimated_ready_at": "ئامادەبوون ل دەمژمێر",
+  "remaining_time": "دەمێ مای",
+  "almost_ready": "دێ ب زوویترین دەم ئامادە بیت"
 }

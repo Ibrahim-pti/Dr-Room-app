@@ -1191,5 +1191,7 @@
   "top_lab_tests": "Top Requested Lab Tests",
   "tests_by_category": "Tests by Category",
   "estimated_time": "Estimated Duration",
-  "estimated_ready_at": "Estimated Ready At"
+  "estimated_ready_at": "Estimated Ready At",
+  "remaining_time": "Remaining Time",
+  "almost_ready": "Almost ready"
 }

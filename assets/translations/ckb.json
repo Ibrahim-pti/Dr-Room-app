@@ -1191,5 +1191,7 @@
   "top_lab_tests": "زۆرترین پشکنینی داواکراو",
   "tests_by_category": "دابەشبوونی پشکنینەکان بەپێی جۆر",
   "estimated_time": "کاتی خەیانراو",
-  "estimated_ready_at": "ئامادەبوون لە کاتژمێر"
+  "estimated_ready_at": "ئامادەبوون لە کاتژمێر",
+  "remaining_time": "کاتی ماوە",
+  "almost_ready": "بەم زووانە ئامادە دەبێت"
 }

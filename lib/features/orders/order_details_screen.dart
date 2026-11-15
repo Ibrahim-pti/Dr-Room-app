@@ -26,6 +26,7 @@ class OrderDetailsScreen extends StatefulWidget {
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   late OrderModel _currentOrder;
   Timer? _pollingTimer;
+  Timer? _countdownTimer;
   GoogleMapController? _driverMapController;
   double _driverHeading = 0.0;
   LiveRouteResult? _trackingRoute;
@@ -63,6 +64,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       }
     });
     _startPolling();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      if (_currentOrder.status.isActive && _currentOrder.estimatedReadyAt != null) {
+        setState(() {});
+      }
+    });
   }
 
   Future<void> _initTrackingIcons() async {
@@ -99,7 +106,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void _startPolling() {
     _pollingTimer = Timer.periodic(const Duration(milliseconds: 2500), (timer) async {
       if (!mounted) return;
-      await context.read<OrderProvider>().fetchOrders();
+      await context.read<OrderProvider>().fetchOrders(silent: true);
 
       if (mounted) {
         final updatedOrder = context.read<OrderProvider>().orders.firstWhere(
@@ -261,6 +268,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   @override
   void dispose() {
     _pollingTimer?.cancel();
+    _countdownTimer?.cancel();
     _driverMapController?.dispose();
     super.dispose();
   }
@@ -902,41 +910,84 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               fontSize: 11.5,
                             ),
                           ),
-                          if (_currentOrder.localizedEstimatedDuration(context) != null) ...[
+                          if (_currentOrder.localizedEstimatedDuration(context) != null ||
+                              _currentOrder.localizedRemainingDuration(context) != null) ...[
                             const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0284C7).withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: const Color(0xFF0284C7).withValues(alpha: 0.25),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Iconsax.clock,
-                                    size: 14,
-                                    color: Color(0xFF0284C7),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      '${'estimated_time'.tr()}: ${_currentOrder.localizedEstimatedDuration(context)!}',
-                                      style: _kStyle(
-                                        color: const Color(0xFF0369A1),
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.bold,
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                if (_currentOrder.localizedEstimatedDuration(context) != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: const Color(0xFF0284C7).withValues(alpha: 0.25),
                                       ),
                                     ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Iconsax.clock,
+                                          size: 14,
+                                          color: Color(0xFF0284C7),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Flexible(
+                                          child: Text(
+                                            '${'estimated_time'.tr()}: ${_currentOrder.localizedEstimatedDuration(context)!}',
+                                            style: _kStyle(
+                                              color: const Color(0xFF0369A1),
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
-                              ),
+                                if (_currentOrder.localizedRemainingDuration(context) != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF059669).withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: const Color(0xFF059669).withValues(alpha: 0.28),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Iconsax.timer_1,
+                                          size: 14,
+                                          color: Color(0xFF059669),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Flexible(
+                                          child: Text(
+                                            '${'remaining_time'.tr()}: ${_currentOrder.localizedRemainingDuration(context)!}',
+                                            style: _kStyle(
+                                              color: const Color(0xFF047857),
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
                             ),
                           ],
                         ],
@@ -1246,7 +1297,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     _buildDetailRow(
                       context,
                       'order_time'.tr(),
-                      '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}',
+                      DateFormat('hh:mm a', 'en').format(_currentOrder.date),
                       isDark: isDark,
                     ),
                     if (_currentOrder.localizedEstimatedDuration(context) != null) ...[
@@ -1259,6 +1310,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         context,
                         'estimated_time'.tr(),
                         _currentOrder.localizedEstimatedDuration(context)!,
+                        isDark: isDark,
+                      ),
+                    ],
+                    if (_currentOrder.localizedRemainingDuration(context) != null) ...[
+                      const Divider(
+                        height: 24,
+                        thickness: 1,
+                        color: Color(0xFFF1F5F9),
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'remaining_time'.tr(),
+                        _currentOrder.localizedRemainingDuration(context)!,
                         isDark: isDark,
                       ),
                     ],

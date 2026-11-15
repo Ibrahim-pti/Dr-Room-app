@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -49,6 +50,8 @@ class OrdersScreenState extends State<OrdersScreen> {
 
   OrderStatus? _selectedStatus;
   String _selectedCategory = 'all';
+  Timer? _pollingTimer;
+  Timer? _countdownTimer;
 
   bool _matchesCategory(OrderModel order) {
     switch (_selectedCategory) {
@@ -88,6 +91,27 @@ class OrdersScreenState extends State<OrdersScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<OrderProvider>().fetchOrders();
     });
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (mounted) {
+        context.read<OrderProvider>().fetchOrders(silent: true);
+      }
+    });
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final hasLiveCountdown = context.read<OrderProvider>().orders.any(
+            (o) => o.status.isActive && o.estimatedReadyAt != null,
+          );
+      if (hasLiveCountdown) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    _countdownTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -423,6 +447,10 @@ class OrdersScreenState extends State<OrdersScreen> {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final estDuration = order.localizedEstimatedDuration(context);
+    final remainingDuration = order.localizedRemainingDuration(context);
+    final liveBadgeText = remainingDuration != null
+        ? '${'remaining_time'.tr()}: $remainingDuration'
+        : (estDuration != null ? '${'estimated_time'.tr()}: $estDuration' : null);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -514,7 +542,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                             ),
                           ),
                         ),
-                        if (estDuration != null && order.status.isActive)
+                        if (liveBadgeText != null && order.status.isActive)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(
@@ -524,25 +552,27 @@ class OrdersScreenState extends State<OrdersScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
-                                  Iconsax.clock,
+                                Icon(
+                                  remainingDuration != null ? Iconsax.timer_1 : Iconsax.clock,
                                   size: 11,
-                                  color: Color(0xFF0284C7),
+                                  color: const Color(0xFF0284C7),
                                 ),
                                 const SizedBox(width: 4),
-                                Text(
-                                  '${'estimated_time'.tr()}: $estDuration',
-                                  style: _kStyle(
-                                    color: const Color(0xFF0284C7),
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.bold,
+                                Flexible(
+                                  child: Text(
+                                    liveBadgeText,
+                                    style: _kStyle(
+                                      color: const Color(0xFF0284C7),
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         Text(
-                          '${order.date.day}/${order.date.month}/${order.date.year}',
+                          '${order.date.day}/${order.date.month}/${order.date.year} • ${DateFormat('hh:mm a', 'en').format(order.date)}',
                           style: _kStyle(
                             color: const Color(0xFF94A3B8),
                             fontSize: 11.5,

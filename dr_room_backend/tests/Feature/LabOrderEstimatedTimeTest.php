@@ -79,7 +79,7 @@ class LabOrderEstimatedTimeTest extends TestCase
         // API /orders and /orders/{id} return localized estimated time fields
         $patientToken = $patient->createToken('patient-app')->plainTextToken;
 
-        $this->withToken($patientToken)
+        $ordersRes = $this->withToken($patientToken)
             ->withHeaders(['Accept-Language' => 'en'])
             ->getJson('/api/orders?lang=en')
             ->assertOk()
@@ -90,6 +90,11 @@ class LabOrderEstimatedTimeTest extends TestCase
             ->assertJsonPath('data.0.estimated_duration_labels.kmr', '1 دەمژمێر و 30 خولەک')
             ->assertJsonPath('data.0.estimated_duration_labels.ar', '1 ساعة و 30 دقيقة')
             ->assertJsonPath('data.0.estimated_duration_labels.en', '1 hr 30 min');
+
+        $remSecs = $ordersRes->json('data.0.estimated_remaining_seconds');
+        $this->assertIsInt($remSecs);
+        $this->assertGreaterThan(5300, $remSecs);
+        $this->assertLessThanOrEqual(5400, $remSecs);
 
         $this->withToken($patientToken)
             ->withHeaders(['Accept-Language' => 'ckb'])

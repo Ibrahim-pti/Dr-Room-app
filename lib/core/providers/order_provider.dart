@@ -218,6 +218,10 @@ class OrderModel {
         ? json['estimated_duration_labels'] as Map
         : null;
     final parsedReadyAt = DateTime.tryParse(json['estimated_ready_at']?.toString() ?? '');
+    final remSeconds = int.tryParse(json['estimated_remaining_seconds']?.toString() ?? '');
+    final effectiveReadyAt = (remSeconds != null && remSeconds >= 0)
+        ? DateTime.now().add(Duration(seconds: remSeconds))
+        : parsedReadyAt?.toLocal();
 
     final patientDetails = json['patient_details'] is Map ? json['patient_details'] as Map : null;
     String? rawPrescription = json['prescription_image']?.toString() ??
@@ -260,13 +264,13 @@ class OrderModel {
       statusLabelAr: statusLabels?['ar']?.toString(),
       statusLabelEn: statusLabels?['en']?.toString(),
       estimatedDurationMinutes: int.tryParse(json['estimated_duration_minutes']?.toString() ?? ''),
-      estimatedReadyAt: parsedReadyAt?.toLocal(),
+      estimatedReadyAt: effectiveReadyAt,
       estimatedDurationLabelCkb: estLabels?['ckb']?.toString() ?? json['estimated_duration_label']?.toString(),
       estimatedDurationLabelKmr: estLabels?['kmr']?.toString(),
       estimatedDurationLabelAr: estLabels?['ar']?.toString(),
       estimatedDurationLabelEn: estLabels?['en']?.toString(),
       price: double.tryParse(json['total_price']?.toString() ?? '') ?? 0.0,
-      date: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      date: DateTime.tryParse(json['created_at']?.toString() ?? '')?.toLocal() ?? DateTime.now(),
       assignedNurseId: nurse?['id']?.toString(),
       assignedNurseName: nurse?['name']?.toString(),
       assignedNurseNameEn: nurse?['name_en']?.toString(),
@@ -564,6 +568,54 @@ class OrderModel {
         ? '$hours دەمژمێر و $rem خولەک'
         : '$hours کاتژمێر و $rem خولەک';
   }
+
+  /// Real-time remaining countdown text for active orders with an ETA.
+  String? localizedRemainingDuration(BuildContext context, {DateTime? now}) {
+    if (!status.isActive) return null;
+    final target = estimatedReadyAt;
+    if (target == null) return null;
+
+    final diff = target.difference(now ?? DateTime.now());
+    if (diff.inSeconds <= 0) {
+      return 'almost_ready'.tr();
+    }
+
+    final lang = context.locale.languageCode.toLowerCase();
+    final totalSecs = diff.inSeconds;
+    final days = totalSecs ~/ 86400;
+    final hours = (totalSecs % 86400) ~/ 3600;
+    final mins = (totalSecs % 3600) ~/ 60;
+    final secs = totalSecs % 60;
+
+    if (days > 0) {
+      if (lang == 'ar') {
+        return hours > 0 ? '$days يوم و $hours ساعة' : '$days يوم';
+      }
+      if (lang == 'en') {
+        return hours > 0 ? '${days}d ${hours}h' : '${days}d';
+      }
+      final dayLabel = lang == 'kmr' ? '$days رۆژ' : '$days ڕۆژ';
+      final hrLabel = lang == 'kmr' ? '$hours دەمژمێر' : '$hours کاتژمێر';
+      return hours > 0 ? '$dayLabel و $hrLabel' : dayLabel;
+    }
+
+    if (hours > 0) {
+      if (lang == 'ar') return '$hours س $mins د $secs ث';
+      if (lang == 'en') return '${hours}h ${mins}m ${secs}s';
+      final hrLabel = lang == 'kmr' ? '$hours دەمژمێر' : '$hours کاتژمێر';
+      return '$hrLabel و $mins خولەک و $secs چرکە';
+    }
+
+    if (mins > 0) {
+      if (lang == 'ar') return '$mins دقيقة و $secs ثانية';
+      if (lang == 'en') return '${mins}m ${secs}s';
+      return '$mins خولەک و $secs چرکە';
+    }
+
+    if (lang == 'ar') return '$secs ثانية';
+    if (lang == 'en') return '${secs}s';
+    return '$secs چرکە';
+  }
 }
 
 class OrderProvider extends ChangeNotifier {
@@ -584,10 +636,12 @@ class OrderProvider extends ChangeNotifier {
   int get activeOrderCount =>
       _orders.where((order) => order.status.isActive).length;
 
-  Future<void> fetchOrders() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+  Future<void> fetchOrders({bool silent = false}) async {
+    if (!silent) {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+    }
 
     try {
       final response = await ApiClient.get('/orders');
@@ -598,15 +652,20 @@ class OrderProvider extends ChangeNotifier {
             .whereType<Map<String, dynamic>>()
             .map(OrderModel.fromJson)
             .toList();
-      } else {
+        _error = null;
+      } else if (!silent) {
         _error = 'orders_load_failed'.tr();
       }
     } catch (e) {
       debugPrint('Error fetching orders: $e');
-      _error = 'orders_load_failed'.tr();
+      if (!silent) {
+        _error = 'orders_load_failed'.tr();
+      }
     }
 
-    _isLoading = false;
+    if (!silent) {
+      _isLoading = false;
+    }
     _hasLoadedOnce = true;
     notifyListeners();
   }

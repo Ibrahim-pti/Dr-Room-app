@@ -418,6 +418,10 @@ class OrderController extends Controller
         }
 
         $estimatedLabels = $order->estimatedDurationLabels();
+        $isTerminalOrder = in_array(strtolower((string) $order->status), ['completed', 'delivered', 'done', 'cancelled', 'rejected'], true);
+        $estimatedRemainingSeconds = (!$isTerminalOrder && $order->estimated_ready_at !== null)
+            ? max(0, (int) round(now()->diffInSeconds($order->estimated_ready_at, false)))
+            : null;
 
         return [
             'id' => $order->id,
@@ -441,6 +445,7 @@ class OrderController extends Controller
             'status_labels' => $statusLabels,
             'estimated_duration_minutes' => $order->estimated_duration_minutes,
             'estimated_ready_at' => $order->estimated_ready_at?->toIso8601String(),
+            'estimated_remaining_seconds' => $estimatedRemainingSeconds,
             'estimated_duration_label' => $estimatedLabels[$langCode] ?? $estimatedLabels['ckb'],
             'estimated_duration_labels' => $estimatedLabels,
             'payment_method' => $order->payment_method,
