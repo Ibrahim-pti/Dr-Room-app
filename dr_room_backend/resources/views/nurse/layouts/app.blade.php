@@ -83,7 +83,7 @@
         .notif-btn svg { width: 22px; height: 22px; }
         .notif-btn .dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid #fff; }
 
-        .dr-content { padding: 24px; max-width: 1280px; margin: 0 auto; }
+        .dr-content { padding: 24px; width: 100%; }
 
         @media (max-width: 1023px) {
             .dr-sidebar { transform: translateX(100%); }

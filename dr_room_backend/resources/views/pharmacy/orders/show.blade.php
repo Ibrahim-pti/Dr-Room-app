@@ -44,7 +44,7 @@
                         <span style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 800;">ڕەتکرایەوە</span>
                     @endif
                 </div>
-                <p style="color: #64748b; font-size: 0.88rem; margin: 4px 0 0 0;">کاتی تۆمارکردن: {{ $order->created_at->format('Y-m-d H:i') }} ({{ $order->created_at->diffForHumans() }})</p>
+                <p style="color: #64748b; font-size: 0.88rem; margin: 4px 0 0 0;">کاتی تۆمارکردن: {{ $order->created_at?->timezone('Asia/Baghdad')->format('Y-m-d h:i A') }} ({{ $order->created_at->diffForHumans() }})</p>
             </div>
         </div>
 

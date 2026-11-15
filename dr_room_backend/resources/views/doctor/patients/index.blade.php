@@ -14,29 +14,33 @@
         <table class="w-full text-right text-sm">
             <thead class="bg-slate-50 border-b border-slate-100 text-slate-500 font-medium">
                 <tr>
-                    <th class="px-6 py-4">ناوی نەخۆش</th>
-                    <th class="px-6 py-4">مۆبایل</th>
-                    <th class="px-6 py-4">ژمارەی سەردانەکان</th>
-                    <th class="px-6 py-4">کۆتا سەردان</th>
+                    <th class="px-6 py-4 text-right whitespace-nowrap">ناوی نەخۆش</th>
+                    <th class="px-6 py-4 text-right whitespace-nowrap">مۆبایل</th>
+                    <th class="px-6 py-4 text-right whitespace-nowrap">ژمارەی سەردانەکان</th>
+                    <th class="px-6 py-4 text-right whitespace-nowrap">کۆتا سەردان</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
                 @forelse($patients as $patient)
                     <tr class="hover:bg-slate-50/50 transition-colors">
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 text-right">
                             <div class="font-semibold text-slate-800">{{ $patient->name }}</div>
                             <div class="text-xs text-slate-500">{{ $patient->email ?? '-' }}</div>
                         </td>
-                        <td class="px-6 py-4 text-slate-600" dir="ltr">
-                            {{ $patient->phone ?? 'نەزانراو' }}
+                        <td class="px-6 py-4 text-right text-slate-600 whitespace-nowrap">
+                            @if($patient->phone)
+                                <span dir="ltr" class="inline-block">{{ $patient->phone }}</span>
+                            @else
+                                <span>نەزانراو</span>
+                            @endif
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 text-right whitespace-nowrap">
                             <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 {{ $patient->total_visits }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-slate-600" dir="ltr">
-                            {{ $patient->appointments->first()->appointment_date->format('Y-m-d') ?? '-' }}
+                        <td class="px-6 py-4 text-right text-slate-600 whitespace-nowrap">
+                            <span dir="ltr" class="inline-block">{{ $patient->appointments->first()->appointment_date->format('Y-m-d') ?? '-' }}</span>
                         </td>
                     </tr>
                 @empty

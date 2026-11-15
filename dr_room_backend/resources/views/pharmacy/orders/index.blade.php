@@ -179,9 +179,10 @@
                                 $paymentMethodKurdish = $order->payment_method ?? 'کاش';
                             }
 
+                            $localPharmCreatedAt = $order->created_at?->timezone('Asia/Baghdad');
                             $orderPayload = [
                                 'id' => $order->id,
-                                'date' => $order->created_at->format('Y/m/d h:i A'),
+                                'date' => $localPharmCreatedAt?->format('Y/m/d h:i A'),
                                 'name' => $patientName,
                                 'phone' => $patientPhone,
                                 'age' => $patientAge,
@@ -208,10 +209,10 @@
                             <!-- Date & Time -->
                             <td>
                                 <div style="font-weight: 700; color: #1e293b; font-size: 0.85rem;" dir="ltr">
-                                    {{ $order->created_at->format('Y/m/d') }}
+                                    {{ $localPharmCreatedAt?->format('Y/m/d') }}
                                 </div>
                                 <div style="font-size: 0.75rem; color: #64748b; margin-top: 3px; font-weight: 600;" dir="ltr">
-                                    🕒 {{ $order->created_at->format('h:i A') }}
+                                    🕒 {{ $localPharmCreatedAt?->format('h:i A') }}
                                 </div>
                             </td>
 

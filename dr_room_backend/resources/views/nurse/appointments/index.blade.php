@@ -58,8 +58,9 @@
                                 </div>
                             </td>
                             <td style="padding:16px 24px;">
-                                <div style="font-size:0.85rem;color:#334155;font-weight:600;">{{ $app->created_at->format('Y-m-d') }}</div>
-                                <div style="font-size:0.75rem;color:#94a3b8;">{{ $app->created_at->format('h:i A') }}</div>
+                                @php $localAppCreatedAt = $app->created_at?->timezone('Asia/Baghdad'); @endphp
+                                <div style="font-size:0.85rem;color:#334155;font-weight:600;text-align:right;" dir="ltr">{{ $localAppCreatedAt?->format('Y-m-d') }}</div>
+                                <div style="font-size:0.75rem;color:#94a3b8;text-align:right;" dir="ltr">{{ $localAppCreatedAt?->format('h:i A') }}</div>
                             </td>
                             <td style="padding:16px 24px;">
                                 @php
@@ -166,8 +167,9 @@
                             </div>
                         </td>
                         <td style="padding:16px 24px;">
-                            <div style="font-size:0.85rem;color:#334155;font-weight:600;">{{ $req->created_at->format('Y-m-d') }}</div>
-                            <div style="font-size:0.75rem;color:#94a3b8;">{{ $req->created_at->format('h:i A') }}</div>
+                            @php $localReqCreatedAt = $req->created_at?->timezone('Asia/Baghdad'); @endphp
+                            <div style="font-size:0.85rem;color:#334155;font-weight:600;text-align:right;" dir="ltr">{{ $localReqCreatedAt?->format('Y-m-d') }}</div>
+                            <div style="font-size:0.75rem;color:#94a3b8;text-align:right;" dir="ltr">{{ $localReqCreatedAt?->format('h:i A') }}</div>
                         </td>
                         <td style="padding:16px 24px;">
                             @php

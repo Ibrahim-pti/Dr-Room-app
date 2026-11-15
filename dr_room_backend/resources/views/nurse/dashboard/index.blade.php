@@ -11,7 +11,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;background:#f8fafc;padding:8px 16px;border-radius:10px;font-size:0.82rem;color:#94a3b8;font-weight:600;">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            {{ now()->format('Y-m-d') }}
+            {{ now()->timezone('Asia/Baghdad')->format('Y-m-d') }}
         </div>
     </div>
 
@@ -90,9 +90,10 @@
                     @if(isset($upcomingAppointments) && $upcomingAppointments->count() > 0)
                         @foreach($upcomingAppointments->take(5) as $appointment)
                         <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                            @php $localDashAppAt = $appointment->created_at?->timezone('Asia/Baghdad'); @endphp
                             <div style="width:52px;text-align:center;">
-                                <div style="font-size:1rem;font-weight:800;color:#0f172a;">{{ $appointment->created_at->format('h:i') }}</div>
-                                <div style="font-size:0.65rem;font-weight:700;color:#94a3b8;">{{ $appointment->created_at->format('A') == 'AM' ? 'ب.ن' : 'د.ن' }}</div>
+                                <div style="font-size:1rem;font-weight:800;color:#0f172a;">{{ $localDashAppAt?->format('h:i') }}</div>
+                                <div style="font-size:0.65rem;font-weight:700;color:#94a3b8;">{{ $localDashAppAt?->format('A') == 'AM' ? 'ب.ن' : 'د.ن' }}</div>
                             </div>
                             <div style="width:40px;height:40px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-weight:700;color:#64748b;font-size:0.9rem;flex-shrink:0;overflow:hidden;">
                                 @if($appointment->patient && $appointment->patient->profile_image)

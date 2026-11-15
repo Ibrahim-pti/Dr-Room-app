@@ -36,25 +36,25 @@
         <h3 class="text-lg font-bold text-slate-800">چاوپێکەوتنە پارە دراوەکان</h3>
     </div>
     <div class="overflow-x-auto">
-        <table class="w-full text-start text-sm table-fixed">
+        <table class="w-full text-right text-sm">
             <thead class="bg-slate-50 border-b border-slate-100 text-slate-500 font-medium">
                 <tr>
-                    <th class="px-6 py-4 whitespace-nowrap">نەخۆش</th>
-                    <th class="px-6 py-4 whitespace-nowrap">بەروار</th>
-                    <th class="px-6 py-4 whitespace-nowrap">بڕی پارە</th>
+                    <th class="px-6 py-4 text-right whitespace-nowrap">نەخۆش</th>
+                    <th class="px-6 py-4 text-right whitespace-nowrap">بەروار</th>
+                    <th class="px-6 py-4 text-right whitespace-nowrap">بڕی پارە</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
                 @forelse($completedAppointments as $appointment)
                     <tr class="hover:bg-slate-50/50 transition-colors">
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 text-right">
                             <div class="font-semibold text-slate-800">{{ $appointment->patient->name ?? 'نەناسراو' }}</div>
                         </td>
-                        <td class="px-6 py-4 text-slate-600" dir="ltr">
-                            {{ $appointment->appointment_date ? $appointment->appointment_date->format('Y-m-d') : '-' }}
+                        <td class="px-6 py-4 text-right text-slate-600 whitespace-nowrap">
+                            <span dir="ltr" class="inline-block">{{ $appointment->appointment_date ? $appointment->appointment_date->copy()->timezone('Asia/Baghdad')->format('Y-m-d') : '-' }}</span>
                         </td>
-                        <td class="px-6 py-4 text-slate-800 font-semibold" dir="ltr">
-                            {{ number_format($appointment->fee, 0) }} د.ع
+                        <td class="px-6 py-4 text-right text-slate-800 font-semibold whitespace-nowrap">
+                            <span dir="ltr" class="inline-block">{{ number_format($appointment->fee, 0) }} د.ع</span>
                         </td>
                     </tr>
                 @empty
