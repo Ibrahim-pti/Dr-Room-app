@@ -28,7 +28,7 @@ return [
     'feat_4_desc' => 'Once your certificates are reviewed, operate as a trusted, verified clinical professional in the network.',
 
     // Form Header & Steps
-    'form_badge' => 'Field Team Application',
+    'form_badge' => 'Staff Registration',
     'form_title' => 'Join the DrRoom Mobile Medical Team',
     'form_subtitle' => 'Share your clinical background and availability. After admin verification, sign in directly with the same phone number inside the DrRoom app.',
     'step_1_short' => 'Identity & Role',
