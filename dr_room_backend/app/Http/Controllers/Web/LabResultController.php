@@ -27,6 +27,7 @@ class LabResultController extends Controller
         
         $selectedOrderId = $request->get('order_id');
         $selectedPatientId = $request->get('patient_id');
+        $selectedTestId = $request->get('test_id');
         $order = null;
 
         if ($selectedOrderId) {
@@ -36,7 +37,7 @@ class LabResultController extends Controller
             }
         }
 
-        return view('lab.results.create', compact('tests', 'patients', 'selectedPatientId', 'selectedOrderId', 'order'));
+        return view('lab.results.create', compact('tests', 'patients', 'selectedPatientId', 'selectedOrderId', 'selectedTestId', 'order'));
     }
 
     public function store(Request $request)

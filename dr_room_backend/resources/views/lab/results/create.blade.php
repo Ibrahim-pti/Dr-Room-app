@@ -126,7 +126,7 @@
                         <select name="test_id" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-bold text-xs rounded-xl p-3 outline-none focus:border-blue-500">
                             <option value="">-- پشکنین دیاریبکە --</option>
                             @foreach($tests as $test)
-                                <option value="{{ $test->id }}" {{ (old('test_id', $selectedTestId) == $test->id) ? 'selected' : '' }}>
+                                <option value="{{ $test->id }}" {{ (old('test_id', $selectedTestId ?? null) == $test->id) ? 'selected' : '' }}>
                                     {{ $test->name }}
                                 </option>
                             @endforeach

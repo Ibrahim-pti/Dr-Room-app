@@ -117,4 +117,27 @@ class LabOrderEstimatedTimeTest extends TestCase
         $this->assertSame(90, $order->estimated_duration_minutes);
         $this->assertNull($order->estimated_ready_at);
     }
+
+    public function test_lab_results_create_page_renders_without_undefined_selected_test_id(): void
+    {
+        $labUser = User::create([
+            'name' => 'Lab Create Result',
+            'phone' => '07503338888',
+            'role' => 'lab',
+            'status' => 'approved',
+            'password' => Hash::make('lab123456'),
+        ]);
+
+        Lab::create([
+            'user_id' => $labUser->id,
+            'city' => 'Erbil',
+            'location' => '60m',
+            'about_us' => 'Complete profile',
+            'is_approved' => true,
+        ]);
+
+        $this->actingAs($labUser, 'web')
+            ->get(route('lab.results.create'))
+            ->assertOk();
+    }
 }
