@@ -31,7 +31,7 @@
     }
 </style>
 
-<form id="profile-form" action="{{ route('nurse.profile.update') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 md:p-8 max-w-4xl">
+<form id="profile-form" action="{{ route('nurse.profile.update') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 md:p-8 w-full">
     @csrf
     @method('PUT')
     

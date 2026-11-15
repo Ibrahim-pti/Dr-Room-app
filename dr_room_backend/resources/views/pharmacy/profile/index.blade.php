@@ -2,7 +2,7 @@
 @section('header_title', 'پرۆفایلی دەرمانخانە')
 
 @section('content')
-<div class="fade-up max-w-5xl">
+<div class="fade-up w-full">
     <div class="mb-6">
         <h2 class="text-xl font-bold text-slate-800">پرۆفایلی دەرمانخانە</h2>
         <p class="text-sm text-slate-500 mt-1">زانیارییە سەرەکییەکانی دەرمانخانەکەت لێرە نوێ بکەرەوە بۆ ئەوەی لە ئەپەکە پیشانبدرێت.</p>

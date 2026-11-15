@@ -19,7 +19,7 @@
     </div>
 @endif
 
-<form id="profile-form" action="{{ route('lab.profile.update') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 max-w-4xl">
+<form id="profile-form" action="{{ route('lab.profile.update') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 w-full">
     @csrf
     @method('PUT')
     
