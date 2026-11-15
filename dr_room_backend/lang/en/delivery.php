@@ -171,13 +171,6 @@ return [
         'Monitor vital signs and assist elderly or post-discharge patients.',
         'Clear clinical instructions for every visit inside the staff mobile app.',
     ],
-    'compare_courier_tag' => 'Medical Logistics',
-    'compare_courier_title' => 'Pharmacy & Supply Courier',
-    'compare_courier_points' => [
-        'Fast, careful delivery of prescribed medications from partner pharmacies.',
-        'Ensure sealed medical packages arrive intact and on schedule.',
-        'Clear, immediate earnings logged for every completed drop-off.',
-    ],
 
     // 5-Step Real Workflow
     'how_badge' => 'Real Field Workflow',

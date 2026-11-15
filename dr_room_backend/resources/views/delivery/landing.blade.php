@@ -913,11 +913,10 @@
                 <p class="text-sm text-[var(--muted)] leading-[1.85]">{{ __('delivery.compare_sub') }}</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 @foreach([
                     ['tag' => __('delivery.compare_phleb_tag'), 'title' => __('delivery.compare_phleb_title'), 'points' => __('delivery.compare_phleb_points'), 'highlight' => true],
                     ['tag' => __('delivery.compare_nurse_tag'), 'title' => __('delivery.compare_nurse_title'), 'points' => __('delivery.compare_nurse_points'), 'highlight' => false],
-                    ['tag' => __('delivery.compare_courier_tag'), 'title' => __('delivery.compare_courier_title'), 'points' => __('delivery.compare_courier_points'), 'highlight' => false],
                 ] as $track)
                     <div class="card p-6 space-y-4 {{ $track['highlight'] ? '!bg-[#FFF9F4] !border-[#FFD7BE]' : '' }}">
                         <span class="inline-block px-3 py-1 rounded-full bg-[#FFF2E8] text-[var(--accent-deep)] text-[11px] font-extrabold">
