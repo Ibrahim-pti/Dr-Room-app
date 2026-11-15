@@ -525,9 +525,9 @@
             <!-- 4-Step Interactive Medical Recruitment Form Column -->
             <div class="lg:col-span-6" id="apply-form">
                 <div class="card p-5 sm:p-8 text-start">
-                    <div class="text-start">
-                        <h2 class="text-xl sm:text-2xl font-black text-[var(--ink)] leading-[1.65] text-start">{{ __('delivery.form_title') }}</h2>
-                        <p class="text-xs sm:text-[13px] text-[var(--muted)] mt-1.5 leading-[1.85] text-start">{{ __('delivery.form_subtitle') }}</p>
+                    <div class="text-center">
+                        <h2 class="text-xl sm:text-2xl font-black text-[var(--ink)] leading-[1.65] text-center">{{ __('delivery.form_title') }}</h2>
+                        <p class="text-xs sm:text-[13px] text-[var(--muted)] mt-1.5 leading-[1.85] text-center">{{ __('delivery.form_subtitle') }}</p>
                     </div>
 
                     <div class="mt-4 pt-4 border-t border-[#EFE8DC] flex flex-wrap items-center justify-between gap-2">
