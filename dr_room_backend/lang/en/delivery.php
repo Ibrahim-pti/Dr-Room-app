@@ -18,7 +18,7 @@ return [
 
     // Highlight & Benefits
     'highlight_badge' => 'DRROOM FIELD HEALTHCARE NETWORK',
-    'feat_1_title' => 'Daily & Transparent Earnings',
+    'feat_1_title' => 'Daily Earnings Tracking & Financial Transparency System',
     'feat_1_desc' => 'Earn clear fees for every completed home visit or medical transport with full wallet history inside the app.',
     'feat_2_title' => 'Smart Nearest-Case Routing',
     'feat_2_desc' => 'Receive requests closest to your live zone with accurate maps and patient details without wasted travel.',
