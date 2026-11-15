@@ -164,7 +164,7 @@ return [
         'Maintain cold-chain integrity and deliver specimens to partner laboratories.',
         'Auto-routed to the nearest home lab-draw requests in your area.',
     ],
-    'compare_nurse_tag' => 'Clinical Care Track',
+    'compare_nurse_tag' => 'Field Nursing Staff',
     'compare_nurse_title' => 'Mobile Home-Care Nurse',
     'compare_nurse_points' => [
         'Perform IV cannulation, drips, injections, and sterile wound care at home.',
