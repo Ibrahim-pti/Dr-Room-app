@@ -107,8 +107,10 @@ class NurseApiController extends Controller
     {
         $lang = 'ckb';
         if ($request) {
-            $hdr = strtolower($request->header('Accept-Language', 'ckb'));
-            if (str_contains($hdr, 'ar')) {
+            $hdr = strtolower($request->query('lang') ?: $request->header('Accept-Language', 'ckb'));
+            if (str_contains($hdr, 'kmr')) {
+                $lang = 'kmr';
+            } elseif (str_contains($hdr, 'ar')) {
                 $lang = 'ar';
             } elseif (str_contains($hdr, 'en')) {
                 $lang = 'en';
@@ -224,7 +226,8 @@ class NurseApiController extends Controller
                 if (!is_array($cs)) return $cs;
                 $n = $cs['name'] ?? '';
                 $nLower = strtolower(trim($n));
-                $nKu = $cs['name_ku'] ?? '';
+                $nKu = $cs['name_ku'] ?? ($cs['name_ckb'] ?? '');
+                $nKmr = $cs['name_kmr'] ?? '';
                 $nAr = $cs['name_ar'] ?? '';
                 $nEn = $cs['name_en'] ?? $n;
 
@@ -251,9 +254,16 @@ class NurseApiController extends Controller
                 }
 
                 $cs['name_ku'] = $nKu ?: $n;
+                $cs['name_ckb'] = $nKu ?: $n;
+                $cs['name_kmr'] = $nKmr ?: ($nKu ?: $n);
                 $cs['name_ar'] = $nAr ?: $n;
                 $cs['name_en'] = $nEn ?: $n;
-                $cs['name'] = $lang === 'ar' ? $cs['name_ar'] : ($lang === 'en' ? $cs['name_en'] : $cs['name_ku']);
+                $cs['name'] = match ($lang) {
+                    'ar' => $cs['name_ar'],
+                    'en' => $cs['name_en'],
+                    'kmr' => $cs['name_kmr'],
+                    default => $cs['name_ku'],
+                };
                 return $cs;
             }, $customServices);
         }

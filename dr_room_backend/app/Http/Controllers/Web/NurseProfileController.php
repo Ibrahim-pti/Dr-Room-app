@@ -192,7 +192,6 @@ class NurseProfileController extends Controller
                 'specialty_en' => $specialtyEn,
                 'specialty_ar' => $specialtyAr,
                 'specialty_kmr' => $specialtyKmr,
-                'custom_services' => $customServicesList,
                 'bio' => $request->bio,
                 'bio_en' => $bioEn,
                 'bio_ar' => $bioAr,
@@ -210,6 +209,9 @@ class NurseProfileController extends Controller
                 'service_type' => $request->service_type ?? $nurse->service_type,
                 'phone' => $request->phone,
             ];
+            if ($request->has('custom_services')) {
+                $updateData['custom_services'] = $customServicesList;
+            }
 
             // Handle image upload (Cropped base64 or File)
             if ($request->filled('cropped_image')) {

@@ -123,6 +123,11 @@ Route::prefix('nurse')->middleware(['auth', IsNurse::class])->group(function () 
     Route::get('/profile', [NurseProfileController::class, 'index'])->name('nurse.profile.index');
     Route::put('/profile', [NurseProfileController::class, 'update'])->name('nurse.profile.update');
     Route::post('/profile/translate', [NurseProfileController::class, 'translateAll'])->name('nurse.profile.translate');
+
+    // Services & Pricing
+    Route::get('/services', [\App\Http\Controllers\Web\NurseServiceController::class, 'index'])->name('nurse.services.index');
+    Route::put('/services', [\App\Http\Controllers\Web\NurseServiceController::class, 'update'])->name('nurse.services.update');
+    Route::post('/services/translate', [\App\Http\Controllers\Web\NurseServiceController::class, 'translate'])->name('nurse.services.translate');
     
     // New Feature Placeholders (Nurse)
     $nursePlaceholder = function ($title) {
