@@ -11,7 +11,6 @@
     $shiftOpts = __('delivery.shifts');
     $workDaysOpts = __('delivery.work_days_options');
     $wfSteps = __('delivery.wf_steps');
-    $faqs = __('delivery.faqs');
 
     $isSubdomain = str_starts_with(strtolower(request()->getHost()), 'delivery.');
     $langHref = fn (string $target) => $isSubdomain ? '/' . $target : '/delivery/' . $target;
@@ -336,7 +335,6 @@
           scope: '{{ old('service_scope', 'both') }}',
           agreed: {{ old('agree_terms') ? 'true' : 'false' }},
           files: { id_document: '', certificate: '', license: '', cv: '' },
-          openFaq: 0,
 
           toggleSkill(key) {
               if (this.skills.includes(key)) {
@@ -975,36 +973,6 @@
                         <span class="text-xs sm:text-[13px] font-bold leading-[1.75] text-white">{{ $tp }}</span>
                     </div>
                 @endforeach
-            </div>
-        </div>
-    </section>
-
-    <!-- 6-Item Interactive FAQ Accordion -->
-    <section class="rule-dash">
-        <div class="w-full px-5 sm:px-8 lg:px-14 2xl:px-20 py-14 sm:py-18 text-start">
-            <div class="max-w-3xl mx-auto">
-                <div class="mb-8 space-y-2.5 text-center">
-                    <span class="kicker">{{ __('delivery.faq_badge') }}</span>
-                    <h2 class="text-2xl sm:text-3xl font-black text-[var(--ink)] leading-[1.6]">{{ __('delivery.faq_title') }}</h2>
-                </div>
-
-                <div class="space-y-3">
-                    @foreach((array) $faqs as $fIdx => $fq)
-                        <div class="card overflow-hidden">
-                            <button type="button"
-                                    @click="openFaq = openFaq === {{ $fIdx }} ? -1 : {{ $fIdx }}"
-                                    class="w-full px-5 py-4 flex items-center justify-between gap-4 text-start font-extrabold text-sm text-[var(--ink)] leading-[1.65]">
-                                <span>{{ $fq['q'] ?? '' }}</span>
-                                <span class="w-7 h-7 rounded-full bg-[#F5EFE6] text-[var(--accent-deep)] flex items-center justify-center flex-shrink-0 text-base leading-none font-black"
-                                      x-text="openFaq === {{ $fIdx }} ? '−' : '+'"></span>
-                            </button>
-                            <div x-show="openFaq === {{ $fIdx }}" x-collapse style="display: none;"
-                                 class="px-5 pb-4 pt-2 text-xs sm:text-[13px] text-[var(--muted)] leading-[1.95] border-t border-[#EFE8DC]">
-                                {{ $fq['a'] ?? '' }}
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
             </div>
         </div>
     </section>

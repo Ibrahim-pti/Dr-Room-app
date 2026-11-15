@@ -194,36 +194,6 @@ return [
         'Live DrRoom operations support backing you up during every shift.',
     ],
 
-    // FAQ
-    'faq_badge' => 'Frequently Asked Questions',
-    'faq_title' => 'Answers About Joining the DrRoom Team',
-    'faqs' => [
-        [
-            'q' => 'Who can apply to join the mobile field team?',
-            'a' => 'Medical laboratory graduates, licensed or experienced nurses skilled in phlebotomy and IV care, as well as couriers dedicated to pharmacy deliveries.',
-        ],
-        [
-            'q' => 'Is owning a private car mandatory?',
-            'a' => 'No, it is not mandatory, though having a car helps you take more visits faster—especially in wider neighborhoods. Simply select Yes or No in the form.',
-        ],
-        [
-            'q' => 'How will I know when my application is approved?',
-            'a' => 'After submitting, you stay on a live status page that updates automatically. Once approved, sign into the DrRoom app using the same phone number and password.',
-        ],
-        [
-            'q' => 'If I only do lab blood draws, will I receive nursing cases?',
-            'a' => 'No—choose "Home Phlebotomist" in Step 1 so the system matches you strictly with lab sample collection tasks.',
-        ],
-        [
-            'q' => 'How are working hours scheduled?',
-            'a' => 'Completely independently: toggle Online in the app during the hours you choose to accept nearby requests.',
-        ],
-        [
-            'q' => 'Do I have to upload every document right now?',
-            'a' => 'Uploading your ID and degree speeds up approval significantly, but optional documents can also be shared later during verification.',
-        ],
-    ],
-
     // Footer
     'footer_brand_desc' => 'Digital platform connecting mobile laboratory diagnostics, bedside home nursing, and pharmacy logistics across Kurdistan & Iraq.',
     'footer_col_links' => 'Quick Links',
