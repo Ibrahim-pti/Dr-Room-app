@@ -272,6 +272,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Read access for dashboard, live fleet map, and order-dispatch driver picker
         Route::get('/drivers', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'index']);
         Route::get('/drivers/live-map', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'liveMap']);
+        Route::get('/recruitment-options', [\App\Http\Controllers\Api\Admin\RecruitmentOptionController::class, 'index']);
 
         // Orders
         Route::middleware('permission:manage_orders')->group(function () {
@@ -329,6 +330,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/drivers/{id}/approve', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'approve']);
         Route::patch('/drivers/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'reject']);
         Route::patch('/drivers/{id}/toggle-block', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'toggleBlock']);
+
+        // Dynamic Step-2 recruitment options (education levels & clinical skills)
+        Route::post('/recruitment-options/reorder', [\App\Http\Controllers\Api\Admin\RecruitmentOptionController::class, 'reorder']);
+        Route::post('/recruitment-options', [\App\Http\Controllers\Api\Admin\RecruitmentOptionController::class, 'store']);
+        Route::put('/recruitment-options/{id}', [\App\Http\Controllers\Api\Admin\RecruitmentOptionController::class, 'update']);
+        Route::delete('/recruitment-options/{id}', [\App\Http\Controllers\Api\Admin\RecruitmentOptionController::class, 'destroy']);
 
         });
 

@@ -19,6 +19,7 @@ import 'admin_staff_schedule_screen.dart';
 import 'admin_report_settings_screen.dart';
 import 'admin_patients_screen.dart';
 import 'admin_drivers_screen.dart';
+import 'admin_recruitment_options_screen.dart';
 import 'admin_staff_screen.dart';
 import 'admin_activity_log_screen.dart';
 
@@ -174,6 +175,14 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'icon': Iconsax.truck_fast,
             'color': const Color(0xFF10B981),
             'screen': const AdminDriversScreen(),
+          },
+          {
+            'title': 'بڕوانامە و شارەزایی تیمی گەڕۆک',
+            'permission': AdminPermissions.manageProviders,
+            'subtitle': 'زیادکردن، گۆڕین و وەرگێڕانی ئاستی خوێندن و شارەزاییەکان',
+            'icon': Iconsax.book_1,
+            'color': const Color(0xFFEA580C),
+            'screen': const AdminRecruitmentOptionsScreen(),
           },
           {
             'title': 'ستاف و بەڕێوەبەران',

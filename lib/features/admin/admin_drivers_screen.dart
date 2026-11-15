@@ -11,6 +11,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/utils/erbil_map_service.dart';
 import 'admin_app_bar.dart';
+import 'admin_recruitment_options_screen.dart';
 import 'admin_ui.dart';
 
 class AdminDriversScreen extends StatefulWidget {
@@ -30,6 +31,8 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
   List<dynamic> _liveMapDrivers = [];
   Map<String, dynamic> _meta = {};
   Map<String, dynamic>? _selectedMapDriver;
+  Map<String, String> _dynamicEducationLabels = {};
+  Map<String, String> _dynamicSkillLabels = {};
 
   String _search = '';
   String _dutyFilter = 'all'; // all, available, busy, offline, blocked
@@ -66,7 +69,44 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
   }
 
   Future<void> _loadAll() async {
-    await Future.wait([_loadDrivers(), _loadLiveMap(silent: true)]);
+    await Future.wait([
+      _loadDrivers(),
+      _loadLiveMap(silent: true),
+      _loadRecruitmentOptions(),
+    ]);
+  }
+
+  Future<void> _loadRecruitmentOptions() async {
+    try {
+      final res = await ApiClient.get('/admin/recruitment-options');
+      if (!mounted || res.statusCode != 200) return;
+      final decoded = jsonDecode(res.body);
+      if (decoded is! List) return;
+      final edu = <String, String>{};
+      final sk = <String, String>{};
+      for (final item in decoded) {
+        final key = (item['option_key'] ?? '').toString();
+        final label = (item['label_ckb'] ?? '').toString();
+        if (key.isEmpty || label.isEmpty) continue;
+        if (item['type'] == 'education') {
+          edu[key] = label;
+        } else if (item['type'] == 'skill') {
+          sk[key] = label;
+        }
+      }
+      setState(() {
+        _dynamicEducationLabels = edu;
+        _dynamicSkillLabels = sk;
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _openRecruitmentOptions() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminRecruitmentOptionsScreen()),
+    );
+    if (mounted) _loadRecruitmentOptions();
   }
 
   Future<void> _loadDrivers() async {
@@ -498,15 +538,22 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     _ => 'تیمی گەڕۆک',
   };
 
-  String? _educationLabel(String? e) => switch (e) {
-    'diploma_lab' => 'دبلۆم شیکاری نەخۆشی',
-    'bsc_lab' => 'بەکالۆریۆس شیکاری',
-    'diploma_nursing' => 'دبلۆم پەرستاری',
-    'bsc_nursing' => 'بەکالۆریۆس پەرستاری',
-    'high_school_course' => 'خولی پەرستاری',
-    'other' => 'بڕوانامەی گشتی',
-    _ => null,
-  };
+  String? _educationLabel(String? e) {
+    final key = (e ?? '').trim();
+    if (key.isEmpty) return null;
+    if (_dynamicEducationLabels.containsKey(key)) {
+      return _dynamicEducationLabels[key];
+    }
+    return switch (key) {
+      'diploma_lab' => 'دبلۆم شیکاری نەخۆشی',
+      'bsc_lab' => 'بەکالۆریۆس شیکاری',
+      'diploma_nursing' => 'دبلۆم پەرستاری',
+      'bsc_nursing' => 'بەکالۆریۆس پەرستاری',
+      'high_school_course' => 'خولی پەرستاری',
+      'other' => 'بڕوانامەی گشتی',
+      _ => key,
+    };
+  }
 
   String? _shiftLabel(String? s) => switch (s) {
     'morning' => 'شیفتی بەیانی',
@@ -515,17 +562,22 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     _ => null,
   };
 
-  String _skillLabel(String s) => switch (s) {
-    'venipuncture' => 'کێشانی خوێن',
-    'pediatric_draw' => 'خوێنی منداڵان',
-    'cannula_iv' => 'کانۆلا و سروم',
-    'injections' => 'دەرزیدان',
-    'wound_care' => 'پانسمان',
-    'vital_signs' => 'نیشانە زیندووەکان',
-    'cold_chain' => 'تیوب و ساردکەر (CBC/ESR)',
-    'pharma_handling' => 'گەیاندنی دەرمانی هەستیار',
-    _ => s,
-  };
+  String _skillLabel(String s) {
+    if (_dynamicSkillLabels.containsKey(s)) {
+      return _dynamicSkillLabels[s]!;
+    }
+    return switch (s) {
+      'venipuncture' => 'کێشانی خوێن',
+      'pediatric_draw' => 'خوێنی منداڵان',
+      'cannula_iv' => 'کانۆلا و سروم',
+      'injections' => 'دەرزیدان',
+      'wound_care' => 'پانسمان',
+      'vital_signs' => 'نیشانە زیندووەکان',
+      'cold_chain' => 'تیوب و ساردکەر (CBC/ESR)',
+      'pharma_handling' => 'گەیاندنی دەرمانی هەستیار',
+      _ => s,
+    };
+  }
 
   Future<void> _openDocUrl(String? rawUrl) async {
     final u = (rawUrl ?? '').trim();
@@ -617,6 +669,11 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
         iconBackgroundColor: const Color(0xFF10B981).withValues(alpha: 0.12),
         showBackButton: true,
         actions: [
+          IconButton(
+            onPressed: _openRecruitmentOptions,
+            icon: const Icon(Iconsax.book_1, color: Color(0xFFEA580C)),
+            tooltip: 'بڕوانامە و شارەزاییەکان',
+          ),
           IconButton(
             onPressed: _openAddDriverDialog,
             icon: const Icon(Iconsax.user_add, color: Color(0xFF2563EB)),

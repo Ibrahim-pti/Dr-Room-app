@@ -6,8 +6,8 @@
         $cities = ['هەولێر', 'سلێمانی', 'دهۆک', 'کەرکوک', 'هەڵەبجە'];
     }
     $rolesMeta = __('delivery.roles');
-    $educationOpts = __('delivery.education_options');
-    $skillsOpts = __('delivery.skills_options');
+    $educationOpts = (isset($educationOptions) && is_array($educationOptions)) ? $educationOptions : __('delivery.education_options');
+    $skillsOpts = (isset($skillsOptions) && is_array($skillsOptions)) ? $skillsOptions : __('delivery.skills_options');
     $shiftOpts = __('delivery.shifts');
     $workDaysOpts = __('delivery.work_days_options');
     $wfSteps = __('delivery.wf_steps');
@@ -702,9 +702,13 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 <div x-show="applicantRole !== 'courier'">
                                     <label class="label">{{ __('delivery.education_label') }}</label>
+                                    @php
+                                        $eduArray = (array) $educationOpts;
+                                        $defaultEdu = array_key_exists('bsc_lab', $eduArray) ? 'bsc_lab' : (array_key_first($eduArray) ?? '');
+                                    @endphp
                                     <select name="education_level" class="field-box cursor-pointer">
-                                        @foreach($educationOpts as $edKey => $edLabel)
-                                            <option value="{{ $edKey }}" {{ old('education_level', 'bsc_lab') == $edKey ? 'selected' : '' }}>{{ $edLabel }}</option>
+                                        @foreach($eduArray as $edKey => $edLabel)
+                                            <option value="{{ $edKey }}" {{ old('education_level', $defaultEdu) == $edKey ? 'selected' : '' }}>{{ $edLabel }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -726,12 +730,8 @@
                             <div>
                                 <label class="label">{{ __('delivery.skills_label') }}</label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    @foreach($skillsOpts as $skKey => $skLabel)
-                                        @php
-                                            $isLogisticsSkill = in_array($skKey, ['cold_chain', 'pharma_handling'], true);
-                                        @endphp
+                                    @foreach((array) $skillsOpts as $skKey => $skLabel)
                                         <button type="button"
-                                                @if(!$isLogisticsSkill) x-show="applicantRole !== 'courier'" @endif
                                                 @click="toggleSkill('{{ $skKey }}')"
                                                 :class="skills.includes('{{ $skKey }}') ? 'is-on' : ''"
                                                 class="skill-chip">

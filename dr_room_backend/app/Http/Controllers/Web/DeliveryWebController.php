@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\AppNotification;
 use App\Models\Driver;
+use App\Models\RecruitmentOption;
 use App\Models\User;
 use App\Services\FcmService;
 use App\Services\OtpService;
@@ -42,6 +43,8 @@ class DeliveryWebController extends Controller
 
         return view('delivery.landing', [
             'locale' => $activeLocale,
+            'educationOptions' => RecruitmentOption::optionsMapForLocale(RecruitmentOption::TYPE_EDUCATION, $activeLocale),
+            'skillsOptions' => RecruitmentOption::optionsMapForLocale(RecruitmentOption::TYPE_SKILL, $activeLocale),
         ]);
     }
 
@@ -115,10 +118,17 @@ class DeliveryWebController extends Controller
             ? max(0, min(60, (int) $request->experience_years))
             : 0;
 
-        $allowedSkills = [
-            'venipuncture', 'pediatric_draw', 'cannula_iv', 'injections',
-            'wound_care', 'vital_signs', 'cold_chain', 'pharma_handling',
-        ];
+        if (Schema::hasTable('recruitment_options')) {
+            $allowedSkills = RecruitmentOption::where('type', RecruitmentOption::TYPE_SKILL)
+                ->where('is_active', true)
+                ->pluck('option_key')
+                ->all();
+        } else {
+            $allowedSkills = [
+                'venipuncture', 'pediatric_draw', 'cannula_iv', 'injections',
+                'wound_care', 'vital_signs', 'cold_chain', 'pharma_handling',
+            ];
+        }
         $clinicalSkills = collect((array) $request->input('clinical_skills', []))
             ->map(fn ($s) => (string) $s)
             ->filter(fn ($s) => in_array($s, $allowedSkills, true))

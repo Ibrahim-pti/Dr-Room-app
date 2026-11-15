@@ -5,10 +5,10 @@ class TranslationHelper {
   static Future<Map<String, String>> translate(String text) =>
       translateText(text);
 
-  /// Translates a single text string into English, Arabic, and Kurdish.
+  /// Translates a single text string into English, Arabic, Sorani, and Badini.
   static Future<Map<String, String>> translateText(String text) async {
     final trimmed = text.trim();
-    if (trimmed.isEmpty) return {'en': '', 'ar': '', 'ckb': ''};
+    if (trimmed.isEmpty) return {'en': '', 'ar': '', 'ckb': '', 'kmr': ''};
 
     try {
       final res = await ApiClient.post('/translate', body: {'text': trimmed});
@@ -21,12 +21,13 @@ class TranslationHelper {
             'en': (t['en'] ?? '').toString().trim(),
             'ar': (t['ar'] ?? '').toString().trim(),
             'ckb': (t['ckb'] ?? trimmed).toString().trim(),
+            'kmr': (t['kmr'] ?? trimmed).toString().trim(),
           };
         }
       }
     } catch (_) {}
 
-    return {'en': trimmed, 'ar': trimmed, 'ckb': trimmed};
+    return {'en': trimmed, 'ar': trimmed, 'ckb': trimmed, 'kmr': trimmed};
   }
 
   static Future<Map<String, Map<String, String>>> translateFields(
@@ -49,6 +50,7 @@ class TranslationHelper {
                 'en': (val['en'] ?? '').toString().trim(),
                 'ar': (val['ar'] ?? '').toString().trim(),
                 'ckb': (val['ckb'] ?? '').toString().trim(),
+                'kmr': (val['kmr'] ?? '').toString().trim(),
               };
             }
           });
@@ -61,7 +63,7 @@ class TranslationHelper {
     // Fallback: return original for all
     final Map<String, Map<String, String>> fallback = {};
     fields.forEach((k, v) {
-      fallback[k] = {'en': v, 'ar': v, 'ckb': v};
+      fallback[k] = {'en': v, 'ar': v, 'ckb': v, 'kmr': v};
     });
     return fallback;
   }
