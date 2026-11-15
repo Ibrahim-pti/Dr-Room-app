@@ -319,22 +319,6 @@
                         }
                     } catch (_) {}
 
-                    if (!trans || !trans.en || !trans.ar || !trans.kmr) {
-                        try {
-                            const encoded = encodeURIComponent(field.val.trim());
-                            const [resEn, resAr, resKu] = await Promise.all([
-                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()).catch(() => null),
-                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json()).catch(() => null),
-                                fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ku`).then(r => r.json()).catch(() => null)
-                            ]);
-                            trans = {
-                                en: trans?.en || resEn?.responseData?.translatedText || '',
-                                ar: trans?.ar || resAr?.responseData?.translatedText || '',
-                                kmr: trans?.kmr || resKu?.responseData?.translatedText || ''
-                            };
-                        } catch (_) {}
-                    }
-
                     if (trans) {
                         if(document.getElementById(field.id + '_kmr') && trans.kmr) {
                             document.getElementById(field.id + '_kmr').value = trans.kmr;

@@ -9,93 +9,7 @@ use Stichoza\GoogleTranslate\GoogleTranslate;
 class TranslationService
 {
     /**
-     * Dictionary of specific medical, geographic, and common terms for Badini (Arabic script).
-     */
-    private static array $badiniDictionary = [
-        'testker' => 'تێستکەر',
-        'tester' => 'تێستەر',
-        'cejd' => 'جەددە',
-        'jeddah' => 'جەددە',
-        'taqîgeh' => 'تاقیگەهـ',
-        'taqigeh' => 'تاقیگەهـ',
-        'laboratuar' => 'تاقیگەهـ',
-        'nexweşxane' => 'نەخۆشخانە',
-        'nexwesxane' => 'نەخۆشخانە',
-        'dermanxane' => 'دەرمانخانە',
-        'nojdar' => 'نوژدار',
-        'bijîşk' => 'نوژدار',
-        'bijisk' => 'نوژدار',
-        'navnîşan' => 'ناڤنیشان',
-        'navnisan' => 'ناڤنیشان',
-        'nav' => 'ناڤ',
-        'pispor' => 'پسبۆر',
-        'pişkinîn' => 'پشکنین',
-        'piskinin' => 'پشکنین',
-        'xizmetguzarî' => 'خزمەتگوزاری',
-        'xizmetguzari' => 'خزمەتگوزاری',
-        'daxwazî' => 'داخوازی',
-        'daxwazi' => 'داخوازی',
-        'pakêj' => 'پاکێج',
-        'pakej' => 'پاکێج',
-        'xebat' => 'خەبات',
-        'xebatkar' => 'خەباتکار',
-        'perestariyê' => 'پەرستاریێ',
-        'perestarî' => 'پەرستاری',
-        'erbil' => 'هەولێر',
-        'hewlêr' => 'هەولێر',
-        'duhok' => 'دهۆک',
-        'dihok' => 'دهۆک',
-        'sulaymaniyah' => 'سلێمانی',
-        'silêmanî' => 'سلێمانی',
-        'kirkuk' => 'کەرکووک',
-        'kerkûk' => 'کەرکووک',
-        'halabja' => 'هەڵەبجە',
-        'helebce' => 'هەڵەبجە',
-        'jadde' => 'جادە',
-        'kolan' => 'کۆڵان',
-    ];
-
-    /**
-     * Common Sorani terms to Badini terms in Arabic script.
-     */
-    private static array $soraniToBadini = [
-        'ناو' => 'ناڤ',
-        'ناوی' => 'ناڤێ',
-        'ناوەکانی' => 'ناڤێن',
-        'ناونیشان' => 'ناڤنیشان',
-        'ناونیشانی' => 'ناڤنیشانێ',
-        'پزیشک' => 'نوژدار',
-        'پزیشکی' => 'نوژداری',
-        'پزیشکان' => 'نوژداران',
-        'پزیشکەکان' => 'نوژدارێن',
-        'تاقیگە' => 'تاقیگەهـ',
-        'تاقیگەی' => 'تاقیگەها',
-        'تاقیگەکان' => 'تاقیگەهـ',
-        'تێستەر' => 'تێستکەر',
-        'تێست' => 'تێست',
-        'شەقام' => 'جادە',
-        'شەقامی' => 'جادا',
-        'خوێن' => 'خوین',
-        'پشکنین' => 'پشکنین',
-        'پشکنینی' => 'پشکنینا',
-        'پشکنینەکانی' => 'پشکنینێن',
-        'دەرمانخانە' => 'دەرمانخانە',
-        'دەرمانخانەی' => 'دەرمانخانەیا',
-        'خزمەتگوزاری' => 'خزمەتگوزاری',
-        'خزمەتگوزارییەکانی' => 'خزمەتگوزاریێن',
-        'کاتی' => 'دەمێ',
-        'کارکردن' => 'کارکرنێ',
-        'ڕۆژ' => 'ڕۆژ',
-        'ڕۆژی' => 'ڕۆژا',
-        'نرخ' => 'بها',
-        'نرخی' => 'بهایێ',
-        'تەندروستی' => 'ساخلەمی',
-        'سوپاس' => 'سوپاس',
-        'باشە' => 'باشە',
-    ];
-
-    /**
-     * Translates a single string into a target language with multiple failover providers.
+     * Translates a single string into a target language using Google Translate.
      *
      * @param string $text The text to translate.
      * @param string $target Target language code (e.g. 'en', 'ar', 'ku', 'kmr', 'ckb').
@@ -116,70 +30,95 @@ class TranslationService
             return $text;
         }
 
-        $isBadini = in_array($normTarget, ['kmr', 'ku', 'badini']);
+        $isBadini = in_array($normTarget, ['kmr', 'ku', 'badini'], true);
         $actualTarget = $isBadini ? 'ku' : $normTarget;
 
-        $translated = '';
+        $translated = self::translateViaClients5($text, $actualTarget, $source);
 
-        // Provider 1: Stichoza GoogleTranslate (handles Sorani 'ckb' reliably)
+        if ($translated === '') {
+            $translated = self::translateViaStichoza($text, $actualTarget, $source);
+        }
+
+        if ($isBadini && $translated !== '') {
+            if (preg_match('/[a-zA-ZçÇêÊîÎşŞûÛ]/u', $translated)) {
+                return self::hawarToKurdishArabic($translated);
+            }
+            return $translated;
+        }
+
+        return $translated !== '' ? $translated : $text;
+    }
+
+    /**
+     * Primary Google Translate endpoint (`clients5.google.com/translate_a/t`),
+     * which avoids the 429 rate-limits common on `translate.google.com` from server IPs.
+     */
+    private static function translateViaClients5(string $text, string $target, string $source): string
+    {
         try {
-            $tr = new GoogleTranslate($actualTarget);
-            $tr->setSource($source);
-            $raw = $tr->translate($text);
-            if (!empty($raw)) {
-                $translated = trim($raw);
+            $curlOpts = defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')
+                ? [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]
+                : [];
+
+            $response = Http::timeout(5)
+                ->connectTimeout(3)
+                ->withHeaders(['User-Agent' => 'Mozilla/5.0'])
+                ->withOptions($curlOpts !== [] ? ['curl' => $curlOpts] : [])
+                ->get('https://clients5.google.com/translate_a/t', [
+                    'client' => 'dict-chrome-ex',
+                    'sl'     => $source ?: 'auto',
+                    'tl'     => $target,
+                    'q'      => $text,
+                ]);
+
+            if (!$response->successful()) {
+                return '';
             }
+
+            $json = $response->json();
+            if (!is_array($json) || $json === []) {
+                return '';
+            }
+
+            // Format is either ["translated"] (explicit sl) or [["translated", "detected_sl"], ...] (auto sl)
+            $parts = [];
+            foreach ($json as $entry) {
+                if (is_string($entry)) {
+                    $parts[] = $entry;
+                } elseif (is_array($entry) && isset($entry[0]) && is_string($entry[0])) {
+                    $parts[] = $entry[0];
+                }
+            }
+
+            $joined = trim(implode('', $parts));
+            return $joined;
         } catch (\Throwable $e) {
-            try {
-                $trAuto = new GoogleTranslate($actualTarget);
-                $raw = $trAuto->translate($text);
-                if (!empty($raw)) {
-                    $translated = trim($raw);
-                }
-            } catch (\Throwable $e2) {
-                Log::warning('TranslationService: GoogleTranslate failed: ' . $e2->getMessage());
-            }
+            Log::warning('TranslationService: clients5 Google Translate failed: ' . $e->getMessage());
+            return '';
+        }
+    }
+
+    /**
+     * Fallback via Stichoza GoogleTranslate with strict IPv4 and short timeouts.
+     */
+    private static function translateViaStichoza(string $text, string $target, string $source): string
+    {
+        $options = [
+            'timeout'         => 5,
+            'connect_timeout' => 3,
+        ];
+        if (defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')) {
+            $options['curl'] = [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4];
         }
 
-        // Provider 2: MyMemory Translated API (fallback only)
-        if (empty($translated)) {
-            try {
-                $url = 'https://api.mymemory.translated.net/get?q=' . urlencode($text) . '&langpair=' . urlencode($source) . '|' . urlencode($actualTarget);
-                $response = Http::timeout(4)->get($url);
-                if ($response->successful()) {
-                    $json = $response->json();
-                    $raw = $json['responseData']['translatedText'] ?? null;
-                    if (!empty($raw)
-                        && strpos($raw, '==>') === false
-                        && stripos($raw, 'MYMEMORY WARNING') === false
-                        && stripos($raw, 'PLEASE SELECT TWO DISTINCT LANGUAGES') === false
-                        && stripos($raw, 'IS AN INVALID TARGET LANGUAGE') === false) {
-                        $decoded = html_entity_decode(trim($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                        if (!empty($decoded)) {
-                            $translated = $decoded;
-                        }
-                    }
-                }
-            } catch (\Throwable $e) {
-                Log::warning('TranslationService: MyMemory failed: ' . $e->getMessage());
-            }
+        try {
+            $tr = new GoogleTranslate($target, $source ?: null, $options);
+            $raw = $tr->translate($text);
+            return !empty($raw) ? trim($raw) : '';
+        } catch (\Throwable $e) {
+            Log::warning('TranslationService: Stichoza GoogleTranslate failed: ' . $e->getMessage());
+            return '';
         }
-
-        // Post-processing for Badini / Kurmanji: Ensure Kurdish-Arabic script
-        if ($isBadini) {
-            if (!empty($translated)) {
-                // If translation contains Latin letters from Google/MyMemory, convert to Kurdish Arabic script
-                if (preg_match('/[a-zA-ZçÇêÊîÎşŞûÛ]/u', $translated)) {
-                    return self::hawarToKurdishArabic($translated);
-                }
-                return self::applySoraniToBadini($translated);
-            }
-            // If external translation failed, convert Sorani text to Badini Kurdish
-            return self::applySoraniToBadini($text);
-        }
-
-        // Fallback: return translated or original text
-        return !empty($translated) ? $translated : $text;
     }
 
     /**
@@ -188,18 +127,15 @@ class TranslationService
     public static function hawarToKurdishArabic(string $text): string
     {
         $text = trim($text);
-        if ($text === '') return '';
+        if ($text === '') {
+            return '';
+        }
 
-        // Split into tokens (words and separators)
         $tokens = preg_split('/([^\p{L}\p{N}]+)/u', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
         $output = '';
 
         foreach ($tokens as $token) {
-            if ($token === '') continue;
-
-            $lower = mb_strtolower($token, 'UTF-8');
-            if (isset(self::$badiniDictionary[$lower])) {
-                $output .= self::$badiniDictionary[$lower];
+            if ($token === '') {
                 continue;
             }
 
@@ -208,7 +144,6 @@ class TranslationService
                 continue;
             }
 
-            // Word transliteration from Latin Hawar to Kurdish Arabic alphabet
             $output .= self::transliterateWord($token);
         }
 
@@ -216,7 +151,7 @@ class TranslationService
     }
 
     /**
-     * Transliterates a single Latin word to Kurdish Arabic script.
+     * Transliterates a single Latin Hawar word to Kurdish Arabic script.
      */
     private static function transliterateWord(string $w): string
     {
@@ -230,7 +165,6 @@ class TranslationService
             $isStart = ($i === 0);
             $isEnd = ($i === $len - 1);
 
-            // Digraphs
             if ($lower === 'x' && $next === 'w') {
                 $wordAr .= 'خو';
                 $i++;
@@ -260,24 +194,18 @@ class TranslationService
             switch ($lower) {
                 case 'a': $wordAr .= $isStart ? 'ئا' : 'ا'; break;
                 case 'b': $wordAr .= 'ب'; break;
-                case 'c': $wordAr .= 'ج'; break; // In Kurdish Latin C is always J (e.g. Cejd -> جەددە)
+                case 'c': $wordAr .= 'ج'; break;
                 case 'ç': $wordAr .= 'چ'; break;
                 case 'd': $wordAr .= 'د'; break;
-                case 'e': 
-                    if ($isStart) {
-                        $wordAr .= 'ئە';
-                    } elseif ($isEnd) {
-                        $wordAr .= 'ە';
-                    } else {
-                        $wordAr .= 'ە';
-                    }
-                    break;
+                case 'e': $wordAr .= $isStart ? 'ئە' : 'ە'; break;
                 case 'ê': $wordAr .= $isStart ? 'ئێ' : 'ێ'; break;
                 case 'f': $wordAr .= 'ف'; break;
                 case 'g': $wordAr .= 'گ'; break;
-                case 'h': $wordAr .= 'هـ'; break;
+                case 'h': $wordAr .= $isEnd ? 'هـ' : 'ه'; break;
                 case 'i':
-                    if ($isStart) $wordAr .= 'ئـ';
+                    if ($isStart) {
+                        $wordAr .= 'ئـ';
+                    }
                     break;
                 case 'î': $wordAr .= $isStart ? 'ئی' : 'ی'; break;
                 case 'j': $wordAr .= 'ژ'; break;
@@ -304,25 +232,5 @@ class TranslationService
         }
 
         return $wordAr;
-    }
-
-    /**
-     * Converts Sorani terms to Badini terms in Arabic script.
-     */
-    public static function applySoraniToBadini(string $text): string
-    {
-        $words = preg_split('/([^\p{L}\p{N}]+)/u', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
-        $output = '';
-
-        foreach ($words as $token) {
-            if ($token === '') continue;
-            if (isset(self::$soraniToBadini[$token])) {
-                $output .= self::$soraniToBadini[$token];
-            } else {
-                $output .= $token;
-            }
-        }
-
-        return $output;
     }
 }

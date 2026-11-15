@@ -474,22 +474,6 @@ async function translateAll() {
                     }
                 } catch (_) {}
 
-                if (!translations || !translations.en || !translations.ar || !translations.kmr) {
-                    try {
-                        const encoded = encodeURIComponent(text);
-                        const [resEn, resAr, resKu] = await Promise.all([
-                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()).catch(() => null),
-                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json()).catch(() => null),
-                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ku`).then(r => r.json()).catch(() => null)
-                        ]);
-                        translations = {
-                            en: translations?.en || resEn?.responseData?.translatedText || '',
-                            ar: translations?.ar || resAr?.responseData?.translatedText || '',
-                            kmr: translations?.kmr || resKu?.responseData?.translatedText || ''
-                        };
-                    } catch (_) {}
-                }
-
                 if (translations) {
                     if (kmrEl && translations.kmr) {
                         kmrEl.value = translations.kmr;

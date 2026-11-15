@@ -337,7 +337,7 @@ async function translateAll() {
                 const text = sourceEl.value.trim();
                 let translations = null;
 
-                // 1. Try backend /api/translate
+                // 1. Try backend /api/translate (Google Translate)
                 try {
                     const res = await fetch('/api/translate', {
                         method: 'POST',
@@ -355,26 +355,7 @@ async function translateAll() {
                         }
                     }
                 } catch (apiErr) {
-                    console.warn('Backend translation failed, trying client fallback...', apiErr);
-                }
-
-                // 2. Client-side fallback if backend failed
-                if (!translations || !translations.en || !translations.ar || !translations.kmr) {
-                    try {
-                        const encoded = encodeURIComponent(text);
-                        const [resEn, resAr, resKu] = await Promise.all([
-                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|en`).then(r => r.json()),
-                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ar`).then(r => r.json()),
-                            fetch(`https://api.mymemory.translated.net/get?q=${encoded}&langpair=ckb|ku`).then(r => r.json())
-                        ]);
-                        translations = {
-                            en: resEn?.responseData?.translatedText || '',
-                            ar: resAr?.responseData?.translatedText || '',
-                            kmr: resKu?.responseData?.translatedText || ''
-                        };
-                    } catch (clientErr) {
-                        console.error('Client-side translation fallback error:', clientErr);
-                    }
+                    console.error('Backend translation failed:', apiErr);
                 }
 
                 if (translations) {
