@@ -12,7 +12,7 @@
         <button type="button" onclick="handleTranslateServices()" id="translate-services-btn"
             class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-xl font-bold text-xs shadow-md shadow-teal-500/20 transition-all cursor-pointer">
             <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
-            <span id="translate-services-btn-text">وەرگێڕانی هەمووی (Translate All)</span>
+            <span id="translate-services-btn-text">وەرگێڕان</span>
         </button>
 
         <button type="button" onclick="addCustomServiceRow()"
@@ -73,7 +73,7 @@
                         <input type="text" name="custom_services[{{ $cIdx }}][name]" value="{{ $csRow['name'] ?? '' }}" placeholder="وەک: دانانی کانیۆلا و سێرووم"
                             class="service-kurdish-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     </div>
-                    <div class="md:col-span-3">
+                    <div class="md:col-span-2">
                         <label class="block text-[11px] font-bold text-slate-600 mb-1">خزمەتگوزاری (بادینی)</label>
                         <input type="text" name="custom_services[{{ $cIdx }}][name_kmr]" value="{{ $csRow['name_kmr'] ?? '' }}" placeholder="دانانا کانیۆلا"
                             class="service-badini-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
@@ -93,10 +93,9 @@
                         <input type="number" name="custom_services[{{ $cIdx }}][price]" value="{{ $csRow['price'] ?? '' }}" min="0" placeholder="15000"
                             class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     </div>
-                    <div class="md:col-span-12 flex justify-end pt-1">
-                        <button type="button" onclick="removeCustomServiceRow(this)" class="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors" title="سڕینەوە">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            سڕینەوەی ئەم خزمەتگوزارییە
+                    <div class="md:col-span-1 flex justify-end md:pt-4">
+                        <button type="button" onclick="removeCustomServiceRow(this)" class="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer" title="سڕینەوە">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
                     </div>
                 </div>
@@ -136,7 +135,7 @@
                     <input type="text" name="custom_services[${customServiceRowIdx}][name]" value="${escapeHtmlAttr(name)}" placeholder="وەک: دانانی کانیۆلا و سێرووم"
                         class="service-kurdish-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                 </div>
-                <div class="md:col-span-3">
+                <div class="md:col-span-2">
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">خزمەتگوزاری (بادینی)</label>
                     <input type="text" name="custom_services[${customServiceRowIdx}][name_kmr]" value="${escapeHtmlAttr(nameKmr)}" placeholder="دانانا کانیۆلا"
                         class="service-badini-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
@@ -156,10 +155,9 @@
                     <input type="number" name="custom_services[${customServiceRowIdx}][price]" value="${escapeHtmlAttr(price)}" min="0" placeholder="15000"
                         class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                 </div>
-                <div class="md:col-span-12 flex justify-end pt-1">
-                    <button type="button" onclick="removeCustomServiceRow(this)" class="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors" title="سڕینەوە">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        سڕینەوەی ئەم خزمەتگوزارییە
+                <div class="md:col-span-1 flex justify-end md:pt-4">
+                    <button type="button" onclick="removeCustomServiceRow(this)" class="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer" title="سڕینەوە">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                 </div>
             </div>
@@ -260,7 +258,7 @@
             alert('هەڵەیەک لە وەرگێڕاندا ڕوویدا.');
         } finally {
             btn.disabled = false;
-            btnText.textContent = 'وەرگێڕانی هەمووی (Translate All)';
+            btnText.textContent = 'وەرگێڕان';
             btn.classList.remove('opacity-80');
         }
     }
