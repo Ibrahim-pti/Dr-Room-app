@@ -190,6 +190,7 @@ class _AdminRecruitmentOptionsScreenState
             : 'all');
     bool isActive = isEditing ? (existing['is_active'] ?? true) : true;
     bool isTranslating = false;
+    bool sheetOpen = true;
 
     try {
       await AdminUi.formSheet(
@@ -270,11 +271,14 @@ class _AdminRecruitmentOptionsScreenState
                           setSheetState(() => isTranslating = true);
                           try {
                             final tr = await TranslationHelper.translate(source);
+                            if (!sheetOpen) return;
                             kmrCtrl.text = tr['kmr'] ?? '';
                             arCtrl.text = tr['ar'] ?? '';
                             enCtrl.text = tr['en'] ?? '';
                           } finally {
-                            setSheetState(() => isTranslating = false);
+                            if (sheetOpen) {
+                              setSheetState(() => isTranslating = false);
+                            }
                           }
                         },
                   icon: isTranslating
@@ -411,11 +415,15 @@ class _AdminRecruitmentOptionsScreenState
         },
       );
     } finally {
-      ckbCtrl.dispose();
-      kmrCtrl.dispose();
-      arCtrl.dispose();
-      enCtrl.dispose();
-      orderCtrl.dispose();
+      sheetOpen = false;
+      // Delay controller disposal until showModalBottomSheet finishes its exit animation.
+      Future.delayed(const Duration(milliseconds: 600), () {
+        ckbCtrl.dispose();
+        kmrCtrl.dispose();
+        arCtrl.dispose();
+        enCtrl.dispose();
+        orderCtrl.dispose();
+      });
     }
   }
 
