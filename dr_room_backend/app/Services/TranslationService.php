@@ -121,46 +121,47 @@ class TranslationService
 
         $translated = '';
 
-        // Provider 1: MyMemory Translated API
+        // Provider 1: Stichoza GoogleTranslate (handles Sorani 'ckb' reliably)
         try {
-            $url = 'https://api.mymemory.translated.net/get?q=' . urlencode($text) . '&langpair=' . urlencode($source) . '|' . urlencode($actualTarget);
-            $response = Http::timeout(6)->get($url);
-            if ($response->successful()) {
-                $json = $response->json();
-                $raw = $json['responseData']['translatedText'] ?? null;
-                if (!empty($raw)
-                    && stripos($raw, 'MYMEMORY WARNING') === false
-                    && stripos($raw, 'PLEASE SELECT TWO DISTINCT LANGUAGES') === false
-                    && stripos($raw, 'IS AN INVALID TARGET LANGUAGE') === false) {
-                    $decoded = html_entity_decode(trim($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                    if (!empty($decoded)) {
-                        $translated = $decoded;
-                    }
-                }
+            $tr = new GoogleTranslate($actualTarget);
+            $tr->setSource($source);
+            $raw = $tr->translate($text);
+            if (!empty($raw)) {
+                $translated = trim($raw);
             }
         } catch (\Throwable $e) {
-            Log::warning('TranslationService: MyMemory failed: ' . $e->getMessage());
-        }
-
-        // Provider 2: Stichoza GoogleTranslate
-        if (empty($translated)) {
             try {
-                $tr = new GoogleTranslate($actualTarget);
-                $tr->setSource($source);
-                $raw = $tr->translate($text);
+                $trAuto = new GoogleTranslate($actualTarget);
+                $raw = $trAuto->translate($text);
                 if (!empty($raw)) {
                     $translated = trim($raw);
                 }
-            } catch (\Throwable $e) {
-                try {
-                    $trAuto = new GoogleTranslate($actualTarget);
-                    $raw = $trAuto->translate($text);
-                    if (!empty($raw)) {
-                        $translated = trim($raw);
+            } catch (\Throwable $e2) {
+                Log::warning('TranslationService: GoogleTranslate failed: ' . $e2->getMessage());
+            }
+        }
+
+        // Provider 2: MyMemory Translated API (fallback only)
+        if (empty($translated)) {
+            try {
+                $url = 'https://api.mymemory.translated.net/get?q=' . urlencode($text) . '&langpair=' . urlencode($source) . '|' . urlencode($actualTarget);
+                $response = Http::timeout(4)->get($url);
+                if ($response->successful()) {
+                    $json = $response->json();
+                    $raw = $json['responseData']['translatedText'] ?? null;
+                    if (!empty($raw)
+                        && strpos($raw, '==>') === false
+                        && stripos($raw, 'MYMEMORY WARNING') === false
+                        && stripos($raw, 'PLEASE SELECT TWO DISTINCT LANGUAGES') === false
+                        && stripos($raw, 'IS AN INVALID TARGET LANGUAGE') === false) {
+                        $decoded = html_entity_decode(trim($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        if (!empty($decoded)) {
+                            $translated = $decoded;
+                        }
                     }
-                } catch (\Throwable $e2) {
-                    Log::warning('TranslationService: GoogleTranslate failed: ' . $e2->getMessage());
                 }
+            } catch (\Throwable $e) {
+                Log::warning('TranslationService: MyMemory failed: ' . $e->getMessage());
             }
         }
 

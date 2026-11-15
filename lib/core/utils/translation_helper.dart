@@ -2,11 +2,17 @@ import 'dart:convert';
 import 'api_client.dart';
 
 class TranslationHelper {
-  static Future<Map<String, String>> translate(String text) =>
-      translateText(text);
+  static Future<Map<String, String>> translate(
+    String text, {
+    bool throwOnError = false,
+  }) =>
+      translateText(text, throwOnError: throwOnError);
 
   /// Translates a single text string into English, Arabic, Sorani, and Badini.
-  static Future<Map<String, String>> translateText(String text) async {
+  static Future<Map<String, String>> translateText(
+    String text, {
+    bool throwOnError = false,
+  }) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return {'en': '', 'ar': '', 'ckb': '', 'kmr': ''};
 
@@ -25,7 +31,12 @@ class TranslationHelper {
           };
         }
       }
-    } catch (_) {}
+      if (throwOnError) {
+        throw Exception('هەڵە لە وەرگێڕان (${res.statusCode})');
+      }
+    } catch (e) {
+      if (throwOnError) rethrow;
+    }
 
     return {'en': trimmed, 'ar': trimmed, 'ckb': trimmed, 'kmr': trimmed};
   }

@@ -270,11 +270,20 @@ class _AdminRecruitmentOptionsScreenState
                           setError(null);
                           setSheetState(() => isTranslating = true);
                           try {
-                            final tr = await TranslationHelper.translate(source);
+                            final tr = await TranslationHelper.translate(
+                              source,
+                              throwOnError: true,
+                            );
                             if (!sheetOpen) return;
-                            kmrCtrl.text = tr['kmr'] ?? '';
-                            arCtrl.text = tr['ar'] ?? '';
-                            enCtrl.text = tr['en'] ?? '';
+                            setSheetState(() {
+                              kmrCtrl.text = tr['kmr'] ?? '';
+                              arCtrl.text = tr['ar'] ?? '';
+                              enCtrl.text = tr['en'] ?? '';
+                            });
+                          } catch (e) {
+                            if (sheetOpen) {
+                              setError('وەرگێڕان سەرکەوتوو نەبوو، دووبارە هەوڵبدەرەوە.');
+                            }
                           } finally {
                             if (sheetOpen) {
                               setSheetState(() => isTranslating = false);
@@ -436,26 +445,25 @@ class _AdminRecruitmentOptionsScreenState
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       appBar: AdminAppBar(
-        title: 'بڕوانامە و شارەزایی تیمی گەڕۆک',
-        subtitle: 'بەڕێوەبردنی بژاردەکانی هەنگاوی ٢ لە وێبسایت',
+        title: 'بڕوانامە و شارەزایی',
+        subtitle: 'تیمی گەڕۆک - هەنگاوی ٢',
+        titleStyle: TextStyle(
+          fontFamily: 'Rabar',
+          color: AppColors.getTextTitle(context),
+          fontSize: 16.5,
+          fontWeight: FontWeight.bold,
+          height: 1.25,
+        ),
         icon: Iconsax.book_1,
         iconColor: const Color(0xFFEA580C),
         iconBackgroundColor: const Color(0xFFEA580C).withValues(alpha: 0.12),
         showBackButton: true,
         actions: [
-          IconButton(
-            onPressed: _loadOptions,
-            icon: const Icon(Iconsax.refresh, color: Color(0xFF64748B)),
-            tooltip: 'نوێکردنەوە',
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: AdminUi.primaryAction(
-              label: 'زیادکردن',
-              icon: Iconsax.add,
-              onTap: () => _openForm(),
-              color: const Color(0xFFEA580C),
-            ),
+          AdminUi.primaryAction(
+            label: 'زیادکردن',
+            icon: Iconsax.add,
+            onTap: () => _openForm(),
+            color: const Color(0xFFEA580C),
           ),
         ],
       ),
