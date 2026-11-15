@@ -128,9 +128,9 @@
                 <thead>
                     <tr>
                         <th style="width: 18%;">ژمارەی داواکاری</th>
-                        <th style="width: 22%;">بەروار و کات</th>
-                        <th style="width: 26%;">ناوی نەخۆش</th>
-                        <th style="width: 18%;">بارودۆخ</th>
+                        <th style="width: 20%;">بەروار و کات</th>
+                        <th style="width: 22%;">ناوی نەخۆش</th>
+                        <th style="width: 24%;">بارودۆخ و کات</th>
                         <th style="width: 16%; text-align: center;">کردار</th>
                     </tr>
                 </thead>
@@ -216,6 +216,8 @@
                                 }
                             }
 
+                            $estLabels = $order->estimatedDurationLabels();
+
                             $orderPayload = [
                                 'id' => $order->id,
                                 'patient_id' => $order->patient_id ?? $order->user_id,
@@ -230,6 +232,9 @@
                                 'payment_method' => $paymentMethodKurdish,
                                 'total_price' => number_format($order->total_price),
                                 'status' => $order->status,
+                                'estimated_duration_minutes' => $order->estimated_duration_minutes,
+                                'estimated_duration_label' => $estLabels['ckb'] ?? null,
+                                'estimated_ready_at' => $order->estimated_ready_at ? $order->estimated_ready_at->format('Y/m/d h:i A') : null,
                                 'lat' => (float)$lat,
                                 'lng' => (float)$lng,
                                 'items' => $order->items ?? [],
@@ -274,9 +279,14 @@
                                 </div>
                             </td>
 
-                            <!-- Status Dropdown -->
+                            <!-- Status & Estimated Duration -->
                             <td>
-                                <form action="{{ route('lab.orders.update_status', $order) }}" method="POST" style="margin: 0;">
+                                @php
+                                    $estPresets = [15, 30, 45, 60, 90, 120, 180, 240, 360, 720, 1440, 2880];
+                                    $currentEst = $order->estimated_duration_minutes;
+                                    $isCustomEst = $currentEst !== null && !in_array((int) $currentEst, $estPresets, true);
+                                @endphp
+                                <form id="order-status-form-{{ $order->id }}" action="{{ route('lab.orders.update_status', $order) }}" method="POST" style="margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 195px;">
                                     @csrf
                                     @method('PATCH')
                                     <select name="status" onchange="this.form.submit()" 
@@ -286,6 +296,49 @@
                                         <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>✅ تەواوکراوە</option>
                                         <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>❌ ڕەتکرایەوە</option>
                                     </select>
+
+                                    <select id="est-preset-{{ $order->id }}"
+                                            onchange="handleEstPresetChange({{ $order->id }}, this)"
+                                            style="font-size: 0.76rem; font-weight: 700; padding: 6px 10px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; cursor: pointer; outline: none;">
+                                        <option value="" {{ $currentEst === null ? 'selected' : '' }}>⏱ دیاریکردنی کات (چەند کاتی دەوێ)...</option>
+                                        <option value="15" {{ (int)$currentEst === 15 ? 'selected' : '' }}>⏱ ١٥ خولەک</option>
+                                        <option value="30" {{ (int)$currentEst === 30 ? 'selected' : '' }}>⏱ ٣٠ خولەک</option>
+                                        <option value="45" {{ (int)$currentEst === 45 ? 'selected' : '' }}>⏱ ٤٥ خولەک</option>
+                                        <option value="60" {{ (int)$currentEst === 60 ? 'selected' : '' }}>⏱ ١ کاتژمێر</option>
+                                        <option value="90" {{ (int)$currentEst === 90 ? 'selected' : '' }}>⏱ ١ کاتژمێر و ٣٠ خولەک</option>
+                                        <option value="120" {{ (int)$currentEst === 120 ? 'selected' : '' }}>⏱ ٢ کاتژمێر</option>
+                                        <option value="180" {{ (int)$currentEst === 180 ? 'selected' : '' }}>⏱ ٣ کاتژمێر</option>
+                                        <option value="240" {{ (int)$currentEst === 240 ? 'selected' : '' }}>⏱ ٤ کاتژمێر</option>
+                                        <option value="360" {{ (int)$currentEst === 360 ? 'selected' : '' }}>⏱ ٦ کاتژمێر</option>
+                                        <option value="720" {{ (int)$currentEst === 720 ? 'selected' : '' }}>⏱ ١٢ کاتژمێر</option>
+                                        <option value="1440" {{ (int)$currentEst === 1440 ? 'selected' : '' }}>⏱ ٢٤ کاتژمێر (١ ڕۆژ)</option>
+                                        <option value="2880" {{ (int)$currentEst === 2880 ? 'selected' : '' }}>⏱ ٤٨ کاتژمێر (٢ ڕۆژ)</option>
+                                        <option value="custom" {{ $isCustomEst ? 'selected' : '' }}>✏️ کاتی تر (بە خولەک)...</option>
+                                    </select>
+
+                                    <div id="est-custom-box-{{ $order->id }}" style="display: {{ $isCustomEst ? 'flex' : 'none' }}; align-items: center; gap: 4px;">
+                                        <input type="number"
+                                               id="est-minutes-{{ $order->id }}"
+                                               name="estimated_duration_minutes"
+                                               min="1"
+                                               max="43200"
+                                               value="{{ $currentEst }}"
+                                               placeholder="خولەک (نم: 90)"
+                                               style="width: 100%; font-size: 0.76rem; font-weight: 700; padding: 5px 8px; border-radius: 8px; border: 1px solid #94a3b8; background: #ffffff; color: #0f172a; outline: none;" />
+                                        <button type="submit"
+                                                style="background: #0f172a; color: #ffffff; border: none; padding: 5px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 800; cursor: pointer; white-space: nowrap;">
+                                            پاشەکەوت
+                                        </button>
+                                    </div>
+
+                                    @if(!empty($estLabels['ckb']))
+                                        <div style="font-size: 0.72rem; font-weight: 800; color: #0369a1; background: #e0f2fe; border: 1px solid #bae6fd; padding: 3px 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                            <span>⏱ {{ $estLabels['ckb'] }}</span>
+                                            @if($order->estimated_ready_at && !in_array($order->status, ['completed', 'cancelled'], true))
+                                                <span dir="ltr" style="color: #0c4a6e;">({{ $order->estimated_ready_at->format('h:i A') }})</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </form>
                             </td>
 
@@ -450,6 +503,10 @@ function openOrderModal(data) {
                     <span style="font-size: 0.72rem; color: #64748b; display: block;">بارودۆخ:</span>
                     <span style="color: #2563eb; font-weight: 800;">${data.status}</span>
                 </div>
+                <div>
+                    <span style="font-size: 0.72rem; color: #64748b; display: block;">کاتی پێشبینیکراو:</span>
+                    <span style="color: #0369a1; font-weight: 800;">⏱ ${data.estimated_duration_label || 'دیارینەکراوە'}${data.estimated_ready_at ? ` (${data.estimated_ready_at})` : ''}</span>
+                </div>
             </div>
         </div>
 
@@ -506,6 +563,24 @@ function openOrderModal(data) {
         leafletMarkerInstance.bindPopup(`<b>${data.name}</b><br>${data.address}`).openPopup();
         leafletMapInstance.invalidateSize();
     }, 200);
+}
+
+function handleEstPresetChange(orderId, selectEl) {
+    const val = selectEl.value;
+    const customBox = document.getElementById(`est-custom-box-${orderId}`);
+    const inputEl = document.getElementById(`est-minutes-${orderId}`);
+    const formEl = document.getElementById(`order-status-form-${orderId}`);
+    if (!customBox || !inputEl || !formEl) return;
+
+    if (val === 'custom') {
+        customBox.style.display = 'flex';
+        inputEl.focus();
+        return;
+    }
+
+    customBox.style.display = 'none';
+    inputEl.value = val;
+    formEl.submit();
 }
 
 function closeOrderModal() {

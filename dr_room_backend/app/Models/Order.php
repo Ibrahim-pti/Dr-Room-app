@@ -32,7 +32,74 @@ class Order extends Model
         'driver_picked_up_at' => 'datetime',
         'driver_delivered_at' => 'datetime',
         'delivery_fee' => 'float',
+        'estimated_duration_minutes' => 'integer',
+        'estimated_ready_at' => 'datetime',
     ];
+
+    /**
+     * Format an estimated duration (in minutes) into localized strings.
+     *
+     * @return array{ckb: ?string, kmr: ?string, ar: ?string, en: ?string}
+     */
+    public static function formatEstimatedDuration(?int $minutes): array
+    {
+        if ($minutes === null || $minutes <= 0) {
+            return [
+                'ckb' => null,
+                'kmr' => null,
+                'ar' => null,
+                'en' => null,
+            ];
+        }
+
+        if ($minutes < 60) {
+            return [
+                'ckb' => "{$minutes} خولەک",
+                'kmr' => "{$minutes} خولەک",
+                'ar' => "{$minutes} دقيقة",
+                'en' => "{$minutes} min",
+            ];
+        }
+
+        if ($minutes >= 1440 && $minutes % 1440 === 0) {
+            $days = intdiv($minutes, 1440);
+            return [
+                'ckb' => "{$days} ڕۆژ",
+                'kmr' => "{$days} رۆژ",
+                'ar' => $days === 1 ? 'يوم واحد' : ($days === 2 ? 'يومان' : "{$days} أيام"),
+                'en' => $days === 1 ? '1 day' : "{$days} days",
+            ];
+        }
+
+        $hours = intdiv($minutes, 60);
+        $remMinutes = $minutes % 60;
+
+        if ($remMinutes === 0) {
+            return [
+                'ckb' => "{$hours} کاتژمێر",
+                'kmr' => "{$hours} دەمژمێر",
+                'ar' => $hours === 1 ? 'ساعة واحدة' : ($hours === 2 ? 'ساعتان' : "{$hours} ساعة"),
+                'en' => $hours === 1 ? '1 hr' : "{$hours} hrs",
+            ];
+        }
+
+        return [
+            'ckb' => "{$hours} کاتژمێر و {$remMinutes} خولەک",
+            'kmr' => "{$hours} دەمژمێر و {$remMinutes} خولەک",
+            'ar' => "{$hours} ساعة و {$remMinutes} دقيقة",
+            'en' => "{$hours} hr {$remMinutes} min",
+        ];
+    }
+
+    /**
+     * Localized estimated duration strings for this order.
+     *
+     * @return array{ckb: ?string, kmr: ?string, ar: ?string, en: ?string}
+     */
+    public function estimatedDurationLabels(): array
+    {
+        return self::formatEstimatedDuration($this->estimated_duration_minutes);
+    }
 
     public function patient()
     {

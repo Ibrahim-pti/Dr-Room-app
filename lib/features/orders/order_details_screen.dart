@@ -114,6 +114,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             updatedOrder.assignedNurseId != _currentOrder.assignedNurseId ||
             updatedOrder.deliveryStatus != _currentOrder.deliveryStatus ||
             updatedOrder.assignedDriverId != _currentOrder.assignedDriverId ||
+            updatedOrder.estimatedDurationMinutes != _currentOrder.estimatedDurationMinutes ||
+            updatedOrder.estimatedReadyAt != _currentOrder.estimatedReadyAt ||
             latChanged) {
           double nextHeading = _driverHeading;
           if (latChanged &&
@@ -900,6 +902,46 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               fontSize: 11.5,
                             ),
                           ),
+                          if (_currentOrder.localizedEstimatedDuration(context) != null) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Iconsax.clock,
+                                    size: 14,
+                                    color: Color(0xFF0284C7),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      _currentOrder.estimatedReadyAt != null &&
+                                              _currentOrder.status.isActive
+                                          ? '${'estimated_time'.tr()}: ${_currentOrder.localizedEstimatedDuration(context)!} (${'estimated_ready_at'.tr()} ${DateFormat('hh:mm a', 'en').format(_currentOrder.estimatedReadyAt!)})'
+                                          : '${'estimated_time'.tr()}: ${_currentOrder.localizedEstimatedDuration(context)!}',
+                                      style: _kStyle(
+                                        color: const Color(0xFF0369A1),
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -1210,6 +1252,22 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       '${_currentOrder.date.hour}:${_currentOrder.date.minute.toString().padLeft(2, '0')}',
                       isDark: isDark,
                     ),
+                    if (_currentOrder.localizedEstimatedDuration(context) != null) ...[
+                      const Divider(
+                        height: 24,
+                        thickness: 1,
+                        color: Color(0xFFF1F5F9),
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'estimated_time'.tr(),
+                        _currentOrder.estimatedReadyAt != null &&
+                                _currentOrder.status.isActive
+                            ? '${_currentOrder.localizedEstimatedDuration(context)!} (${DateFormat('hh:mm a', 'en').format(_currentOrder.estimatedReadyAt!)})'
+                            : _currentOrder.localizedEstimatedDuration(context)!,
+                        isDark: isDark,
+                      ),
+                    ],
                     if (_currentOrder.paymentMethod != null) ...[
                       const Divider(
                         height: 24,

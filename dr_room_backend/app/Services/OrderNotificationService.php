@@ -97,6 +97,22 @@ class OrderNotificationService
             return;
         }
 
+        if (
+            $order->estimated_duration_minutes
+            && !in_array($newStatus, ['completed', 'cancelled', 'rejected'], true)
+        ) {
+            $labels = $order->estimatedDurationLabels();
+            if (!empty($labels['ckb'])) {
+                $messageKu .= " (کاتی پێشبینیکراو: {$labels['ckb']})";
+            }
+            if (!empty($labels['ar'])) {
+                $messageAr .= " (الوقت المتوقع: {$labels['ar']})";
+            }
+            if (!empty($labels['en'])) {
+                $messageEn .= " (Est. time: {$labels['en']})";
+            }
+        }
+
         if (!empty($customNote)) {
             $messageKu .= " ({$customNote})";
             $messageAr .= " ({$customNote})";

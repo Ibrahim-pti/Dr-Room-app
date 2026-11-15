@@ -1189,5 +1189,7 @@
   "official_stamp": "الختم الرسمي الإلكتروني",
   "deep_analytics": "التحليلات والتقارير المتقدمة",
   "top_lab_tests": "أكثر الفحوصات طلباً",
-  "tests_by_category": "توزيع الفحوصات حسب التصنيف"
+  "tests_by_category": "توزيع الفحوصات حسب التصنيف",
+  "estimated_time": "الوقت المتوقع",
+  "estimated_ready_at": "جاهز في الساعة"
 }

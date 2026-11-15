@@ -71,6 +71,13 @@ class OrderModel {
   final String? statusLabelAr;
   final String? statusLabelEn;
 
+  final int? estimatedDurationMinutes;
+  final DateTime? estimatedReadyAt;
+  final String? estimatedDurationLabelCkb;
+  final String? estimatedDurationLabelKmr;
+  final String? estimatedDurationLabelAr;
+  final String? estimatedDurationLabelEn;
+
   final double price;
   final DateTime date;
   final String? assignedNurseId;
@@ -129,6 +136,12 @@ class OrderModel {
     this.statusLabelKmr,
     this.statusLabelAr,
     this.statusLabelEn,
+    this.estimatedDurationMinutes,
+    this.estimatedReadyAt,
+    this.estimatedDurationLabelCkb,
+    this.estimatedDurationLabelKmr,
+    this.estimatedDurationLabelAr,
+    this.estimatedDurationLabelEn,
     required this.price,
     required this.date,
     this.assignedNurseId,
@@ -201,6 +214,10 @@ class OrderModel {
         : null;
 
     final statusLabels = json['status_labels'] is Map ? json['status_labels'] as Map : null;
+    final estLabels = json['estimated_duration_labels'] is Map
+        ? json['estimated_duration_labels'] as Map
+        : null;
+    final parsedReadyAt = DateTime.tryParse(json['estimated_ready_at']?.toString() ?? '');
 
     final patientDetails = json['patient_details'] is Map ? json['patient_details'] as Map : null;
     String? rawPrescription = json['prescription_image']?.toString() ??
@@ -242,6 +259,12 @@ class OrderModel {
       statusLabelKmr: statusLabels?['kmr']?.toString(),
       statusLabelAr: statusLabels?['ar']?.toString(),
       statusLabelEn: statusLabels?['en']?.toString(),
+      estimatedDurationMinutes: int.tryParse(json['estimated_duration_minutes']?.toString() ?? ''),
+      estimatedReadyAt: parsedReadyAt?.toLocal(),
+      estimatedDurationLabelCkb: estLabels?['ckb']?.toString() ?? json['estimated_duration_label']?.toString(),
+      estimatedDurationLabelKmr: estLabels?['kmr']?.toString(),
+      estimatedDurationLabelAr: estLabels?['ar']?.toString(),
+      estimatedDurationLabelEn: estLabels?['en']?.toString(),
       price: double.tryParse(json['total_price']?.toString() ?? '') ?? 0.0,
       date: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
       assignedNurseId: nurse?['id']?.toString(),
@@ -306,6 +329,12 @@ class OrderModel {
       statusLabelKmr: statusLabelKmr,
       statusLabelAr: statusLabelAr,
       statusLabelEn: statusLabelEn,
+      estimatedDurationMinutes: estimatedDurationMinutes,
+      estimatedReadyAt: estimatedReadyAt,
+      estimatedDurationLabelCkb: estimatedDurationLabelCkb,
+      estimatedDurationLabelKmr: estimatedDurationLabelKmr,
+      estimatedDurationLabelAr: estimatedDurationLabelAr,
+      estimatedDurationLabelEn: estimatedDurationLabelEn,
       price: price,
       date: date,
       assignedNurseId: assignedNurseId ?? this.assignedNurseId,
@@ -475,6 +504,66 @@ class OrderModel {
 
   Color get statusColor => status.color;
   String get statusLabel => status.label;
+
+  /// Context-aware localized estimated processing duration from the lab/provider.
+  String? localizedEstimatedDuration(BuildContext context) {
+    final lang = context.locale.languageCode.toLowerCase();
+    if (lang == 'kmr' &&
+        estimatedDurationLabelKmr != null &&
+        estimatedDurationLabelKmr!.trim().isNotEmpty) {
+      return estimatedDurationLabelKmr!.trim();
+    }
+    if (lang == 'ar' &&
+        estimatedDurationLabelAr != null &&
+        estimatedDurationLabelAr!.trim().isNotEmpty) {
+      return estimatedDurationLabelAr!.trim();
+    }
+    if (lang == 'en' &&
+        estimatedDurationLabelEn != null &&
+        estimatedDurationLabelEn!.trim().isNotEmpty) {
+      return estimatedDurationLabelEn!.trim();
+    }
+    if ((lang == 'ckb' || lang == 'ku') &&
+        estimatedDurationLabelCkb != null &&
+        estimatedDurationLabelCkb!.trim().isNotEmpty) {
+      return estimatedDurationLabelCkb!.trim();
+    }
+
+    final fallback = estimatedDurationLabelCkb ??
+        estimatedDurationLabelEn ??
+        estimatedDurationLabelAr ??
+        estimatedDurationLabelKmr;
+    if (fallback != null && fallback.trim().isNotEmpty) {
+      return fallback.trim();
+    }
+
+    final mins = estimatedDurationMinutes;
+    if (mins == null || mins <= 0) return null;
+
+    if (mins < 60) {
+      if (lang == 'ar') return '$mins دقيقة';
+      if (lang == 'en') return '$mins min';
+      return '$mins خولەک';
+    }
+    if (mins >= 1440 && mins % 1440 == 0) {
+      final days = mins ~/ 1440;
+      if (lang == 'ar') return days == 1 ? 'يوم واحد' : '$days أيام';
+      if (lang == 'en') return days == 1 ? '1 day' : '$days days';
+      return lang == 'kmr' ? '$days رۆژ' : '$days ڕۆژ';
+    }
+    final hours = mins ~/ 60;
+    final rem = mins % 60;
+    if (rem == 0) {
+      if (lang == 'ar') return hours == 1 ? 'ساعة واحدة' : '$hours ساعة';
+      if (lang == 'en') return hours == 1 ? '1 hr' : '$hours hrs';
+      return lang == 'kmr' ? '$hours دەمژمێر' : '$hours کاتژمێر';
+    }
+    if (lang == 'ar') return '$hours ساعة و $rem دقيقة';
+    if (lang == 'en') return '$hours hr $rem min';
+    return lang == 'kmr'
+        ? '$hours دەمژمێر و $rem خولەک'
+        : '$hours کاتژمێر و $rem خولەک';
+  }
 }
 
 class OrderProvider extends ChangeNotifier {

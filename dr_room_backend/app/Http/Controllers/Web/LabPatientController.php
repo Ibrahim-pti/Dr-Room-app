@@ -49,10 +49,28 @@ class LabPatientController extends Controller
 
         $request->validate([
             'status' => 'required|in:pending,confirmed,approved,processing,in_progress,completed,cancelled',
+            'estimated_duration_minutes' => 'nullable|integer|min:1|max:43200',
         ]);
 
         if ($order->assigned_lab_id === null) {
             $order->assigned_lab_id = $userId;
+        }
+
+        $previousStatus = $order->status;
+        $previousEstimated = $order->estimated_duration_minutes;
+        $isTerminal = in_array($request->status, ['completed', 'cancelled'], true);
+
+        if ($request->has('estimated_duration_minutes')) {
+            if ($request->filled('estimated_duration_minutes')) {
+                $mins = (int) $request->input('estimated_duration_minutes');
+                $order->estimated_duration_minutes = $mins;
+                $order->estimated_ready_at = $isTerminal ? null : now()->addMinutes($mins);
+            } else {
+                $order->estimated_duration_minutes = null;
+                $order->estimated_ready_at = null;
+            }
+        } elseif ($isTerminal) {
+            $order->estimated_ready_at = null;
         }
 
         if ($request->status === 'completed') {
@@ -62,12 +80,18 @@ class LabPatientController extends Controller
             $order->save();
         }
 
-        if ($order->assigned_driver_id && in_array($request->status, ['completed', 'cancelled'], true)) {
+        if ($order->assigned_driver_id && $isTerminal) {
             \App\Models\Driver::syncDutyStatusForUser((int) $order->assigned_driver_id);
         }
 
-        \App\Services\OrderNotificationService::notifyStatusChanged($order, $request->status);
+        $statusChanged = $previousStatus !== $request->status;
+        $estimatedChanged = $previousEstimated !== $order->estimated_duration_minutes
+            && $order->estimated_duration_minutes !== null;
 
-        return back()->with('success', 'بارودۆخی داواکارییەکە بە سەرکەوتوویی نوێکرایەوە.');
+        if ($statusChanged || $estimatedChanged) {
+            \App\Services\OrderNotificationService::notifyStatusChanged($order, $request->status);
+        }
+
+        return back()->with('success', 'بارودۆخ و کاتی داواکارییەکە بە سەرکەوتوویی نوێکرایەوە.');
     }
 }

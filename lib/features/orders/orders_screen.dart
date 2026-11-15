@@ -422,6 +422,7 @@ class OrdersScreenState extends State<OrdersScreen> {
   Widget _buildOrderCard(OrderModel order, int index, bool isDark) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final estDuration = order.localizedEstimatedDuration(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -492,7 +493,10 @@ class OrdersScreenState extends State<OrdersScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
-                    Row(
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         // Status Badge
                         Container(
@@ -510,7 +514,33 @@ class OrdersScreenState extends State<OrdersScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        if (estDuration != null && order.status.isActive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0284C7).withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Iconsax.clock,
+                                  size: 11,
+                                  color: Color(0xFF0284C7),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  estDuration,
+                                  style: _kStyle(
+                                    color: const Color(0xFF0284C7),
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         Text(
                           '${order.date.day}/${order.date.month}/${order.date.year}',
                           style: _kStyle(

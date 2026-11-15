@@ -417,6 +417,8 @@ class OrderController extends Controller
             ];
         }
 
+        $estimatedLabels = $order->estimatedDurationLabels();
+
         return [
             'id' => $order->id,
             'patient_id' => $order->patient_id,
@@ -437,6 +439,10 @@ class OrderController extends Controller
             'driver_delivered_at' => $order->driver_delivered_at?->toIso8601String(),
             'status_label' => $statusLabels[$langCode] ?? $statusLabels['ckb'],
             'status_labels' => $statusLabels,
+            'estimated_duration_minutes' => $order->estimated_duration_minutes,
+            'estimated_ready_at' => $order->estimated_ready_at?->toIso8601String(),
+            'estimated_duration_label' => $estimatedLabels[$langCode] ?? $estimatedLabels['ckb'],
+            'estimated_duration_labels' => $estimatedLabels,
             'payment_method' => $order->payment_method,
             'assigned_nurse_id' => $order->assigned_nurse_id,
             'assigned_pharmacy_id' => $order->assigned_pharmacy_id,
