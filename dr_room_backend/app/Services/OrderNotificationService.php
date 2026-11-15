@@ -29,7 +29,21 @@ class OrderNotificationService
         $messageAr = '';
         $messageEn = '';
 
-        if (in_array($newStatus, ['processing', 'accepted', 'approved', 'confirmed', 'in_progress'], true)) {
+        if ($newStatus === 'on_the_way') {
+            $titleKu = 'لە ڕێگادایە 🚗';
+            $titleAr = 'في الطريق إليك 🚗';
+            $titleEn = 'On the Way 🚗';
+
+            if (str_contains($serviceType, 'nurse') || str_contains($serviceType, 'nursing')) {
+                $messageKu = 'پەرستار لە ڕێگادایە بۆ لای تۆ.';
+                $messageAr = 'الممرض في الطريق إليك الآن.';
+                $messageEn = 'The nurse is on the way to your location.';
+            } else {
+                $messageKu = "داواکاری ژمارە #{$order->id} ئێستا لە ڕێگادایە بۆ لای تۆ.";
+                $messageAr = "طلبك رقم #{$order->id} في الطريق إليك الآن.";
+                $messageEn = "Your order #{$order->id} is now on the way.";
+            }
+        } elseif (in_array($newStatus, ['processing', 'accepted', 'approved', 'confirmed', 'in_progress'], true)) {
             $titleKu = 'داواکارییەکەت قبوڵکرا ✅';
             $titleAr = 'تم قبول طلبك بنجاح ✅';
             $titleEn = 'Your Order Has Been Accepted ✅';

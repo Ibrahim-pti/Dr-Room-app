@@ -39,7 +39,7 @@ class NurseAppointmentController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:pending,confirmed,approved,processing,in_progress,completed,cancelled',
+            'status' => 'required|in:pending,confirmed,approved,processing,in_progress,on_the_way,completed,cancelled',
             'estimated_duration_minutes' => 'nullable|integer|min:1|max:43200',
         ]);
 

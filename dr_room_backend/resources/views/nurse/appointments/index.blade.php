@@ -125,8 +125,11 @@
                                     @csrf
                                     @method('PATCH')
                                     <select name="status" onchange="this.form.submit()"
-                                            class="status-select @if($app->status == 'pending') status-pending @elseif(in_array($app->status, ['approved', 'confirmed', 'processing', 'in_progress'])) status-progress @elseif($app->status == 'completed') status-completed @else status-cancelled @endif">
-                                        <option value="pending" {{ $app->status == 'pending' ? 'selected' : '' }}>⏳ چاوەڕوانە</option>
+                                            class="status-select @if($app->status == 'pending') status-pending @elseif(in_array($app->status, ['approved', 'confirmed', 'processing', 'in_progress', 'on_the_way'])) status-progress @elseif($app->status == 'completed') status-completed @else status-cancelled @endif">
+                                        @if($app->status == 'pending')
+                                            <option value="pending" selected>⏳ چاوەڕوانە</option>
+                                        @endif
+                                        <option value="on_the_way" {{ $app->status == 'on_the_way' ? 'selected' : '' }}>🚗 لە ڕێگادایە</option>
                                         <option value="processing" {{ in_array($app->status, ['processing', 'in_progress', 'approved', 'confirmed']) ? 'selected' : '' }}>🩺 قبوڵکرا / لە کاردایە</option>
                                         <option value="completed" {{ $app->status == 'completed' ? 'selected' : '' }}>✅ تەواوکراوە</option>
                                         <option value="cancelled" {{ $app->status == 'cancelled' ? 'selected' : '' }}>❌ ڕەتکرایەوە</option>

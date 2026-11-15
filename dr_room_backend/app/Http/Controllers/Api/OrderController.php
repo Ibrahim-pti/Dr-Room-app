@@ -531,6 +531,12 @@ class OrderController extends Controller
                 'ar'  => 'قيد الانتظار',
                 'en'  => 'Pending Confirmation',
             ],
+            'on_the_way' => [
+                'ckb' => 'لە ڕێگادایە',
+                'kmr' => 'د ڕێکێ دایە',
+                'ar'  => 'في الطريق إليك',
+                'en'  => 'On the Way',
+            ],
             'processing', 'in_progress', 'accepted', 'approved' => [
                 'ckb' => 'لە قۆناغی جێبەجێکردندایە',
                 'kmr' => 'د بجهئینانێ دایە',
