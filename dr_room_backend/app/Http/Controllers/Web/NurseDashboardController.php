@@ -74,6 +74,10 @@ class NurseDashboardController extends Controller
             ->whereIn('status', ['pending', 'confirmed', 'approved', 'processing', 'in_progress'])
             ->count();
 
+        $monthlyAccounting = app(\App\Services\ProviderReportService::class)->summarizeCurrentMonth(
+            Order::where('assigned_nurse_id', $userId)->forNursing()->with('items')->get()
+        );
+
         return view('nurse.dashboard.index', compact(
             'user',
             'nurse',
@@ -83,7 +87,8 @@ class NurseDashboardController extends Controller
             'unassignedRequests',
             'weeklyChart',
             'completedAppointments',
-            'pendingAppointments'
+            'pendingAppointments',
+            'monthlyAccounting'
         ));
     }
 }

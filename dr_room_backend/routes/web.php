@@ -145,7 +145,7 @@ Route::prefix('nurse')->middleware(['auth', IsNurse::class])->group(function () 
     Route::get('/communication/patient', fn() => $nursePlaceholder('چات لەگەڵ نەخۆش'))->name('nurse.communication.patient');
     
     // Reports
-    Route::get('/reports', fn() => $nursePlaceholder('ڕاپۆرتەکان'))->name('nurse.reports.index');
+    Route::get('/reports', [\App\Http\Controllers\Web\NurseReportController::class, 'index'])->name('nurse.reports.index');
     Route::get('/reports/progress', fn() => $nursePlaceholder('بەرەوپێشچوونی نەخۆش'))->name('nurse.reports.progress');
     
     // Reviews & Ratings
@@ -191,7 +191,7 @@ Route::prefix('lab')->middleware(['auth', \App\Http\Middleware\IsLab::class])->g
         };
         
         // Reports
-        Route::get('/reports', fn() => $labPlaceholder('ڕاپۆرتەکان'))->name('lab.reports.index');
+        Route::get('/reports', [\App\Http\Controllers\Web\LabReportController::class, 'index'])->name('lab.reports.index');
         
         // Communication
         Route::get('/communication', fn() => $labPlaceholder('پەیوەندی'))->name('lab.communication.index');

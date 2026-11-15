@@ -68,7 +68,7 @@
         .sidebar-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
 
-        .dr-main { margin-right: 270px; min-height: 100vh; transition: margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        .dr-main { margin-right: 270px; min-height: 100vh; min-width: 0; transition: margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
         .dr-header { position: sticky; top: 0; z-index: 30; height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
         .dr-header .menu-btn { display: none; width: 40px; height: 40px; border-radius: 10px; border: none; background: #f1f5f9; color: #64748b; cursor: pointer; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .dr-header .menu-btn:hover { background: #e2e8f0; color: #334155; }
@@ -86,7 +86,7 @@
         .notif-btn svg { width: 22px; height: 22px; }
         .notif-btn .dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid #fff; }
 
-        .dr-content { padding: 24px; max-width: 1280px; margin: 0 auto; }
+        .dr-content { padding: 24px; width: 100%; max-width: 1280px; margin: 0 auto; }
 
         @media (max-width: 1023px) {
             .dr-sidebar { transform: translateX(100%); }
@@ -152,6 +152,11 @@
                 <a href="{{ route('lab.results.index') }}" class="nav-item {{ request()->routeIs('lab.results.*') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     ئەنجامەکانی پشکنین
+                </a>
+
+                <a href="{{ route('lab.reports.index') }}" class="nav-item {{ request()->routeIs('lab.reports.*') ? 'active' : '' }}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    حسابات و ڕاپۆرتەکان
                 </a>
 
                 <a href="{{ route('lab.reviews.index') }}" class="nav-item {{ request()->routeIs('lab.reviews.*') ? 'active' : '' }}">
@@ -243,5 +248,6 @@
     @endif
     
     @yield('scripts')
+    @stack('scripts')
 </body>
 </html>

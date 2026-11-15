@@ -40,6 +40,10 @@ class LabDashboardController extends Controller
 
         $recentReviews = $lab ? $lab->reviews()->with('patient:id,name,profile_image')->latest()->take(4)->get() : collect();
 
+        $monthlyAccounting = app(\App\Services\ProviderReportService::class)->summarizeCurrentMonth(
+            \App\Models\Order::where('assigned_lab_id', $user->id)->forLab()->with('items')->get()
+        );
+
         return view('lab.dashboard.index', compact(
             'user',
             'lab',
@@ -51,7 +55,8 @@ class LabDashboardController extends Controller
             'viewsCount',
             'totalReviews',
             'rating',
-            'recentReviews'
+            'recentReviews',
+            'monthlyAccounting'
         ));
     }
 }
