@@ -204,6 +204,14 @@ class NurseServicesTest extends TestCase
         $assignedOrder->save();
 
         $this->actingAs($nurseUser, 'web')
+            ->get(route('nurse.appointments.index'))
+            ->assertOk()
+            ->assertSee('بینینی زانیاری تەواو')
+            ->assertSee('openNurseOrderModal', false)
+            ->assertSee('orderModalMap', false)
+            ->assertSee('وردەکاری تەواوی سەردان');
+
+        $this->actingAs($nurseUser, 'web')
             ->get(route('nurse.patients.index'))
             ->assertOk()
             ->assertSee('لیستی نەخۆشەکانم')

@@ -8,6 +8,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/css/kurdish-font.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         html, body { max-width: 100%; overflow-x: clip; }
         body { font-family: 'Rabar', 'Inter', sans-serif; background: #f0f2f5; margin: 0; }
@@ -25,6 +27,7 @@
         @media (max-width: 768px) {
             .dr-content { padding: 12px !important; }
             .grid { grid-template-columns: 1fr !important; }
+            #orderModal > div { padding: 16px !important; width: 95% !important; margin: 10px !important; max-height: 95vh !important; }
         }
 
         .dr-sidebar {
