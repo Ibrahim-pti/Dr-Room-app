@@ -9,10 +9,58 @@ use Illuminate\Support\Facades\Auth;
 
 class LabTestController extends Controller
 {
+    public const DEFAULT_LAB_CATEGORIES = [
+        'پشکنینی خوێن',
+        'بایۆکیمیستری و چەوری',
+        'هۆرمۆنات',
+        'ڤیتامین و کانزاکان',
+        'میز و پیسایی',
+        'بەکتریا و چاندن',
+        'بەرگری و ڤایرۆس',
+        'گورچیلە و جگەر',
+        'شەکرە',
+        'پشکنینی گشتی',
+    ];
+
+    protected function categoriesForLab(int $labId): array
+    {
+        $saved = LabTest::where('lab_id', $labId)
+            ->whereNotNull('type')
+            ->where('type', '!=', '')
+            ->where('type', '!=', 'general')
+            ->distinct()
+            ->pluck('type')
+            ->map(fn ($v) => trim((string) $v))
+            ->filter();
+
+        return collect(self::DEFAULT_LAB_CATEGORIES)
+            ->merge($saved)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    protected function resolveCategoryType(Request $request, ?string $fallback = null): string
+    {
+        $selected = trim((string) $request->input('type', ''));
+        $custom = trim((string) $request->input('custom_type', ''));
+
+        if ($selected === '__custom__') {
+            return $custom !== '' ? $custom : ($fallback ?: 'پشکنینی گشتی');
+        }
+
+        if ($selected !== '') {
+            return $selected;
+        }
+
+        return $fallback ?: 'پشکنینی گشتی';
+    }
+
     public function index(Request $request)
     {
         $lab = Auth::user()->lab;
         $type = $request->get('type');
+        $labCategories = $this->categoriesForLab($lab->id);
 
         $query = LabTest::where('lab_id', $lab->id);
         
@@ -22,12 +70,15 @@ class LabTestController extends Controller
 
         $tests = $query->latest()->paginate(10)->withQueryString();
 
-        return view('lab.tests.index', compact('tests', 'type'));
+        return view('lab.tests.index', compact('tests', 'type', 'labCategories'));
     }
 
     public function create()
     {
-        return view('lab.tests.create');
+        $lab = Auth::user()->lab;
+        $labCategories = $this->categoriesForLab($lab->id);
+
+        return view('lab.tests.create', compact('labCategories'));
     }
 
     public function store(Request $request)
@@ -44,6 +95,7 @@ class LabTestController extends Controller
             'name_ar' => 'nullable|string|max:255',
             'name_kmr' => 'nullable|string|max:255',
             'type' => 'nullable|string|max:255',
+            'custom_type' => 'nullable|string|max:255',
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|integer|min:0|max:100',
             'description' => 'nullable|string',
@@ -53,8 +105,9 @@ class LabTestController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        unset($validated['custom_type']);
         $validated['lab_id'] = $lab->id;
-        $validated['type'] = $request->input('type') ?? 'general';
+        $validated['type'] = $this->resolveCategoryType($request);
         $validated['is_active'] = $request->has('is_active');
 
         if (empty($validated['name_kmr']) && !empty($validated['name'])) {
@@ -78,8 +131,10 @@ class LabTestController extends Controller
         if ($test->lab_id !== Auth::user()->lab->id) {
             abort(403);
         }
-        
-        return view('lab.tests.edit', compact('test'));
+
+        $labCategories = $this->categoriesForLab(Auth::user()->lab->id);
+
+        return view('lab.tests.edit', compact('test', 'labCategories'));
     }
 
     public function update(Request $request, LabTest $test)
@@ -98,6 +153,7 @@ class LabTestController extends Controller
             'name_ar' => 'nullable|string|max:255',
             'name_kmr' => 'nullable|string|max:255',
             'type' => 'nullable|string|max:255',
+            'custom_type' => 'nullable|string|max:255',
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|integer|min:0|max:100',
             'description' => 'nullable|string',
@@ -117,7 +173,8 @@ class LabTestController extends Controller
             } catch (\Exception $e) {}
         }
 
-        $validated['type'] = $request->input('type') ?? $test->type ?? 'general';
+        unset($validated['custom_type']);
+        $validated['type'] = $this->resolveCategoryType($request, $test->type);
         $validated['is_active'] = $request->has('is_active');
         $test->update($validated);
 

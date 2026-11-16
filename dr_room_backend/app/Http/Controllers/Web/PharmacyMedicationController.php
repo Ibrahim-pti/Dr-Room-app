@@ -11,6 +11,33 @@ use Illuminate\Support\Facades\Storage;
 
 class PharmacyMedicationController extends Controller
 {
+    public const DEFAULT_MEDICATION_CATEGORIES = [
+        'ئازارشکێن',
+        'ئەنتیبایۆتیک',
+        'ڤیتامین و تەواوکەر',
+        'منداڵان',
+        'پێست و جوانکاری',
+        'شەکرە و زەخت',
+        'گەدە و هەرس',
+        'دڵ و خوێن',
+    ];
+
+    protected function categoriesForPharmacy(int $userId)
+    {
+        $saved = Medication::where('user_id', $userId)
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->pluck('category');
+
+        return collect(self::DEFAULT_MEDICATION_CATEGORIES)
+            ->merge($saved)
+            ->map(fn ($v) => trim((string) $v))
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
     public function index()
     {
         $medications = Medication::where('user_id', Auth::id())->latest()->paginate(10);
@@ -19,11 +46,7 @@ class PharmacyMedicationController extends Controller
 
     public function create()
     {
-        $existingCategories = Medication::where('user_id', Auth::id())
-            ->whereNotNull('category')
-            ->where('category', '!=', '')
-            ->distinct()
-            ->pluck('category');
+        $existingCategories = $this->categoriesForPharmacy(Auth::id());
         return view('pharmacy.medications.create', compact('existingCategories'));
     }
 
@@ -88,11 +111,7 @@ class PharmacyMedicationController extends Controller
     {
         if ($medication->user_id !== Auth::id()) abort(403);
         
-        $existingCategories = Medication::where('user_id', Auth::id())
-            ->whereNotNull('category')
-            ->where('category', '!=', '')
-            ->distinct()
-            ->pluck('category');
+        $existingCategories = $this->categoriesForPharmacy(Auth::id());
         return view('pharmacy.medications.edit', compact('medication', 'existingCategories'));
     }
 

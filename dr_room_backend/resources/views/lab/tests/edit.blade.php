@@ -66,6 +66,9 @@
                 </div>
             </div>
 
+            <!-- Lab Category -->
+            @include('lab.tests._category_field', ['labCategories' => $labCategories ?? [], 'currentType' => $test->type])
+
             <!-- Pricing & Discount -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>

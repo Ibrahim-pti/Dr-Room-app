@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../core/theme/app_colors.dart';
@@ -8,7 +7,6 @@ import '../pharmacy/screens/cart_screen.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/cart_provider.dart';
-import '../../core/utils/api_client.dart';
 
 class NursingServicesScreen extends StatefulWidget {
   final int? nurseId;
@@ -31,46 +29,6 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
   void initState() {
     super.initState();
     _initServices();
-    _fetchDynamicCategories();
-  }
-
-  Future<void> _fetchDynamicCategories() async {
-    try {
-      final res = await ApiClient.get('/service-categories?scope=nursing');
-      if (res.statusCode == 200 && mounted) {
-        final List list = jsonDecode(res.body);
-        final nurseFee = widget.nurse != null && widget.nurse!['fee'] != null
-            ? (double.tryParse(widget.nurse!['fee'].toString()) ?? 25000.0)
-            : 25000.0;
-
-        for (final cat in list) {
-          final id = 'cat_${cat['id']}';
-          final name = cat['name'] ?? '';
-          final nameEn = cat['name_en'] ?? '';
-          final nameAr = cat['name_ar'] ?? '';
-
-          // Check if already in standard list
-          final exists = _services.any((s) => s['title'] == name || s['id'] == id);
-          if (!exists && name.toString().isNotEmpty) {
-            setState(() {
-              _services.add({
-                'id': id,
-                'titleKey': null,
-                'title': name,
-                'title_en': nameEn,
-                'title_ar': nameAr,
-                'subtitleKey': null,
-                'subtitle': 'خزمەتگوزاری پەرستاری',
-                'icon': Iconsax.health,
-                'color': const Color(0xFF0D9488),
-                'price': nurseFee,
-                'selected': false,
-              });
-            });
-          }
-        }
-      }
-    } catch (_) {}
   }
 
   void _initServices() {
@@ -79,7 +37,42 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
         ? (double.tryParse(nurse['fee'].toString()) ?? 25000.0)
         : 25000.0;
 
-    // Standard base services
+    // If the nurse configured custom services in their dashboard, show those directly.
+    if (nurse != null && nurse['custom_services'] is List) {
+      final customList = nurse['custom_services'] as List;
+      for (int i = 0; i < customList.length; i++) {
+        final cs = customList[i];
+        if (cs is Map && (cs['name'] != null && cs['name'].toString().isNotEmpty)) {
+          final customPrice = cs['price'] != null
+              ? (double.tryParse(cs['price'].toString()) ?? nurseFee)
+              : nurseFee;
+          final categoryLabel = cs['category']?.toString().trim() ?? '';
+
+          _services.add({
+            'id': 'custom_${i}_${cs['name']}',
+            'titleKey': null,
+            'title': cs['name'].toString(),
+            'title_en': cs['name_en'],
+            'title_ar': cs['name_ar'],
+            'title_kmr': cs['name_kmr'],
+            'subtitleKey': null,
+            'subtitle': cs['description']?.toString().isNotEmpty == true
+                ? cs['description'].toString()
+                : (categoryLabel.isNotEmpty ? categoryLabel : 'خزمەتگوزاری تایبەتی پەرستار'),
+            'icon': Iconsax.verify,
+            'color': const Color(0xFF0D9488),
+            'price': customPrice,
+            'selected': false,
+          });
+        }
+      }
+    }
+
+    if (_services.isNotEmpty) {
+      return;
+    }
+
+    // Fallback base services when the nurse hasn't configured custom services yet
     _services.addAll([
       {
         'id': 'injection',
@@ -126,35 +119,6 @@ class _NursingServicesScreenState extends State<NursingServicesScreen> {
         'selected': false,
       },
     ]);
-
-    // If the nurse provided custom services from profile, add them!
-    if (nurse != null && nurse['custom_services'] is List) {
-      final customList = nurse['custom_services'] as List;
-      for (int i = 0; i < customList.length; i++) {
-        final cs = customList[i];
-        if (cs is Map && (cs['name'] != null && cs['name'].toString().isNotEmpty)) {
-          final customPrice = cs['price'] != null
-              ? (double.tryParse(cs['price'].toString()) ?? nurseFee)
-              : nurseFee;
-          
-          _services.add({
-            'id': 'custom_${i}_${cs['name']}',
-            'titleKey': null,
-            'title': cs['name'].toString(),
-            'title_en': cs['name_en'],
-            'title_ar': cs['name_ar'],
-            'subtitleKey': null,
-            'subtitle': cs['description']?.toString().isNotEmpty == true
-                ? cs['description'].toString()
-                : 'خزمەتگوزاری تایبەتی پەرستار',
-            'icon': Iconsax.verify,
-            'color': const Color(0xFF0D9488),
-            'price': customPrice,
-            'selected': false,
-          });
-        }
-      }
-    }
   }
 
   @override

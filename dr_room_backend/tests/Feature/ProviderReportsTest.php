@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Lab;
+use App\Models\LabTest;
 use App\Models\Nurse;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -259,5 +260,56 @@ class ProviderReportsTest extends TestCase
             ->assertSee('67,500')
             ->assertSee('CBC Complete Blood Count')
             ->assertSee('Vitamin D3');
+    }
+
+    public function test_lab_tests_support_built_in_and_custom_categories(): void
+    {
+        $labUser = User::create([
+            'name' => 'تاقیگەی زانیار',
+            'phone' => '07503334455',
+            'role' => 'lab',
+            'status' => 'approved',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $lab = Lab::create([
+            'user_id' => $labUser->id,
+            'phone' => '07503334455',
+            'location' => 'هەولێر',
+            'about_us' => 'تاقیگەی پزیشکی',
+            'is_approved' => true,
+        ]);
+
+        // Create page renders built-in lab categories + custom option
+        $this->actingAs($labUser, 'web')
+            ->get(route('lab.tests.create'))
+            ->assertOk()
+            ->assertSee('پشکنینی خوێن')
+            ->assertSee('هۆرمۆنات')
+            ->assertSee('زیادکردنی کەتەگۆری نوێ');
+
+        // Store with custom category via __custom__ + custom_type
+        $this->actingAs($labUser, 'web')
+            ->post(route('lab.tests.store'), [
+                'name' => 'پشکنینی بۆماوەیی',
+                'name_kmr' => 'پشکنینا بۆماوەیی',
+                'name_ar' => 'فحص جيني',
+                'name_en' => 'Genetic Panel',
+                'type' => '__custom__',
+                'custom_type' => 'بۆماوەیی و جینات',
+                'price' => '50,000',
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('lab.tests.index'));
+
+        $test = LabTest::where('lab_id', $lab->id)->firstOrFail();
+        $this->assertSame('بۆماوەیی و جینات', $test->type);
+
+        // Index displays custom category filter bar & test badge
+        $this->actingAs($labUser, 'web')
+            ->get(route('lab.tests.index', ['type' => 'بۆماوەیی و جینات']))
+            ->assertOk()
+            ->assertSee('پشکنینی بۆماوەیی')
+            ->assertSee('بۆماوەیی و جینات');
     }
 }

@@ -10,12 +10,47 @@ use Illuminate\Support\Facades\Log;
 
 class NurseServiceController extends Controller
 {
+    public const DEFAULT_NURSING_CATEGORIES = [
+        'دەرزی و سیرۆم',
+        'پانسمانی برین',
+        'چاودێری ماڵەوە',
+        'چاودێری بەتەمەنان',
+        'چاودێری منداڵ',
+        'سۆندە و شلەمەنی',
+        'پشکنینی خێرا',
+        'ئۆکسجین و هەڵمگرتن',
+        'فیزیۆتێراپی',
+    ];
+
+    public const DEFAULT_PRESETS = [
+        ['category' => 'دەرزی و سیرۆم', 'name' => 'دانانی کانیۆلا و سێرووم', 'name_kmr' => 'دانانا کانیۆلا و سێرۆمێ', 'name_en' => 'Cannula & IV Infusion', 'name_ar' => 'تركيب كانيولا ومغذي', 'price' => 15000],
+        ['category' => 'دەرزی و سیرۆم', 'name' => 'لێدانی دەرزی (ماسولکە و دەمار)', 'name_kmr' => 'لێدانا دەرزیێ (ماسۆلکە و دەمار)', 'name_en' => 'Injections (IM / IV)', 'name_ar' => 'حقن عضل ووريد', 'price' => 10000],
+        ['category' => 'پانسمانی برین', 'name' => 'پانسمانی برین و سووتان', 'name_kmr' => 'پانسمانا برین و سۆتنێ', 'name_en' => 'Wound & Burn Dressing', 'name_ar' => 'تضميد الجروح والحروق', 'price' => 20000],
+        ['category' => 'سۆندە و شلەمەنی', 'name' => 'دانان و گۆڕینی سۆندەی میز', 'name_kmr' => 'دانان و گوهۆڕینا سۆندەیا میزێ', 'name_en' => 'Urinary Catheter Care', 'name_ar' => 'تركيب وتبديل قسطرة البول', 'price' => 25000],
+        ['category' => 'پشکنینی خێرا', 'name' => 'پێوانی زەخت و ڕێژەی شەکرە', 'name_kmr' => 'پیڤانا فشارا خوینێ و شەکرێ', 'name_en' => 'Blood Pressure & Glucose Check', 'name_ar' => 'فحص الضغط والسكري', 'price' => 8000],
+        ['category' => 'پانسمانی برین', 'name' => 'لابردنی تەقەڵ و دروومان', 'name_kmr' => 'ڕاکرنا تەقەلێ برینێ', 'name_en' => 'Suture / Stitch Removal', 'name_ar' => 'إزالة الغرز الجراحية', 'price' => 15000],
+        ['category' => 'ئۆکسجین و هەڵمگرتن', 'name' => 'دانیشتنی هەڵم و ئۆکسجین (Nebulizer)', 'name_kmr' => 'هەلمگرتن و ئۆکسجین', 'name_en' => 'Nebulizer & Oxygen Session', 'name_ar' => 'جلسة بخار وأوكسجين', 'price' => 12000],
+        ['category' => 'چاودێری بەتەمەنان', 'name' => 'چاودێری بەتەمەنان لە ماڵەوە', 'name_kmr' => 'چاڤدێریا دانعەمران ل مالێ', 'name_en' => 'Elderly Home Care Visit', 'name_ar' => 'رعاية كبار السن في المنزل', 'price' => 30000],
+    ];
+
     public function index()
     {
         $user = Auth::user();
         $nurse = $user->nurse;
 
-        return view('nurse.services.index', compact('user', 'nurse'));
+        $savedCategories = collect($nurse?->custom_services ?? [])
+            ->pluck('category')
+            ->filter(fn ($c) => is_string($c) && trim($c) !== '')
+            ->map(fn ($c) => trim($c));
+
+        $nursingCategories = collect(self::DEFAULT_NURSING_CATEGORIES)
+            ->merge($savedCategories)
+            ->unique()
+            ->values();
+
+        $presets = self::DEFAULT_PRESETS;
+
+        return view('nurse.services.index', compact('user', 'nurse', 'nursingCategories', 'presets'));
     }
 
     public function update(Request $request)
@@ -29,6 +64,7 @@ class NurseServiceController extends Controller
 
         $request->validate([
             'custom_services' => 'nullable|array',
+            'custom_services.*.category' => 'nullable|string|max:255',
             'custom_services.*.name' => 'nullable|string|max:255',
             'custom_services.*.name_kmr' => 'nullable|string|max:255',
             'custom_services.*.name_en' => 'nullable|string|max:255',
@@ -44,6 +80,7 @@ class NurseServiceController extends Controller
                     continue;
                 }
 
+                $category = trim((string) ($cs['category'] ?? ''));
                 $nameKmr = trim((string) ($cs['name_kmr'] ?? ''));
                 $nameEn = trim((string) ($cs['name_en'] ?? ''));
                 $nameAr = trim((string) ($cs['name_ar'] ?? ''));
@@ -63,6 +100,7 @@ class NurseServiceController extends Controller
                 }
 
                 $customServicesList[] = [
+                    'category' => $category,
                     'name' => $name,
                     'name_kmr' => $nameKmr,
                     'name_en' => $nameEn,

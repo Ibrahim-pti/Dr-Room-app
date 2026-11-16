@@ -41,6 +41,7 @@
         ? $nurse->custom_services
         : [
             [
+                'category' => '',
                 'name' => '',
                 'name_kmr' => '',
                 'name_en' => '',
@@ -50,24 +51,41 @@
         ];
 @endphp
 
+<datalist id="nurse-categories-list">
+    @foreach(($nursingCategories ?? []) as $catOption)
+        <option value="{{ $catOption }}">
+    @endforeach
+</datalist>
+
 <form id="services-form" action="{{ route('nurse.services.update') }}" method="POST" class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 md:p-8 w-full">
     @csrf
     @method('PUT')
 
-    <!-- Quick Presets -->
-    <div class="mb-6 flex flex-wrap items-center gap-2 pb-4 border-b border-slate-100">
-        <span class="text-xs font-bold text-slate-500">پێشنیاری خێرا:</span>
-        <button type="button" onclick="quickAddService('دانانی کانیۆلا و سێرووم', 'دانانا کانیۆلا و سێرۆمێ', 'Cannula & IV Infusion', 'تركيب كانيولا ومغذي', 15000)" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ دانانی کانیۆلا</button>
-        <button type="button" onclick="quickAddService('لێدانی دەرزی (ماسولکە و دەمار)', 'لێدانا دەرزیێ (ماسۆلکە و دەمار)', 'Injections (IM / IV)', 'حقن عضل ووريد', 10000)" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ لێدانی دەرزی</button>
-        <button type="button" onclick="quickAddService('پانسمانی برین و سووتان', 'پانسمانا برین و سۆتنێ', 'Wound & Burn Dressing', 'تضميد الجروح والحروق', 20000)" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ پانسمانی برین</button>
-        <button type="button" onclick="quickAddService('دانان و گۆڕینی سۆندەی میز', 'دانان و گوهۆڕینا سۆندەیا میزێ', 'Urinary Catheter Care', 'تركيب وتبديل قسطرة البول', 25000)" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ سۆندەی میز</button>
-        <button type="button" onclick="quickAddService('پێوانی زەخت و ڕێژەی شەکرە', 'پیڤانا فشارا خوینێ و شەکرێ', 'Blood Pressure & Glucose Check', 'فحص الضغط والسكري', 8000)" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">+ پشکنینی زەخت و شەکرە</button>
+    <!-- Quick Presets & Built-in Categories -->
+    <div class="mb-6 pb-4 border-b border-slate-100 space-y-2.5">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <span class="text-xs font-bold text-slate-600">پێشنیاری خێرا و کەتەگۆرییەکانی پەرستاری (کلیک بکە بۆ زیادکردن یان کەتەگۆری خۆت بنووسە):</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            @foreach(($presets ?? []) as $preset)
+                <button type="button"
+                    onclick="quickAddService(@js($preset['name']), @js($preset['name_kmr']), @js($preset['name_en']), @js($preset['name_ar']), {{ $preset['price'] }}, @js($preset['category']))"
+                    class="text-xs font-bold px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 transition">
+                    + {{ $preset['name'] }}
+                </button>
+            @endforeach
+        </div>
     </div>
 
     <div id="custom-services-container" class="space-y-4 mb-6">
         @foreach($customServicesRows as $cIdx => $csRow)
             <div class="custom-service-row bg-slate-50 border border-slate-200/80 rounded-2xl p-4 transition-all hover:border-emerald-300 relative">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">کەتەگۆری</label>
+                        <input type="text" list="nurse-categories-list" name="custom_services[{{ $cIdx }}][category]" value="{{ $csRow['category'] ?? '' }}" placeholder="هەڵبژێرە یان بنووسە"
+                            class="service-category-input w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-teal-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                    </div>
                     <div class="md:col-span-3">
                         <label class="block text-[11px] font-bold text-slate-600 mb-1">ناوی خزمەتگوزاری (سۆرانی)</label>
                         <input type="text" name="custom_services[{{ $cIdx }}][name]" value="{{ $csRow['name'] ?? '' }}" placeholder="وەک: دانانی کانیۆلا و سێرووم"
@@ -83,15 +101,15 @@
                         <input type="text" name="custom_services[{{ $cIdx }}][name_en]" value="{{ $csRow['name_en'] ?? '' }}" dir="ltr" placeholder="IV Cannula"
                             class="service-english-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">خزمەتگوزاری (عەرەبی)</label>
+                    <div class="md:col-span-1">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">عەرەبی</label>
                         <input type="text" name="custom_services[{{ $cIdx }}][name_ar]" value="{{ $csRow['name_ar'] ?? '' }}" dir="rtl" placeholder="تركيب كانيولا"
-                            class="service-arabic-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                            class="service-arabic-input w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     </div>
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-1">
                         <label class="block text-[11px] font-bold text-slate-600 mb-1">نرخ (د.ع)</label>
                         <input type="number" name="custom_services[{{ $cIdx }}][price]" value="{{ $csRow['price'] ?? '' }}" min="0" placeholder="15000"
-                            class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                            class="w-full px-2.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                     </div>
                     <div class="md:col-span-1 flex justify-end md:pt-4">
                         <button type="button" onclick="removeCustomServiceRow(this)" class="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer" title="سڕینەوە">
@@ -122,7 +140,7 @@
             .replace(/>/g, '&gt;');
     }
 
-    function addCustomServiceRow(name = '', nameKmr = '', nameEn = '', nameAr = '', price = '') {
+    function addCustomServiceRow(name = '', nameKmr = '', nameEn = '', nameAr = '', price = '', category = '') {
         const container = document.getElementById('custom-services-container');
         if (!container) return;
 
@@ -130,6 +148,11 @@
         row.className = 'custom-service-row bg-slate-50 border border-slate-200/80 rounded-2xl p-4 transition-all hover:border-emerald-300 relative';
         row.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">کەتەگۆری</label>
+                    <input type="text" list="nurse-categories-list" name="custom_services[${customServiceRowIdx}][category]" value="${escapeHtmlAttr(category)}" placeholder="هەڵبژێرە یان بنووسە"
+                        class="service-category-input w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-teal-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                </div>
                 <div class="md:col-span-3">
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">ناوی خزمەتگوزاری (سۆرانی)</label>
                     <input type="text" name="custom_services[${customServiceRowIdx}][name]" value="${escapeHtmlAttr(name)}" placeholder="وەک: دانانی کانیۆلا و سێرووم"
@@ -145,15 +168,15 @@
                     <input type="text" name="custom_services[${customServiceRowIdx}][name_en]" value="${escapeHtmlAttr(nameEn)}" dir="ltr" placeholder="IV Cannula"
                         class="service-english-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                 </div>
-                <div class="md:col-span-2">
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">خزمەتگوزاری (عەرەبی)</label>
+                <div class="md:col-span-1">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">عەرەبی</label>
                     <input type="text" name="custom_services[${customServiceRowIdx}][name_ar]" value="${escapeHtmlAttr(nameAr)}" dir="rtl" placeholder="تركيب كانيولا"
-                        class="service-arabic-input w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                        class="service-arabic-input w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                 </div>
-                <div class="md:col-span-2">
+                <div class="md:col-span-1">
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">نرخ (د.ع)</label>
                     <input type="number" name="custom_services[${customServiceRowIdx}][price]" value="${escapeHtmlAttr(price)}" min="0" placeholder="15000"
-                        class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                        class="w-full px-2.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
                 </div>
                 <div class="md:col-span-1 flex justify-end md:pt-4">
                     <button type="button" onclick="removeCustomServiceRow(this)" class="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer" title="سڕینەوە">
@@ -166,17 +189,19 @@
         customServiceRowIdx++;
     }
 
-    function quickAddService(name, nameKmr, nameEn, nameAr, price) {
+    function quickAddService(name, nameKmr, nameEn, nameAr, price, category = '') {
         const firstKurdishInput = document.querySelector('.custom-service-row .service-kurdish-input');
         if (firstKurdishInput && !firstKurdishInput.value.trim()) {
             const row = firstKurdishInput.closest('.custom-service-row');
+            const catInput = row.querySelector('.service-category-input');
+            if (catInput) catInput.value = category;
             row.querySelector('.service-kurdish-input').value = name;
             row.querySelector('.service-badini-input').value = nameKmr;
             row.querySelector('.service-english-input').value = nameEn;
             row.querySelector('.service-arabic-input').value = nameAr;
             row.querySelector('input[type="number"]').value = price;
         } else {
-            addCustomServiceRow(name, nameKmr, nameEn, nameAr, price);
+            addCustomServiceRow(name, nameKmr, nameEn, nameAr, price, category);
         }
     }
 

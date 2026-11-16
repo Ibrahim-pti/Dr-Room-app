@@ -35,12 +35,15 @@ class NurseServicesTest extends TestCase
         $this->actingAs($nurseUser, 'web')
             ->get(route('nurse.services.index'))
             ->assertOk()
-            ->assertSee('خزمەتگوزارییەکان و نرخەکان');
+            ->assertSee('خزمەتگوزارییەکان و نرخەکان')
+            ->assertSee('nurse-categories-list', false)
+            ->assertSee('دەرزی و سیرۆم');
 
         $this->actingAs($nurseUser, 'web')
             ->put(route('nurse.services.update'), [
                 'custom_services' => [
                     [
+                        'category' => 'دەرزی و سیرۆم',
                         'name' => 'دانانی کانیۆلا',
                         'name_kmr' => 'دانانا کانیۆلا',
                         'name_en' => 'IV Cannula',
@@ -53,6 +56,7 @@ class NurseServicesTest extends TestCase
 
         $nurse->refresh();
         $this->assertCount(1, $nurse->custom_services);
+        $this->assertSame('دەرزی و سیرۆم', $nurse->custom_services[0]['category']);
         $this->assertSame('دانانی کانیۆلا', $nurse->custom_services[0]['name']);
         $this->assertSame(15000.0, (float) $nurse->custom_services[0]['price']);
 

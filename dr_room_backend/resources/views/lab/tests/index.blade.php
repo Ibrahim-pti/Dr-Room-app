@@ -29,6 +29,23 @@
         </div>
     @endif
 
+    <!-- Category Filter Bar -->
+    @if(!empty($labCategories))
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold text-slate-500 ml-1">کەتەگۆرییەکان:</span>
+            <a href="{{ route('lab.tests.index') }}"
+               class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ empty($type) ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                هەمووی
+            </a>
+            @foreach($labCategories as $catName)
+                <a href="{{ route('lab.tests.index', ['type' => $catName]) }}"
+                   class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $type === $catName ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                    {{ $catName }}
+                </a>
+            @endforeach
+        </div>
+    @endif
+
     <!-- Tests Table -->
     <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
@@ -47,7 +64,14 @@
                         <tr class="hover:bg-slate-50/60 transition-colors">
                             <!-- Name -->
                             <td class="px-6 py-4">
-                                <div class="font-bold text-slate-800 text-base">{{ $test->name }}</div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <div class="font-bold text-slate-800 text-base">{{ $test->name }}</div>
+                                    @if(!empty($test->type))
+                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                                            {{ $test->type === 'general' ? 'پشکنینی گشتی' : $test->type }}
+                                        </span>
+                                    @endif
+                                </div>
                                 @if($test->name_en || $test->name_ar)
                                     <div class="text-xs text-slate-400 mt-0.5" dir="ltr">
                                         {{ $test->name_en ?? $test->name_ar }}

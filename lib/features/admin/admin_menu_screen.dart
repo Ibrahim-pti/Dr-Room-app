@@ -7,7 +7,6 @@ import '../../core/utils/admin_permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../main.dart';
 import 'admin_reviews_screen.dart';
-import 'admin_categories_screen.dart';
 import 'admin_transactions_screen.dart';
 import 'admin_emergency_screen.dart';
 import 'admin_app_bar.dart';
@@ -88,14 +87,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'icon': Iconsax.percentage_square,
             'color': const Color(0xFF10B981),
             'screen': const AdminCommissionScreen(),
-          },
-          {
-            'title': 'کەتەگۆرییەکان',
-            'permission': AdminPermissions.manageCategories,
-            'subtitle': 'لیستەکانی پەرستاری، تاقیگە، دەرمانخانە و پزیشک',
-            'icon': Iconsax.category,
-            'color': const Color(0xFF0D9488),
-            'screen': const AdminCategoriesScreen(),
           },
         ],
       },
