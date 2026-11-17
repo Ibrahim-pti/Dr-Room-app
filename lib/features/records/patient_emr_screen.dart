@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
@@ -36,20 +36,114 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
   final _newMedCtrl = TextEditingController();
   final _newSurgeryCtrl = TextEditingController();
 
-  static const _commonDiseases = [
-    'شەکرە (Diabetes)',
-    'فشاری خوێن (Hypertension)',
-    'ڕەبۆ (Asthma)',
-    'نەخۆشی دڵ (Heart Disease)',
-    'غودە (Thyroid)',
+  static const List<Map<String, String>> _presetTermCatalog = [
+    {
+      'ckb': 'شەکرە',
+      'kmr': 'شەکرە',
+      'ar': 'السكري',
+      'en': 'Diabetes',
+      'legacy': 'شەکرە (Diabetes)',
+    },
+    {
+      'ckb': 'فشاری خوێن',
+      'kmr': 'فشارا خوینێ',
+      'ar': 'ضغط الدم',
+      'en': 'Hypertension',
+      'legacy': 'فشاری خوێن (Hypertension)',
+    },
+    {
+      'ckb': 'ڕەبۆ',
+      'kmr': 'ڕەبۆ',
+      'ar': 'الربو',
+      'en': 'Asthma',
+      'legacy': 'ڕەبۆ (Asthma)',
+    },
+    {
+      'ckb': 'نەخۆشی دڵ',
+      'kmr': 'نەخۆشیا دلی',
+      'ar': 'أمراض القلب',
+      'en': 'Heart Disease',
+      'legacy': 'نەخۆشی دڵ (Heart Disease)',
+    },
+    {
+      'ckb': 'غودە',
+      'kmr': 'غودە',
+      'ar': 'الغدة الدرقية',
+      'en': 'Thyroid',
+      'legacy': 'غودە (Thyroid)',
+    },
+    {
+      'ckb': 'پەنسیلین',
+      'kmr': 'پەنسیلین',
+      'ar': 'البنسلين',
+      'en': 'Penicillin',
+      'legacy': 'پەنسیلین (Penicillin)',
+    },
+    {
+      'ckb': 'ئەسپیرین',
+      'kmr': 'ئەسپیرین',
+      'ar': 'الأسبرين',
+      'en': 'Aspirin',
+      'legacy': 'ئەسپیرین (Aspirin)',
+    },
+    {
+      'ckb': 'سولفا',
+      'kmr': 'سولفا',
+      'ar': 'السلفا',
+      'en': 'Sulfa',
+      'legacy': 'سولفا (Sulfa)',
+    },
+    {
+      'ckb': 'هەستیاری خۆراک',
+      'kmr': 'هەستیاریا خوارنێ',
+      'ar': 'حساسية الطعام',
+      'en': 'Food Allergy',
+      'legacy': 'هەستیاری خۆراک (Food)',
+    },
+    {
+      'ckb': 'تۆز و پۆلین',
+      'kmr': 'تۆز و پۆلین',
+      'ar': 'الغبار وحبوب اللقاح',
+      'en': 'Dust & Pollen',
+      'legacy': 'تۆز و پۆلین (Pollen)',
+    },
+    {
+      'ckb': 'نییە',
+      'kmr': 'نینە',
+      'ar': 'لا يوجد',
+      'en': 'None',
+      'legacy': 'نیە',
+    },
   ];
-  static const _commonAllergies = [
-    'پەنسیلین (Penicillin)',
-    'ئەسپیرین (Aspirin)',
-    'سولفا (Sulfa)',
-    'هەستیاری خۆراک (Food)',
-    'تۆز و پۆلین (Pollen)',
-  ];
+
+  List<String> _commonDiseasesFor(String lang) =>
+      _presetTermCatalog.sublist(0, 5).map((m) => m[lang] ?? m['ckb']!).toList();
+
+  List<String> _commonAllergiesFor(String lang) =>
+      _presetTermCatalog.sublist(5, 10).map((m) => m[lang] ?? m['ckb']!).toList();
+
+  String _localizeTag(String raw, String lang) {
+    final trimmed = raw.trim();
+    final lower = trimmed.toLowerCase();
+    for (final entry in _presetTermCatalog) {
+      for (final val in entry.values) {
+        if (val.toLowerCase() == lower) {
+          return entry[lang] ?? entry['ckb'] ?? trimmed;
+        }
+      }
+    }
+    return trimmed;
+  }
+
+  String _formatMeasure(String raw) {
+    final cleaned = raw.trim();
+    final parsed = double.tryParse(cleaned);
+    if (parsed == null) return cleaned;
+    if (parsed == parsed.roundToDouble()) {
+      return parsed.toInt().toString();
+    }
+    return parsed.toStringAsFixed(1);
+  }
 
   @override
   void initState() {
@@ -108,11 +202,11 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
       if (res.statusCode == 200) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              backgroundColor: Color(0xFF10B981),
+            SnackBar(
+              backgroundColor: const Color(0xFF10B981),
               content: Text(
-                'دۆسیەی پزیشکی بە سەرکەوتوویی پاشەکەوتکرا',
-                style: TextStyle(fontFamily: 'Rabar'),
+                'emr_saved_success'.tr(),
+                style: const TextStyle(fontFamily: 'Rabar'),
               ),
             ),
           );
@@ -124,6 +218,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.locale.languageCode.toLowerCase();
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -210,10 +305,10 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                           size: 24,
                         ),
                         const SizedBox(width: 12),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'زانیارییە پزیشکییەکانت بە پارێزراوی لە سیستمدا دەمێننەوە بۆ ئەوەی پەرستار یان پزیشک پێش سەردانیکردن بەرچاوڕوونییان هەبێت لەسەر دۆخی تەندروستیت.',
-                            style: TextStyle(
+                            'emr_info_banner'.tr(),
+                            style: const TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 12,
                               color: Color(0xFF0F172A),
@@ -228,17 +323,18 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
 
                   // Vitals / Basic info
                   _buildSectionCard(
-                    title: 'زانیارییە سەرەکییەکان',
+                    title: 'emr_basic_info'.tr(),
                     icon: Iconsax.heart,
                     child: widget.isReadOnly
                         ? Row(
                             children: [
                               Expanded(
                                 child: _buildReadOnlyMetric(
-                                  'گروپی خوێن',
+                                  'blood_type'.tr(),
                                   (_bloodType ?? '').isNotEmpty
                                       ? _bloodType!
-                                      : 'دیاری نەکراوە',
+                                      : 'emr_not_set'.tr(),
+                                  forceLtrValue: (_bloodType ?? '').isNotEmpty,
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -246,8 +342,8 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                                 child: _buildReadOnlyMetric(
                                   'height'.tr(),
                                   _heightCtrl.text.trim().isNotEmpty
-                                      ? '${_heightCtrl.text.trim()} cm'
-                                      : 'دیاری نەکراوە',
+                                      ? '${_formatMeasure(_heightCtrl.text)} ${'unit_cm'.tr()}'
+                                      : 'emr_not_set'.tr(),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -255,8 +351,8 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                                 child: _buildReadOnlyMetric(
                                   'weight'.tr(),
                                   _weightCtrl.text.trim().isNotEmpty
-                                      ? '${_weightCtrl.text.trim()} kg'
-                                      : 'دیاری نەکراوە',
+                                      ? '${_formatMeasure(_weightCtrl.text)} ${'unit_kg'.tr()}'
+                                      : 'emr_not_set'.tr(),
                                 ),
                               ),
                             ],
@@ -266,7 +362,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                               DropdownButtonFormField<String>(
                                 initialValue: _bloodType,
                                 decoration: InputDecoration(
-                                  labelText: 'گروپی خوێن',
+                                  labelText: 'blood_type'.tr(),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -329,10 +425,11 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
 
                   // Chronic Diseases
                   _buildTagsCard(
+                    lang: lang,
                     title: 'chronic_diseases'.tr(),
                     icon: Iconsax.activity,
                     items: _chronicDiseases,
-                    suggestions: _commonDiseases,
+                    suggestions: _commonDiseasesFor(lang),
                     inputCtrl: _newChronicCtrl,
                     onAdd: (val) => setState(() => _chronicDiseases.add(val)),
                     onRemove: (val) =>
@@ -342,10 +439,11 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
 
                   // Allergies
                   _buildTagsCard(
+                    lang: lang,
                     title: 'allergies'.tr(),
                     icon: Iconsax.danger,
                     items: _allergies,
-                    suggestions: _commonAllergies,
+                    suggestions: _commonAllergiesFor(lang),
                     inputCtrl: _newAllergyCtrl,
                     onAdd: (val) => setState(() => _allergies.add(val)),
                     onRemove: (val) => setState(() => _allergies.remove(val)),
@@ -354,6 +452,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
 
                   // Current Medications
                   _buildTagsCard(
+                    lang: lang,
                     title: 'current_medications'.tr(),
                     icon: Iconsax.hospital,
                     items: _currentMedications,
@@ -368,6 +467,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
 
                   // Past Surgeries
                   _buildTagsCard(
+                    lang: lang,
                     title: 'past_surgeries'.tr(),
                     icon: Iconsax.firstline,
                     items: _pastSurgeries,
@@ -387,7 +487,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                         ? Text(
                             _emergencyNotesCtrl.text.trim().isNotEmpty
                                 ? _emergencyNotesCtrl.text.trim()
-                                : 'هیچ تێبینییەک تۆمارنەکراوە',
+                                : 'emr_no_notes'.tr(),
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 13,
@@ -401,8 +501,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                             controller: _emergencyNotesCtrl,
                             maxLines: 3,
                             decoration: InputDecoration(
-                              hintText:
-                                  'تێبینییەکی گرنگ بنووسە کە پەرستار دەبێت پێش سەردان بزانێت...',
+                              hintText: 'emr_notes_hint'.tr(),
                               hintStyle: const TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 12,
@@ -419,7 +518,22 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
     );
   }
 
-  Widget _buildReadOnlyMetric(String label, String value) {
+  Widget _buildReadOnlyMetric(
+    String label,
+    String value, {
+    bool forceLtrValue = false,
+  }) {
+    final valueText = Text(
+      value,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(
+        fontFamily: 'Rabar',
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF0F172A),
+      ),
+    );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
@@ -441,17 +555,12 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: 'Rabar',
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0F172A),
-            ),
-          ),
+          forceLtrValue
+              ? Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: valueText,
+                )
+              : valueText,
         ],
       ),
     );
@@ -494,6 +603,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
   }
 
   Widget _buildTagsCard({
+    required String lang,
     required String title,
     required IconData icon,
     required List<String> items,
@@ -536,7 +646,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
               children: items.map((it) {
                 return Chip(
                   label: Text(
-                    it,
+                    _localizeTag(it, lang),
                     style: const TextStyle(fontFamily: 'Rabar', fontSize: 12),
                   ),
                   backgroundColor: AppColors.primary.withValues(alpha: 0.1),
@@ -548,9 +658,9 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
               }).toList(),
             )
           else
-            const Text(
-              'هیچ تۆمارنەکراوە',
-              style: TextStyle(
+            Text(
+              'emr_none_recorded'.tr(),
+              style: const TextStyle(
                 fontFamily: 'Rabar',
                 fontSize: 12,
                 color: Colors.grey,
@@ -565,7 +675,7 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                   child: TextField(
                     controller: inputCtrl,
                     decoration: InputDecoration(
-                      hintText: 'زیادکردنی دانەیەکی تر...',
+                      hintText: 'emr_add_item_hint'.tr(),
                       hintStyle: const TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: 12,
@@ -598,7 +708,9 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
               const SizedBox(height: 8),
               Wrap(
                 spacing: 6,
-                children: suggestions.where((s) => !items.contains(s)).map((s) {
+                children: suggestions
+                    .where((s) => !items.any((it) => _localizeTag(it, lang) == s))
+                    .map((s) {
                   return ActionChip(
                     label: Text(
                       '+ $s',

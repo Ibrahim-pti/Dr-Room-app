@@ -157,7 +157,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'مێژووی نەخۆشی، هەستیاری (Allergies)، نەشتەرگەری و دەرمانەکانت',
+                                    'emr_subtitle'.tr(),
                                     style: _kStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.85)),
                                   ),
                                 ],
