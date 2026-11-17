@@ -2304,31 +2304,11 @@ class _LabHubScreenState extends State<LabHubScreen> {
                       onTap: _showPackagesModal,
                     ),
 
-                    // 4. ئەرشیفی داواکارییەکانم
+                    // 4. شیکردنەوەی پشکنینەکانم بە AI
                     _buildFeatureCard(
                       context: context,
                       isDark: isDark,
                       number: '٤',
-                      title: 'lab_item_6'.tr(),
-                      subtitle: 'lab_item_6_desc'.tr(),
-                      icon: Iconsax.archive_book,
-                      color: const Color(0xFF3B82F6),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const MyRequestsScreen(fixedCategory: 'lab'),
-                          ),
-                        );
-                      },
-                    ),
-
-                    // 5. شیکردنەوەی پشکنینەکانم بە AI
-                    _buildFeatureCard(
-                      context: context,
-                      isDark: isDark,
-                      number: '۵',
                       title: 'lab_item_7'.tr(),
                       subtitle: 'lab_item_7_desc'.tr(),
                       icon: Icons.auto_awesome_rounded,
@@ -2341,6 +2321,26 @@ class _LabHubScreenState extends State<LabHubScreen> {
                             builder: (_) => const AiSymptomCheckerScreen(
                               initialMode: 'lab',
                             ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // 5. ئەرشیفی داواکارییەکانم
+                    _buildFeatureCard(
+                      context: context,
+                      isDark: isDark,
+                      number: '۵',
+                      title: 'lab_item_6'.tr(),
+                      subtitle: 'lab_item_6_desc'.tr(),
+                      icon: Iconsax.archive_book,
+                      color: const Color(0xFF3B82F6),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const MyRequestsScreen(fixedCategory: 'lab'),
                           ),
                         );
                       },
