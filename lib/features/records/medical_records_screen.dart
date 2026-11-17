@@ -116,7 +116,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const PatientEmrScreen()),
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const PatientEmrScreen(isReadOnly: true),
+                          ),
                         );
                       },
                       borderRadius: BorderRadius.circular(18),

@@ -230,72 +230,100 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                   _buildSectionCard(
                     title: 'زانیارییە سەرەکییەکان',
                     icon: Iconsax.heart,
-                    child: Column(
-                      children: [
-                        DropdownButtonFormField<String>(
-                          initialValue: _bloodType,
-                          decoration: InputDecoration(
-                            labelText: 'گروپی خوێن',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          items:
-                              const [
-                                    'A+',
-                                    'A-',
-                                    'B+',
-                                    'B-',
-                                    'AB+',
-                                    'AB-',
-                                    'O+',
-                                    'O-',
-                                  ]
-                                  .map(
-                                    (b) => DropdownMenuItem(
-                                      value: b,
-                                      child: Text(b),
+                    child: widget.isReadOnly
+                        ? Row(
+                            children: [
+                              Expanded(
+                                child: _buildReadOnlyMetric(
+                                  'گروپی خوێن',
+                                  (_bloodType ?? '').isNotEmpty
+                                      ? _bloodType!
+                                      : 'دیاری نەکراوە',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildReadOnlyMetric(
+                                  'height'.tr(),
+                                  _heightCtrl.text.trim().isNotEmpty
+                                      ? '${_heightCtrl.text.trim()} cm'
+                                      : 'دیاری نەکراوە',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildReadOnlyMetric(
+                                  'weight'.tr(),
+                                  _weightCtrl.text.trim().isNotEmpty
+                                      ? '${_weightCtrl.text.trim()} kg'
+                                      : 'دیاری نەکراوە',
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              DropdownButtonFormField<String>(
+                                initialValue: _bloodType,
+                                decoration: InputDecoration(
+                                  labelText: 'گروپی خوێن',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                items:
+                                    const [
+                                          'A+',
+                                          'A-',
+                                          'B+',
+                                          'B-',
+                                          'AB+',
+                                          'AB-',
+                                          'O+',
+                                          'O-',
+                                        ]
+                                        .map(
+                                          (b) => DropdownMenuItem(
+                                            value: b,
+                                            child: Text(b),
+                                          ),
+                                        )
+                                        .toList(),
+                                onChanged: (v) =>
+                                    setState(() => _bloodType = v),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _heightCtrl,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: 'height'.tr(),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
                                     ),
-                                  )
-                                  .toList(),
-                          onChanged: widget.isReadOnly
-                              ? null
-                              : (v) => setState(() => _bloodType = v),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _heightCtrl,
-                                enabled: !widget.isReadOnly,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: 'height'.tr(),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextField(
-                                controller: _weightCtrl,
-                                enabled: !widget.isReadOnly,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: 'weight'.tr(),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _weightCtrl,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: 'weight'.tr(),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            ],
+                          ),
                   ),
                   const SizedBox(height: 16),
 
@@ -355,26 +383,77 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
                   _buildSectionCard(
                     title: 'emergency_notes'.tr(),
                     icon: Iconsax.warning_2,
-                    child: TextField(
-                      controller: _emergencyNotesCtrl,
-                      enabled: !widget.isReadOnly,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText:
-                            'تێبینییەکی گرنگ بنووسە کە پەرستار دەبێت پێش سەردان بزانێت...',
-                        hintStyle: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+                    child: widget.isReadOnly
+                        ? Text(
+                            _emergencyNotesCtrl.text.trim().isNotEmpty
+                                ? _emergencyNotesCtrl.text.trim()
+                                : 'هیچ تێبینییەک تۆمارنەکراوە',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 13,
+                              color: _emergencyNotesCtrl.text.trim().isNotEmpty
+                                  ? const Color(0xFF0F172A)
+                                  : Colors.grey,
+                              height: 1.5,
+                            ),
+                          )
+                        : TextField(
+                            controller: _emergencyNotesCtrl,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText:
+                                  'تێبینییەکی گرنگ بنووسە کە پەرستار دەبێت پێش سەردان بزانێت...',
+                              hintStyle: const TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
                   ),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildReadOnlyMetric(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 11,
+              color: Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
