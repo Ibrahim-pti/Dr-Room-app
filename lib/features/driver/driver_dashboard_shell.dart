@@ -23,8 +23,9 @@ class DriverDashboardShell extends StatefulWidget {
 }
 
 class _DriverDashboardShellState extends State<DriverDashboardShell> {
-  int _tabIndex = 0; // 0: Tasks, 1: Live Map, 2: Profile & Earnings
+  int _tabIndex = 0; // 0: Tasks, 1: Live Map, 2: Earnings, 3: Profile
   int _orderSubTab = 0; // 0: Active, 1: Available Pool, 2: Completed
+  int _earningsFilter = 0; // 0: All, 1: Cash, 2: Online
 
   bool _isLoading = true;
   bool _isDutyLoading = false;
@@ -1047,6 +1048,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                         children: [
                           _buildTasksTab(isDark),
                           _buildLiveMapTab(isDark),
+                          _buildEarningsTab(isDark),
                           _buildProfileTab(isDark),
                         ],
                       ),
@@ -1062,13 +1064,12 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             ),
           ),
           padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 10,
-            bottom: MediaQuery.of(context).padding.bottom + 10,
+            left: 8,
+            right: 8,
+            top: 8,
+            bottom: MediaQuery.of(context).padding.bottom + 8,
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavButton(
                 0,
@@ -1077,7 +1078,8 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                 badge: _activeOrders.length,
               ),
               _buildNavButton(1, Iconsax.map_1, 'نەخشە'),
-              _buildNavButton(2, Iconsax.user_square, 'پڕۆفایل و داهات'),
+              _buildNavButton(2, Iconsax.wallet_money, 'داهات'),
+              _buildNavButton(3, Iconsax.user_square, 'پڕۆفایل'),
             ],
           ),
         ),
@@ -1273,80 +1275,84 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     int badge = 0,
   }) {
     final active = _tabIndex == index;
-    return InkWell(
-      onTap: () {
-        setState(() => _tabIndex = index);
-        if (index == 1) {
-          _hasInitialFitted = false;
-          _ensureLocationAndFetch();
-          _refreshActiveRoute();
-        }
-      },
-      borderRadius: BorderRadius.circular(14),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: active
-              ? const Color(0xFF2563EB).withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: active
-                      ? const Color(0xFF2563EB)
-                      : const Color(0xFF94A3B8),
-                ),
-                if (badge > 0)
-                  Positioned(
-                    top: -5,
-                    right: -6,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFEF4444),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '$badge',
-                          style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1,
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() => _tabIndex = index);
+          if (index == 1) {
+            _hasInitialFitted = false;
+            _ensureLocationAndFetch();
+            _refreshActiveRoute();
+          }
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+          decoration: BoxDecoration(
+            color: active
+                ? const Color(0xFF2563EB).withValues(alpha: 0.12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    icon,
+                    size: 20,
+                    color: active
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFF94A3B8),
+                  ),
+                  if (badge > 0)
+                    Positioned(
+                      top: -5,
+                      right: -8,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFEF4444),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$badge',
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Rabar',
-                fontSize: 12,
-                fontWeight: active ? FontWeight.bold : FontWeight.w500,
-                color: active
-                    ? const Color(0xFF2563EB)
-                    : const Color(0xFF64748B),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 11,
+                  fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                  color: active
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF64748B),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2435,6 +2441,426 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     );
   }
 
+  bool _isCashPayment(dynamic order) {
+    final m = (order['payment_method'] ?? '').toString().trim().toLowerCase();
+    return m.isEmpty || m.contains('cash') || m.contains('کاش');
+  }
+
+  Widget _buildEarningsTab(bool isDark) {
+    final todayDeliveries =
+        int.tryParse('${_stats['today_deliveries'] ?? 0}') ?? 0;
+    final totalDeliveries =
+        int.tryParse('${_stats['total_deliveries'] ?? 0}') ?? 0;
+    final todayEarnings =
+        double.tryParse('${_stats['today_earnings'] ?? 0}') ?? 0;
+    final totalEarnings =
+        double.tryParse('${_stats['total_earnings'] ?? 0}') ?? 0;
+
+    final cashTodayCount =
+        int.tryParse('${_stats['cash_today_count'] ?? 0}') ?? 0;
+    final cashTodayCollected =
+        double.tryParse('${_stats['cash_today_collected'] ?? 0}') ?? 0;
+    final cashTotalCount =
+        int.tryParse('${_stats['cash_total_count'] ?? 0}') ?? 0;
+    final cashTotalCollected =
+        double.tryParse('${_stats['cash_total_collected'] ?? 0}') ?? 0;
+    final cashTotalDeliveryFee =
+        double.tryParse('${_stats['cash_total_delivery_fee'] ?? 0}') ?? 0;
+    final onlineTotalCount =
+        int.tryParse('${_stats['online_total_count'] ?? 0}') ?? 0;
+    final onlineTotalDeliveryFee =
+        double.tryParse('${_stats['online_total_delivery_fee'] ?? 0}') ?? 0;
+
+    final filteredCompleted = _completedOrders.where((o) {
+      if (_earningsFilter == 1) return _isCashPayment(o);
+      if (_earningsFilter == 2) return !_isCashPayment(o);
+      return true;
+    }).toList();
+
+    return RefreshIndicator(
+      onRefresh: _loadDashboard,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Highlighted Cash Collected Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF059669), Color(0xFF10B981)],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Iconsax.money_recive,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'پارەی کاشی وەرگیراو (لە نەخۆش)',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ئەمڕۆ ($cashTodayCount داواکاری)',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 11,
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatIqd(cashTodayCollected),
+                            style: GoogleFonts.poppins(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 38,
+                      color: Colors.white.withValues(alpha: 0.25),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'کۆی گشتی ($cashTotalCount داواکاری)',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 11,
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatIqd(cashTotalCollected),
+                            style: GoogleFonts.poppins(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Driver Work & Delivery Fee Stats
+          Row(
+            children: [
+              Expanded(
+                child: _buildMiniStat(
+                  'داهاتی ئەمڕۆ ($todayDeliveries کار)',
+                  _formatIqd(todayEarnings),
+                  Iconsax.wallet_2,
+                  const Color(0xFF2563EB),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildMiniStat(
+                  'کۆی داهات ($totalDeliveries کار)',
+                  _formatIqd(totalEarnings),
+                  Iconsax.award,
+                  const Color(0xFFF59E0B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Cash vs Online Breakdown Card
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.getSurface(context),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.getBorder(context)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'پوختەی کارەکان بەپێی پارەدان',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Divider(height: 18),
+                _buildInfoRow(
+                  'داواکاری کاش ($cashTotalCount)',
+                  'وەرگیراو: ${_formatIqd(cashTotalCollected)} · کرێ: ${_formatIqd(cashTotalDeliveryFee)}',
+                ),
+                const SizedBox(height: 8),
+                _buildInfoRow(
+                  'داواکاری ئۆنلاین ($onlineTotalCount)',
+                  'کرێی گەیاندن: ${_formatIqd(onlineTotalDeliveryFee)}',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Filter Chips for Completed Earnings List
+          Row(
+            children: [
+              _buildEarningsFilterChip(0, 'هەمووی (${_completedOrders.length})'),
+              const SizedBox(width: 8),
+              _buildEarningsFilterChip(
+                1,
+                'کاش (${_completedOrders.where(_isCashPayment).length})',
+              ),
+              const SizedBox(width: 8),
+              _buildEarningsFilterChip(
+                2,
+                'ئۆنلاین (${_completedOrders.where((o) => !_isCashPayment(o)).length})',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          if (filteredCompleted.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColors.getSurface(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.getBorder(context)),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Iconsax.receipt_item,
+                    size: 40,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'هیچ کارێکی تەواوبوو لەم بەشەدا نییە',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 13,
+                      color: AppColors.getTextSubtitle(context),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ...filteredCompleted.map((order) {
+              final isCash = _isCashPayment(order);
+              final isLab = order['is_lab'] == true;
+              final patient =
+                  (order['patient'] is Map) ? order['patient'] as Map : {};
+              final orderNum =
+                  (order['order_number'] ?? '#${order['id']}').toString();
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.getSurface(context),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.getBorder(context)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          orderNum,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.getTextTitle(context),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isLab ? 'نموونەی تاقیگە' : 'گەیاندنی دەرمان',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 11,
+                            color: AppColors.getTextSubtitle(context),
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (isCash
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF2563EB))
+                                .withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            isCash ? 'کاش (وەرگیراو)' : 'ئۆنلاین',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: isCash
+                                  ? const Color(0xFF059669)
+                                  : const Color(0xFF2563EB),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      (patient['name'] ?? 'نەخۆش').toString(),
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.getTextTitle(context),
+                      ),
+                    ),
+                    const Divider(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isCash ? 'پارەی کاشی وەرگیراو' : 'کۆی پسوڵە',
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 10.5,
+                                color: AppColors.getTextSubtitle(context),
+                              ),
+                            ),
+                            Text(
+                              _formatIqd(order['total_price']),
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: isCash
+                                    ? const Color(0xFF059669)
+                                    : AppColors.getTextTitle(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'کرێی گەیاندنی تۆ',
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 10.5,
+                                color: AppColors.getTextSubtitle(context),
+                              ),
+                            ),
+                            Text(
+                              _formatIqd(order['delivery_fee']),
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF2563EB),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEarningsFilterChip(int index, String label) {
+    final selected = _earningsFilter == index;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _earningsFilter = index),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            color: selected
+                ? const Color(0xFF10B981)
+                : AppColors.getSurface(context),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF10B981)
+                  : AppColors.getBorder(context),
+            ),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              color: selected ? Colors.white : AppColors.getTextSubtitle(context),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildProfileTab(bool isDark) {
     final phone = (_driver['phone'] ?? '').toString();
     return RefreshIndicator(
@@ -2442,52 +2868,6 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Stats Grid
-          Row(
-            children: [
-              Expanded(
-                child: _buildMiniStat(
-                  'گەیاندنی ئەمڕۆ',
-                  '${_stats['today_deliveries'] ?? 0}',
-                  Iconsax.box_tick,
-                  const Color(0xFF2563EB),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildMiniStat(
-                  'داهاتی ئەمڕۆ',
-                  _formatIqd(_stats['today_earnings']),
-                  Iconsax.wallet_2,
-                  const Color(0xFF10B981),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _buildMiniStat(
-                  'کۆی گەیاندن',
-                  '${_stats['total_deliveries'] ?? 0}',
-                  Iconsax.award,
-                  const Color(0xFF8B5CF6),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildMiniStat(
-                  'کۆی داهات',
-                  _formatIqd(_stats['total_earnings']),
-                  Iconsax.money_recive,
-                  const Color(0xFFF59E0B),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
           // Driver Details Card
           Container(
             padding: const EdgeInsets.all(16),

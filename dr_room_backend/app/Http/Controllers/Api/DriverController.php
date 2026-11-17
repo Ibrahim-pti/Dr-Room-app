@@ -86,30 +86,36 @@ class DriverController extends Controller
             ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
             ->values();
 
-        $todayDelivered = Order::where('assigned_driver_id', $user->id)
+        $allDelivered = Order::where('assigned_driver_id', $user->id)
             ->where(function ($q) {
                 $q->where('status', 'completed')
                   ->orWhere('delivery_status', 'delivered');
             })
-            ->whereDate('driver_delivered_at', today())
-            ->count();
+            ->get(['id', 'total_price', 'delivery_fee', 'payment_method', 'driver_delivered_at', 'created_at']);
 
-        $monthDelivered = Order::where('assigned_driver_id', $user->id)
-            ->where(function ($q) {
-                $q->where('status', 'completed')
-                  ->orWhere('delivery_status', 'delivered');
-            })
-            ->whereMonth('driver_delivered_at', now()->month)
-            ->whereYear('driver_delivered_at', now()->year)
-            ->count();
+        $isCashOrder = static function ($o): bool {
+            $method = strtolower(trim((string) ($o->payment_method ?? '')));
+            return $method === '' || str_contains($method, 'cash') || str_contains($method, 'کاش');
+        };
 
-        $todayEarnings = (float) Order::where('assigned_driver_id', $user->id)
-            ->where(function ($q) {
-                $q->where('status', 'completed')
-                  ->orWhere('delivery_status', 'delivered');
-            })
-            ->whereDate('driver_delivered_at', today())
-            ->sum('delivery_fee');
+        $todayDeliveredOrders = $allDelivered->filter(function ($o) {
+            $dt = $o->driver_delivered_at ?? $o->created_at;
+            return $dt && $dt->isToday();
+        });
+
+        $monthDelivered = $allDelivered->filter(function ($o) {
+            $dt = $o->driver_delivered_at ?? $o->created_at;
+            return $dt && $dt->month === now()->month && $dt->year === now()->year;
+        })->count();
+
+        $todayDelivered = $todayDeliveredOrders->count();
+        $todayEarnings = (float) $todayDeliveredOrders->sum('delivery_fee');
+        $totalDeliveredCount = max($allDelivered->count(), (int) $driver->completed_deliveries);
+        $totalEarningsAmount = max((float) $driver->total_earnings, (float) $allDelivered->sum('delivery_fee'));
+
+        $cashOrders = $allDelivered->filter($isCashOrder);
+        $cashTodayOrders = $todayDeliveredOrders->filter($isCashOrder);
+        $onlineOrders = $allDelivered->reject($isCashOrder);
 
         $unreadNotifications = AppNotification::where('user_id', $user->id)
             ->where('is_read', false)
@@ -132,8 +138,8 @@ class DriverController extends Controller
                     'current_lng' => $driver->current_lng,
                     'last_location_at' => $driver->last_location_at?->toIso8601String(),
                     'rating' => (float) $driver->rating,
-                    'completed_deliveries' => (int) $driver->completed_deliveries,
-                    'total_earnings' => (float) $driver->total_earnings,
+                    'completed_deliveries' => $totalDeliveredCount,
+                    'total_earnings' => $totalEarningsAmount,
                 ], $driver->resolvedFieldProfile()),
                 'stats' => [
                     'active_count' => $activeOrders->count(),
@@ -141,8 +147,16 @@ class DriverController extends Controller
                     'today_deliveries' => $todayDelivered,
                     'month_deliveries' => $monthDelivered,
                     'today_earnings' => $todayEarnings,
-                    'total_deliveries' => (int) $driver->completed_deliveries,
-                    'total_earnings' => (float) $driver->total_earnings,
+                    'total_deliveries' => $totalDeliveredCount,
+                    'total_earnings' => $totalEarningsAmount,
+                    'cash_today_count' => $cashTodayOrders->count(),
+                    'cash_today_collected' => (float) $cashTodayOrders->sum('total_price'),
+                    'cash_today_delivery_fee' => (float) $cashTodayOrders->sum('delivery_fee'),
+                    'cash_total_count' => $cashOrders->count(),
+                    'cash_total_collected' => (float) $cashOrders->sum('total_price'),
+                    'cash_total_delivery_fee' => (float) $cashOrders->sum('delivery_fee'),
+                    'online_total_count' => $onlineOrders->count(),
+                    'online_total_delivery_fee' => (float) $onlineOrders->sum('delivery_fee'),
                     'unread_notifications' => $unreadNotifications,
                 ],
                 'active_orders' => $activeOrders,
