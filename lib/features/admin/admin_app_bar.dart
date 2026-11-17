@@ -115,18 +115,23 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                titleWidget ?? Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: titleStyle ?? TextStyle(
-                    fontFamily: titleFontFamily ?? 'Rabar',
-                    color: AppColors.getTextTitle(context),
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                    height: 1.2,
-                  ),
-                ),
+                titleWidget ??
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        style: titleStyle ??
+                            TextStyle(
+                              fontFamily: titleFontFamily ?? 'Rabar',
+                              color: AppColors.getTextTitle(context),
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ),
+                      ),
+                    ),
                 if (subtitle != null)
                   Text(
                     subtitle!,
