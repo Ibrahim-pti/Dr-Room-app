@@ -373,6 +373,15 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     return _activeOrders.first;
   }
 
+  LatLng? _validLatLng(dynamic latRaw, dynamic lngRaw) {
+    final lat = double.tryParse('${latRaw ?? ''}');
+    final lng = double.tryParse('${lngRaw ?? ''}');
+    if (lat == null || lng == null || (lat == 0.0 && lng == 0.0)) {
+      return null;
+    }
+    return LatLng(lat, lng);
+  }
+
   ({
     LatLng? primaryTarget,
     String targetLabel,
@@ -395,13 +404,8 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     final pk = order['pickup'] is Map ? order['pickup'] as Map : {};
     final pt = order['patient'] is Map ? order['patient'] as Map : {};
 
-    final pkLat = double.tryParse('${pk['lat'] ?? ''}');
-    final pkLng = double.tryParse('${pk['lng'] ?? ''}');
-    final ptLat = double.tryParse('${pt['lat'] ?? ''}');
-    final ptLng = double.tryParse('${pt['lng'] ?? ''}');
-
-    final pkPos = (pkLat != null && pkLng != null) ? LatLng(pkLat, pkLng) : null;
-    final ptPos = (ptLat != null && ptLng != null) ? LatLng(ptLat, ptLng) : null;
+    final pkPos = _validLatLng(pk['lat'], pk['lng']);
+    final ptPos = _validLatLng(pt['lat'], pt['lng']);
 
     if (isLab) {
       final alreadyCollected = order['driver_picked_up_at'] != null;
@@ -498,33 +502,41 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     });
   }
 
-  Future<void> _fitLiveRouteCamera() async {
+  Future<void> _fitLiveRouteCamera({dynamic focusOrder}) async {
     final ctrl = _mapController;
     if (ctrl == null) return;
 
-    final pts = <LatLng>[];
-    if (_lastLat != null && _lastLng != null) {
-      pts.add(LatLng(_lastLat!, _lastLng!));
-    }
-
-    final order = _resolvePrimaryOrder();
+    final order = focusOrder ?? _resolvePrimaryOrder();
     final nav = _resolveNavigationTarget(order);
+    final driverPos = _validLatLng(_lastLat, _lastLng);
+
+    final pts = <LatLng>[];
     if (nav.primaryTarget != null) {
-      // Only include target in fit bounds if it's reasonably near driver or if driver has no GPS
-      if (pts.isEmpty) {
-        pts.add(nav.primaryTarget!);
-      } else {
-        final gap = Geolocator.distanceBetween(
-          pts.first.latitude,
-          pts.first.longitude,
+      pts.add(nav.primaryTarget!);
+      if (nav.secondaryTarget != null) {
+        final secGap = Geolocator.distanceBetween(
+          nav.primaryTarget!.latitude,
+          nav.primaryTarget!.longitude,
+          nav.secondaryTarget!.latitude,
+          nav.secondaryTarget!.longitude,
+        );
+        if (secGap < 150000) {
+          pts.add(nav.secondaryTarget!);
+        }
+      }
+      if (driverPos != null) {
+        final driverGap = Geolocator.distanceBetween(
+          driverPos.latitude,
+          driverPos.longitude,
           nav.primaryTarget!.latitude,
           nav.primaryTarget!.longitude,
         );
-        if (gap < 150000) {
-          pts.add(nav.primaryTarget!);
-          if (nav.secondaryTarget != null) pts.add(nav.secondaryTarget!);
+        if (driverGap < 150000) {
+          pts.add(driverPos);
         }
       }
+    } else if (driverPos != null) {
+      pts.add(driverPos);
     }
 
     if (pts.isEmpty) {
@@ -582,9 +594,24 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
       if (!mounted) return;
       final body = jsonDecode(res.body);
       if (res.statusCode == 200) {
+        final claimedOrder =
+            (body is Map && body['order'] is Map) ? body['order'] : order;
         _toast(body['message']?.toString() ?? 'داواکاری وەرگیرا');
-        setState(() => _orderSubTab = 0);
+        setState(() {
+          _availableOrders.removeWhere((o) => o['id'].toString() == id);
+          _activeOrders.removeWhere((o) => o['id'].toString() == id);
+          _activeOrders.insert(0, claimedOrder);
+          _orderSubTab = 0;
+          _tabIndex = 1;
+          _followDriver = false;
+          _hasInitialFitted = false;
+          _routeCacheSignature = null;
+        });
         await _loadDashboard(silent: true);
+        await _refreshActiveRoute();
+        if (mounted) {
+          await _fitLiveRouteCamera(focusOrder: claimedOrder);
+        }
       } else {
         _toast(
           body['message']?.toString() ?? 'داواکاری بەردەست نەماوە',
@@ -678,7 +705,21 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
       final body = jsonDecode(res.body);
       if (res.statusCode == 200) {
         _toast(body['message']?.toString() ?? 'دۆخەکە نوێکرایەوە');
+        final updatedOrder =
+            (body is Map && body['order'] is Map) ? body['order'] : order;
+        if (nextStatus == 'accepted' && mounted) {
+          setState(() {
+            _tabIndex = 1;
+            _followDriver = false;
+            _hasInitialFitted = false;
+            _routeCacheSignature = null;
+          });
+        }
         await _loadDashboard(silent: true);
+        if (nextStatus == 'accepted' && mounted) {
+          await _refreshActiveRoute();
+          await _fitLiveRouteCamera(focusOrder: updatedOrder);
+        }
       } else {
         _toast(
           body['message']?.toString() ?? 'نوێکردنەوە سەرکەوتوو نەبوو',
@@ -692,18 +733,40 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     }
   }
 
+  String _normalizePhoneDigits(String input) {
+    const arabic = '٠١٢٣٤٥٦٧٨٩';
+    const persian = '۰۱۲۳۴۵۶۷۸۹';
+    var out = input;
+    for (var i = 0; i < 10; i++) {
+      out = out.replaceAll(arabic[i], '$i').replaceAll(persian[i], '$i');
+    }
+    return out.replaceAll(RegExp(r'[^0-9+]'), '');
+  }
+
   Future<void> _callPhone(String? raw) async {
     final phone = (raw ?? '').trim();
     if (phone.isEmpty) {
       _toast('ژمارەی مۆبایل بەردەست نییە', isError: true);
       return;
     }
-    final clean = phone.replaceAll(RegExp(r'[^0-9+]'), '');
-    final uri = Uri.parse('tel:$clean');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      _toast('نەتوانرا پەیوەندی بکرێت', isError: true);
+    final clean = _normalizePhoneDigits(phone);
+    if (clean.isEmpty) {
+      _toast('ژمارەی مۆبایل دروست نییە', isError: true);
+      return;
+    }
+    final uri = Uri(scheme: 'tel', path: clean);
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && mounted) {
+        _toast('نەتوانرا پەیوەندی بکرێت', isError: true);
+      }
+    } catch (_) {
+      if (mounted) {
+        _toast('نەتوانرا پەیوەندی بکرێت', isError: true);
+      }
     }
   }
 
@@ -1440,12 +1503,28 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     final serviceColor = isLab
         ? const Color(0xFF8B5CF6)
         : const Color(0xFF0D9488);
-    final pickupLat = double.tryParse('${pickup['lat'] ?? ''}');
-    final pickupLng = double.tryParse('${pickup['lng'] ?? ''}');
-    final destLat = double.tryParse('${patient['lat'] ?? ''}');
-    final destLng = double.tryParse('${patient['lng'] ?? ''}');
-    final distKm = double.tryParse('${order['distance_km'] ?? ''}');
     final isOffer = !isPool && stage == 'assigned';
+    final pickupName = (pickup['name'] ?? '').toString().trim();
+    final pickupAddressRaw = (pickup['address'] ?? '').toString().trim();
+    final pickupAddress =
+        pickupAddressRaw == pickupName ? '' : pickupAddressRaw;
+    final patientAge = (patient['age'] ?? '').toString().trim();
+    final rawGender = (patient['gender'] ?? '').toString().trim().toLowerCase();
+    final patientGender = switch (rawGender) {
+      'male' || 'm' || 'نێر' => 'نێر',
+      'female' || 'f' || 'مێ' => 'مێ',
+      _ => (patient['gender'] ?? '').toString().trim(),
+    };
+    final paymentMethodRaw =
+        (order['payment_method'] ?? '').toString().trim().toLowerCase();
+    final paymentStatusRaw =
+        (order['payment_status'] ?? '').toString().trim().toLowerCase();
+    final paymentLabel = paymentMethodRaw.contains('cash') ||
+            paymentMethodRaw.contains('کاش')
+        ? 'پارەدان: کاش'
+        : (paymentStatusRaw == 'paid'
+            ? 'پارەدان: ئۆنلاین (دراوە)'
+            : 'پارەدان: ئۆنلاین');
 
     return Container(
       decoration: BoxDecoration(
@@ -1520,28 +1599,6 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                   color: AppColors.getTextTitle(context),
                 ),
               ),
-              if (distKm != null) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${distKm.toStringAsFixed(1)} کم',
-                    style: const TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF059669),
-                    ),
-                  ),
-                ),
-              ],
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
@@ -1576,11 +1633,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           // Stop 1: Pharmacy or Lab
           _buildStopTile(
             title: isLab ? 'تاقیگەی دیاریکراو' : 'وەرگرتن لە دەرمانخانە',
-            name: (pickup['name'] ?? '').toString(),
-            address: (pickup['address'] ?? '').toString(),
+            name: pickupName,
+            address: pickupAddress,
             phone: (pickup['phone'] ?? '').toString(),
-            lat: pickupLat,
-            lng: pickupLng,
             accentColor: serviceColor,
             icon: isLab ? Iconsax.microscope : Iconsax.shop,
           ),
@@ -1594,11 +1649,27 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             name: (patient['name'] ?? 'نەخۆش').toString(),
             address: (patient['address'] ?? '').toString(),
             phone: (patient['phone'] ?? '').toString(),
-            lat: destLat,
-            lng: destLng,
             accentColor: const Color(0xFF2563EB),
             icon: Iconsax.location,
           ),
+
+          if (patientAge.isNotEmpty ||
+              patientGender.isNotEmpty ||
+              paymentMethodRaw.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                if (patientAge.isNotEmpty)
+                  _buildMetaBadge('تەمەن: $patientAge'),
+                if (patientGender.isNotEmpty)
+                  _buildMetaBadge('ڕەگەز: $patientGender'),
+                if (paymentMethodRaw.isNotEmpty)
+                  _buildMetaBadge(paymentLabel),
+              ],
+            ),
+          ],
 
           if ((patient['notes'] ?? '').toString().trim().isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -1627,7 +1698,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: items.take(4).map((it) {
+              children: items.map((it) {
                 final m = it is Map ? it : {};
                 return Container(
                   padding: const EdgeInsets.symmetric(
@@ -1881,13 +1952,31 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     );
   }
 
+  Widget _buildMetaBadge(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.getBackground(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.getBorder(context)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: 'Rabar',
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: AppColors.getTextSubtitle(context),
+        ),
+      ),
+    );
+  }
+
   Widget _buildStopTile({
     required String title,
     required String name,
     required String address,
     required String phone,
-    required double? lat,
-    required double? lng,
     required Color accentColor,
     required IconData icon,
   }) {
@@ -1960,17 +2049,6 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               tooltip: 'پەیوەندی',
               visualDensity: VisualDensity.compact,
             ),
-          if (lat != null && lng != null || address.trim().isNotEmpty)
-            IconButton(
-              onPressed: () => _openMaps(lat, lng, address),
-              icon: const Icon(
-                Iconsax.routing,
-                size: 18,
-                color: Color(0xFF2563EB),
-              ),
-              tooltip: 'نەخشە',
-              visualDensity: VisualDensity.compact,
-            ),
         ],
       ),
     );
@@ -1979,11 +2057,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
   Widget _buildLiveMapTab(bool isDark) {
     final primaryOrder = _resolvePrimaryOrder();
     final nav = _resolveNavigationTarget(primaryOrder);
-    final driverPos = (_lastLat != null && _lastLng != null)
-        ? LatLng(_lastLat!, _lastLng!)
-        : null;
+    final driverPos = _validLatLng(_lastLat, _lastLng);
     final initialCenter =
-        driverPos ?? nav.primaryTarget ?? ErbilMapService.erbilCenter;
+        nav.primaryTarget ?? driverPos ?? ErbilMapService.erbilCenter;
 
     final markers = <Marker>{};
     if (driverPos != null) {
@@ -2009,13 +2085,12 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
 
     for (final o in _activeOrders) {
       final p = o['patient'] is Map ? o['patient'] as Map : {};
-      final pLat = double.tryParse('${p['lat'] ?? ''}');
-      final pLng = double.tryParse('${p['lng'] ?? ''}');
-      if (pLat != null && pLng != null) {
+      final pPos = _validLatLng(p['lat'], p['lng']);
+      if (pPos != null) {
         markers.add(
           Marker(
             markerId: MarkerId('dest_${o['id']}'),
-            position: LatLng(pLat, pLng),
+            position: pPos,
             anchor: const Offset(0.5, 0.5),
             zIndexInt: 2,
             infoWindow: InfoWindow(
@@ -2031,13 +2106,12 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
       }
 
       final pk = o['pickup'] is Map ? o['pickup'] as Map : {};
-      final pkLat = double.tryParse('${pk['lat'] ?? ''}');
-      final pkLng = double.tryParse('${pk['lng'] ?? ''}');
-      if (pkLat != null && pkLng != null) {
+      final pkPos = _validLatLng(pk['lat'], pk['lng']);
+      if (pkPos != null) {
         markers.add(
           Marker(
             markerId: MarkerId('pickup_${o['id']}'),
-            position: LatLng(pkLat, pkLng),
+            position: pkPos,
             anchor: const Offset(0.5, 0.5),
             zIndexInt: 2,
             infoWindow: InfoWindow(title: '${pk['name'] ?? ''}'),

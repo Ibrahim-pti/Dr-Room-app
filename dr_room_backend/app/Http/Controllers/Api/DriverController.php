@@ -511,7 +511,7 @@ class DriverController extends Controller
             $u = $order->assignedLab;
             $l = $u->lab;
             $pickupName = $u->name ?? 'تاقیگە';
-            $pickupPhone = $u->phone ?? ($l->phone ?? '');
+            $pickupPhone = filled($u->phone) ? $u->phone : ($l->phone ?? '');
             $pickupAddress = $l->location ?? '';
             $pickupLat = $l && $l->latitude !== null ? (float) $l->latitude : null;
             $pickupLng = $l && $l->longitude !== null ? (float) $l->longitude : null;
@@ -519,7 +519,7 @@ class DriverController extends Controller
             $u = $order->assignedPharmacy;
             $p = $u->pharmacy;
             $pickupName = $u->name ?? 'دەرمانخانە';
-            $pickupPhone = $u->phone ?? ($p->phone ?? '');
+            $pickupPhone = filled($u->phone) ? $u->phone : ($p->phone ?? '');
             $pickupAddress = $p->location ?? '';
             $pickupLat = $p && $p->latitude !== null ? (float) $p->latitude : null;
             $pickupLng = $p && $p->longitude !== null ? (float) $p->longitude : null;
@@ -561,13 +561,17 @@ class DriverController extends Controller
                 'lng' => $pickupLng,
             ],
             'patient' => [
-                'name' => $patientDetails['name'] ?? ($order->patient?->name ?? 'نەخۆش'),
-                'phone' => $patientDetails['phone'] ?? ($order->patient?->phone ?? ''),
+                'name' => filled($patientDetails['name'] ?? null) ? $patientDetails['name'] : ($order->patient?->name ?? 'نەخۆش'),
+                'phone' => filled($patientDetails['phone'] ?? null) ? $patientDetails['phone'] : ($order->patient?->phone ?? ''),
+                'age' => $patientDetails['age'] ?? null,
+                'gender' => $patientDetails['patient_gender'] ?? ($patientDetails['gender'] ?? null),
+                'collection_method' => $patientDetails['collection_method'] ?? null,
                 'address' => $loc['address'],
                 'lat' => $loc['lat'],
                 'lng' => $loc['lng'],
                 'notes' => $loc['notes'],
             ],
+            'prescription_url' => $order->prescription_url ?? ($patientDetails['prescription_url'] ?? ($patientDetails['prescription_image'] ?? null)),
             'items' => collect($order->items ?? [])->map(fn ($it) => [
                 'name' => $it->item_name ?? $it->name ?? 'خزمەتگوزاری',
                 'quantity' => (int) ($it->quantity ?? 1),
