@@ -120,7 +120,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           _activeOrders = List<dynamic>.from(data['active_orders'] ?? []);
           _availableOrders = List<dynamic>.from(data['available_orders'] ?? []);
           _completedOrders = List<dynamic>.from(data['completed_orders'] ?? []);
-          if (driverMap['current_lat'] != null &&
+          if (_lastLat == null &&
+              _lastLng == null &&
+              driverMap['current_lat'] != null &&
               driverMap['current_lng'] != null) {
             _lastLat = double.tryParse(driverMap['current_lat'].toString());
             _lastLng = double.tryParse(driverMap['current_lng'].toString());
@@ -188,12 +190,14 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     final ok = await _ensureLocationPermission();
     if (!ok || !mounted) return;
 
-    try {
-      final last = await Geolocator.getLastKnownPosition();
-      if (last != null && mounted) {
-        _onPositionUpdate(last, uploadToServer: false);
-      }
-    } catch (_) {}
+    if (_lastLat == null || _lastLng == null) {
+      try {
+        final last = await Geolocator.getLastKnownPosition();
+        if (last != null && mounted) {
+          _onPositionUpdate(last, uploadToServer: false);
+        }
+      } catch (_) {}
+    }
 
     await _sendCurrentGps();
   }
@@ -224,7 +228,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     _positionSub = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.bestForNavigation,
-        distanceFilter: 5,
+        distanceFilter: 3,
       ),
     ).listen(
       (pos) {
@@ -341,7 +345,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
 
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
+          accuracy: LocationAccuracy.bestForNavigation,
           timeLimit: Duration(seconds: 8),
         ),
       );
@@ -2190,10 +2194,12 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {
+                  onPressed: () async {
                     setState(() => _followDriver = true);
-                    _ensureLocationAndFetch();
-                    _fitLiveRouteCamera();
+                    await _ensureLocationAndFetch();
+                    if (mounted) {
+                      _fitLiveRouteCamera();
+                    }
                   },
                   icon: const Icon(
                     Icons.my_location,
