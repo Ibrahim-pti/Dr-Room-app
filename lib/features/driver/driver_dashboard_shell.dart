@@ -1047,7 +1047,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                         index: _tabIndex,
                         children: [
                           _buildTasksTab(isDark),
-                          _buildLiveMapTab(isDark),
+                          _tabIndex == 1
+                              ? _buildLiveMapTab(isDark)
+                              : const SizedBox.shrink(),
                           _buildEarningsTab(isDark),
                           _buildProfileTab(isDark),
                         ],
@@ -1278,7 +1280,12 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     return Expanded(
       child: InkWell(
         onTap: () {
-          setState(() => _tabIndex = index);
+          setState(() {
+            if (_tabIndex == 1 && index != 1) {
+              _mapController = null;
+            }
+            _tabIndex = index;
+          });
           if (index == 1) {
             _hasInitialFitted = false;
             _ensureLocationAndFetch();
@@ -2208,7 +2215,11 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           onMapCreated: (c) {
             _mapController = c;
             _hasInitialFitted = true;
-            _fitLiveRouteCamera();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _tabIndex == 1) {
+                _fitLiveRouteCamera();
+              }
+            });
           },
         ),
         Positioned(
