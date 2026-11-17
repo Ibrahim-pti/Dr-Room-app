@@ -1745,8 +1745,8 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           ),
 
           if (orderStatus != 'completed' && orderStatus != 'cancelled') ...[
-            const SizedBox(height: 14),
-            if (isPool)
+            if (isPool) ...[
+              const SizedBox(height: 14),
               Builder(
                 builder: (_) {
                   final isOffline =
@@ -1795,9 +1795,44 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     ),
                   );
                 },
-              )
-            else
+              ),
+            ] else if (stage == 'assigned') ...[
+              const SizedBox(height: 14),
               _buildProgressionActions(order, stage, isLab, isBusy),
+            ] else if (stage == 'accepted') ...[
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: isBusy
+                      ? null
+                      : () => _advanceOrderStatus(
+                          order,
+                          'rejected',
+                          confirm: true,
+                        ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFEF4444),
+                    side: const BorderSide(color: Color(0xFFEF4444)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'ڕەتکردنەوە',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ],
       ),
