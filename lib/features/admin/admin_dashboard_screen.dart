@@ -496,14 +496,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   // ── 3. Essential Active Services Grid (Large & Clean) ──
   Widget _buildEssentialServicesGrid() {
-    final int pendingOrders = (_stats?['pending_orders'] ?? 0) as int;
-    final int totalOrders = (_stats?['total_orders'] ?? 0) as int;
-
     final int openTickets = (_stats?['open_tickets'] ?? 0) as int;
     final int unreadTicketMessages = (_stats?['unread_ticket_messages'] ?? 0) as int;
-
-    final int pendingPharmacies = (_stats?['pending_pharmacies'] ?? 0) as int;
-    final int totalPharmacies = (_stats?['total_pharmacies'] ?? 0) as int;
 
     final int pendingLabs = (_stats?['pending_labs'] ?? 0) as int;
     final int totalLabs = (_stats?['total_labs'] ?? 0) as int;
@@ -518,15 +512,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final int totalUsers = (_stats?['total_users'] ?? 0) as int;
 
     final List<Map<String, dynamic>> essentials = [
-      {
-        'title': 'داواکارییەکان',
-        'subtitle': '$totalOrders ئۆردەری نەخۆش',
-        'icon': Iconsax.box,
-        'color': const Color(0xFFF59E0B),
-        'bg': const Color(0xFFFFFBEB),
-        'badge': pendingOrders > 0 ? '$pendingOrders نوێ' : null,
-        'screen': const AdminOrdersScreen(),
-      },
       {
         'title': 'سکاڵا و پشتیوانی',
         'subtitle': openTickets > 0 ? '$openTickets تیکێتی کراوە' : 'پشتیوانی نەخۆش',
@@ -564,15 +549,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'bg': const Color(0xFFF0F9FF),
         'badge': pendingLabs > 0 ? '$pendingLabs پەسەندکردن' : null,
         'screen': const AdminLabsScreen(),
-      },
-      {
-        'title': 'دەرمانخانەکان',
-        'subtitle': '$totalPharmacies دەرمانخانە',
-        'icon': Iconsax.health,
-        'color': const Color(0xFF0D9488),
-        'bg': const Color(0xFFF0FDFA),
-        'badge': pendingPharmacies > 0 ? '$pendingPharmacies پەسەندکردن' : null,
-        'screen': const AdminPharmaciesScreen(),
       },
       {
         'title': 'نەخۆشەکان',

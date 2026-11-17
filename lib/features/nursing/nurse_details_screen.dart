@@ -2025,7 +2025,7 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -2038,69 +2038,94 @@ class _NurseDetailsScreenState extends State<NurseDetailsScreen> {
         children: [
           Row(
             children: [
-              const Icon(Iconsax.health, color: Color(0xFF3B82F6), size: 18),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(
+                  Iconsax.health,
+                  color: Color(0xFF3B82F6),
+                  size: 16,
+                ),
+              ),
               const SizedBox(width: 8),
               Text(
                 'پسپۆڕی و بوارەکان (${allSpecialties.length})',
                 style: _kStyle(
-                  fontSize: 15.5,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          ...allSpecialties.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final s = entry.value;
-            final colors = [
-              const Color(0xFF3B82F6),
-              const Color(0xFF2563EB),
-              const Color(0xFF0EA5E9),
-              const Color(0xFF10B981),
-              const Color(0xFF8B5CF6),
-              const Color(0xFFF59E0B),
-            ];
-            final color = colors[idx % colors.length];
-
-            return Container(
-              width: double.infinity,
-              margin: EdgeInsets.only(
-                bottom: idx < allSpecialties.length - 1 ? 8 : 0,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: color.withValues(alpha: 0.2)),
-              ),
+          const SizedBox(height: 12),
+          Center(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               child: Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: allSpecialties.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final s = entry.value;
+                  final colors = [
+                    const Color(0xFF2563EB),
+                    const Color(0xFF0EA5E9),
+                    const Color(0xFF10B981),
+                    const Color(0xFF8B5CF6),
+                    const Color(0xFFF59E0B),
+                  ];
+                  final color = colors[idx % colors.length];
+
+                  return Container(
+                    margin: EdgeInsetsDirectional.only(
+                      end: idx < allSpecialties.length - 1 ? 8 : 0,
                     ),
-                    child: Icon(Iconsax.health, color: color, size: 16),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      s,
-                      style: _kStyle(
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: isDark ? 0.14 : 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: color.withValues(alpha: isDark ? 0.3 : 0.22),
                       ),
                     ),
-                  ),
-                ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Iconsax.health, color: color, size: 12),
+                        ),
+                        const SizedBox(width: 7),
+                        Text(
+                          s,
+                          style: _kStyle(
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).animate().fadeIn(delay: (idx * 60).ms).slideX(begin: -0.05);
+                }).toList(),
               ),
-            ).animate().fadeIn(delay: (idx * 60).ms).slideX(begin: -0.05);
-          }),
+            ),
+          ),
         ],
       ),
     );

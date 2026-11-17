@@ -28,7 +28,12 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
 
   Map<String, dynamic> _summary = {};
   List<dynamic> _transactions = [];
+  Map<int, Map<String, dynamic>> _orderDiscounts = {};
+  int _fallbackDiscountedOrders = 0;
+  int _fallbackDiscountedUsers = 0;
+  double _fallbackDiscountTotal = 0.0;
   String _status = '';
+  bool _onlyDiscounted = false;
   bool _isLoading = true;
   String? _error;
 
@@ -44,32 +49,106 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
       _error = null;
     });
 
-    final query = _status.isEmpty ? '' : '?status=$_status';
+    final params = <String>[
+      if (_status.isNotEmpty) 'status=$_status',
+      if (_onlyDiscounted) 'discounted=1',
+    ];
+    final query = params.isEmpty ? '' : '?${params.join('&')}';
 
     try {
       final results = await Future.wait([
         ApiClient.get('/admin/transactions/summary'),
         ApiClient.get('/admin/transactions$query'),
+        ApiClient.get('/admin/orders').then<dynamic>((r) => r).catchError((_) => null),
       ]);
 
       if (!mounted) return;
 
-      if (results[0].statusCode == 200 && results[1].statusCode == 200) {
-        final page = jsonDecode(results[1].body);
+      final summaryRes = results[0];
+      final txRes = results[1];
+      final ordersRes = results[2];
+
+      final Map<int, Map<String, dynamic>> orderDiscounts = {};
+      int discountedOrdersCount = 0;
+      final Set<dynamic> discountedUserIds = {};
+      double totalDiscountAmount = 0.0;
+
+      if (ordersRes != null && ordersRes.statusCode == 200) {
+        try {
+          final decodedOrders = jsonDecode(ordersRes.body);
+          final List<dynamic> ordersList = decodedOrders is Map
+              ? (decodedOrders['orders'] ?? decodedOrders['data'] ?? [])
+              : (decodedOrders is List ? decodedOrders : []);
+          for (final o in ordersList) {
+            if (o is! Map) continue;
+            final orderId = int.tryParse('${o['id']}');
+            final couponCode = (o['coupon_code'] ?? '').toString().trim();
+            final discountAmt = double.tryParse('${o['discount_amount'] ?? 0}') ?? 0.0;
+            final statusStr = (o['status'] ?? '').toString().toLowerCase();
+            if (orderId != null && (discountAmt > 0 || couponCode.isNotEmpty)) {
+              orderDiscounts[orderId] = {
+                'coupon_code': couponCode,
+                'discount_amount': discountAmt,
+              };
+              if (statusStr != 'cancelled') {
+                discountedOrdersCount++;
+                totalDiscountAmount += discountAmt;
+                final uid = o['patient_id'] ?? (o['patient'] is Map ? o['patient']['id'] : null);
+                if (uid != null) discountedUserIds.add(uid);
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (summaryRes.statusCode == 200 && txRes.statusCode == 200) {
+        final page = jsonDecode(txRes.body);
         setState(() {
-          _summary = Map<String, dynamic>.from(jsonDecode(results[0].body));
+          _summary = Map<String, dynamic>.from(jsonDecode(summaryRes.body));
           _transactions = page is Map ? (page['data'] ?? []) : page;
+          _orderDiscounts = orderDiscounts;
+          _fallbackDiscountedOrders = discountedOrdersCount;
+          _fallbackDiscountedUsers = discountedUserIds.length;
+          _fallbackDiscountTotal = totalDiscountAmount;
           _isLoading = false;
         });
       } else {
         setState(() {
-          _error = AdminUi.readError(results[0].statusCode == 200 ? results[1] : results[0]);
+          _error = AdminUi.readError(summaryRes.statusCode == 200 ? txRes : summaryRes);
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) setState(() { _error = '$e'; _isLoading = false; });
     }
+  }
+
+  ({String couponCode, double discountAmount, bool hasDiscount}) _extractDiscount(dynamic transaction) {
+    String couponCode = (transaction['coupon_code'] ?? '').toString().trim();
+    double discountAmount = double.tryParse('${transaction['discount_amount'] ?? 0}') ?? 0.0;
+
+    if (couponCode.isEmpty && discountAmount <= 0 && transaction['payable'] is Map) {
+      couponCode = (transaction['payable']['coupon_code'] ?? '').toString().trim();
+      discountAmount = double.tryParse('${transaction['payable']['discount_amount'] ?? 0}') ?? 0.0;
+    }
+
+    if (couponCode.isEmpty && discountAmount <= 0) {
+      final payableType = (transaction['payable_type'] ?? '').toString();
+      final payableId = int.tryParse('${transaction['payable_id']}');
+      if (payableId != null && (payableType.isEmpty || payableType.contains('Order'))) {
+        final info = _orderDiscounts[payableId];
+        if (info != null) {
+          couponCode = (info['coupon_code'] ?? '').toString().trim();
+          discountAmount = (info['discount_amount'] as num?)?.toDouble() ?? 0.0;
+        }
+      }
+    }
+
+    return (
+      couponCode: couponCode,
+      discountAmount: discountAmount,
+      hasDiscount: discountAmount > 0 || couponCode.isNotEmpty,
+    );
   }
 
   Future<void> _changeStatus(dynamic transaction) async {
@@ -115,6 +194,10 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final visibleTransactions = _onlyDiscounted
+        ? _transactions.where((t) => _extractDiscount(t).hasDiscount).toList()
+        : _transactions;
+
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AdminAppBar(
@@ -142,38 +225,89 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: _statusFilters
-                      .map((s) => Padding(
-                            padding: const EdgeInsetsDirectional.only(end: 8),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() => _status = s.value);
-                                _load();
-                              },
-                              child: AdminUi.selectChip(s.label, _status == s.value),
+                  children: [
+                    ..._statusFilters.map((s) => Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 8),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() => _status = s.value);
+                              _load();
+                            },
+                            child: AdminUi.selectChip(s.label, _status == s.value),
+                          ),
+                        )),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() => _onlyDiscounted = !_onlyDiscounted);
+                        _load();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _onlyDiscounted
+                              ? const Color(0xFFEC4899)
+                              : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _onlyDiscounted
+                                ? const Color(0xFFEC4899)
+                                : const Color(0xFFEC4899).withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Iconsax.ticket_discount,
+                              size: 14,
+                              color: _onlyDiscounted ? Colors.white : const Color(0xFFEC4899),
                             ),
-                          ))
-                      .toList(),
+                            const SizedBox(width: 5),
+                            Text(
+                              'بە داشکاندن',
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: _onlyDiscounted ? Colors.white : const Color(0xFFEC4899),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 14),
-              if (_transactions.isEmpty)
+              if (visibleTransactions.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 40),
                   child: Column(
                     children: [
-                      const Icon(Iconsax.wallet_3, size: 44, color: Color(0xFFCBD5E1)),
+                      Icon(
+                        _onlyDiscounted ? Iconsax.ticket_discount : Iconsax.wallet_3,
+                        size: 44,
+                        color: const Color(0xFFCBD5E1),
+                      ),
                       const SizedBox(height: 10),
-                      const Text('هێشتا هیچ مامەڵەیەک تۆمار نەکراوە',
-                          style: TextStyle(
-                              fontFamily: 'Rabar', fontSize: 13, color: Color(0xFF94A3B8))),
+                      Text(
+                        _onlyDiscounted
+                            ? 'هیچ مامەڵەیەک بە داشکاندن نەدۆزرایەوە'
+                            : 'هێشتا هیچ مامەڵەیەک تۆمار نەکراوە',
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 13,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
                     ],
                   ),
                 )
               else
                 ...List.generate(
-                  _transactions.length,
-                  (i) => _buildTransaction(_transactions[i], i),
+                  visibleTransactions.length,
+                  (i) => _buildTransaction(visibleTransactions[i], i),
                 ),
             ],
           ),
@@ -237,6 +371,99 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                 child: _statTile('شکستخواردوو', '${_summary['failed_count'] ?? 0}',
                     const Color(0xFFEF4444))),
           ],
+        ),
+        Builder(
+          builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final discountedOrdersCount = int.tryParse('${_summary['discounted_orders_count'] ?? ''}') ??
+                _fallbackDiscountedOrders;
+            final discountedUsersCount = int.tryParse('${_summary['discounted_users_count'] ?? ''}') ??
+                _fallbackDiscountedUsers;
+            final totalDiscountAmount = double.tryParse('${_summary['total_discount_amount'] ?? ''}') ??
+                _fallbackDiscountTotal;
+
+            return GestureDetector(
+              onTap: () {
+                setState(() => _onlyDiscounted = !_onlyDiscounted);
+                _load();
+              },
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: _onlyDiscounted
+                      ? const Color(0xFFEC4899).withValues(alpha: isDark ? 0.18 : 0.08)
+                      : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _onlyDiscounted
+                        ? const Color(0xFFEC4899)
+                        : const Color(0xFFEC4899).withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEC4899).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      child: const Icon(
+                        Iconsax.ticket_discount,
+                        color: Color(0xFFEC4899),
+                        size: 19,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'داواکاری بە داشکاندن',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '$discountedOrdersCount داواکاری · $discountedUsersCount کەس بەکاریان هێناوە',
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 11,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEC4899).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _money(totalDiscountAmount),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFEC4899),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
         if (_summary['by_method'] is List && (_summary['by_method'] as List).isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -829,6 +1056,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     };
     final isCash = method == 'cash';
     final methodColor = isCash ? const Color(0xFF0D9488) : const Color(0xFF3B82F6);
+    final discountInfo = _extractDiscount(transaction);
 
     return GestureDetector(
       onTap: () => _changeStatus(transaction),
@@ -866,7 +1094,9 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                     style: AdminUi.subtitle,
                   ),
                   const SizedBox(height: 5),
-                  Row(
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -892,6 +1122,35 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                           ],
                         ),
                       ),
+                      if (discountInfo.hasDiscount)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEC4899).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFEC4899).withValues(alpha: 0.25)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Iconsax.ticket_discount, size: 10, color: Color(0xFFEC4899)),
+                              const SizedBox(width: 4),
+                              Text(
+                                discountInfo.couponCode.isNotEmpty
+                                    ? (discountInfo.discountAmount > 0
+                                        ? '${discountInfo.couponCode} (-${_money(discountInfo.discountAmount)})'
+                                        : 'کۆپۆن: ${discountInfo.couponCode}')
+                                    : 'داشکاندن (-${_money(discountInfo.discountAmount)})',
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFEC4899),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ],

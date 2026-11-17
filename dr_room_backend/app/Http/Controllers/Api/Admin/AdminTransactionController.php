@@ -12,7 +12,7 @@ class AdminTransactionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Transaction::with('user:id,name,phone')->latest();
+        $query = Transaction::with(['user:id,name,phone', 'payable'])->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -20,6 +20,13 @@ class AdminTransactionController extends Controller
 
         if ($request->filled('method')) {
             $query->where('method', $request->method);
+        }
+
+        if ($request->boolean('discounted')) {
+            $query->whereHasMorph('payable', [\App\Models\Order::class], function ($q) {
+                $q->where('discount_amount', '>', 0)
+                  ->orWhereNotNull('coupon_code');
+            });
         }
 
         if ($request->filled('from')) {
@@ -38,13 +45,33 @@ class AdminTransactionController extends Controller
                 ->orWhereHas('user', fn ($u) => $u->where('name', 'like', $term)->orWhere('phone', 'like', $term)));
         }
 
-        return $query->paginate((int)$request->input('per_page', 50));
+        $paginated = $query->paginate((int)$request->input('per_page', 50));
+
+        $paginated->through(function ($tx) {
+            $arr = $tx->toArray();
+            if ($tx->payable instanceof \App\Models\Order) {
+                $arr['coupon_code'] = $tx->payable->coupon_code;
+                $arr['discount_amount'] = (float) ($tx->payable->discount_amount ?? 0);
+            } else {
+                $arr['coupon_code'] = null;
+                $arr['discount_amount'] = 0.0;
+            }
+            unset($arr['payable']);
+            return $arr;
+        });
+
+        return $paginated;
     }
 
     /** Headline revenue figures for the payments screen. */
     public function summary()
     {
         $completed = Transaction::completed();
+
+        $discountedOrders = \App\Models\Order::where(function ($q) {
+            $q->where('discount_amount', '>', 0)
+              ->orWhereNotNull('coupon_code');
+        })->where('status', '!=', 'cancelled');
 
         return response()->json([
             'total_revenue'   => (float)(clone $completed)->sum('amount'),
@@ -55,6 +82,9 @@ class AdminTransactionController extends Controller
             'pending_count'   => Transaction::where('status', 'pending')->count(),
             'failed_count'    => Transaction::where('status', 'failed')->count(),
             'refunded_total'  => (float)Transaction::where('status', 'refunded')->sum('amount'),
+            'discounted_orders_count' => (clone $discountedOrders)->count(),
+            'discounted_users_count'  => (clone $discountedOrders)->distinct('patient_id')->count('patient_id'),
+            'total_discount_amount'   => (float)(clone $discountedOrders)->sum('discount_amount'),
             'by_method'       => Transaction::completed()
                 ->select('method', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
                 ->groupBy('method')
