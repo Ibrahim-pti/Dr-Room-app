@@ -379,14 +379,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     ).animate().fadeIn().slideY(begin: 0.05, end: 0);
   }
 
-  // ── 2. Key Stats Cards (3 Pillars: Patients, Orders, Providers) ──
+  // ── 2. Key Stats Cards (Patients & Orders) ──
   Widget _buildKeyStatsGrid() {
     final totalPatients = '${_stats?['total_users'] ?? 0}';
     final totalOrders = '${_stats?['total_orders'] ?? 0}';
-    final totalNurses = int.tryParse('${_stats?['total_nurses'] ?? 0}') ?? 0;
-    final totalLabs = int.tryParse('${_stats?['total_labs'] ?? 0}') ?? 0;
-    final totalPharmacies = int.tryParse('${_stats?['total_pharmacies'] ?? 0}') ?? 0;
-    final totalProviders = '${totalLabs + totalPharmacies + totalNurses}';
 
     return Row(
       children: [
@@ -409,17 +405,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             icon: Iconsax.box,
             color: const Color(0xFFF59E0B),
             onTap: () => _openScreen(const AdminOrdersScreen()),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildBigStatCard(
-            title: 'دابینکەران',
-            value: totalProviders,
-            subtitle: 'تاقیگە، دەرمان، ستاف',
-            icon: Iconsax.health,
-            color: const Color(0xFF2563EB),
-            onTap: () => _openScreen(const AdminPharmaciesScreen()),
           ),
         ),
       ],
