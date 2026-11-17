@@ -72,6 +72,7 @@ return [
     'otpiq' => [
         'key' => env('OTPIQ_API_KEY'),
         'provider' => env('OTPIQ_PROVIDER', 'auto'),
+        'sender_id' => env('OTPIQ_SENDER_ID'),
 
         // Temporary manual mode: while the SMS credit is unpaid, no SMS is
         // sent and this fixed code is what every user types on the OTP screen.

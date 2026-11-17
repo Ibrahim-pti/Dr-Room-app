@@ -170,6 +170,81 @@ class OtpService
     }
 
     /**
+     * Send a custom SMS/WhatsApp notification message via otpiq.com.
+     */
+    public static function sendCustomMessage(
+        string $phone,
+        string $message,
+        ?string $provider = null,
+        ?string &$errorMessage = null
+    ): bool {
+        $apiKey = config('services.otpiq.key') ?: env('OTPIQ_API_KEY');
+        if (empty($apiKey)) {
+            $errorMessage = 'کلیلی OTPIQ دیاری نەکراوە.';
+            Log::warning('OTPIQ custom message skipped: missing OTPIQ_API_KEY');
+            return false;
+        }
+
+        $localPhone = self::toLocalPhone($phone);
+        if (in_array($localPhone, ['07500000000', '07501112222'], true)) {
+            return true;
+        }
+
+        $validProviders = ['auto', 'sms', 'whatsapp', 'telegram'];
+        $rawProvider = $provider ?: (config('services.otpiq.provider') ?: 'sms');
+        $chosenProvider = in_array(strtolower($rawProvider), $validProviders, true)
+            ? strtolower($rawProvider)
+            : 'sms';
+
+        $iraqPhone = self::toIraqPhone($phone);
+        $payload = [
+            'phoneNumber' => $iraqPhone,
+            'smsType' => 'custom',
+            'provider' => $chosenProvider,
+            'customMessage' => $message,
+        ];
+
+        $senderId = config('services.otpiq.sender_id');
+        if (!empty($senderId)) {
+            $payload['senderId'] = $senderId;
+        }
+
+        try {
+            $response = Http::withToken($apiKey)
+                ->timeout(10)
+                ->post('https://api.otpiq.com/api/sms', $payload);
+
+            if (!$response->successful()) {
+                $rawError = $response->json('error') ?? $response->json('message') ?? $response->body();
+                Log::error('OTPIQ custom message API error', [
+                    'status' => $response->status(),
+                    'response' => $response->json() ?? $response->body(),
+                    'phone' => $iraqPhone,
+                    'provider' => $chosenProvider,
+                ]);
+                $errorMessage = is_string($rawError) && $rawError !== ''
+                    ? $rawError
+                    : 'هەڵەی سێرڤەری کورتەنامە (OTPIQ)';
+                return false;
+            }
+
+            Log::info('OTPIQ custom message sent successfully', [
+                'phone' => $iraqPhone,
+                'provider' => $chosenProvider,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('OTPIQ custom message exception: ' . $e->getMessage(), [
+                'phone' => $iraqPhone,
+                'provider' => $chosenProvider,
+            ]);
+            $errorMessage = 'نەتوانرا پەیوەندی بە سێرڤەری کورتەنامە (OTPIQ) بکرێت.';
+            return false;
+        }
+    }
+
+    /**
      * Verify OTP code for a user.
      */
     public static function verifyOtp(User $user, string $otpCode): bool

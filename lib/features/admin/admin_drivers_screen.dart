@@ -194,7 +194,17 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
       final res = await ApiClient.patch('/admin/drivers/${d['id']}/approve');
       if (!mounted) return;
       if (res.statusCode == 200) {
-        AdminUi.toast(context, 'کارمەندی گەیاندن پەسەندکرا');
+        bool smsSent = false;
+        try {
+          final body = jsonDecode(res.body);
+          if (body is Map) smsSent = body['sms_sent'] == true;
+        } catch (_) {}
+        AdminUi.toast(
+          context,
+          smsSent
+              ? 'کارمەندی گەیاندن پەسەندکرا و نامەی ئاگادارکردنەوە نێردرا'
+              : 'کارمەندی گەیاندن پەسەندکرا',
+        );
         _loadAll();
       } else {
         AdminUi.toast(context, AdminUi.readError(res), isError: true);

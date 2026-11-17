@@ -22,7 +22,7 @@ class AdminExpenseController extends Controller
             $query->whereMonth('expense_date', $request->month)
                   ->whereYear('expense_date', $request->year);
         }
-
+      
         $expenses = $query->orderBy('expense_date', 'desc')->paginate(20);
 
         return response()->json([
@@ -30,6 +30,8 @@ class AdminExpenseController extends Controller
             'data' => $expenses,
         ]);
     }
+
+    
 
     public function store(Request $request)
     {

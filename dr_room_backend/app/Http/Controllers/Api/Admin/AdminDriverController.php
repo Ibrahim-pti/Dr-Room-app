@@ -240,8 +240,24 @@ class AdminDriverController extends Controller
             app(FcmService::class)->sendToUsers([$user->id], $title, $msg, ['type' => 'driver_approved']);
         } catch (\Throwable $e) {}
 
+        $smsSent = false;
+        $smsError = null;
+        try {
+            $smsText = "سڵاو {$user->name}، پیرۆزە! هەژماری کارمەندی گەیاندنەکەت لە DrRoom پەسەندکرا. ئێستا دەتوانیت بە ژمارەی مۆبایل و وشەی تێپەڕەکەت بچیتە ناو ئەپەکە.";
+            $smsSent = OtpService::sendCustomMessage(
+                (string) $user->phone,
+                $smsText,
+                null,
+                $smsError
+            );
+        } catch (\Throwable $e) {
+            $smsError = $e->getMessage();
+        }
+
         return response()->json([
             'message' => 'کارمەندی گەیاندن پەسەندکرا',
+            'sms_sent' => $smsSent,
+            'sms_error' => $smsSent ? null : $smsError,
             'user' => $user->load('driver'),
         ]);
     }
