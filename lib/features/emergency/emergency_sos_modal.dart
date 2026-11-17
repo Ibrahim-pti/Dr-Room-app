@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/utils/api_client.dart';
-import '../first_aid/first_aid_screen.dart';
 
 class EmergencySosModal {
   static void show(BuildContext context) {
@@ -299,60 +298,6 @@ class _EmergencySosSheetState extends State<_EmergencySosSheet> {
                         ),
                       );
                     }),
-
-                  const SizedBox(height: 6),
-
-                  // First-Aid Guide Banner Button
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FirstAidScreen(showBackButton: true),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.medical_services_outlined, color: Color(0xFF3B82F6), size: 22),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'ڕێبەری فریاگوزاریی سەرەتایی (First-Aid)',
-                                  style: _kStyle(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF2563EB),
-                                  ),
-                                ),
-                                Text(
-                                  'emergency_guide_sub'.tr(),
-                                  style: _kStyle(
-                                    fontSize: 11.5,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.arrow_forward_ios, color: Color(0xFF3B82F6), size: 14),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
