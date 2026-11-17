@@ -540,7 +540,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 controller: _phoneController,
                                 keyboardType: TextInputType.phone,
                                 textDirection: TextDirection.ltr,
-                                textAlign: TextAlign.start,
+                                textAlign: Directionality.of(context) == TextDirection.rtl
+                                    ? TextAlign.right
+                                    : TextAlign.left,
                                 onChanged: (_) {
                                   if (_phoneError != null) {
                                     setState(() => _phoneError = null);
@@ -558,13 +560,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ? Colors.white
                                       : const Color(0xFF0F172A),
                                 ),
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: '\u200E0750 000 0000',
-                                  hintStyle: TextStyle(
+                                  hintTextDirection: Directionality.of(context),
+                                  hintStyle: const TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 14,
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(
+                                  contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 14,
                                   ),
                                   border: InputBorder.none,
@@ -619,7 +622,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           obscureText: _obscurePassword,
                           keyboardType: TextInputType.visiblePassword,
                           textDirection: TextDirection.ltr,
-                          textAlign: TextAlign.start,
+                          textAlign: Directionality.of(context) == TextDirection.rtl
+                              ? TextAlign.right
+                              : TextAlign.left,
                           autocorrect: false,
                           enableSuggestions: false,
                           inputFormatters: [
@@ -641,6 +646,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           decoration: InputDecoration(
                             hintText: '••••••••',
+                            hintTextDirection: Directionality.of(context),
                             hintStyle: const TextStyle(
                               color: Color(0xFF94A3B8),
                               fontSize: 14,
@@ -715,7 +721,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           obscureText: _obscureConfirmPassword,
                           keyboardType: TextInputType.visiblePassword,
                           textDirection: TextDirection.ltr,
-                          textAlign: TextAlign.start,
+                          textAlign: Directionality.of(context) == TextDirection.rtl
+                              ? TextAlign.right
+                              : TextAlign.left,
                           autocorrect: false,
                           enableSuggestions: false,
                           inputFormatters: [
@@ -737,6 +745,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           decoration: InputDecoration(
                             hintText: '••••••••',
+                            hintTextDirection: Directionality.of(context),
                             hintStyle: const TextStyle(
                               color: Color(0xFF94A3B8),
                               fontSize: 14,

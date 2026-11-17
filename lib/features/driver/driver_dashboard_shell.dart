@@ -1095,7 +1095,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               children: [
                 Text(
                   driverName,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: 'Rabar',
@@ -1104,39 +1104,54 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     color: AppColors.getTextTitle(context),
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: dutyColor,
-                        shape: BoxShape.circle,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: dutyColor,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
                     Flexible(
-                      child: Text(
-                        '$dutyLabel · ${_applicantRoleLabel(roleCode)}',
-                        maxLines: 1,
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text:
+                                  '$dutyLabel · ${_applicantRoleLabel(roleCode)}',
+                            ),
+                            if (_lastGpsSentAt != null && isOnline) ...[
+                              const TextSpan(text: '  '),
+                              const WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Icon(
+                                  Iconsax.gps,
+                                  size: 12,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: 'Rabar',
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
+                          height: 1.35,
                           color: dutyColor,
                         ),
                       ),
                     ),
-                    if (_lastGpsSentAt != null && isOnline) ...[
-                      const SizedBox(width: 6),
-                      const Icon(
-                        Iconsax.gps,
-                        size: 12,
-                        color: Color(0xFF10B981),
-                      ),
-                    ],
                   ],
                 ),
               ],

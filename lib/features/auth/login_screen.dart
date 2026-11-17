@@ -580,7 +580,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   controller: resetPhoneController,
                                   keyboardType: TextInputType.phone,
                                   textDirection: TextDirection.ltr,
-                                  textAlign: TextAlign.start,
+                                  textAlign: Directionality.of(context) == TextDirection.rtl
+                                      ? TextAlign.right
+                                      : TextAlign.left,
                                   inputFormatters: [
                                     FilteringTextInputFormatter.digitsOnly,
                                     LengthLimitingTextInputFormatter(11),
@@ -593,13 +595,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ? Colors.white
                                         : const Color(0xFF0F172A),
                                   ),
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     hintText: '\u200E0750 000 0000',
-                                    hintStyle: TextStyle(
+                                    hintTextDirection: Directionality.of(context),
+                                    hintStyle: const TextStyle(
                                       color: Color(0xFF94A3B8),
                                       fontSize: 14,
                                     ),
-                                    contentPadding: EdgeInsets.symmetric(
+                                    contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 14,
                                     ),
                                     border: InputBorder.none,
@@ -807,7 +810,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             obscureText: obscureNew,
                             keyboardType: TextInputType.visiblePassword,
                             textDirection: TextDirection.ltr,
-                            textAlign: TextAlign.start,
+                            textAlign: Directionality.of(context) == TextDirection.rtl
+                                ? TextAlign.right
+                                : TextAlign.left,
                             autocorrect: false,
                             enableSuggestions: false,
                             inputFormatters: [
@@ -822,6 +827,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             decoration: InputDecoration(
                               hintText: 'new_password_hint'.tr(),
+                              hintTextDirection: Directionality.of(context),
                               hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
                               prefixIcon: const Icon(Iconsax.lock, color: Color(0xFF2563EB)),
                               suffixIcon: IconButton(
@@ -850,7 +856,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             obscureText: obscureConfirm,
                             keyboardType: TextInputType.visiblePassword,
                             textDirection: TextDirection.ltr,
-                            textAlign: TextAlign.start,
+                            textAlign: Directionality.of(context) == TextDirection.rtl
+                                ? TextAlign.right
+                                : TextAlign.left,
                             autocorrect: false,
                             enableSuggestions: false,
                             inputFormatters: [
@@ -865,6 +873,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             decoration: InputDecoration(
                               hintText: 'confirm_new_password_hint'.tr(),
+                              hintTextDirection: Directionality.of(context),
                               hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
                               prefixIcon: const Icon(Iconsax.lock, color: Color(0xFF2563EB)),
                               suffixIcon: IconButton(
@@ -1230,7 +1239,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _phoneController,
                                 keyboardType: TextInputType.phone,
                                 textDirection: TextDirection.ltr,
-                                textAlign: TextAlign.start,
+                                textAlign: Directionality.of(context) == TextDirection.rtl
+                                    ? TextAlign.right
+                                    : TextAlign.left,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
                                   LengthLimitingTextInputFormatter(11),
@@ -1243,13 +1254,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ? Colors.white
                                       : const Color(0xFF0F172A),
                                 ),
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: '\u200E0750 000 0000',
-                                  hintStyle: TextStyle(
+                                  hintTextDirection: Directionality.of(context),
+                                  hintStyle: const TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 14,
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(
+                                  contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 14,
                                   ),
                                   border: InputBorder.none,
@@ -1304,7 +1316,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           obscureText: _obscurePassword,
                           keyboardType: TextInputType.visiblePassword,
                           textDirection: TextDirection.ltr,
-                          textAlign: TextAlign.start,
+                          textAlign: Directionality.of(context) == TextDirection.rtl
+                              ? TextAlign.right
+                              : TextAlign.left,
                           autocorrect: false,
                           enableSuggestions: false,
                           inputFormatters: [
@@ -1321,6 +1335,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           decoration: InputDecoration(
                             hintText: '••••••••',
+                            hintTextDirection: Directionality.of(context),
                             hintStyle: const TextStyle(
                               color: Color(0xFF94A3B8),
                               fontSize: 14,
