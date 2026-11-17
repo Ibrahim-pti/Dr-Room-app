@@ -208,7 +208,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
       _startPositionStream();
       if (_gpsTimer == null || !_gpsTimer!.isActive) {
         _sendCurrentGps();
-        _gpsTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+        _gpsTimer = Timer.periodic(const Duration(seconds: 3), (_) {
           if (mounted) _sendCurrentGps();
         });
       }
@@ -298,7 +298,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           )
         : 999.0;
 
-    if (elapsedSec >= 4 || movedSinceUpload >= 25.0) {
+    if (elapsedSec >= 3 || movedSinceUpload >= 5.0) {
       await _uploadLocationToServer(pos);
     }
   }
@@ -608,6 +608,8 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           _routeCacheSignature = null;
         });
         await _loadDashboard(silent: true);
+        _syncGpsTimerForDuty('busy');
+        _sendCurrentGps();
         await _refreshActiveRoute();
         if (mounted) {
           await _fitLiveRouteCamera(focusOrder: claimedOrder);
@@ -767,32 +769,6 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
       if (mounted) {
         _toast('نەتوانرا پەیوەندی بکرێت', isError: true);
       }
-    }
-  }
-
-  Future<void> _openMaps(
-    double? lat,
-    double? lng,
-    String fallbackAddress,
-  ) async {
-    Uri uri;
-    if (lat != null && lng != null) {
-      uri = Uri.parse(
-        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
-      );
-    } else if (fallbackAddress.trim().isNotEmpty) {
-      uri = Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(fallbackAddress)}',
-      );
-    } else {
-      _toast('شوێن لەسەر نەخشە تۆمارنەکراوە', isError: true);
-      return;
-    }
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      _toast('نەتوانرا نەخشە بکرێتەوە', isError: true);
     }
   }
 
@@ -2369,20 +2345,6 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                             Iconsax.call,
                             size: 18,
                             color: Color(0xFF10B981),
-                          ),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      if (nav.primaryTarget != null)
-                        IconButton(
-                          onPressed: () => _openMaps(
-                            nav.primaryTarget!.latitude,
-                            nav.primaryTarget!.longitude,
-                            nav.targetAddress,
-                          ),
-                          icon: const Icon(
-                            Iconsax.routing,
-                            size: 18,
-                            color: Color(0xFF2563EB),
                           ),
                           visualDensity: VisualDensity.compact,
                         ),

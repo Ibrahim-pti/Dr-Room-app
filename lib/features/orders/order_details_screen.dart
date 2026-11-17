@@ -104,7 +104,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   void _startPolling() {
-    _pollingTimer = Timer.periodic(const Duration(milliseconds: 2500), (timer) async {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
       if (!mounted) return;
       await context.read<OrderProvider>().fetchOrders(silent: true);
 
@@ -116,11 +116,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
         final latChanged = updatedOrder.driverLat != _currentOrder.driverLat ||
             updatedOrder.driverLng != _currentOrder.driverLng;
+        final stageChanged = updatedOrder.deliveryStatus != _currentOrder.deliveryStatus;
 
         if (updatedOrder.status != _currentOrder.status ||
             updatedOrder.statusLabelCkb != _currentOrder.statusLabelCkb ||
             updatedOrder.assignedNurseId != _currentOrder.assignedNurseId ||
-            updatedOrder.deliveryStatus != _currentOrder.deliveryStatus ||
+            stageChanged ||
             updatedOrder.assignedDriverId != _currentOrder.assignedDriverId ||
             updatedOrder.estimatedDurationMinutes != _currentOrder.estimatedDurationMinutes ||
             updatedOrder.estimatedReadyAt != _currentOrder.estimatedReadyAt ||
@@ -137,7 +138,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               updatedOrder.driverLat!,
               updatedOrder.driverLng!,
             );
-            if (moved >= 4.0) {
+            if (moved >= 3.0) {
               nextHeading = LiveRouteService.calculateBearing(
                 LatLng(_currentOrder.driverLat!, _currentOrder.driverLng!),
                 LatLng(updatedOrder.driverLat!, updatedOrder.driverLng!),
@@ -151,7 +152,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           });
           _refreshTrackingRoute();
           if (updatedOrder.driverLat != null &&
-              updatedOrder.driverLng != null) {
+              updatedOrder.driverLng != null &&
+              (!_hasFittedDriverMap || stageChanged)) {
+            _hasFittedDriverMap = true;
             _fitTrackingMapCamera();
           }
         }
@@ -173,12 +176,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final pickupPos = (pkLat != null && pkLng != null) ? LatLng(pkLat, pkLng) : null;
 
     final stage = (_currentOrder.deliveryStatus ?? 'assigned').toLowerCase();
-    final targetPos = (!_currentOrder.isLab &&
-            (stage == 'assigned' || stage == 'accepted') &&
+    final targetPos = (_currentOrder.isLab &&
+            stage == 'picked_up' &&
             pickupPos != null)
         ? pickupPos
-        : (patientPos ?? pickupPos);
-    final secondaryPos = (targetPos == pickupPos && patientPos != null)
+        : ((!_currentOrder.isLab &&
+                (stage == 'assigned' || stage == 'accepted') &&
+                pickupPos != null)
+            ? pickupPos
+            : (patientPos ?? pickupPos));
+    final secondaryPos = (targetPos == pickupPos &&
+            !_currentOrder.isLab &&
+            patientPos != null)
         ? patientPos
         : null;
 
@@ -338,12 +347,23 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         stage != 'delivered';
 
     double? targetDistMeters = _trackingRoute?.distanceMeters;
+    final activeDestLat = (_currentOrder.isLab && stage == 'picked_up' && pkLat != null)
+        ? pkLat
+        : pLat;
+    final activeDestLng = (_currentOrder.isLab && stage == 'picked_up' && pkLng != null)
+        ? pkLng
+        : pLng;
     if (targetDistMeters == null &&
         dLat != null &&
         dLng != null &&
-        pLat != null &&
-        pLng != null) {
-      targetDistMeters = Geolocator.distanceBetween(dLat, dLng, pLat, pLng);
+        activeDestLat != null &&
+        activeDestLng != null) {
+      targetDistMeters = Geolocator.distanceBetween(
+        dLat,
+        dLng,
+        activeDestLat,
+        activeDestLng,
+      );
     }
 
     final proximity = LiveRouteService.describeProximity(
@@ -437,12 +457,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     final stageOrder = ['accepted', 'picked_up', 'on_the_way', 'arrived', 'delivered'];
     final currentIdx = stageOrder.indexOf(stage).clamp(0, 4);
-    final stageChips = switch (lang) {
-      'en' => const ['Accepted', 'Picked up', 'On the way', 'Arrived'],
-      'ar' => const ['مقبول', 'تم الاستلام', 'في الطريق', 'وصل'],
-      'kmr' => const ['وەرگرت', 'ئامادە', 'د ڕێکێدا', 'گەهشت'],
-      _ => const ['قبوڵکرا', 'وەرگیرا', 'لە ڕێگادا', 'گەیشت'],
-    };
+    final stageChips = _currentOrder.isLab
+        ? switch (lang) {
+            'en' => const ['Accepted', 'Sample Taken', 'To Lab', 'At Lab'],
+            'ar' => const ['مقبول', 'أُخذت العينة', 'للمختبر', 'وصل'],
+            'kmr' => const ['وەرگرت', 'نموونە وەرگیرا', 'بەرەڤ تاقیگەهێ', 'گەهشت'],
+            _ => const ['قبوڵکرا', 'نموونە وەرگیرا', 'بەرەو تاقیگە', 'گەیەنرا'],
+          }
+        : switch (lang) {
+            'en' => const ['Accepted', 'Picked up', 'On the way', 'Arrived'],
+            'ar' => const ['مقبول', 'تم الاستلام', 'في الطريق', 'وصل'],
+            'kmr' => const ['وەرگرت', 'ئامادە', 'د ڕێکێدا', 'گەهشت'],
+            _ => const ['قبوڵکرا', 'وەرگیرا', 'لە ڕێگادا', 'گەیشت'],
+          };
 
     final initialTarget = (dLat != null && dLng != null)
         ? LatLng(dLat, dLng)
@@ -508,8 +535,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       RegExp(r'[^0-9+]'),
                       '',
                     );
-                    final uri = Uri.parse('tel:$clean');
-                    if (await canLaunchUrl(uri)) await launchUrl(uri);
+                    final uri = Uri(scheme: 'tel', path: clean);
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
                   },
                   icon: const Icon(Iconsax.call, size: 18, color: Colors.white),
                   style: IconButton.styleFrom(

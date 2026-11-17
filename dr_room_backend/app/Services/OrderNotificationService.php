@@ -287,12 +287,12 @@ class OrderNotificationService
                 "Your driver has accepted order {$orderNumber}.",
             ],
             'picked_up' => $isLab ? [
-                'نموونەی خوێن وەرگیرا 🧪',
-                "نموونەی پشکنین بۆ داواکاری {$orderNumber} وەرگیرا و دەگەیەنرێتە تاقیگە.",
-                'تم استلام العينة 🧪',
-                "تم أخذ العينة المخبرية للطلب {$orderNumber} وجاري نقلها للمختبر.",
+                'نموونەکەت وەرگیرا 🧪',
+                "نموونەی پشکنین بۆ داواکاری {$orderNumber} وەرگیرا و دەگەیەنرێتە تاقیگە؛ تکایە چاوەڕێی ئەنجام بە.",
+                'تم أخذ العينة بنجاح 🧪',
+                "تم استلام عينة الفحص للطلب {$orderNumber} وجاري نقلها للمختبر، يرجى الانتظار لحين صدور النتيجة.",
                 'Sample Collected 🧪',
-                "Sample for order {$orderNumber} has been collected for delivery to the lab.",
+                "Sample for order {$orderNumber} has been collected and is heading to the lab. Please wait for your results.",
             ] : [
                 'دەرمانەکان لە دەرمانخانە وەرگیران 💊',
                 "کارمەندی گەیاندن داواکاری {$orderNumber}ی لە دەرمانخانە وەرگرت.",
@@ -319,11 +319,11 @@ class OrderNotificationService
             ],
             'delivered' => $isLab ? [
                 'نموونە گەیەنرایە تاقیگە 🎉',
-                "نموونەی داواکاری {$orderNumber} بە سەلامەتی گەیشتە تاقیگە و بە زوویی ئەنجام دەردەچێت.",
+                "نموونەی داواکاری {$orderNumber} بە سەلامەتی گەیشتە تاقیگە؛ تکایە چاوەڕێ بە تا ئەنجام دەردەچێت.",
                 'وصلت العينة إلى المختبر 🎉',
-                "تم تسليم العينة للطلب {$orderNumber} إلى المختبر بنجاح.",
+                "تم تسليم عينة الطلب {$orderNumber} إلى المختبر بنجاح، يرجى انتظار النتائج.",
                 'Sample Delivered to Lab 🎉',
-                "Sample for order {$orderNumber} was delivered to the lab.",
+                "Sample for order {$orderNumber} arrived at the lab. Please wait while your results are prepared.",
             ] : [
                 'داواکاری گەیەنرا و ڕادەستکرا 🎉',
                 "داواکاری {$orderNumber} بە سەرکەوتوویی ڕادەست کرا. هیوای تەندروستی باش.",

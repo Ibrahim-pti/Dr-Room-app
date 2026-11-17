@@ -218,12 +218,14 @@ class LiveRouteService {
   }) {
     final normalized = stage.toLowerCase();
     final l = lang.toLowerCase();
-    final distStr = distanceMeters != null
-        ? (distanceMeters < 1000
-              ? '${(distanceMeters / 10).round() * 10} ${l == 'en' ? 'm' : 'م'}'
-              : '${(distanceMeters / 1000).toStringAsFixed(1)} ${l == 'en' ? 'km' : (l == 'ar' ? 'كم' : 'کم')}')
+    final validDistance =
+        distanceMeters != null && distanceMeters <= 150000 ? distanceMeters : null;
+    final distStr = validDistance != null
+        ? (validDistance < 1000
+              ? '${(validDistance / 10).round() * 10} ${l == 'en' ? 'm' : 'م'}'
+              : '${(validDistance / 1000).toStringAsFixed(1)} ${l == 'en' ? 'km' : (l == 'ar' ? 'كم' : 'کم')}')
         : '';
-    final etaStr = etaMinutes != null
+    final etaStr = (validDistance != null && etaMinutes != null)
         ? (l == 'en'
               ? '~$etaMinutes min'
               : (l == 'ar' ? '~$etaMinutes د' : '~$etaMinutes خولەک'))
@@ -254,19 +256,39 @@ class LiveRouteService {
     if (normalized == 'delivered') {
       return LiveProximityInfo(
         headline: switch (l) {
-          'ar' => 'تم التسليم بنجاح ✅',
-          'en' => 'Delivered successfully ✅',
-          'kmr' => 'گەهاندن تمام بوو ✅',
-          _ => 'بە سەرکەوتوویی ڕادەستکرا ✅',
+          'ar' => isLab ? 'وصلت العينة إلى المختبر، يرجى الانتظار ✅' : 'تم التسليم بنجاح ✅',
+          'en' => isLab ? 'Sample at lab, please wait for results ✅' : 'Delivered successfully ✅',
+          'kmr' => isLab ? 'نموونە گەهشتە تاقیگەهێ، چاڤەڕێی ئەنجامی بە ✅' : 'گەهاندن تمام بوو ✅',
+          _ => isLab ? 'نموونە گەیەنرایە تاقیگە، تکایە چاوەڕێی ئەنجام بە ✅' : 'بە سەرکەوتوویی ڕادەستکرا ✅',
         },
         detail: '',
         color: const Color(0xFF10B981),
       );
     }
 
-    if (distanceMeters != null &&
-        (normalized == 'on_the_way' || normalized == 'picked_up' || normalized == 'accepted')) {
-      if (distanceMeters <= 150) {
+    if (isLab && normalized == 'picked_up') {
+      return LiveProximityInfo(
+        headline: switch (l) {
+          'ar' => 'تم أخذ العينة، يرجى الانتظار 🧪',
+          'en' => 'Sample collected, please wait 🧪',
+          'kmr' => 'نموونە هاتە وەرگرتن، چاڤەڕێ بە 🧪',
+          _ => 'نموونە وەرگیرا، تکایە چاوەڕێ بە 🧪',
+        },
+        detail: telemetry.isNotEmpty
+            ? telemetry
+            : switch (l) {
+                'ar' => 'جاري توصيلها للمختبر',
+                'en' => 'On the way to the lab',
+                'kmr' => 'بەرەڤ تاقیگەهێ دهێتە برن',
+                _ => 'بەرەو تاقیگە دەگەیەنرێت',
+              },
+        color: const Color(0xFF8B5CF6),
+      );
+    }
+
+    if (validDistance != null &&
+        (normalized == 'on_the_way' || normalized == 'accepted' || (!isLab && normalized == 'picked_up'))) {
+      if (validDistance <= 150) {
         return LiveProximityInfo(
           headline: switch (l) {
             'ar' => 'وصل عند الموقع تقريباً! 📍',
@@ -279,7 +301,7 @@ class LiveRouteService {
           isUrgentClose: true,
         );
       }
-      if (distanceMeters <= 550) {
+      if (validDistance <= 550) {
         return LiveProximityInfo(
           headline: switch (l) {
             'ar' => 'قريب جداً منك! استعد للاستلام ⚡',
@@ -292,7 +314,7 @@ class LiveRouteService {
           isUrgentClose: true,
         );
       }
-      if (distanceMeters <= 2500 && normalized == 'on_the_way') {
+      if (validDistance <= 2500 && normalized == 'on_the_way') {
         return LiveProximityInfo(
           headline: switch (l) {
             'ar' => 'في طريقه إليك، سيصل قريباً 🛵',
@@ -314,10 +336,10 @@ class LiveRouteService {
         _ => isLab ? 'داواکاری قبوڵکرا · بەرەو لات دێت' : 'بەرەو دەرمانخانە دەڕوات بۆ وەرگرتن',
       },
       'picked_up' => switch (l) {
-        'ar' => isLab ? 'تم أخذ العينة المختبرية 🧪' : 'تم استلام الطلب من الصيدلية 💊',
-        'en' => isLab ? 'Sample collected 🧪' : 'Picked up from pharmacy 💊',
-        'kmr' => isLab ? 'نموونە هاتە وەرگرتن 🧪' : 'ژ دەرمانخانێ هاتە وەرگرتن 💊',
-        _ => isLab ? 'نموونەی خوێن وەرگیرا 🧪' : 'لە دەرمانخانە وەرگیرا 💊',
+        'ar' => isLab ? 'تم أخذ العينة، يرجى الانتظار 🧪' : 'تم استلام الطلب من الصيدلية 💊',
+        'en' => isLab ? 'Sample collected, please wait 🧪' : 'Picked up from pharmacy 💊',
+        'kmr' => isLab ? 'نموونە هاتە وەرگرتن، چاڤەڕێ بە 🧪' : 'ژ دەرمانخانێ هاتە وەرگرتن 💊',
+        _ => isLab ? 'نموونە وەرگیرا، تکایە چاوەڕێ بە 🧪' : 'لە دەرمانخانە وەرگیرا 💊',
       },
       'on_the_way' => switch (l) {
         'ar' => 'المندوب في الطريق الآن 🛵',
