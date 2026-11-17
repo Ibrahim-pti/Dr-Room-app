@@ -18,6 +18,7 @@ class Driver extends Model
         'last_location_at' => 'datetime',
         'completed_deliveries' => 'integer',
         'total_earnings' => 'float',
+        'earnings_reset_at' => 'datetime',
         'rating' => 'float',
         'experience_years' => 'integer',
         'clinical_skills' => 'array',
@@ -105,6 +106,90 @@ class Driver extends Model
         if ($driver->duty_status !== $nextDuty) {
             $driver->update(['duty_status' => $nextDuty]);
         }
+    }
+
+    /**
+     * Determine whether an order was paid in cash.
+     */
+    public static function isCashOrder(Order $order): bool
+    {
+        $method = strtolower(trim((string) ($order->payment_method ?? '')));
+        return $method === '' || str_contains($method, 'cash') || str_contains($method, 'کاش');
+    }
+
+    /**
+     * Determine whether a delivered order has already been settled/reset.
+     */
+    public function isOrderSettled(Order $order): bool
+    {
+        if (!$this->earnings_reset_at) {
+            return false;
+        }
+        $dt = $order->driver_delivered_at ?? $order->created_at;
+        return $dt ? $dt->lte($this->earnings_reset_at) : false;
+    }
+
+    /**
+     * Compute current-cycle (since last reset) and lifetime earnings/cash metrics.
+     */
+    public function calculateFinancialSummary(): array
+    {
+        $allDelivered = Order::where('assigned_driver_id', $this->user_id)
+            ->where(function ($q) {
+                $q->where('status', 'completed')
+                  ->orWhere('delivery_status', 'delivered');
+            })
+            ->orderByDesc('driver_delivered_at')
+            ->orderByDesc('id')
+            ->get([
+                'id',
+                'service_type',
+                'total_price',
+                'delivery_fee',
+                'extra_fee',
+                'payment_method',
+                'patient_details',
+                'driver_delivered_at',
+                'created_at',
+            ]);
+
+        $unsettled = $allDelivered->reject(fn (Order $o) => $this->isOrderSettled($o))->values();
+
+        $todayOrders = $unsettled->filter(function (Order $o) {
+            $dt = $o->driver_delivered_at ?? $o->created_at;
+            return $dt && $dt->isToday();
+        });
+
+        $monthOrders = $unsettled->filter(function (Order $o) {
+            $dt = $o->driver_delivered_at ?? $o->created_at;
+            return $dt && $dt->month === now()->month && $dt->year === now()->year;
+        });
+
+        $cashOrders = $unsettled->filter(fn (Order $o) => self::isCashOrder($o));
+        $cashTodayOrders = $todayOrders->filter(fn (Order $o) => self::isCashOrder($o));
+        $onlineOrders = $unsettled->reject(fn (Order $o) => self::isCashOrder($o));
+
+        $sumFee = static fn ($list): float => (float) $list->sum(fn (Order $o) => $o->resolveDeliveryFee());
+
+        return [
+            'earnings_reset_at' => $this->earnings_reset_at?->toIso8601String(),
+            'today_deliveries' => $todayOrders->count(),
+            'month_deliveries' => $monthOrders->count(),
+            'today_earnings' => $sumFee($todayOrders),
+            'total_deliveries' => $unsettled->count(),
+            'total_earnings' => $sumFee($unsettled),
+            'cash_today_count' => $cashTodayOrders->count(),
+            'cash_today_collected' => (float) $cashTodayOrders->sum('total_price'),
+            'cash_today_delivery_fee' => $sumFee($cashTodayOrders),
+            'cash_total_count' => $cashOrders->count(),
+            'cash_total_collected' => (float) $cashOrders->sum('total_price'),
+            'cash_total_delivery_fee' => $sumFee($cashOrders),
+            'online_total_count' => $onlineOrders->count(),
+            'online_total_delivery_fee' => $sumFee($onlineOrders),
+            'lifetime_deliveries' => $allDelivered->count(),
+            'lifetime_earnings' => $sumFee($allDelivered),
+            'lifetime_cash_collected' => (float) $allDelivered->filter(fn (Order $o) => self::isCashOrder($o))->sum('total_price'),
+        ];
     }
 }
 

@@ -78,6 +78,26 @@ class AdminDriverController extends Controller
                     'cv_url' => null,
                 ];
 
+                $finance = $d ? $d->calculateFinancialSummary() : [
+                    'earnings_reset_at' => null,
+                    'today_deliveries' => 0,
+                    'month_deliveries' => 0,
+                    'today_earnings' => 0.0,
+                    'total_deliveries' => 0,
+                    'total_earnings' => 0.0,
+                    'cash_today_count' => 0,
+                    'cash_today_collected' => 0.0,
+                    'cash_today_delivery_fee' => 0.0,
+                    'cash_total_count' => 0,
+                    'cash_total_collected' => 0.0,
+                    'cash_total_delivery_fee' => 0.0,
+                    'online_total_count' => 0,
+                    'online_total_delivery_fee' => 0.0,
+                    'lifetime_deliveries' => 0,
+                    'lifetime_earnings' => 0.0,
+                    'lifetime_cash_collected' => 0.0,
+                ];
+
                 return array_merge([
                     'id' => $u->id,
                     'driver_id' => $d?->id,
@@ -94,8 +114,8 @@ class AdminDriverController extends Controller
                     'current_lng' => $d?->current_lng,
                     'last_location_at' => $d?->last_location_at?->toIso8601String(),
                     'last_seen_seconds' => $d?->last_location_at ? now()->diffInSeconds($d->last_location_at) : null,
-                    'completed_deliveries' => (int) ($d?->completed_deliveries ?? 0),
-                    'total_earnings' => (float) ($d?->total_earnings ?? 0),
+                    'completed_deliveries' => $finance['total_deliveries'],
+                    'total_earnings' => $finance['total_earnings'],
                     'rating' => (float) ($d?->rating ?? 5.0),
                     'active_orders_count' => $activeOrders->count(),
                     'active_orders' => $activeOrders->map(fn ($o) => [
@@ -104,7 +124,7 @@ class AdminDriverController extends Controller
                         'delivery_status' => $o->delivery_status,
                     ])->values(),
                     'created_at' => $u->created_at?->format('Y-m-d H:i'),
-                ], $profile);
+                ], $profile, $finance);
             })
             ->values();
 
@@ -290,6 +310,103 @@ class AdminDriverController extends Controller
         return response()->json([
             'message' => $newStatus === 'blocked' ? 'کارمەند بلۆککرا' : 'کارمەند چالاککرایەوە',
             'status' => $newStatus,
+        ]);
+    }
+
+    public function show($id)
+    {
+        $user = User::where('role', 'driver')->with('driver')->findOrFail($id);
+        $driver = $user->driver ?: Driver::firstOrCreate(['user_id' => $user->id]);
+        $finance = $driver->calculateFinancialSummary();
+
+        $deliveredOrders = Order::where('assigned_driver_id', $user->id)
+            ->where(function ($q) {
+                $q->where('status', 'completed')
+                  ->orWhere('delivery_status', 'delivered');
+            })
+            ->with(['patient'])
+            ->orderByDesc('driver_delivered_at')
+            ->orderByDesc('id')
+            ->take(50)
+            ->get()
+            ->map(function (Order $o) use ($driver) {
+                $pd = is_array($o->patient_details)
+                    ? $o->patient_details
+                    : (json_decode((string) $o->patient_details, true) ?: []);
+                return [
+                    'id' => $o->id,
+                    'order_number' => '#' . $o->id,
+                    'service_type' => $o->service_type,
+                    'is_lab' => str_contains(strtolower((string) $o->service_type), 'lab'),
+                    'patient_name' => $pd['name'] ?? ($o->patient?->name ?? 'نەخۆش'),
+                    'total_price' => (float) $o->total_price,
+                    'delivery_fee' => $o->resolveDeliveryFee(),
+                    'payment_method' => $o->payment_method,
+                    'is_cash' => Driver::isCashOrder($o),
+                    'is_settled' => $driver->isOrderSettled($o),
+                    'delivered_at' => ($o->driver_delivered_at ?? $o->created_at)?->format('Y-m-d H:i'),
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'driver' => array_merge([
+                    'id' => $user->id,
+                    'driver_id' => $driver->id,
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'status' => $user->status,
+                    'city' => $driver->city ?? 'هەولێر',
+                    'vehicle_type' => $driver->vehicle_type ?? 'motorcycle',
+                    'plate_number' => $driver->plate_number,
+                    'service_scope' => $driver->service_scope ?? 'both',
+                    'duty_status' => $driver->duty_status ?? 'offline',
+                    'rating' => (float) ($driver->rating ?? 5.0),
+                    'created_at' => $user->created_at?->format('Y-m-d H:i'),
+                ], $driver->resolvedFieldProfile(), $finance),
+                'finance' => $finance,
+                'orders' => $deliveredOrders,
+            ],
+        ]);
+    }
+
+    public function resetEarnings($id)
+    {
+        $user = User::where('role', 'driver')->findOrFail($id);
+        $driver = Driver::firstOrCreate(['user_id' => $user->id]);
+        $before = $driver->calculateFinancialSummary();
+
+        $driver->update([
+            'earnings_reset_at' => now(),
+            'completed_deliveries' => 0,
+            'total_earnings' => 0,
+        ]);
+
+        try {
+            $title = 'حیسابی داهات و پارە سفرکرایەوە ✅';
+            $msg = 'ئەدمین حیسابی پارەی کاش و کرێی گەیاندنەکانتی پاکتاوکرد و سفرکردەوە.';
+            AppNotification::create([
+                'user_id' => $user->id,
+                'title' => $title,
+                'title_ar' => 'تمت تصفية الأرباح والمبالغ ✅',
+                'title_en' => 'Earnings & Cash Reset ✅',
+                'message' => $msg,
+                'message_ar' => 'قام المشرف بتصفية حسابات التوصيل والمبالغ النقدية الخاصة بك.',
+                'message_en' => 'Admin has settled and reset your cash & delivery earnings balance.',
+                'type' => 'system',
+                'is_read' => false,
+            ]);
+
+            app(FcmService::class)->sendToUsers([$user->id], $title, $msg, ['type' => 'driver_earnings_reset']);
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'success' => true,
+            'message' => 'داهات و پارەی کاشی کارمەند سفرکرایەوە',
+            'reset_before' => $before,
+            'finance' => $driver->fresh()->calculateFinancialSummary(),
         ]);
     }
 }

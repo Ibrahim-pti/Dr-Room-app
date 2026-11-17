@@ -272,6 +272,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Read access for dashboard, live fleet map, and order-dispatch driver picker
         Route::get('/drivers', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'index']);
         Route::get('/drivers/live-map', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'liveMap']);
+        Route::get('/drivers/{id}/profile', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'show']);
         Route::get('/recruitment-options', [\App\Http\Controllers\Api\Admin\RecruitmentOptionController::class, 'index']);
 
         // Orders
@@ -330,6 +331,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/drivers/{id}/approve', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'approve']);
         Route::patch('/drivers/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'reject']);
         Route::patch('/drivers/{id}/toggle-block', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'toggleBlock']);
+        Route::post('/drivers/{id}/reset-earnings', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'resetEarnings']);
 
         // Dynamic Step-2 recruitment options (education levels & clinical skills)
         Route::post('/recruitment-options/reorder', [\App\Http\Controllers\Api\Admin\RecruitmentOptionController::class, 'reorder']);

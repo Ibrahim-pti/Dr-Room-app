@@ -2456,22 +2456,57 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     final totalEarnings =
         double.tryParse('${_stats['total_earnings'] ?? 0}') ?? 0;
 
-    final cashTodayCount =
-        int.tryParse('${_stats['cash_today_count'] ?? 0}') ?? 0;
-    final cashTodayCollected =
-        double.tryParse('${_stats['cash_today_collected'] ?? 0}') ?? 0;
-    final cashTotalCount =
-        int.tryParse('${_stats['cash_total_count'] ?? 0}') ?? 0;
-    final cashTotalCollected =
-        double.tryParse('${_stats['cash_total_collected'] ?? 0}') ?? 0;
-    final cashTotalDeliveryFee =
-        double.tryParse('${_stats['cash_total_delivery_fee'] ?? 0}') ?? 0;
-    final onlineTotalCount =
-        int.tryParse('${_stats['online_total_count'] ?? 0}') ?? 0;
-    final onlineTotalDeliveryFee =
-        double.tryParse('${_stats['online_total_delivery_fee'] ?? 0}') ?? 0;
+    final hasServerCashStats = _stats.containsKey('cash_total_count');
+    final unsettledCompleted =
+        _completedOrders.where((o) => o['is_settled'] != true).toList();
+    final cashList = unsettledCompleted.where(_isCashPayment).toList();
+    final onlineList =
+        unsettledCompleted.where((o) => !_isCashPayment(o)).toList();
+    final now = DateTime.now();
+    final cashTodayList = cashList.where((o) {
+      final rawDt = (o['driver_delivered_at'] ?? o['created_at'])?.toString();
+      final dt = rawDt != null ? DateTime.tryParse(rawDt)?.toLocal() : null;
+      return dt != null &&
+          dt.year == now.year &&
+          dt.month == now.month &&
+          dt.day == now.day;
+    }).toList();
 
-    final filteredCompleted = _completedOrders.where((o) {
+    double sumField(List<dynamic> list, String key) {
+      return list.fold<double>(
+        0.0,
+        (sum, o) => sum + (double.tryParse('${o[key] ?? 0}') ?? 0.0),
+      );
+    }
+
+    final cashTodayCount = hasServerCashStats
+        ? (int.tryParse('${_stats['cash_today_count'] ?? 0}') ?? 0)
+        : cashTodayList.length;
+    final cashTodayCollected = hasServerCashStats
+        ? (double.tryParse('${_stats['cash_today_collected'] ?? 0}') ?? 0)
+        : sumField(cashTodayList, 'total_price');
+    final cashTotalCount = hasServerCashStats
+        ? (int.tryParse('${_stats['cash_total_count'] ?? 0}') ?? 0)
+        : cashList.length;
+    final cashTotalCollected = hasServerCashStats
+        ? (double.tryParse('${_stats['cash_total_collected'] ?? 0}') ?? 0)
+        : sumField(cashList, 'total_price');
+    final cashTotalDeliveryFee = hasServerCashStats
+        ? (double.tryParse('${_stats['cash_total_delivery_fee'] ?? 0}') ?? 0)
+        : sumField(cashList, 'delivery_fee');
+    final onlineTotalCount = hasServerCashStats
+        ? (int.tryParse('${_stats['online_total_count'] ?? 0}') ?? 0)
+        : onlineList.length;
+    final onlineTotalDeliveryFee = hasServerCashStats
+        ? (double.tryParse('${_stats['online_total_delivery_fee'] ?? 0}') ?? 0)
+        : sumField(onlineList, 'delivery_fee');
+
+    final resetAtRaw =
+        (_stats['earnings_reset_at'] ?? _driver['earnings_reset_at'])
+            ?.toString();
+    final resetAt = resetAtRaw != null ? DateTime.tryParse(resetAtRaw)?.toLocal() : null;
+
+    final filteredCompleted = unsettledCompleted.where((o) {
       if (_earningsFilter == 1) return _isCashPayment(o);
       if (_earningsFilter == 2) return !_isCashPayment(o);
       return true;
@@ -2482,6 +2517,40 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (resetAt != null) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Iconsax.tick_circle,
+                    size: 16,
+                    color: Color(0xFF2563EB),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'دواین سفرکردنەوە و پاکتاوکردن: ${intl.DateFormat('yyyy-MM-dd HH:mm').format(resetAt)}',
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           // Highlighted Cash Collected Card
           Container(
             padding: const EdgeInsets.all(16),
@@ -2649,16 +2718,16 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           // Filter Chips for Completed Earnings List
           Row(
             children: [
-              _buildEarningsFilterChip(0, 'هەمووی (${_completedOrders.length})'),
+              _buildEarningsFilterChip(0, 'هەمووی (${unsettledCompleted.length})'),
               const SizedBox(width: 8),
               _buildEarningsFilterChip(
                 1,
-                'کاش (${_completedOrders.where(_isCashPayment).length})',
+                'کاش (${unsettledCompleted.where(_isCashPayment).length})',
               ),
               const SizedBox(width: 8),
               _buildEarningsFilterChip(
                 2,
-                'ئۆنلاین (${_completedOrders.where((o) => !_isCashPayment(o)).length})',
+                'ئۆنلاین (${unsettledCompleted.where((o) => !_isCashPayment(o)).length})',
               ),
             ],
           ),

@@ -86,36 +86,7 @@ class DriverController extends Controller
             ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
             ->values();
 
-        $allDelivered = Order::where('assigned_driver_id', $user->id)
-            ->where(function ($q) {
-                $q->where('status', 'completed')
-                  ->orWhere('delivery_status', 'delivered');
-            })
-            ->get(['id', 'total_price', 'delivery_fee', 'payment_method', 'driver_delivered_at', 'created_at']);
-
-        $isCashOrder = static function ($o): bool {
-            $method = strtolower(trim((string) ($o->payment_method ?? '')));
-            return $method === '' || str_contains($method, 'cash') || str_contains($method, 'کاش');
-        };
-
-        $todayDeliveredOrders = $allDelivered->filter(function ($o) {
-            $dt = $o->driver_delivered_at ?? $o->created_at;
-            return $dt && $dt->isToday();
-        });
-
-        $monthDelivered = $allDelivered->filter(function ($o) {
-            $dt = $o->driver_delivered_at ?? $o->created_at;
-            return $dt && $dt->month === now()->month && $dt->year === now()->year;
-        })->count();
-
-        $todayDelivered = $todayDeliveredOrders->count();
-        $todayEarnings = (float) $todayDeliveredOrders->sum('delivery_fee');
-        $totalDeliveredCount = max($allDelivered->count(), (int) $driver->completed_deliveries);
-        $totalEarningsAmount = max((float) $driver->total_earnings, (float) $allDelivered->sum('delivery_fee'));
-
-        $cashOrders = $allDelivered->filter($isCashOrder);
-        $cashTodayOrders = $todayDeliveredOrders->filter($isCashOrder);
-        $onlineOrders = $allDelivered->reject($isCashOrder);
+        $finance = $driver->calculateFinancialSummary();
 
         $unreadNotifications = AppNotification::where('user_id', $user->id)
             ->where('is_read', false)
@@ -138,27 +109,15 @@ class DriverController extends Controller
                     'current_lng' => $driver->current_lng,
                     'last_location_at' => $driver->last_location_at?->toIso8601String(),
                     'rating' => (float) $driver->rating,
-                    'completed_deliveries' => $totalDeliveredCount,
-                    'total_earnings' => $totalEarningsAmount,
+                    'completed_deliveries' => $finance['total_deliveries'],
+                    'total_earnings' => $finance['total_earnings'],
+                    'earnings_reset_at' => $finance['earnings_reset_at'],
                 ], $driver->resolvedFieldProfile()),
-                'stats' => [
+                'stats' => array_merge([
                     'active_count' => $activeOrders->count(),
                     'available_count' => $availableOrders->count(),
-                    'today_deliveries' => $todayDelivered,
-                    'month_deliveries' => $monthDelivered,
-                    'today_earnings' => $todayEarnings,
-                    'total_deliveries' => $totalDeliveredCount,
-                    'total_earnings' => $totalEarningsAmount,
-                    'cash_today_count' => $cashTodayOrders->count(),
-                    'cash_today_collected' => (float) $cashTodayOrders->sum('total_price'),
-                    'cash_today_delivery_fee' => (float) $cashTodayOrders->sum('delivery_fee'),
-                    'cash_total_count' => $cashOrders->count(),
-                    'cash_total_collected' => (float) $cashOrders->sum('total_price'),
-                    'cash_total_delivery_fee' => (float) $cashOrders->sum('delivery_fee'),
-                    'online_total_count' => $onlineOrders->count(),
-                    'online_total_delivery_fee' => (float) $onlineOrders->sum('delivery_fee'),
                     'unread_notifications' => $unreadNotifications,
-                ],
+                ], $finance),
                 'active_orders' => $activeOrders,
                 'available_orders' => $availableOrders,
                 'completed_orders' => $completedOrders,
@@ -566,6 +525,7 @@ class DriverController extends Controller
             'driver_assigned_at' => $order->driver_assigned_at?->toIso8601String(),
             'driver_picked_up_at' => $order->driver_picked_up_at?->toIso8601String(),
             'driver_delivered_at' => $order->driver_delivered_at?->toIso8601String(),
+            'is_settled' => $viewerDriver ? $viewerDriver->isOrderSettled($order) : false,
             'created_at' => $order->created_at?->toIso8601String(),
             'pickup' => [
                 'name' => $pickupName,

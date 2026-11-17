@@ -1354,11 +1354,14 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     final phone = (d['phone'] ?? '').toString();
     final isBlocked = status == 'blocked' || status == 'rejected';
 
-    return Container(
-      decoration: AdminUi.cardDecoration,
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        children: [
+    return InkWell(
+      onTap: () => _openDriverProfileSheet(d),
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        decoration: AdminUi.cardDecoration,
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          children: [
           Row(
             children: [
               Container(
@@ -1439,6 +1442,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                 '${d['completed_deliveries'] ?? 0} ئەرک · ${_formatIqd(d['total_earnings'])}',
                 Iconsax.box_tick,
               ),
+              _tagChip(
+                'کاشی وەرگیراو: ${_formatIqd(d['cash_total_collected'] ?? 0)}',
+                Iconsax.money_recive,
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -1452,6 +1459,8 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                   color: Color(0xFF2563EB),
                 ),
                 tooltip: 'پەیوەندی',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
               ),
               IconButton(
                 onPressed: () => _openWhatsApp(phone),
@@ -1461,6 +1470,8 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                   color: Color(0xFF10B981),
                 ),
                 tooltip: 'واتسئاپ',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
               ),
               if (d['current_lat'] != null && d['current_lng'] != null)
                 TextButton.icon(
@@ -1479,19 +1490,43 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                       ),
                     );
                   },
-                  icon: const Icon(Iconsax.gps, size: 15),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(Iconsax.gps, size: 14),
                   label: Text(
                     _lastSeenText(d['last_seen_seconds']),
-                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 11),
+                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 10.5),
                   ),
                 ),
               const Spacer(),
+              TextButton.icon(
+                onPressed: () => _openDriverProfileSheet(d),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: const Icon(Iconsax.wallet_money, size: 15),
+                label: const Text(
+                  'داهات',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
               if (status == 'pending')
                 ElevatedButton(
                   onPressed: () => _approveDriver(d),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981),
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
                   child: const Text(
                     'پەسەندکردن',
@@ -1510,6 +1545,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                           ? const Color(0xFF10B981)
                           : const Color(0xFFEF4444),
                     ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
                   child: Text(
                     isBlocked ? 'چالاککردن' : 'بلۆککردن',
@@ -1520,6 +1556,586 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
           ),
         ],
       ),
+    ),
+    );
+  }
+
+  Future<void> _openDriverProfileSheet(dynamic d) async {
+    final driverId = d['id'];
+    if (driverId == null) return;
+
+    Map<String, dynamic>? profileData;
+    String? loadErr;
+    bool isLoading = true;
+    bool isResetting = false;
+    bool didLoad = false;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            Future<void> fetchProfile() async {
+              try {
+                final res = await ApiClient.get('/admin/drivers/$driverId/profile');
+                if (res.statusCode == 200) {
+                  final decoded = jsonDecode(res.body);
+                  setSheetState(() {
+                    profileData = Map<String, dynamic>.from(decoded['data'] ?? {});
+                    loadErr = null;
+                    isLoading = false;
+                  });
+                } else {
+                  setSheetState(() {
+                    loadErr = AdminUi.readError(res);
+                    isLoading = false;
+                  });
+                }
+              } catch (e) {
+                setSheetState(() {
+                  loadErr = '$e';
+                  isLoading = false;
+                });
+              }
+            }
+
+            if (!didLoad) {
+              didLoad = true;
+              fetchProfile();
+            }
+
+            Future<void> confirmAndReset(Map<String, dynamic> finance) async {
+              final cashTotal =
+                  double.tryParse('${finance['cash_total_collected'] ?? 0}') ?? 0;
+              final earningsTotal =
+                  double.tryParse('${finance['total_earnings'] ?? 0}') ?? 0;
+
+              final ok = await showDialog<bool>(
+                context: ctx,
+                builder: (dCtx) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  title: const Text(
+                    'سفرکردنەوەی پارە و داهات',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  content: Text(
+                    'دڵنیایت لە سفرکردنەوەی حیسابی ${d['name']}؟\n\n'
+                    '• پارەی کاشی وەرگیراو: ${_formatIqd(cashTotal)}\n'
+                    '• کرێی گەیاندن (داهات): ${_formatIqd(earningsTotal)}\n\n'
+                    'دوای سفرکردنەوە، لای ئەدمین و لای شۆفێرەکەش دەبێتەوە بە 0 د.ع.',
+                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dCtx, false),
+                      child: const Text(
+                        'پاشگەزبوونەوە',
+                        style: TextStyle(fontFamily: 'Rabar'),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(dCtx, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF4444),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text(
+                        'بەڵێ، سفر بکرێتەوە',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              if (ok != true) return;
+
+              setSheetState(() => isResetting = true);
+              try {
+                final res = await ApiClient.post(
+                  '/admin/drivers/$driverId/reset-earnings',
+                );
+                if (res.statusCode == 200) {
+                  if (mounted) {
+                    AdminUi.toast(
+                      context,
+                      'داهات و پارەی کاشی کارمەند سفرکرایەوە',
+                    );
+                  }
+                  await fetchProfile();
+                  await _loadAll();
+                } else if (mounted) {
+                  AdminUi.toast(context, AdminUi.readError(res), isError: true);
+                }
+              } catch (e) {
+                if (mounted) AdminUi.toast(context, '$e', isError: true);
+              } finally {
+                if (ctx.mounted) setSheetState(() => isResetting = false);
+              }
+            }
+
+            final driver = profileData?['driver'] is Map
+                ? Map<String, dynamic>.from(profileData!['driver'])
+                : Map<String, dynamic>.from(d);
+            final finance = profileData?['finance'] is Map
+                ? Map<String, dynamic>.from(profileData!['finance'])
+                : <String, dynamic>{};
+            final orders = profileData?['orders'] is List
+                ? List<dynamic>.from(profileData!['orders'])
+                : <dynamic>[];
+            final phone = (driver['phone'] ?? '').toString();
+            final resetAtRaw = finance['earnings_reset_at']?.toString();
+            final resetAt = resetAtRaw != null
+                ? DateTime.tryParse(resetAtRaw)?.toLocal()
+                : null;
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.85,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              builder: (_, scrollCtrl) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.getSurface(context),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      Container(
+                        width: 44,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    (driver['name'] ?? '').toString(),
+                                    style: AdminUi.title.copyWith(fontSize: 16),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${_applicantRoleLabel(driver['applicant_role']?.toString())} · ${driver['city'] ?? 'هەولێر'}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 11.5,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => _callPhone(phone),
+                              icon: const Icon(
+                                Iconsax.call,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => _openWhatsApp(phone),
+                              icon: const Icon(
+                                Iconsax.message,
+                                color: Color(0xFF10B981),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Expanded(
+                        child: isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : loadErr != null
+                            ? Center(
+                                child: Text(
+                                  loadErr!,
+                                  style: const TextStyle(fontFamily: 'Rabar'),
+                                ),
+                              )
+                            : ListView(
+                                controller: scrollCtrl,
+                                padding: const EdgeInsets.all(16),
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFF059669),
+                                          Color(0xFF10B981),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'کاشی وەرگیراو (ئەم خولە)',
+                                                style: TextStyle(
+                                                  fontFamily: 'Rabar',
+                                                  fontSize: 11,
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.9),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _formatIqd(
+                                                  finance['cash_total_collected'],
+                                                ),
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              Text(
+                                                '${finance['cash_total_count'] ?? 0} داواکاری کاش · ئەمڕۆ: ${_formatIqd(finance['cash_today_collected'])}',
+                                                style: TextStyle(
+                                                  fontFamily: 'Rabar',
+                                                  fontSize: 10.5,
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.85),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _profileStatBox(
+                                          'داهاتی ئەم خولە (${finance['total_deliveries'] ?? 0} کار)',
+                                          _formatIqd(finance['total_earnings']),
+                                          const Color(0xFF2563EB),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: _profileStatBox(
+                                          'داهاتی ئەمڕۆ (${finance['today_deliveries'] ?? 0} کار)',
+                                          _formatIqd(finance['today_earnings']),
+                                          const Color(0xFFF59E0B),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.getBackground(context),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: AppColors.getBorder(context),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        _profileRow(
+                                          'کارە کاشەکان',
+                                          '${finance['cash_total_count'] ?? 0} · کرێ: ${_formatIqd(finance['cash_total_delivery_fee'])}',
+                                        ),
+                                        const SizedBox(height: 6),
+                                        _profileRow(
+                                          'کارە ئۆنلاینەکان',
+                                          '${finance['online_total_count'] ?? 0} · کرێ: ${_formatIqd(finance['online_total_delivery_fee'])}',
+                                        ),
+                                        const SizedBox(height: 6),
+                                        _profileRow(
+                                          'کۆی گشتی مێژوویی',
+                                          '${finance['lifetime_deliveries'] ?? 0} کار · ${_formatIqd(finance['lifetime_earnings'])}',
+                                        ),
+                                        const SizedBox(height: 6),
+                                        _profileRow(
+                                          'دواین سفرکردنەوە',
+                                          resetAt != null
+                                              ? intl.DateFormat(
+                                                  'yyyy-MM-dd HH:mm',
+                                                ).format(resetAt)
+                                              : 'هێشتا سفر نەکراوەتەوە',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      onPressed: isResetting
+                                          ? null
+                                          : () => confirmAndReset(finance),
+                                      icon: isResetting
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Iconsax.refresh,
+                                              size: 18,
+                                            ),
+                                      label: const Text(
+                                        'سفرکردنەوەی پارە و داهات',
+                                        style: TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFFEF4444),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 13,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'تۆماری گەیاندنە تەواوبووەکان',
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (orders.isEmpty)
+                                    const Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 20),
+                                      child: Center(
+                                        child: Text(
+                                          'هیچ گەیاندنێکی تەواوبوو نییە',
+                                          style: TextStyle(
+                                            fontFamily: 'Rabar',
+                                            color: Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    ...orders.map((o) {
+                                      final isCash = o['is_cash'] == true;
+                                      final isSettled = o['is_settled'] == true;
+                                      return Container(
+                                        margin:
+                                            const EdgeInsets.only(bottom: 8),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              AppColors.getBackground(context),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: AppColors.getBorder(context),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  '${o['order_number'] ?? '#${o['id']}'} · ${o['patient_name'] ?? ''}',
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 12.5,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const Spacer(),
+                                                Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 2,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: (isSettled
+                                                            ? Colors.grey
+                                                            : (isCash
+                                                                ? const Color(
+                                                                    0xFF10B981,
+                                                                  )
+                                                                : const Color(
+                                                                    0xFF2563EB,
+                                                                  )))
+                                                        .withValues(alpha: 0.12),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                      6,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    isSettled
+                                                        ? 'سفرکراوە'
+                                                        : (isCash
+                                                            ? 'کاش'
+                                                            : 'ئۆنلاین'),
+                                                    style: TextStyle(
+                                                      fontFamily: 'Rabar',
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: isSettled
+                                                          ? Colors.grey.shade700
+                                                          : (isCash
+                                                              ? const Color(
+                                                                  0xFF059669,
+                                                                )
+                                                              : const Color(
+                                                                  0xFF2563EB,
+                                                                )),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  isCash
+                                                      ? 'وەرگیراو: ${_formatIqd(o['total_price'])}'
+                                                      : 'پسوڵە: ${_formatIqd(o['total_price'])}',
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 11.5,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'کرێ: ${_formatIqd(o['delivery_fee'])}',
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rabar',
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFF2563EB),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                ],
+                              ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _profileStatBox(String title, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 10.5,
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _profileRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 11.5,
+            color: Color(0xFF64748B),
+          ),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
