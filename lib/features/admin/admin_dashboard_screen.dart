@@ -11,17 +11,14 @@ import 'admin_analytics_screen.dart';
 import 'admin_articles_screen.dart';
 import 'admin_banners_screen.dart';
 import 'admin_coupons_screen.dart';
-import 'admin_doctors_screen.dart';
 import 'admin_drivers_screen.dart';
 import 'admin_labs_screen.dart';
 import 'admin_notifications_screen.dart';
 import 'admin_nurses_screen.dart';
 import 'admin_orders_screen.dart';
-import 'admin_patients_screen.dart';
 import 'admin_pharmacies_screen.dart';
 import 'admin_tickets_screen.dart';
 import 'admin_transactions_screen.dart';
-import 'admin_xrays_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -61,10 +58,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Directionality(
-          textDirection: TextDirection.rtl,
-          child: screen,
-        ),
+        builder: (context) =>
+            Directionality(textDirection: TextDirection.rtl, child: screen),
       ),
     );
   }
@@ -73,10 +68,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     if (_stats == null) return 0;
     final int nurses = int.tryParse('${_stats?['pending_nurses'] ?? 0}') ?? 0;
     final int labs = int.tryParse('${_stats?['pending_labs'] ?? 0}') ?? 0;
-    final int pharms = int.tryParse('${_stats?['pending_pharmacies'] ?? 0}') ?? 0;
+    final int pharms =
+        int.tryParse('${_stats?['pending_pharmacies'] ?? 0}') ?? 0;
     final int drivers = int.tryParse('${_stats?['pending_drivers'] ?? 0}') ?? 0;
     final int orders = int.tryParse('${_stats?['pending_orders'] ?? 0}') ?? 0;
-    final int openTickets = int.tryParse('${_stats?['open_tickets'] ?? 0}') ?? 0;
+    final int openTickets =
+        int.tryParse('${_stats?['open_tickets'] ?? 0}') ?? 0;
     return nurses + labs + pharms + drivers + orders + openTickets;
   }
 
@@ -149,7 +146,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.getBorder(context)),
               ),
-              child: const Icon(Iconsax.mobile, color: Color(0xFF3B82F6), size: 18),
+              child: const Icon(
+                Iconsax.mobile,
+                color: Color(0xFF3B82F6),
+                size: 18,
+              ),
             ),
             onPressed: () {
               Navigator.push(
@@ -170,9 +171,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: AppColors.getBorder(context)),
                   ),
-                  child: const Icon(Iconsax.message_question, color: Color(0xFF0F172A), size: 18),
+                  child: const Icon(
+                    Iconsax.message_question,
+                    color: Color(0xFF0F172A),
+                    size: 18,
+                  ),
                 ),
-                if ((_stats?['open_tickets'] ?? 0) > 0 || (_stats?['unread_ticket_messages'] ?? 0) > 0)
+                if ((_stats?['open_tickets'] ?? 0) > 0 ||
+                    (_stats?['unread_ticket_messages'] ?? 0) > 0)
                   Positioned(
                     top: -4,
                     right: -4,
@@ -182,7 +188,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         color: Color(0xFFEF4444),
                         shape: BoxShape.circle,
                       ),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
                       child: Center(
                         child: Text(
                           '${(_stats?['open_tickets'] ?? 0) > 0 ? _stats!['open_tickets'] : _stats!['unread_ticket_messages']}',
@@ -210,7 +219,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.getBorder(context)),
               ),
-              child: const Icon(Iconsax.notification, color: Color(0xFF0F172A), size: 18),
+              child: const Icon(
+                Iconsax.notification,
+                color: Color(0xFF0F172A),
+                size: 18,
+              ),
             ),
             onPressed: () => _openScreen(const AdminNotificationsScreen()),
           ),
@@ -240,21 +253,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 const SizedBox(height: 24),
 
                 // 3. Section Title: Essential Active Services
-                _buildSectionTitle('خزمەتگوزارییە سەرەکییەکان', 'بەڕێوەبردنی ڕۆژانە و داواکارییەکان'),
+                _buildSectionTitle(
+                  'خزمەتگوزارییە سەرەکییەکان',
+                  'بەڕێوەبردنی ڕۆژانە و داواکارییەکان',
+                ),
                 const SizedBox(height: 12),
                 _buildEssentialServicesGrid(),
                 const SizedBox(height: 24),
 
                 // 4. Section Title: Marketing & Management
-                _buildSectionTitle('ناوەڕۆک و دارایی', 'ڕیکلام، ئاگاداری، وتار و پارەدان'),
+                _buildSectionTitle(
+                  'ناوەڕۆک و دارایی',
+                  'ڕیکلام، ئاگاداری، وتار و پارەدان',
+                ),
                 const SizedBox(height: 12),
                 _buildManagementGrid(),
-                const SizedBox(height: 24),
-
-                // 5. Section Title: Coming Soon Services
-                _buildSectionTitle('خزمەتگوزارییەکانی داهاتوو', 'لە قۆناغی ئامادەکردندان'),
-                const SizedBox(height: 12),
-                _buildComingSoonRow(),
               ],
             ],
           ),
@@ -329,7 +342,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 color: Color(0xFFFDE68A),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Iconsax.warning_2, color: Color(0xFFB45309), size: 20),
+              child: const Icon(
+                Iconsax.warning_2,
+                color: Color(0xFFB45309),
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -379,35 +396,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     ).animate().fadeIn().slideY(begin: 0.05, end: 0);
   }
 
-  // ── 2. Key Stats Cards (Patients & Orders) ──
+  // ── 2. Key Stats Card (Orders) ──
   Widget _buildKeyStatsGrid() {
-    final totalPatients = '${_stats?['total_users'] ?? 0}';
     final totalOrders = '${_stats?['total_orders'] ?? 0}';
 
-    return Row(
-      children: [
-        Expanded(
-          child: _buildBigStatCard(
-            title: 'نەخۆشەکان',
-            value: totalPatients,
-            subtitle: 'بەکارهێنەرانی ئەپ',
-            icon: Iconsax.profile_2user,
-            color: const Color(0xFF0D9488),
-            onTap: () => _openScreen(const AdminPatientsScreen()),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildBigStatCard(
-            title: 'داواکارییەکان',
-            value: totalOrders,
-            subtitle: 'کۆی ئۆردەرەکان',
-            icon: Iconsax.box,
-            color: const Color(0xFFF59E0B),
-            onTap: () => _openScreen(const AdminOrdersScreen()),
-          ),
-        ),
-      ],
+    return SizedBox(
+      width: double.infinity,
+      child: _buildBigStatCard(
+        title: 'داواکارییەکان',
+        value: totalOrders,
+        subtitle: 'کۆی ئۆردەرەکان',
+        icon: Iconsax.box,
+        color: const Color(0xFFF59E0B),
+        onTap: () => _openScreen(const AdminOrdersScreen()),
+      ),
     ).animate().fadeIn().slideY(begin: 0.04, end: 0);
   }
 
@@ -452,7 +454,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     ),
                     child: Icon(icon, color: color, size: 18),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, size: 11, color: AppColors.getTextSubtitle(context)),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 11,
+                    color: AppColors.getTextSubtitle(context),
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -497,7 +503,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   // ── 3. Essential Active Services Grid (Large & Clean) ──
   Widget _buildEssentialServicesGrid() {
     final int openTickets = (_stats?['open_tickets'] ?? 0) as int;
-    final int unreadTicketMessages = (_stats?['unread_ticket_messages'] ?? 0) as int;
+    final int unreadTicketMessages =
+        (_stats?['unread_ticket_messages'] ?? 0) as int;
 
     final int pendingLabs = (_stats?['pending_labs'] ?? 0) as int;
     final int totalLabs = (_stats?['total_labs'] ?? 0) as int;
@@ -505,16 +512,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final int pendingNurses = (_stats?['pending_nurses'] ?? 0) as int;
     final int totalNurses = (_stats?['total_nurses'] ?? 0) as int;
 
-    final int pendingDrivers = int.tryParse('${_stats?['pending_drivers'] ?? 0}') ?? 0;
-    final int totalDrivers = int.tryParse('${_stats?['total_drivers'] ?? 0}') ?? 0;
-    final int onlineDrivers = int.tryParse('${_stats?['online_drivers'] ?? 0}') ?? 0;
-
-    final int totalUsers = (_stats?['total_users'] ?? 0) as int;
+    final int pendingDrivers =
+        int.tryParse('${_stats?['pending_drivers'] ?? 0}') ?? 0;
+    final int totalDrivers =
+        int.tryParse('${_stats?['total_drivers'] ?? 0}') ?? 0;
+    final int onlineDrivers =
+        int.tryParse('${_stats?['online_drivers'] ?? 0}') ?? 0;
 
     final List<Map<String, dynamic>> essentials = [
       {
         'title': 'سکاڵا و پشتیوانی',
-        'subtitle': openTickets > 0 ? '$openTickets تیکێتی کراوە' : 'پشتیوانی نەخۆش',
+        'subtitle': openTickets > 0
+            ? '$openTickets تیکێتی کراوە'
+            : 'پشتیوانی نەخۆش',
         'icon': Iconsax.message_question,
         'color': const Color(0xFFEC4899),
         'bg': const Color(0xFFFDF2F8),
@@ -549,15 +559,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'bg': const Color(0xFFF0F9FF),
         'badge': pendingLabs > 0 ? '$pendingLabs پەسەندکردن' : null,
         'screen': const AdminLabsScreen(),
-      },
-      {
-        'title': 'نەخۆشەکان',
-        'subtitle': '$totalUsers نەخۆش و بەکارهێنەر',
-        'icon': Iconsax.profile_2user,
-        'color': const Color(0xFF0D9488),
-        'bg': const Color(0xFFF0FDFA),
-        'badge': null,
-        'screen': const AdminPatientsScreen(),
       },
       {
         'title': 'کارمەندانی گەیاندن',
@@ -627,11 +628,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           color: bg,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(item['icon'] as IconData, color: color, size: 22),
+                        child: Icon(
+                          item['icon'] as IconData,
+                          color: color,
+                          size: 22,
+                        ),
                       ),
                       if (badge != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEF4444),
                             borderRadius: BorderRadius.circular(8),
@@ -735,7 +743,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               onTap: () => _openScreen(item['screen'] as Widget),
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.getBorder(context)),
@@ -748,7 +759,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         color: bg,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(item['icon'] as IconData, color: color, size: 22),
+                      child: Icon(
+                        item['icon'] as IconData,
+                        color: color,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -791,136 +806,39 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     ).animate().fadeIn(delay: 140.ms).slideY(begin: 0.04, end: 0);
   }
 
-  // ── 5. Coming Soon Services ──
-  Widget _buildComingSoonRow() {
-    final List<Map<String, dynamic>> comingSoon = [
-      {
-        'title': 'پزیشکەکان',
-        'icon': Iconsax.health,
-        'color': const Color(0xFF2563EB),
-        'bg': const Color(0xFFEFF6FF),
-        'screen': const AdminDoctorsScreen(),
-      },
-      {
-        'title': 'سەنتەری تیشک',
-        'icon': Iconsax.scan,
-        'color': const Color(0xFF6366F1),
-        'bg': const Color(0xFFEEF2FF),
-        'screen': const AdminXRaysScreen(),
-      },
-    ];
-
-    return Row(
-      children: comingSoon.map((item) {
-        final color = item['color'] as Color;
-        final bg = item['bg'] as Color;
-
-        return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            child: Material(
-              color: AppColors.getSurface(context),
-              borderRadius: BorderRadius.circular(16),
-              child: InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'خزمەتگوزاری ${item['title']} بەمزوانە بەردەست دەبێت',
-                        style: const TextStyle(fontFamily: 'Rabar'),
-                      ),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+  // ── Skeleton Shimmer Loading ──
+  Widget _buildLoadingShimmer() {
+    return Column(
+          children: [
+            Container(
+              height: 110,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.getSurface(context),
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            const SizedBox(height: 20),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.55,
+              children: List.generate(
+                6,
+                (index) => Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.getBorder(context)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: bg,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(item['icon'] as IconData, color: color, size: 18),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['title'] as String,
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.getTextTitle(context),
-                              ),
-                            ),
-                            const Text(
-                              'بەمزوانە',
-                              style: TextStyle(
-                                fontFamily: 'Rabar',
-                                fontSize: 10.5,
-                                color: Color(0xFF6366F1),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    color: AppColors.getSurface(context),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                 ),
               ),
             ),
-          ),
-        );
-      }).toList(),
-    ).animate().fadeIn(delay: 180.ms).slideY(begin: 0.04, end: 0);
-  }
-
-  // ── Skeleton Shimmer Loading ──
-  Widget _buildLoadingShimmer() {
-    return Column(
-      children: [
-        Container(
-          height: 110,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: AppColors.getSurface(context),
-            borderRadius: BorderRadius.circular(20),
-          ),
-        ),
-        const SizedBox(height: 20),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.55,
-          children: List.generate(
-            6,
-            (index) => Container(
-              decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
-                borderRadius: BorderRadius.circular(18),
-              ),
-            ),
-          ),
-        ),
-      ],
-    ).animate(onPlay: (controller) => controller.repeat()).shimmer(
-          duration: 1200.ms,
-          color: Colors.grey.withValues(alpha: 0.08),
-        );
+          ],
+        )
+        .animate(onPlay: (controller) => controller.repeat())
+        .shimmer(duration: 1200.ms, color: Colors.grey.withValues(alpha: 0.08));
   }
 }
