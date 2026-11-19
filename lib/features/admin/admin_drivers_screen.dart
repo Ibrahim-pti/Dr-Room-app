@@ -334,15 +334,29 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     _ => st ?? '-',
   };
 
-  void _previewOrOpenDoc(String title, String rawUrl) {
-    final url = rawUrl.trim();
-    if (url.isEmpty) return;
+  String _resolveMediaUrl(dynamic raw) {
+    final s = (raw ?? '').toString().trim();
+    if (s.isEmpty) return '';
+    var resolved = ApiClient.getImageUrl(s);
+    if (resolved.startsWith('http://sys.shaqamonline.org')) {
+      resolved = resolved.replaceFirst('http://', 'https://');
+    }
+    return resolved;
+  }
+
+  bool _isImageDocUrl(String url) {
     final lower = url.toLowerCase().split('?').first;
-    final isImage = lower.endsWith('.jpg') ||
+    return lower.endsWith('.jpg') ||
         lower.endsWith('.jpeg') ||
         lower.endsWith('.png') ||
-        lower.endsWith('.webp');
-    if (!isImage) {
+        lower.endsWith('.webp') ||
+        lower.endsWith('.gif');
+  }
+
+  void _previewOrOpenDoc(String title, String rawUrl) {
+    final url = _resolveMediaUrl(rawUrl);
+    if (url.isEmpty) return;
+    if (!_isImageDocUrl(url)) {
       _openDocUrl(url);
       return;
     }
@@ -2121,25 +2135,34 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     final docs = [
       (
         label: 'ناسنامە / کارتی نیشتمانی',
-        url: (driver['id_document_url'] ?? '').toString().trim(),
+        url: _resolveMediaUrl(
+          driver['id_document_url'] ?? driver['id_document_path'],
+        ),
         icon: Iconsax.personalcard,
       ),
       (
         label: 'بڕوانامە',
-        url: (driver['certificate_url'] ?? '').toString().trim(),
+        url: _resolveMediaUrl(
+          driver['certificate_url'] ?? driver['certificate_path'],
+        ),
         icon: Iconsax.teacher,
       ),
       (
         label: 'مۆڵەتی لێخوڕین',
-        url: (driver['license_url'] ?? '').toString().trim(),
+        url: _resolveMediaUrl(
+          driver['license_url'] ?? driver['license_path'],
+        ),
         icon: Iconsax.card,
       ),
       (
         label: 'سی ڤی (CV)',
-        url: (driver['cv_url'] ?? '').toString().trim(),
+        url: _resolveMediaUrl(
+          driver['cv_url'] ?? driver['cv_path'],
+        ),
         icon: Iconsax.document_text,
       ),
     ];
+    final hasAnyDoc = docs.any((doc) => doc.url.isNotEmpty);
 
     return ListView(
       controller: scrollCtrl,
@@ -2289,80 +2312,140 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
           title: 'بەڵگەنامە هاوپێچکراوەکانی وێبسایت',
           icon: Iconsax.folder_open,
           color: const Color(0xFFEA580C),
-          children: docs.map((doc) {
-            final hasUrl = doc.url.isNotEmpty;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-              decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: hasUrl
-                      ? const Color(0xFFFDBA74)
-                      : AppColors.getBorder(context),
+          children: [
+            if (!hasAnyDoc)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Text(
+                  'ئەم کارمەندە لە کاتی تۆمارکردن لە وێبسایت هیچ وێنە یان فایلێکی هاوپێچ نەکردووە.',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11,
+                    color: AppColors.getTextSubtitle(context),
+                  ),
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    doc.icon,
-                    size: 18,
+            ...docs.map((doc) {
+              final hasUrl = doc.url.isNotEmpty;
+              final isImage = hasUrl && _isImageDocUrl(doc.url);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                decoration: BoxDecoration(
+                  color: AppColors.getSurface(context),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
                     color: hasUrl
-                        ? const Color(0xFFEA580C)
-                        : const Color(0xFF94A3B8),
+                        ? const Color(0xFFFDBA74)
+                        : AppColors.getBorder(context),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      doc.label,
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.getTextTitle(context),
-                      ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          doc.icon,
+                          size: 18,
+                          color: hasUrl
+                              ? const Color(0xFFEA580C)
+                              : const Color(0xFF94A3B8),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            doc.label,
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.getTextTitle(context),
+                            ),
+                          ),
+                        ),
+                        if (hasUrl)
+                          TextButton.icon(
+                            onPressed: () =>
+                                _previewOrOpenDoc(doc.label, doc.url),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              backgroundColor: const Color(0xFFFFF3EB),
+                              foregroundColor: const Color(0xFFC2410C),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            icon: const Icon(Iconsax.eye, size: 14),
+                            label: const Text(
+                              'بینین',
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        else
+                          const Text(
+                            'هاوپێچ نەکراوە',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 11,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
-                  if (hasUrl)
-                    TextButton.icon(
-                      onPressed: () => _previewOrOpenDoc(doc.label, doc.url),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        backgroundColor: const Color(0xFFFFF3EB),
-                        foregroundColor: const Color(0xFFC2410C),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    if (isImage) ...[
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () => _previewOrOpenDoc(doc.label, doc.url),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            height: 140,
+                            color: AppColors.getBackground(context),
+                            child: Image.network(
+                              doc.url,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              loadingBuilder: (_, child, progress) {
+                                if (progress == null) return child;
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (_, _, _) => Center(
+                                child: TextButton.icon(
+                                  onPressed: () => _openDocUrl(doc.url),
+                                  icon: const Icon(Iconsax.export_1, size: 16),
+                                  label: const Text(
+                                    'کردنەوەی وێنە لە وێبگەڕ',
+                                    style: TextStyle(
+                                      fontFamily: 'Rabar',
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                      icon: const Icon(Iconsax.eye, size: 14),
-                      label: const Text(
-                        'بینین',
-                        style: TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                  else
-                    const Text(
-                      'هاوپێچ نەکراوە',
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 11,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }).toList(),
+                    ],
+                  ],
+                ),
+              );
+            }),
+          ],
         ),
         const SizedBox(height: 16),
       ],

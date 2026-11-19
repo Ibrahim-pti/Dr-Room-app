@@ -51,7 +51,11 @@ class Driver extends Model
             if (str_starts_with($path, 'http')) {
                 return $path;
             }
-            return asset('storage/' . ltrim($path, '/'));
+            $clean = ltrim($path, '/');
+            if (str_starts_with($clean, 'storage/')) {
+                $clean = substr($clean, 8);
+            }
+            return url('storage/' . $clean);
         };
 
         $idPath = $this->id_document_path ?? ($decodedNotes['id_document_path'] ?? null);
