@@ -192,31 +192,55 @@ class _AdminFeedbackScreenState extends State<AdminFeedbackScreen> {
             'ئامادەکردنی پرسیارەکان بۆ بەکارهێنەران (لە کردنەوەی ئەپ دەردەکەوێت)',
         submitLabel: isEdit ? 'نوێکردنەوە' : 'بڵاوکردنەوە',
         builder: (setSheetState, setError) => [
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'چالاک بێت بۆ بەکارهێنەران',
-              style: TextStyle(
-                fontFamily: 'Rabar',
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: (isActive ? _emerald : const Color(0xFF64748B))
+                  .withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: (isActive ? _emerald : const Color(0xFF64748B))
+                    .withValues(alpha: 0.22),
               ),
             ),
-            subtitle: Text(
-              isActive
-                  ? 'هەر یوزەرێک ئەپەکە بکاتەوە بۆ یەک جار پیشانی دەدرێت'
-                  : 'ناچالاکە و بۆ هیچ یوزەرێک ناچێت',
-              style: const TextStyle(
-                fontFamily: 'Rabar',
-                fontSize: 11,
-                color: Color(0xFF64748B),
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'چالاک بێت بۆ بەکارهێنەران',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isActive
+                            ? 'هەر یوزەرێک ئەپەکە بکاتەوە بۆ یەک جار پیشانی دەدرێت'
+                            : 'ناچالاکە و بۆ هیچ یوزەرێک ناچێت',
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Switch.adaptive(
+                  activeTrackColor: _emerald,
+                  value: isActive,
+                  onChanged: (v) => setSheetState(() => isActive = v),
+                ),
+              ],
             ),
-            activeTrackColor: _emerald,
-            value: isActive,
-            onChanged: (v) => setSheetState(() => isActive = v),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
           TextField(
             controller: titleCtrl,
