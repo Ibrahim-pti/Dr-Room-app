@@ -248,11 +248,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // 2. Large Hero Key Stats
-                _buildKeyStatsGrid(),
-                const SizedBox(height: 24),
-
-                // 3. Section Title: Essential Active Services
+                // 2. Section Title: Essential Active Services
                 _buildSectionTitle(
                   'خزمەتگوزارییە سەرەکییەکان',
                   'بەڕێوەبردنی ڕۆژانە و داواکارییەکان',
@@ -396,112 +392,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     ).animate().fadeIn().slideY(begin: 0.05, end: 0);
   }
 
-  // ── 2. Key Stats Card (Orders) ──
-  Widget _buildKeyStatsGrid() {
-    final totalOrders = '${_stats?['total_orders'] ?? 0}';
-
-    return SizedBox(
-      width: double.infinity,
-      child: _buildBigStatCard(
-        title: 'داواکارییەکان',
-        value: totalOrders,
-        subtitle: 'کۆی ئۆردەرەکان',
-        icon: Iconsax.box,
-        color: const Color(0xFFF59E0B),
-        onTap: () => _openScreen(const AdminOrdersScreen()),
-      ),
-    ).animate().fadeIn().slideY(begin: 0.04, end: 0);
-  }
-
-  Widget _buildBigStatCard({
-    required String title,
-    required String value,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: AppColors.getSurface(context),
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.getBorder(context)),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.05),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: color, size: 18),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 11,
-                    color: AppColors.getTextSubtitle(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                value,
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.getTextTitle(context),
-                  height: 1,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                title,
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.getTextTitle(context),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 10,
-                  color: AppColors.getTextSubtitle(context),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── 3. Essential Active Services Grid (Large & Clean) ──
+  // ── 2. Essential Active Services Grid (Large & Clean) ──
   Widget _buildEssentialServicesGrid() {
+    final int totalOrders = int.tryParse('${_stats?['total_orders'] ?? 0}') ?? 0;
+    final int pendingOrders = int.tryParse('${_stats?['pending_orders'] ?? 0}') ?? 0;
+
     final int openTickets = (_stats?['open_tickets'] ?? 0) as int;
     final int unreadTicketMessages =
         (_stats?['unread_ticket_messages'] ?? 0) as int;
@@ -520,6 +415,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         int.tryParse('${_stats?['online_drivers'] ?? 0}') ?? 0;
 
     final List<Map<String, dynamic>> essentials = [
+      {
+        'title': 'داواکارییەکان',
+        'subtitle': '$totalOrders کۆی ئۆردەرەکان',
+        'icon': Iconsax.box,
+        'color': const Color(0xFFF59E0B),
+        'bg': const Color(0xFFFFFBEB),
+        'badge': pendingOrders > 0 ? '$pendingOrders چاوەڕوان' : null,
+        'screen': const AdminOrdersScreen(),
+      },
       {
         'title': 'سکاڵا و پشتیوانی',
         'subtitle': openTickets > 0
