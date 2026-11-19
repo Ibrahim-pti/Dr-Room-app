@@ -169,7 +169,7 @@ class AdminTransactionController extends Controller
         }
 
         $providerName = 'تەواوی دابینکارەکان (گشتی)';
-        $providerPhone = '+964 750 000 0000';
+        $providerPhone = \App\Models\AppSetting::get('report_emergency_phone', '');
         $providerRole = 'سەکۆی فەرمی دکتۆر ڕۆم';
         $isDriverStatement = ($providerType === 'driver');
 
@@ -177,9 +177,9 @@ class AdminTransactionController extends Controller
             $providerUser = \App\Models\User::find($providerId);
             if ($providerUser) {
                 $providerName = $providerUser->name;
-                $providerPhone = $providerUser->phone ?? '+964 750 000 0000';
+                $providerPhone = $providerUser->phone ?? '';
                 if ($providerType === 'nurse' || $providerUser->role === 'nurse') {
-                    $providerRole = 'پەرستاری پەسەندکراو';
+                    $providerRole = 'ناوەندی تەندروستی پەسەندکراو';
                     $query->where('assigned_nurse_id', $providerId);
                 } elseif ($providerType === 'lab' || $providerUser->role === 'lab') {
                     $providerRole = 'تاقیگەی باوەڕپێکراو';
@@ -194,7 +194,7 @@ class AdminTransactionController extends Controller
                 }
             }
         } elseif ($providerType === 'nurse') {
-            $providerRole = 'تەواوی پەرستارەکان';
+            $providerRole = 'تەواوی ناوەندە تەندروستییەکان';
             $query->where(fn($q) => $q->whereNotNull('assigned_nurse_id')->orWhere('service_type', 'home_nursing'));
         } elseif ($providerType === 'lab') {
             $providerRole = 'تەواوی تاقیگەکان';
@@ -216,10 +216,13 @@ class AdminTransactionController extends Controller
             $grossRevenue = (float) $orders->sum('total_price');
 
             $totalCommission = (float) $orders->sum(function ($order) {
-                if ($order->commission_amount > 0) {
+                if (($order->commission_amount ?? 0) > 0) {
                     return (float) $order->commission_amount;
                 }
-                return (float) ($order->total_price * 0.10);
+                if (($order->commission_rate ?? 0) > 0) {
+                    return round(((float) $order->total_price * (float) $order->commission_rate) / 100.0, 2);
+                }
+                return 0.0;
             });
 
             $netPayout = max(0.0, $grossRevenue - $totalCommission);
@@ -247,7 +250,13 @@ class AdminTransactionController extends Controller
                 $net = $amount;
             } else {
                 $amount = (float) $order->total_price;
-                $comm = (float) ($order->commission_amount > 0 ? $order->commission_amount : $order->total_price * 0.10);
+                if (($order->commission_amount ?? 0) > 0) {
+                    $comm = (float) $order->commission_amount;
+                } elseif (($order->commission_rate ?? 0) > 0) {
+                    $comm = round(($amount * (float) $order->commission_rate) / 100.0, 2);
+                } else {
+                    $comm = 0.0;
+                }
                 $net = max(0.0, $amount - $comm);
             }
             $serviceName = 'خزمەتگوزاری پزیشکی';
