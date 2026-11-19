@@ -90,6 +90,21 @@ class AnalyticsReportService {
         final dataBlock = pBody['data'];
         if (dataBlock is Map && dataBlock['data'] is List) {
           patients.addAll(_extractList(dataBlock['data']));
+          final lastPage = _toInt(dataBlock['last_page'], fallback: 1).clamp(1, 10);
+          if (lastPage > 1) {
+            final morePatients = await Future.wait(
+              List.generate(lastPage - 1, (idx) => ApiClient.get('/admin/patients?per_page=200&page=${idx + 2}'))
+                  .map((f) => f.then<dynamic>((r) => r).catchError((_) => null)),
+            );
+            for (final res in morePatients) {
+              if (res != null && res.statusCode == 200) {
+                final mBody = jsonDecode(res.body);
+                if (mBody is Map && mBody['data'] is Map && mBody['data']['data'] is List) {
+                  patients.addAll(_extractList(mBody['data']['data']));
+                }
+              }
+            }
+          }
         } else if (dataBlock is List) {
           patients.addAll(_extractList(dataBlock));
         }
@@ -269,7 +284,6 @@ class AnalyticsReportService {
     const serviceLabels = {
       'lab': 'پشکنینی تاقیگە',
       'nursing': 'پەرستاری ماڵەوە',
-      'pharmacy': 'دەرمانخانە',
       'other': 'خزمەتگوزاری تر',
     };
     final List<Map<String, dynamic>> serviceBreakdown = [];
@@ -303,7 +317,6 @@ class AnalyticsReportService {
         final fallbackName = switch (svc) {
           'lab' => 'پشکنینی تاقیگە',
           'nursing' => 'خزمەتگوزاری پەرستاری',
-          'pharmacy' => 'داواکاری دەرمانخانە',
           _ => 'خزمەتگوزاری گشتی',
         };
         final entry = itemAgg.putIfAbsent(
@@ -439,7 +452,6 @@ class AnalyticsReportService {
           : switch (svc) {
               'lab' => 'پشکنینی تاقیگە',
               'nursing' => 'پەرستاری ماڵەوە',
-              'pharmacy' => 'دەرمانخانە',
               _ => 'خزمەتگوزاری پزیشکی',
             };
 
@@ -505,7 +517,10 @@ class AnalyticsReportService {
 
     for (final o in completed) {
       final total = _toDouble(o['total_price']);
-      final comm = _toDouble(o['commission_amount']);
+      double comm = _toDouble(o['commission_amount']);
+      if (comm <= 0 && _toDouble(o['commission_rate']) > 0) {
+        comm = (total * _toDouble(o['commission_rate'])) / 100.0;
+      }
       final pNet = o['provider_net_amount'] != null
           ? _toDouble(o['provider_net_amount'])
           : (total - comm).clamp(0.0, double.infinity);
@@ -605,12 +620,6 @@ class AnalyticsReportService {
     if (st.contains('nurs') || st.contains('پەرستار') || o['assigned_nurse_id'] != null) {
       return 'nursing';
     }
-    if (st.contains('pharmac') ||
-        st.contains('medic') ||
-        st.contains('دەرمان') ||
-        o['assigned_pharmacy_id'] != null) {
-      return 'pharmacy';
-    }
     return 'other';
   }
 
@@ -626,7 +635,13 @@ class AnalyticsReportService {
   }
 
   static String? _dateMonth(dynamic raw) {
-    final dt = _parseBaghdadDate(raw);
+    if (raw == null) return null;
+    final str = raw.toString().trim();
+    if (str.isEmpty) return null;
+    if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(str)) {
+      return str.substring(0, 7);
+    }
+    final dt = _parseBaghdadDate(str);
     if (dt == null) return null;
     return _formatMonth(dt);
   }
