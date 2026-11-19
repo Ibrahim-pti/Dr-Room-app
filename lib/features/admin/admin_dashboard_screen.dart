@@ -567,6 +567,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'color': const Color(0xFFDC2626),
         'bg': const Color(0xFFFEF2F2),
         'screen': const AdminArticlesScreen(),
+        'disabled': true,
       },
     ];
 
@@ -574,70 +575,107 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       children: items.map((item) {
         final color = item['color'] as Color;
         final bg = item['bg'] as Color;
+        final isDisabled = item['disabled'] == true;
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          child: Material(
-            color: AppColors.getSurface(context),
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              onTap: () => _openScreen(item['screen'] as Widget),
+        return Opacity(
+          opacity: isDisabled ? 0.58 : 1.0,
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            child: Material(
+              color: AppColors.getSurface(context),
               borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.getBorder(context)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: bg,
-                        borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                onTap: isDisabled
+                    ? () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'ئەم بەشە بە شێوەی کاتی ڕاگیراوە',
+                              style: TextStyle(fontFamily: 'Rabar'),
+                            ),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    : () => _openScreen(item['screen'] as Widget),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.getBorder(context)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: bg,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          item['icon'] as IconData,
+                          color: color,
+                          size: 22,
+                        ),
                       ),
-                      child: Icon(
-                        item['icon'] as IconData,
-                        color: color,
-                        size: 22,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item['title'] as String,
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.getTextTitle(context),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              item['subtitle'] as String,
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 11.5,
+                                color: AppColors.getTextSubtitle(context),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['title'] as String,
+                      if (isDisabled)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF64748B).withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'ڕاگیراوە',
                             style: TextStyle(
                               fontFamily: 'Rabar',
-                              fontSize: 14,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.getTextTitle(context),
+                              color: Color(0xFF64748B),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item['subtitle'] as String,
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 11.5,
-                              color: AppColors.getTextSubtitle(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 14,
-                      color: AppColors.getTextSubtitle(context),
-                    ),
-                  ],
+                        )
+                      else
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 14,
+                          color: AppColors.getTextSubtitle(context),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
