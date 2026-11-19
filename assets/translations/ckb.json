@@ -1204,5 +1204,12 @@
   "estimated_time": "کاتی خەیانراو",
   "estimated_ready_at": "ئامادەبوون لە کاتژمێر",
   "remaining_time": "کاتی ماوە",
-  "almost_ready": "بەم زووانە ئامادە دەبێت"
+  "almost_ready": "بەم زووانە ئامادە دەبێت",
+  "admin_health_centers": "ناوەندە تەندروستیەکان",
+  "admin_health_centers_subtitle": "ناوەندی تەندروستی",
+  "admin_pending_approval": "پەسەندکردن",
+  "admin_health_centers_search_hint": "گەڕان بەپێی ناوی ناوەند، ناونیشان یان مۆبایل...",
+  "admin_no_pending_health_centers": "هیچ ناوەندێکی تەندروستی چاوەڕێکراو نییە",
+  "admin_no_approved_health_centers": "هیچ ناوەندێکی تەندروستی پەسەندکراو نییە",
+  "admin_health_center_profile_details": "وردەکاریی پرۆفایلی ناوەندی تەندروستی"
 }

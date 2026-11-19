@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -102,7 +103,7 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
       appBar: AdminAppBar(
-        title: 'پەرستارەکان',
+        title: 'admin_health_centers'.tr(),
         subtitle: '${pendingNurses.length} چاوەڕێکراو',
         icon: Iconsax.profile_2user,
         iconColor: const Color(0xFFEC4899),
@@ -127,7 +128,7 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
                 onChanged: (val) => setState(() => _searchQuery = val),
                 style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
                 decoration: InputDecoration(
-                  hintText: 'گەڕان بەپێی ناوی پەرستار، ناونیشان یان مۆبایل...',
+                  hintText: 'admin_health_centers_search_hint'.tr(),
                   hintStyle: const TextStyle(
                     fontFamily: 'Rabar',
                     color: Color(0xFF94A3B8),
@@ -234,8 +235,8 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
                 const SizedBox(height: 16),
                 Text(
                   isPending
-                      ? 'هیچ پەرستارێکی چاوەڕێکراو نییە'
-                      : 'هیچ پەرستارێکی پەسەندکراو نییە',
+                      ? 'admin_no_pending_health_centers'.tr()
+                      : 'admin_no_approved_health_centers'.tr(),
                   style: TextStyle(
                     fontFamily: 'Rabar',
                     color: const Color(0xFF94A3B8),
@@ -440,9 +441,9 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'وردەکاریی پرۆفایلی پەرستار',
-                    style: TextStyle(
+                  Text(
+                    'admin_health_center_profile_details'.tr(),
+                    style: const TextStyle(
                       fontFamily: 'Rabar',
                       fontSize: 17,
                       fontWeight: FontWeight.bold,

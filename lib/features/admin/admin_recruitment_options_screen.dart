@@ -446,7 +446,7 @@ class _AdminRecruitmentOptionsScreenState
       backgroundColor: AppColors.getBackground(context),
       appBar: AdminAppBar(
         title: 'بڕوانامە و شارەزایی',
-        subtitle: 'تیمی گەڕۆک - هەنگاوی ٢',
+        subtitle: 'تیمی گەڕۆک',
         titleStyle: TextStyle(
           fontFamily: 'Rabar',
           color: AppColors.getTextTitle(context),
@@ -458,14 +458,6 @@ class _AdminRecruitmentOptionsScreenState
         iconColor: const Color(0xFFEA580C),
         iconBackgroundColor: const Color(0xFFEA580C).withValues(alpha: 0.12),
         showBackButton: true,
-        actions: [
-          AdminUi.primaryAction(
-            label: 'زیادکردن',
-            icon: Iconsax.add,
-            onTap: () => _openForm(),
-            color: const Color(0xFFEA580C),
-          ),
-        ],
       ),
       body: Column(
         children: [

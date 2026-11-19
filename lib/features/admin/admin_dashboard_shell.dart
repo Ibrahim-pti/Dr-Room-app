@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -35,12 +36,12 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
     AdminMenuScreen(),
   ];
 
-  final List<_NavItem> _navItems = const [
-    _NavItem(icon: Iconsax.category_2, label: 'سەرەکی'),
-    _NavItem(icon: Iconsax.box, label: 'داواکارییەکان'),
-    _NavItem(icon: Iconsax.profile_2user, label: 'پەرستارەکان'),
-    _NavItem(icon: Iconsax.microscope, label: 'تاقیگەکان'),
-    _NavItem(icon: Iconsax.setting_2, label: 'ڕێکخستن'),
+  List<_NavItem> get _navItems => [
+    const _NavItem(icon: Iconsax.category_2, label: 'سەرەکی'),
+    const _NavItem(icon: Iconsax.box, label: 'داواکارییەکان'),
+    _NavItem(icon: Iconsax.profile_2user, label: 'admin_health_centers'.tr()),
+    const _NavItem(icon: Iconsax.microscope, label: 'تاقیگەکان'),
+    const _NavItem(icon: Iconsax.setting_2, label: 'ڕێکخستن'),
   ];
 
   @override

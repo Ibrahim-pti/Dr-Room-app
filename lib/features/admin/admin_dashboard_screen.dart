@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -381,12 +382,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminAnalyticsScreen(),
       },
       {
-        'title': 'پەرستارەکان',
-        'subtitle': '$totalNurses پەرستاری ماڵەوە',
+        'title': 'admin_health_centers'.tr(),
+        'subtitle': '$totalNurses ${'admin_health_centers_subtitle'.tr()}',
         'icon': Iconsax.profile_2user,
         'color': const Color(0xFF10B981),
         'bg': const Color(0xFFECFDF5),
-        'badge': pendingNurses > 0 ? '$pendingNurses پەسەندکردن' : null,
+        'badge': pendingNurses > 0
+            ? '$pendingNurses ${'admin_pending_approval'.tr()}'
+            : null,
         'screen': const AdminNursesScreen(),
       },
       {

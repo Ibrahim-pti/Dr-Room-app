@@ -1204,5 +1204,12 @@
   "estimated_time": "دەمێ پێدڤی",
   "estimated_ready_at": "ئامادەبوون ل دەمژمێر",
   "remaining_time": "دەمێ مای",
-  "almost_ready": "دێ ب زوویترین دەم ئامادە بیت"
+  "almost_ready": "دێ ب زوویترین دەم ئامادە بیت",
+  "admin_health_centers": "ناوەندێن تەندروستی",
+  "admin_health_centers_subtitle": "ناوەندا تەندروستی",
+  "admin_pending_approval": "پەسەندکرن",
+  "admin_health_centers_search_hint": "گەڕیان ل دیڤ ناڤێ ناوەندێ، ناڤونیشان یان مۆبایلێ...",
+  "admin_no_pending_health_centers": "چو ناوەندێن تەندروستی یێن چاڤەڕێکری نینن",
+  "admin_no_approved_health_centers": "چو ناوەندێن تەندروستی یێن پەسەندکری نینن",
+  "admin_health_center_profile_details": "هویرکاریێن پڕۆفایلا ناوەندا تەندروستی"
 }

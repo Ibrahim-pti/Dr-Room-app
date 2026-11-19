@@ -1204,5 +1204,12 @@
   "estimated_time": "Estimated Duration",
   "estimated_ready_at": "Estimated Ready At",
   "remaining_time": "Remaining Time",
-  "almost_ready": "Almost ready"
+  "almost_ready": "Almost ready",
+  "admin_health_centers": "Health Centers",
+  "admin_health_centers_subtitle": "Health Centers",
+  "admin_pending_approval": "Pending",
+  "admin_health_centers_search_hint": "Search by center name, address, or phone...",
+  "admin_no_pending_health_centers": "No pending health centers",
+  "admin_no_approved_health_centers": "No approved health centers",
+  "admin_health_center_profile_details": "Health Center Profile Details"
 }

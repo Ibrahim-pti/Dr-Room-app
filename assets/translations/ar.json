@@ -1204,5 +1204,12 @@
   "estimated_time": "الوقت المستغرق",
   "estimated_ready_at": "جاهز في الساعة",
   "remaining_time": "الوقت المتبقي",
-  "almost_ready": "سيكون جاهزاً قريباً"
+  "almost_ready": "سيكون جاهزاً قريباً",
+  "admin_health_centers": "المراكز الصحية",
+  "admin_health_centers_subtitle": "مركز صحي",
+  "admin_pending_approval": "بانتظار الموافقة",
+  "admin_health_centers_search_hint": "ابحث باسم المركز، العنوان أو رقم الهاتف...",
+  "admin_no_pending_health_centers": "لا توجد مراكز صحية قيد الانتظار",
+  "admin_no_approved_health_centers": "لا توجد مراكز صحية معتمدة",
+  "admin_health_center_profile_details": "تفاصيل ملف المركز الصحي"
 }
