@@ -135,6 +135,7 @@ class Driver extends Model
     public function calculateFinancialSummary(): array
     {
         $allDelivered = Order::where('assigned_driver_id', $this->user_id)
+            ->whereNotIn('status', ['cancelled', 'rejected'])
             ->where(function ($q) {
                 $q->where('status', 'completed')
                   ->orWhere('delivery_status', 'delivered');
@@ -154,15 +155,20 @@ class Driver extends Model
             ]);
 
         $unsettled = $allDelivered->reject(fn (Order $o) => $this->isOrderSettled($o))->values();
+        $nowBaghdad = now('Asia/Baghdad');
 
-        $todayOrders = $unsettled->filter(function (Order $o) {
+        $todayOrders = $unsettled->filter(function (Order $o) use ($nowBaghdad) {
             $dt = $o->driver_delivered_at ?? $o->created_at;
-            return $dt && $dt->isToday();
+            return $dt && $dt->copy()->timezone('Asia/Baghdad')->isSameDay($nowBaghdad);
         });
 
-        $monthOrders = $unsettled->filter(function (Order $o) {
+        $monthOrders = $unsettled->filter(function (Order $o) use ($nowBaghdad) {
             $dt = $o->driver_delivered_at ?? $o->created_at;
-            return $dt && $dt->month === now()->month && $dt->year === now()->year;
+            if (!$dt) {
+                return false;
+            }
+            $baghdadDt = $dt->copy()->timezone('Asia/Baghdad');
+            return $baghdadDt->month === $nowBaghdad->month && $baghdadDt->year === $nowBaghdad->year;
         });
 
         $cashOrders = $unsettled->filter(fn (Order $o) => self::isCashOrder($o));

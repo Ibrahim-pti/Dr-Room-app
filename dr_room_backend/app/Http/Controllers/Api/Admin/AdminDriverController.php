@@ -320,6 +320,7 @@ class AdminDriverController extends Controller
         $finance = $driver->calculateFinancialSummary();
 
         $deliveredOrders = Order::where('assigned_driver_id', $user->id)
+            ->whereNotIn('status', ['cancelled', 'rejected'])
             ->where(function ($q) {
                 $q->where('status', 'completed')
                   ->orWhere('delivery_status', 'delivered');

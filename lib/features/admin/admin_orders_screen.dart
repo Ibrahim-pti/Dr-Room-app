@@ -1714,43 +1714,47 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                                     distLabel = ' · ${(meters / 1000).toStringAsFixed(1)} کم';
                                   }
 
-                                  return ListTile(
-                                    tileColor: AppColors.getBackground(context),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                    leading: CircleAvatar(
-                                      backgroundColor: dutyColor.withValues(alpha: 0.14),
-                                      child: Icon(Iconsax.truck_fast, color: dutyColor, size: 20),
-                                    ),
-                                    title: Text((d['name'] ?? '').toString(), style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold, fontSize: 13.5)),
-                                    subtitle: Text(
-                                      '${duty == 'available' ? 'ئامادە' : (duty == 'busy' ? 'سەرقاڵ' : 'ئۆفلاین')} · ${d['city'] ?? ''}$distLabel',
-                                      style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: dutyColor),
-                                    ),
-                                    trailing: ElevatedButton(
-                                      onPressed: () async {
-                                        Navigator.pop(ctx);
-                                        final ok = await context.read<AdminOrderProvider>().assignDriver(
-                                              orderId,
-                                              int.parse('${d['id']}'),
-                                            );
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                ok ? 'شۆفێر بە سەرکەوتوویی دیاریکرا' : 'نەتوانرا شۆفێر دیاری بکرێت',
-                                                style: const TextStyle(fontFamily: 'Rabar'),
-                                              ),
-                                              backgroundColor: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF2563EB),
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  return Material(
+                                    color: AppColors.getBackground(context),
+                                    borderRadius: BorderRadius.circular(14),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: ListTile(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      leading: CircleAvatar(
+                                        backgroundColor: dutyColor.withValues(alpha: 0.14),
+                                        child: Icon(Iconsax.truck_fast, color: dutyColor, size: 20),
                                       ),
-                                      child: const Text('هەڵبژاردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5)),
+                                      title: Text((d['name'] ?? '').toString(), style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold, fontSize: 13.5)),
+                                      subtitle: Text(
+                                        '${duty == 'available' ? 'ئامادە' : (duty == 'busy' ? 'سەرقاڵ' : 'ئۆفلاین')} · ${d['city'] ?? ''}$distLabel',
+                                        style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, color: dutyColor),
+                                      ),
+                                      trailing: ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(ctx);
+                                          final ok = await context.read<AdminOrderProvider>().assignDriver(
+                                                orderId,
+                                                int.parse('${d['id']}'),
+                                              );
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  ok ? 'شۆفێر بە سەرکەوتوویی دیاریکرا' : 'نەتوانرا شۆفێر دیاری بکرێت',
+                                                  style: const TextStyle(fontFamily: 'Rabar'),
+                                                ),
+                                                backgroundColor: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF2563EB),
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        ),
+                                        child: const Text('هەڵبژاردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5)),
+                                      ),
                                     ),
                                   );
                                 },

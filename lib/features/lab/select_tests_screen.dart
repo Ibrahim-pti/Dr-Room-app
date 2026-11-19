@@ -98,32 +98,37 @@ class _SelectTestsScreenState extends State<SelectTestsScreen> {
                       color: test['selected'] ? const Color(0xFF3B82F6) : Colors.transparent,
                       width: 2,
                     ),
-                          ),
-                  child: CheckboxListTile(
-                    value: test['selected'],
-                    onChanged: (val) {
-                      setState(() {
-                        test['selected'] = val;
-                      });
-                    },
-                    activeColor: const Color(0xFF3B82F6),
-                    checkboxShape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    title: Text(
-                      test['name'],
-                      style: GoogleFonts.poppins(
-                        color: AppColors.getTextTitle(context),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(16),
+                    clipBehavior: Clip.antiAlias,
+                    child: CheckboxListTile(
+                      value: test['selected'],
+                      onChanged: (val) {
+                        setState(() {
+                          test['selected'] = val;
+                        });
+                      },
+                      activeColor: const Color(0xFF3B82F6),
+                      checkboxShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ),
-                    subtitle: Text(
-                      Currency.format(test['price'] as double),
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF3B82F6),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                      title: Text(
+                        test['name'],
+                        style: GoogleFonts.poppins(
+                          color: AppColors.getTextTitle(context),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        Currency.format(test['price'] as double),
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF3B82F6),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

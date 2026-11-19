@@ -313,6 +313,116 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     _ => null,
   };
 
+  String? _genderLabel(String? g) => switch (g) {
+    'male' => 'نێر',
+    'female' => 'مێ',
+    _ => null,
+  };
+
+  String? _workDaysLabel(String? w) => switch (w) {
+    'daily' => 'هەموو ڕۆژێک',
+    'weekdays' => 'ڕۆژانی کار',
+    'part_time' => 'کاتی دیاریکراو',
+    _ => null,
+  };
+
+  String _statusLabel(String? st) => switch (st) {
+    'approved' => 'پەسەندکراو',
+    'pending' => 'چاوەڕوانی پەسەند',
+    'blocked' => 'بلۆککراو',
+    'rejected' => 'ڕەتکراوە',
+    _ => st ?? '-',
+  };
+
+  void _previewOrOpenDoc(String title, String rawUrl) {
+    final url = rawUrl.trim();
+    if (url.isEmpty) return;
+    final lower = url.toLowerCase().split('?').first;
+    final isImage = lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png') ||
+        lower.endsWith('.webp');
+    if (!isImage) {
+      _openDocUrl(url);
+      return;
+    }
+
+    showDialog<void>(
+      context: context,
+      builder: (dCtx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.getSurface(context),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'کردنەوە لە وێبگەڕ',
+                      onPressed: () => _openDocUrl(url),
+                      icon: const Icon(Iconsax.export_1, size: 19),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(dCtx),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+              ),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.65,
+                ),
+                child: InteractiveViewer(
+                  child: Image.network(
+                    url,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Iconsax.document_text, size: 42),
+                          const SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: () => _openDocUrl(url),
+                            child: const Text(
+                              'کردنەوە لە وێبگەڕ',
+                              style: TextStyle(fontFamily: 'Rabar'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _skillLabel(String s) {
     if (_dynamicSkillLabels.containsKey(s)) {
       return _dynamicSkillLabels[s]!;
@@ -342,7 +452,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
   Widget _docLinkChip(String label, String? url) {
     if ((url ?? '').trim().isEmpty) return const SizedBox.shrink();
     return InkWell(
-      onTap: () => _openDocUrl(url),
+      onTap: () => _previewOrOpenDoc(label, url!),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -787,6 +897,15 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                       ),
                     ),
                     IconButton(
+                      tooltip: 'وردەکاری پرۆفایل',
+                      onPressed: () =>
+                          _openDriverProfileSheet(d, initialTab: 0),
+                      icon: const Icon(
+                        Iconsax.user_octagon,
+                        color: Color(0xFF7C3AED),
+                      ),
+                    ),
+                    IconButton(
                       onPressed: () => _callPhone(phone),
                       icon: const Icon(Iconsax.call, color: Color(0xFF2563EB)),
                     ),
@@ -801,6 +920,11 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                       _applicantRoleLabel(d['applicant_role']?.toString()),
                       Iconsax.health,
                     ),
+                    if (_genderLabel(d['gender']?.toString()) != null)
+                      _tagChip(
+                        _genderLabel(d['gender']?.toString())!,
+                        Iconsax.user,
+                      ),
                     _tagChip('${d['city'] ?? 'هەولێر'}', Iconsax.location),
                     _tagChip(
                       (d['applicant_role']?.toString() ?? 'phlebotomist') ==
@@ -832,6 +956,11 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                       _tagChip(
                         _shiftLabel(d['availability_shift']?.toString())!,
                         Iconsax.clock,
+                      ),
+                    if (_workDaysLabel(d['work_days']?.toString()) != null)
+                      _tagChip(
+                        _workDaysLabel(d['work_days']?.toString())!,
+                        Iconsax.calendar_1,
                       ),
                     if ((d['service_areas'] ?? '').toString().trim().isNotEmpty)
                       _tagChip('${d['service_areas']}', Iconsax.map_1),
@@ -1183,110 +1312,167 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => _callPhone(phone),
-                icon: const Icon(
-                  Iconsax.call,
-                  size: 18,
-                  color: Color(0xFF2563EB),
-                ),
-                tooltip: 'پەیوەندی',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-              ),
-              IconButton(
-                onPressed: () => _openWhatsApp(phone),
-                icon: const Icon(
-                  Iconsax.message,
-                  size: 18,
-                  color: Color(0xFF10B981),
-                ),
-                tooltip: 'واتسئاپ',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-              ),
-              if (d['current_lat'] != null && d['current_lng'] != null)
-                TextButton.icon(
-                  onPressed: () {
-                    _tabCtrl.animateTo(0);
-                    setState(
-                      () => _selectedMapDriver = Map<String, dynamic>.from(d),
-                    );
-                    _mapCtrl?.animateCamera(
-                      CameraUpdate.newLatLngZoom(
-                        LatLng(
-                          double.parse('${d['current_lat']}'),
-                          double.parse('${d['current_lng']}'),
-                        ),
-                        15,
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () => _callPhone(phone),
+                      icon: const Icon(
+                        Iconsax.call,
+                        size: 18,
+                        color: Color(0xFF2563EB),
                       ),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: const Icon(Iconsax.gps, size: 14),
-                  label: Text(
-                    _lastSeenText(d['last_seen_seconds']),
-                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 10.5),
-                  ),
-                ),
-              const Spacer(),
-              TextButton.icon(
-                onPressed: () => _openDriverProfileSheet(d),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                icon: const Icon(Iconsax.wallet_money, size: 15),
-                label: const Text(
-                  'داهات',
-                  style: TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              if (status == 'pending')
-                ElevatedButton(
-                  onPressed: () => _approveDriver(d),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  child: const Text(
-                    'پەسەندکردن',
-                    style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5),
-                  ),
-                )
-              else
-                OutlinedButton(
-                  onPressed: () => _toggleBlock(d),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: isBlocked
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFFEF4444),
-                    side: BorderSide(
-                      color: isBlocked
-                          ? const Color(0xFF10B981)
-                          : const Color(0xFFEF4444),
+                      tooltip: 'پەیوەندی',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  child: Text(
-                    isBlocked ? 'چالاککردن' : 'بلۆککردن',
-                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 11.5),
-                  ),
+                    IconButton(
+                      onPressed: () => _openWhatsApp(phone),
+                      icon: const Icon(
+                        Iconsax.message,
+                        size: 18,
+                        color: Color(0xFF10B981),
+                      ),
+                      tooltip: 'واتسئاپ',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                    ),
+                    if (d['current_lat'] != null && d['current_lng'] != null)
+                      TextButton.icon(
+                        onPressed: () {
+                          _tabCtrl.animateTo(0);
+                          setState(
+                            () => _selectedMapDriver =
+                                Map<String, dynamic>.from(d),
+                          );
+                          _mapCtrl?.animateCamera(
+                            CameraUpdate.newLatLngZoom(
+                              LatLng(
+                                double.parse('${d['current_lat']}'),
+                                double.parse('${d['current_lng']}'),
+                              ),
+                              15,
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        icon: const Icon(Iconsax.gps, size: 14),
+                        label: Text(
+                          _lastSeenText(d['last_seen_seconds']),
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 10.5,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-            ],
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => _openDriverProfileSheet(d, initialTab: 0),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      icon: const Icon(Iconsax.user_octagon, size: 15),
+                      label: const Text(
+                        'پرۆفایل',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    TextButton.icon(
+                      onPressed: () => _openDriverProfileSheet(d, initialTab: 1),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      icon: const Icon(Iconsax.wallet_money, size: 15),
+                      label: const Text(
+                        'داهات',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    if (status == 'pending')
+                      ElevatedButton(
+                        onPressed: () => _approveDriver(d),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          minimumSize: const Size(0, 32),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          'پەسەندکردن',
+                          style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5),
+                        ),
+                      )
+                    else
+                      OutlinedButton(
+                        onPressed: () => _toggleBlock(d),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: isBlocked
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFEF4444),
+                          side: BorderSide(
+                            color: isBlocked
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFEF4444),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          minimumSize: const Size(0, 32),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          isBlocked ? 'چالاککردن' : 'بلۆککردن',
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 11.5,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1294,7 +1480,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     );
   }
 
-  Future<void> _openDriverProfileSheet(dynamic d) async {
+  Future<void> _openDriverProfileSheet(dynamic d, {int initialTab = 0}) async {
     final driverId = d['id'];
     if (driverId == null) return;
 
@@ -1303,6 +1489,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     bool isLoading = true;
     bool isResetting = false;
     bool didLoad = false;
+    int activeSheetTab = initialTab;
 
     await showModalBottomSheet(
       context: context,
@@ -1497,6 +1684,102 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                         ),
                       ),
                       const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () =>
+                                    setSheetState(() => activeSheetTab = 0),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 9),
+                                  decoration: BoxDecoration(
+                                    color: activeSheetTab == 0
+                                        ? const Color(0xFF2563EB)
+                                        : AppColors.getBackground(context),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: activeSheetTab == 0
+                                          ? const Color(0xFF2563EB)
+                                          : AppColors.getBorder(context),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Iconsax.user_octagon,
+                                        size: 16,
+                                        color: activeSheetTab == 0
+                                            ? Colors.white
+                                            : AppColors.getTextSubtitle(context),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'وردەکاری پرۆفایل',
+                                        style: TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: activeSheetTab == 0
+                                              ? Colors.white
+                                              : AppColors.getTextTitle(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () =>
+                                    setSheetState(() => activeSheetTab = 1),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 9),
+                                  decoration: BoxDecoration(
+                                    color: activeSheetTab == 1
+                                        ? const Color(0xFF059669)
+                                        : AppColors.getBackground(context),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: activeSheetTab == 1
+                                          ? const Color(0xFF059669)
+                                          : AppColors.getBorder(context),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Iconsax.wallet_money,
+                                        size: 16,
+                                        color: activeSheetTab == 1
+                                            ? Colors.white
+                                            : AppColors.getTextSubtitle(context),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'داهات و حیسابات',
+                                        style: TextStyle(
+                                          fontFamily: 'Rabar',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: activeSheetTab == 1
+                                              ? Colors.white
+                                              : AppColors.getTextTitle(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       Expanded(
                         child: isLoading
                             ? const Center(child: CircularProgressIndicator())
@@ -1506,6 +1789,11 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                   loadErr!,
                                   style: const TextStyle(fontFamily: 'Rabar'),
                                 ),
+                              )
+                            : activeSheetTab == 0
+                            ? _buildWebsiteProfileTab(
+                                driver: driver,
+                                scrollCtrl: scrollCtrl,
                               )
                             : ListView(
                                 controller: scrollCtrl,
@@ -1807,6 +2095,324 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
           },
         );
       },
+    );
+  }
+
+  Widget _buildWebsiteProfileTab({
+    required Map<String, dynamic> driver,
+    required ScrollController scrollCtrl,
+  }) {
+    final skills = driver['clinical_skills'] is List
+        ? List<String>.from(
+            (driver['clinical_skills'] as List).map((e) => e.toString()),
+          )
+        : <String>[];
+    final genderStr = _genderLabel(driver['gender']?.toString());
+    final eduStr = _educationLabel(driver['education_level']?.toString());
+    final expYears = int.tryParse('${driver['experience_years'] ?? 0}') ?? 0;
+    final shiftStr = _shiftLabel(driver['availability_shift']?.toString());
+    final workDaysStr = _workDaysLabel(driver['work_days']?.toString());
+    final areas = (driver['service_areas'] ?? '').toString().trim();
+    final plate = (driver['plate_number'] ?? '').toString().trim();
+    final hasPrivateCar = driver['has_private_car'] == true;
+    final willingToTravel = driver['willing_to_travel'] != false;
+    final rating = double.tryParse('${driver['rating'] ?? 5.0}') ?? 5.0;
+
+    final docs = [
+      (
+        label: 'ناسنامە / کارتی نیشتمانی',
+        url: (driver['id_document_url'] ?? '').toString().trim(),
+        icon: Iconsax.personalcard,
+      ),
+      (
+        label: 'بڕوانامە',
+        url: (driver['certificate_url'] ?? '').toString().trim(),
+        icon: Iconsax.teacher,
+      ),
+      (
+        label: 'مۆڵەتی لێخوڕین',
+        url: (driver['license_url'] ?? '').toString().trim(),
+        icon: Iconsax.card,
+      ),
+      (
+        label: 'سی ڤی (CV)',
+        url: (driver['cv_url'] ?? '').toString().trim(),
+        icon: Iconsax.document_text,
+      ),
+    ];
+
+    return ListView(
+      controller: scrollCtrl,
+      padding: const EdgeInsets.all(16),
+      children: [
+        _profileSectionCard(
+          title: 'زانیاری کەسی و تۆمارکردن',
+          icon: Iconsax.user,
+          color: const Color(0xFF2563EB),
+          children: [
+            _profileRow('ناوی تەواو', (driver['name'] ?? '-').toString()),
+            const SizedBox(height: 7),
+            _profileRow('ژمارەی مۆبایل', (driver['phone'] ?? '-').toString()),
+            const SizedBox(height: 7),
+            _profileRow('شار', (driver['city'] ?? 'هەولێر').toString()),
+            if (genderStr != null) ...[
+              const SizedBox(height: 7),
+              _profileRow('ڕەگەز', genderStr),
+            ],
+            const SizedBox(height: 7),
+            _profileRow('دۆخی هەژمار', _statusLabel(driver['status']?.toString())),
+            const SizedBox(height: 7),
+            _profileRow('هەڵسەنگاندن', '${rating.toStringAsFixed(1)} ★'),
+            if ((driver['created_at'] ?? '').toString().isNotEmpty) ...[
+              const SizedBox(height: 7),
+              _profileRow('بەرواری تۆمارکردن', '${driver['created_at']}'),
+            ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        _profileSectionCard(
+          title: 'پسپۆڕی، بڕوانامە و ئەزموون',
+          icon: Iconsax.teacher,
+          color: const Color(0xFF7C3AED),
+          children: [
+            _profileRow(
+              'ڕۆڵ / پسپۆڕی',
+              _applicantRoleLabel(driver['applicant_role']?.toString()),
+            ),
+            const SizedBox(height: 7),
+            _profileRow('ئاستی خوێندن / بڕوانامە', eduStr ?? 'دیاری نەکراوە'),
+            const SizedBox(height: 7),
+            _profileRow(
+              'ساڵانی ئەزموون',
+              expYears > 0 ? '$expYears ساڵ' : 'تازە / بێ ئەزموون',
+            ),
+            const SizedBox(height: 10),
+            const Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                'شارەزاییە کردارییەکان:',
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 11.5,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            if (skills.isEmpty)
+              const Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  'هیچ شارەزاییەک دیاری نەکراوە',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 11.5,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
+              )
+            else
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: skills.map((sk) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECFDF5),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                      ),
+                      child: Text(
+                        _skillLabel(sk),
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF065F46),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _profileSectionCard(
+          title: 'کات، ناوچە و ئامرازی گەیاندن',
+          icon: Iconsax.car,
+          color: const Color(0xFF059669),
+          children: [
+            _profileRow(
+              'بواری خزمەتگوزاری',
+              _scopeLabel(driver['service_scope']?.toString()),
+            ),
+            const SizedBox(height: 7),
+            _profileRow(
+              'ئامرازی گەیاندن',
+              _vehicleLabel(driver['vehicle_type']?.toString()),
+            ),
+            const SizedBox(height: 7),
+            _profileRow('ئۆتۆمبێلی تایبەت', hasPrivateCar ? 'بەڵێ' : 'نەخێر'),
+            if (plate.isNotEmpty) ...[
+              const SizedBox(height: 7),
+              _profileRow('ژمارەی تابلۆ', plate),
+            ],
+            if (shiftStr != null) ...[
+              const SizedBox(height: 7),
+              _profileRow('شیفتی کارکردن', shiftStr),
+            ],
+            if (workDaysStr != null) ...[
+              const SizedBox(height: 7),
+              _profileRow('ڕۆژانی کارکردن', workDaysStr),
+            ],
+            const SizedBox(height: 7),
+            _profileRow(
+              'ناوچەکانی کارکردن',
+              areas.isNotEmpty ? areas : 'دیاری نەکراوە',
+            ),
+            const SizedBox(height: 7),
+            _profileRow(
+              'ئامادەیی گەشت و سەردان',
+              willingToTravel ? 'بەڵێ' : 'نەخێر',
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _profileSectionCard(
+          title: 'بەڵگەنامە هاوپێچکراوەکانی وێبسایت',
+          icon: Iconsax.folder_open,
+          color: const Color(0xFFEA580C),
+          children: docs.map((doc) {
+            final hasUrl = doc.url.isNotEmpty;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+              decoration: BoxDecoration(
+                color: AppColors.getSurface(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: hasUrl
+                      ? const Color(0xFFFDBA74)
+                      : AppColors.getBorder(context),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    doc.icon,
+                    size: 18,
+                    color: hasUrl
+                        ? const Color(0xFFEA580C)
+                        : const Color(0xFF94A3B8),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      doc.label,
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.getTextTitle(context),
+                      ),
+                    ),
+                  ),
+                  if (hasUrl)
+                    TextButton.icon(
+                      onPressed: () => _previewOrOpenDoc(doc.label, doc.url),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        backgroundColor: const Color(0xFFFFF3EB),
+                        foregroundColor: const Color(0xFFC2410C),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Iconsax.eye, size: 14),
+                      label: const Text(
+                        'بینین',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  else
+                    const Text(
+                      'هاوپێچ نەکراوە',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 11,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _profileSectionCard({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.getBackground(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.getBorder(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 16, color: color),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.getTextTitle(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
+          ...children,
+        ],
+      ),
     );
   }
 
