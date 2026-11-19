@@ -381,21 +381,19 @@ class AdminDriverController extends Controller
 
         $driver->update([
             'earnings_reset_at' => now(),
-            'completed_deliveries' => 0,
-            'total_earnings' => 0,
         ]);
 
         try {
-            $title = 'حیسابی داهات و پارە سفرکرایەوە ✅';
-            $msg = 'ئەدمین حیسابی پارەی کاش و کرێی گەیاندنەکانتی پاکتاوکرد و سفرکردەوە.';
+            $title = 'پارەی کاش پاکتاو و سفرکرایەوە ✅';
+            $msg = 'ئەدمین پارەی کاشی وەرگیراوی پاکتاوکرد و سفرکردەوە (داهات و ژمارەی کارەکانت وەک خۆیان پارێزراون).';
             AppNotification::create([
                 'user_id' => $user->id,
                 'title' => $title,
-                'title_ar' => 'تمت تصفية الأرباح والمبالغ ✅',
-                'title_en' => 'Earnings & Cash Reset ✅',
+                'title_ar' => 'تمت تصفية المبالغ النقدية ✅',
+                'title_en' => 'Cash Balance Reset ✅',
                 'message' => $msg,
-                'message_ar' => 'قام المشرف بتصفية حسابات التوصيل والمبالغ النقدية الخاصة بك.',
-                'message_en' => 'Admin has settled and reset your cash & delivery earnings balance.',
+                'message_ar' => 'قام المشرف بتصفية المبالغ النقدية المستلمة (تبقى أرباحك وعدد طلباتك محفوظة كما هي).',
+                'message_en' => 'Admin has settled and reset your collected cash balance (your delivery earnings remain intact).',
                 'type' => 'system',
                 'is_read' => false,
             ]);
@@ -405,7 +403,7 @@ class AdminDriverController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'داهات و پارەی کاشی کارمەند سفرکرایەوە',
+            'message' => 'پارەی کاشی کارمەند سفرکرایەوە',
             'reset_before' => $before,
             'finance' => $driver->fresh()->calculateFinancialSummary(),
         ]);

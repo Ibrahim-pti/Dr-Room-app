@@ -1544,8 +1544,6 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
             Future<void> confirmAndReset(Map<String, dynamic> finance) async {
               final cashTotal =
                   double.tryParse('${finance['cash_total_collected'] ?? 0}') ?? 0;
-              final earningsTotal =
-                  double.tryParse('${finance['total_earnings'] ?? 0}') ?? 0;
 
               final ok = await showDialog<bool>(
                 context: ctx,
@@ -1554,17 +1552,16 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                     borderRadius: BorderRadius.circular(18),
                   ),
                   title: const Text(
-                    'سفرکردنەوەی پارە و داهات',
+                    'سفرکردنەوەی پارەی کاش',
                     style: TextStyle(
                       fontFamily: 'Rabar',
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   content: Text(
-                    'دڵنیایت لە سفرکردنەوەی حیسابی ${d['name']}؟\n\n'
-                    '• پارەی کاشی وەرگیراو: ${_formatIqd(cashTotal)}\n'
-                    '• کرێی گەیاندن (داهات): ${_formatIqd(earningsTotal)}\n\n'
-                    'دوای سفرکردنەوە، لای ئەدمین و لای شۆفێرەکەش دەبێتەوە بە 0 د.ع.',
+                    'دڵنیایت لە سفرکردنەوەی پارەی کاشی ${d['name']}؟\n\n'
+                    '• پارەی کاشی وەرگیراو: ${_formatIqd(cashTotal)}\n\n'
+                    'تەنها پارەی کاش دەبێتەوە بە 0 د.ع؛ داهات و ژمارەی کارەکانی شۆفێر دەستکاری ناکرێن.',
                     style: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
                   ),
                   actions: [
@@ -1603,7 +1600,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                   if (mounted) {
                     AdminUi.toast(
                       context,
-                      'داهات و پارەی کاشی کارمەند سفرکرایەوە',
+                      'پارەی کاشی کارمەند سفرکرایەوە',
                     );
                   }
                   await fetchProfile();
@@ -1871,7 +1868,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                     children: [
                                       Expanded(
                                         child: _profileStatBox(
-                                          'داهاتی ئەم خولە (${finance['total_deliveries'] ?? 0} کار)',
+                                          'کۆی داهات (${finance['total_deliveries'] ?? 0} کار)',
                                           _formatIqd(finance['total_earnings']),
                                           const Color(0xFF2563EB),
                                         ),
@@ -1900,7 +1897,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                       children: [
                                         _profileRow(
                                           'کارە کاشەکان',
-                                          '${finance['cash_total_count'] ?? 0} · کرێ: ${_formatIqd(finance['cash_total_delivery_fee'])}',
+                                          '${finance['cash_all_time_count'] ?? finance['cash_total_count'] ?? 0} · کرێ: ${_formatIqd(finance['cash_total_delivery_fee'])}',
                                         ),
                                         const SizedBox(height: 6),
                                         _profileRow(
@@ -1909,12 +1906,14 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                         ),
                                         const SizedBox(height: 6),
                                         _profileRow(
-                                          'کۆی گشتی مێژوویی',
-                                          '${finance['lifetime_deliveries'] ?? 0} کار · ${_formatIqd(finance['lifetime_earnings'])}',
+                                          'کۆی کاشی وەرگیراو (مێژوویی)',
+                                          _formatIqd(
+                                            finance['lifetime_cash_collected'],
+                                          ),
                                         ),
                                         const SizedBox(height: 6),
                                         _profileRow(
-                                          'دواین سفرکردنەوە',
+                                          'دواین سفرکردنەوەی کاش',
                                           resetAt != null
                                               ? intl.DateFormat(
                                                   'yyyy-MM-dd HH:mm',
@@ -1945,7 +1944,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                               size: 18,
                                             ),
                                       label: const Text(
-                                        'سفرکردنەوەی پارە و داهات',
+                                        'سفرکردنەوەی پارەی کاش',
                                         style: TextStyle(
                                           fontFamily: 'Rabar',
                                           fontWeight: FontWeight.bold,
@@ -1992,7 +1991,8 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                   else
                                     ...orders.map((o) {
                                       final isCash = o['is_cash'] == true;
-                                      final isSettled = o['is_settled'] == true;
+                                      final isCashSettled =
+                                          isCash && o['is_settled'] == true;
                                       return Container(
                                         margin:
                                             const EdgeInsets.only(bottom: 8),
@@ -2028,7 +2028,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                                     vertical: 2,
                                                   ),
                                                   decoration: BoxDecoration(
-                                                    color: (isSettled
+                                                    color: (isCashSettled
                                                             ? Colors.grey
                                                             : (isCash
                                                                 ? const Color(
@@ -2044,8 +2044,8 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                                     ),
                                                   ),
                                                   child: Text(
-                                                    isSettled
-                                                        ? 'سفرکراوە'
+                                                    isCashSettled
+                                                        ? 'کاش (سفرکراوە)'
                                                         : (isCash
                                                             ? 'کاش'
                                                             : 'ئۆنلاین'),
@@ -2054,7 +2054,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                                       fontSize: 10,
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      color: isSettled
+                                                      color: isCashSettled
                                                           ? Colors.grey.shade700
                                                           : (isCash
                                                               ? const Color(

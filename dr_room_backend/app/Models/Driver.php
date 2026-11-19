@@ -158,15 +158,14 @@ class Driver extends Model
                 'created_at',
             ]);
 
-        $unsettled = $allDelivered->reject(fn (Order $o) => $this->isOrderSettled($o))->values();
         $nowBaghdad = now('Asia/Baghdad');
 
-        $todayOrders = $unsettled->filter(function (Order $o) use ($nowBaghdad) {
+        $todayOrders = $allDelivered->filter(function (Order $o) use ($nowBaghdad) {
             $dt = $o->driver_delivered_at ?? $o->created_at;
             return $dt && $dt->copy()->timezone('Asia/Baghdad')->isSameDay($nowBaghdad);
         });
 
-        $monthOrders = $unsettled->filter(function (Order $o) use ($nowBaghdad) {
+        $monthOrders = $allDelivered->filter(function (Order $o) use ($nowBaghdad) {
             $dt = $o->driver_delivered_at ?? $o->created_at;
             if (!$dt) {
                 return false;
@@ -175,9 +174,14 @@ class Driver extends Model
             return $baghdadDt->month === $nowBaghdad->month && $baghdadDt->year === $nowBaghdad->year;
         });
 
-        $cashOrders = $unsettled->filter(fn (Order $o) => self::isCashOrder($o));
-        $cashTodayOrders = $todayOrders->filter(fn (Order $o) => self::isCashOrder($o));
-        $onlineOrders = $unsettled->reject(fn (Order $o) => self::isCashOrder($o));
+        // Earnings & delivery counts never reset; only uncollected cash resets on settlement.
+        $allCashOrders = $allDelivered->filter(fn (Order $o) => self::isCashOrder($o));
+        $unsettledCashOrders = $allCashOrders->reject(fn (Order $o) => $this->isOrderSettled($o))->values();
+        $unsettledCashTodayOrders = $unsettledCashOrders->filter(function (Order $o) use ($nowBaghdad) {
+            $dt = $o->driver_delivered_at ?? $o->created_at;
+            return $dt && $dt->copy()->timezone('Asia/Baghdad')->isSameDay($nowBaghdad);
+        });
+        $onlineOrders = $allDelivered->reject(fn (Order $o) => self::isCashOrder($o));
 
         $sumFee = static fn ($list): float => (float) $list->sum(fn (Order $o) => $o->resolveDeliveryFee());
 
@@ -186,19 +190,20 @@ class Driver extends Model
             'today_deliveries' => $todayOrders->count(),
             'month_deliveries' => $monthOrders->count(),
             'today_earnings' => $sumFee($todayOrders),
-            'total_deliveries' => $unsettled->count(),
-            'total_earnings' => $sumFee($unsettled),
-            'cash_today_count' => $cashTodayOrders->count(),
-            'cash_today_collected' => (float) $cashTodayOrders->sum('total_price'),
-            'cash_today_delivery_fee' => $sumFee($cashTodayOrders),
-            'cash_total_count' => $cashOrders->count(),
-            'cash_total_collected' => (float) $cashOrders->sum('total_price'),
-            'cash_total_delivery_fee' => $sumFee($cashOrders),
+            'total_deliveries' => $allDelivered->count(),
+            'total_earnings' => $sumFee($allDelivered),
+            'cash_today_count' => $unsettledCashTodayOrders->count(),
+            'cash_today_collected' => (float) $unsettledCashTodayOrders->sum('total_price'),
+            'cash_today_delivery_fee' => $sumFee($unsettledCashTodayOrders),
+            'cash_total_count' => $unsettledCashOrders->count(),
+            'cash_total_collected' => (float) $unsettledCashOrders->sum('total_price'),
+            'cash_all_time_count' => $allCashOrders->count(),
+            'cash_total_delivery_fee' => $sumFee($allCashOrders),
             'online_total_count' => $onlineOrders->count(),
             'online_total_delivery_fee' => $sumFee($onlineOrders),
             'lifetime_deliveries' => $allDelivered->count(),
             'lifetime_earnings' => $sumFee($allDelivered),
-            'lifetime_cash_collected' => (float) $allDelivered->filter(fn (Order $o) => self::isCashOrder($o))->sum('total_price'),
+            'lifetime_cash_collected' => (float) $allCashOrders->sum('total_price'),
         ];
     }
 }
