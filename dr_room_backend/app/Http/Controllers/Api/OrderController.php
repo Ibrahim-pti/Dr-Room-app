@@ -145,17 +145,9 @@ class OrderController extends Controller
                 $coupon->increment('used_count');
             }
 
-            $serviceType = strtolower($request->service_type ?? '');
-            $commRate = 10.0;
-            if (str_contains($serviceType, 'lab')) {
-                $commRate = (float) \App\Models\AppSetting::get('commission_lab_rate', 15);
-            } elseif (str_contains($serviceType, 'pharmacy') || str_contains($serviceType, 'medication')) {
-                $commRate = (float) \App\Models\AppSetting::get('commission_pharmacy_rate', 5);
-            } elseif (str_contains($serviceType, 'nurse') || str_contains($serviceType, 'nursing')) {
-                $commRate = (float) \App\Models\AppSetting::get('commission_nursing_rate', 10);
-            }
-            $commAmount = round(($effectiveTotal * $commRate) / 100, 2);
-            $providerNetAmount = round(max(0, $effectiveTotal - $commAmount), 2);
+            // Commission uses the current month's rate (nursing / lab only).
+            $commRate = \App\Services\CommissionService::rateForService($request->service_type);
+            [$commAmount, $providerNetAmount] = \App\Services\CommissionService::split($effectiveTotal, $commRate);
 
             $order = Order::create([
                 'patient_id' => Auth::id(),
