@@ -39,7 +39,11 @@ class DriverController extends Controller
             ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
             ->values();
 
+        $finance = $driver->calculateFinancialSummary($request->query('month'));
+        $selectedMonth = $finance['selected_month'];
+
         $completedOrders = Order::where('assigned_driver_id', $user->id)
+            ->whereNotIn('status', ['cancelled', 'rejected'])
             ->where(function ($q) {
                 $q->where('status', 'completed')
                   ->orWhere('delivery_status', 'delivered');
@@ -47,8 +51,9 @@ class DriverController extends Controller
             ->with($withRelations)
             ->orderByDesc('driver_delivered_at')
             ->orderByDesc('id')
-            ->take(25)
+            ->take(500)
             ->get()
+            ->filter(fn (Order $o) => Driver::orderMatchesMonth($o, $selectedMonth))
             ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
             ->values();
 
@@ -85,8 +90,6 @@ class DriverController extends Controller
             ->take(25)
             ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
             ->values();
-
-        $finance = $driver->calculateFinancialSummary();
 
         $unreadNotifications = AppNotification::where('user_id', $user->id)
             ->where('is_read', false)
@@ -509,6 +512,7 @@ class DriverController extends Controller
         }
 
         $loc = $order->resolvePatientLocation();
+        $effectiveDt = Driver::orderEffectiveDate($order);
 
         return [
             'id' => $order->id,
@@ -521,10 +525,13 @@ class DriverController extends Controller
             'total_price' => (float) $order->total_price,
             'delivery_fee' => $order->resolveDeliveryFee(),
             'payment_method' => $order->payment_method,
+            'is_cash' => Driver::isCashOrder($order),
             'payment_status' => $order->payment_status ?? 'pending',
             'driver_assigned_at' => $order->driver_assigned_at?->toIso8601String(),
             'driver_picked_up_at' => $order->driver_picked_up_at?->toIso8601String(),
             'driver_delivered_at' => $order->driver_delivered_at?->toIso8601String(),
+            'delivered_at_display' => $effectiveDt?->format('Y-m-d H:i'),
+            'delivered_month' => $effectiveDt?->format('Y-m'),
             'is_settled' => $viewerDriver ? $viewerDriver->isOrderSettled($order) : false,
             'created_at' => $order->created_at?->toIso8601String(),
             'pickup' => [

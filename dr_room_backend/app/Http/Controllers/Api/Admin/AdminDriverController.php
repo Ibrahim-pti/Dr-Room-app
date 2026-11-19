@@ -313,11 +313,12 @@ class AdminDriverController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $user = User::where('role', 'driver')->with('driver')->findOrFail($id);
         $driver = $user->driver ?: Driver::firstOrCreate(['user_id' => $user->id]);
-        $finance = $driver->calculateFinancialSummary();
+        $finance = $driver->calculateFinancialSummary($request->query('month'));
+        $selectedMonth = $finance['selected_month'];
 
         $deliveredOrders = Order::where('assigned_driver_id', $user->id)
             ->whereNotIn('status', ['cancelled', 'rejected'])
@@ -328,24 +329,28 @@ class AdminDriverController extends Controller
             ->with(['patient'])
             ->orderByDesc('driver_delivered_at')
             ->orderByDesc('id')
-            ->take(50)
+            ->take(500)
             ->get()
+            ->filter(fn (Order $o) => Driver::orderMatchesMonth($o, $selectedMonth))
             ->map(function (Order $o) use ($driver) {
                 $pd = is_array($o->patient_details)
                     ? $o->patient_details
                     : (json_decode((string) $o->patient_details, true) ?: []);
+                $effectiveDt = Driver::orderEffectiveDate($o);
                 return [
                     'id' => $o->id,
                     'order_number' => '#' . $o->id,
                     'service_type' => $o->service_type,
                     'is_lab' => str_contains(strtolower((string) $o->service_type), 'lab'),
                     'patient_name' => $pd['name'] ?? ($o->patient?->name ?? 'نەخۆش'),
+                    'patient_phone' => $pd['phone'] ?? ($o->patient?->phone ?? ''),
                     'total_price' => (float) $o->total_price,
                     'delivery_fee' => $o->resolveDeliveryFee(),
                     'payment_method' => $o->payment_method,
                     'is_cash' => Driver::isCashOrder($o),
                     'is_settled' => $driver->isOrderSettled($o),
-                    'delivered_at' => ($o->driver_delivered_at ?? $o->created_at)?->format('Y-m-d H:i'),
+                    'delivered_at' => $effectiveDt?->format('Y-m-d H:i'),
+                    'delivered_month' => $effectiveDt?->format('Y-m'),
                 ];
             })
             ->values();

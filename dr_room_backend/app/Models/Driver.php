@@ -134,9 +134,60 @@ class Driver extends Model
     }
 
     /**
-     * Compute current-cycle (since last reset) and lifetime earnings/cash metrics.
+     * Resolve effective delivery timestamp in Asia/Baghdad timezone.
      */
-    public function calculateFinancialSummary(): array
+    public static function orderEffectiveDate(Order $order): ?\Carbon\Carbon
+    {
+        $dt = $order->driver_delivered_at ?? $order->created_at;
+        return $dt ? $dt->copy()->timezone('Asia/Baghdad') : null;
+    }
+
+    /**
+     * Check whether a delivered order falls into the given 'YYYY-MM' month (or 'all').
+     */
+    public static function orderMatchesMonth(Order $order, ?string $month): bool
+    {
+        if (!$month || $month === 'all') {
+            return true;
+        }
+        $dt = self::orderEffectiveDate($order);
+        return $dt ? $dt->format('Y-m') === $month : false;
+    }
+
+    /**
+     * Format a 'YYYY-MM' key into a readable Kurdish month + year label.
+     */
+    public static function monthLabelKurdish(string $ym): string
+    {
+        $kurdishMonths = [
+            1 => 'کانوونی دووەم (١)',
+            2 => 'شوبات (٢)',
+            3 => 'ئازار (٣)',
+            4 => 'نیسان (٤)',
+            5 => 'ئایار (٥)',
+            6 => 'حوزەیران (٦)',
+            7 => 'تەممووز (٧)',
+            8 => 'ئاب (٨)',
+            9 => 'ئەیلوول (٩)',
+            10 => 'تشرینی یەکەم (١٠)',
+            11 => 'تشرینی دووەم (١١)',
+            12 => 'کانوونی یەکەم (١٢)',
+        ];
+
+        $parts = explode('-', $ym);
+        if (count($parts) !== 2) {
+            return $ym;
+        }
+        $year = $parts[0];
+        $monthNum = (int) $parts[1];
+        $monthName = $kurdishMonths[$monthNum] ?? $ym;
+        return "{$monthName} {$year}";
+    }
+
+    /**
+     * Compute current-cycle (unsettled cash), monthly breakdown, and lifetime earnings metrics.
+     */
+    public function calculateFinancialSummary(?string $month = null): array
     {
         $allDelivered = Order::where('assigned_driver_id', $this->user_id)
             ->whereNotIn('status', ['cancelled', 'rejected'])
@@ -159,36 +210,87 @@ class Driver extends Model
             ]);
 
         $nowBaghdad = now('Asia/Baghdad');
+        $currentMonthYm = $nowBaghdad->format('Y-m');
 
         $todayOrders = $allDelivered->filter(function (Order $o) use ($nowBaghdad) {
-            $dt = $o->driver_delivered_at ?? $o->created_at;
-            return $dt && $dt->copy()->timezone('Asia/Baghdad')->isSameDay($nowBaghdad);
+            $dt = self::orderEffectiveDate($o);
+            return $dt && $dt->isSameDay($nowBaghdad);
         });
 
-        $monthOrders = $allDelivered->filter(function (Order $o) use ($nowBaghdad) {
-            $dt = $o->driver_delivered_at ?? $o->created_at;
-            if (!$dt) {
-                return false;
-            }
-            $baghdadDt = $dt->copy()->timezone('Asia/Baghdad');
-            return $baghdadDt->month === $nowBaghdad->month && $baghdadDt->year === $nowBaghdad->year;
-        });
+        $currentMonthOrders = $allDelivered->filter(
+            fn (Order $o) => self::orderMatchesMonth($o, $currentMonthYm)
+        );
 
         // Earnings & delivery counts never reset; only uncollected cash resets on settlement.
         $allCashOrders = $allDelivered->filter(fn (Order $o) => self::isCashOrder($o));
         $unsettledCashOrders = $allCashOrders->reject(fn (Order $o) => $this->isOrderSettled($o))->values();
         $unsettledCashTodayOrders = $unsettledCashOrders->filter(function (Order $o) use ($nowBaghdad) {
-            $dt = $o->driver_delivered_at ?? $o->created_at;
-            return $dt && $dt->copy()->timezone('Asia/Baghdad')->isSameDay($nowBaghdad);
+            $dt = self::orderEffectiveDate($o);
+            return $dt && $dt->isSameDay($nowBaghdad);
         });
         $onlineOrders = $allDelivered->reject(fn (Order $o) => self::isCashOrder($o));
 
         $sumFee = static fn ($list): float => (float) $list->sum(fn (Order $o) => $o->resolveDeliveryFee());
 
+        if ($month === 'all') {
+            $selectedMonth = 'all';
+        } elseif ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
+            $selectedMonth = $month;
+        } else {
+            $selectedMonth = ($currentMonthOrders->isNotEmpty() || $allDelivered->isEmpty())
+                ? $currentMonthYm
+                : 'all';
+        }
+
+        // Build per-month breakdown sorted newest first (always include current month + selected month if YYYY-MM).
+        $groupedByMonth = $allDelivered->groupBy(function (Order $o) use ($currentMonthYm) {
+            $dt = self::orderEffectiveDate($o);
+            return $dt ? $dt->format('Y-m') : $currentMonthYm;
+        });
+
+        $monthKeys = $groupedByMonth->keys()->toArray();
+        if (!in_array($currentMonthYm, $monthKeys, true)) {
+            $monthKeys[] = $currentMonthYm;
+        }
+        if ($selectedMonth !== 'all' && !in_array($selectedMonth, $monthKeys, true)) {
+            $monthKeys[] = $selectedMonth;
+        }
+        rsort($monthKeys);
+
+        $availableMonths = array_map(function (string $ym) use ($groupedByMonth, $sumFee) {
+            $list = $groupedByMonth->get($ym, collect());
+            $mCash = $list->filter(fn (Order $o) => self::isCashOrder($o));
+            $mCashUnsettled = $mCash->reject(fn (Order $o) => $this->isOrderSettled($o));
+            $mOnline = $list->reject(fn (Order $o) => self::isCashOrder($o));
+
+            return [
+                'month' => $ym,
+                'label' => self::monthLabelKurdish($ym),
+                'deliveries' => $list->count(),
+                'earnings' => $sumFee($list),
+                'cash_count' => $mCash->count(),
+                'cash_collected' => (float) $mCash->sum('total_price'),
+                'cash_unsettled_count' => $mCashUnsettled->count(),
+                'cash_unsettled_collected' => (float) $mCashUnsettled->sum('total_price'),
+                'cash_delivery_fee' => $sumFee($mCash),
+                'online_count' => $mOnline->count(),
+                'online_delivery_fee' => $sumFee($mOnline),
+                'online_total_price' => (float) $mOnline->sum('total_price'),
+            ];
+        }, $monthKeys);
+
+        $periodOrders = $allDelivered->filter(fn (Order $o) => self::orderMatchesMonth($o, $selectedMonth))->values();
+        $periodCash = $periodOrders->filter(fn (Order $o) => self::isCashOrder($o));
+        $periodCashUnsettled = $periodCash->reject(fn (Order $o) => $this->isOrderSettled($o));
+        $periodOnline = $periodOrders->reject(fn (Order $o) => self::isCashOrder($o));
+        $periodLabCount = $periodOrders->filter(fn (Order $o) => str_contains(strtolower((string) $o->service_type), 'lab'))->count();
+        $periodPharmacyCount = $periodOrders->count() - $periodLabCount;
+
         return [
             'earnings_reset_at' => $this->earnings_reset_at?->toIso8601String(),
             'today_deliveries' => $todayOrders->count(),
-            'month_deliveries' => $monthOrders->count(),
+            'month_deliveries' => $currentMonthOrders->count(),
+            'month_earnings' => $sumFee($currentMonthOrders),
             'today_earnings' => $sumFee($todayOrders),
             'total_deliveries' => $allDelivered->count(),
             'total_earnings' => $sumFee($allDelivered),
@@ -204,6 +306,25 @@ class Driver extends Model
             'lifetime_deliveries' => $allDelivered->count(),
             'lifetime_earnings' => $sumFee($allDelivered),
             'lifetime_cash_collected' => (float) $allCashOrders->sum('total_price'),
+            'selected_month' => $selectedMonth,
+            'selected_month_label' => $selectedMonth === 'all' ? 'هەموو مانگەکان' : self::monthLabelKurdish($selectedMonth),
+            'period_summary' => [
+                'month' => $selectedMonth,
+                'label' => $selectedMonth === 'all' ? 'هەموو مانگەکان' : self::monthLabelKurdish($selectedMonth),
+                'deliveries' => $periodOrders->count(),
+                'earnings' => $sumFee($periodOrders),
+                'cash_count' => $periodCash->count(),
+                'cash_collected' => (float) $periodCash->sum('total_price'),
+                'cash_unsettled_count' => $periodCashUnsettled->count(),
+                'cash_unsettled_collected' => (float) $periodCashUnsettled->sum('total_price'),
+                'cash_delivery_fee' => $sumFee($periodCash),
+                'online_count' => $periodOnline->count(),
+                'online_delivery_fee' => $sumFee($periodOnline),
+                'online_total_price' => (float) $periodOnline->sum('total_price'),
+                'lab_count' => $periodLabCount,
+                'pharmacy_count' => $periodPharmacyCount,
+            ],
+            'available_months' => array_values($availableMonths),
         ];
     }
 }

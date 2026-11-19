@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/services/driver_earnings_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/utils/erbil_map_service.dart';
@@ -26,6 +27,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
   int _tabIndex = 0; // 0: Tasks, 1: Live Map, 2: Earnings, 3: Profile
   int _orderSubTab = 0; // 0: Active, 1: Available Pool, 2: Completed
   int _earningsFilter = 0; // 0: All, 1: Cash, 2: Online
+  String? _selectedEarningsMonth;
+  bool _isMonthLoading = false;
+  bool _isExportingPdf = false;
 
   bool _isLoading = true;
   bool _isDutyLoading = false;
@@ -96,7 +100,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     });
   }
 
-  Future<void> _loadDashboard({bool silent = false}) async {
+  Future<void> _loadDashboard({bool silent = false, String? month}) async {
     if (!silent) {
       setState(() {
         _isLoading = true;
@@ -105,17 +109,24 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     }
 
     try {
-      final res = await ApiClient.get('/driver/dashboard');
+      final activeMonth = month ?? _selectedEarningsMonth;
+      final query = (activeMonth != null && activeMonth.isNotEmpty)
+          ? '?month=$activeMonth'
+          : '';
+      final res = await ApiClient.get('/driver/dashboard$query');
       if (!mounted) return;
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body)['data'] ?? {};
         final driverMap = Map<String, dynamic>.from(data['driver'] ?? {});
+        final statsMap = Map<String, dynamic>.from(data['stats'] ?? {});
         final duty = (driverMap['duty_status'] ?? 'offline').toString();
 
         setState(() {
           _driver = driverMap;
-          _stats = Map<String, dynamic>.from(data['stats'] ?? {});
+          _stats = statsMap;
+          _selectedEarningsMonth =
+              month ?? statsMap['selected_month']?.toString() ?? _selectedEarningsMonth;
           _unreadNotifications =
               int.tryParse('${_stats['unread_notifications'] ?? 0}') ?? 0;
           _activeOrders = List<dynamic>.from(data['active_orders'] ?? []);
@@ -129,6 +140,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             _lastLng = double.tryParse(driverMap['current_lng'].toString());
           }
           _isLoading = false;
+          _isMonthLoading = false;
         });
 
         _syncGpsTimerForDuty(duty);
@@ -137,13 +149,19 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
         setState(() {
           _error = 'کێشە لە بارکردنی زانیاری کارمەندی گەیاندن ڕوویدا';
           _isLoading = false;
+          _isMonthLoading = false;
         });
+      } else {
+        setState(() => _isMonthLoading = false);
       }
     } catch (e) {
-      if (!silent && mounted) {
+      if (mounted) {
         setState(() {
-          _error = 'کێشەی پەیوەندی بە سێرڤەر: $e';
-          _isLoading = false;
+          if (!silent) {
+            _error = 'کێشەی پەیوەندی بە سێرڤەر: $e';
+            _isLoading = false;
+          }
+          _isMonthLoading = false;
         });
       }
     }
@@ -2457,6 +2475,82 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     return m.isEmpty || m.contains('cash') || m.contains('کاش');
   }
 
+  Future<void> _exportDriverPdf({required bool share}) async {
+    if (_isExportingPdf) return;
+    setState(() => _isExportingPdf = true);
+    try {
+      if (share) {
+        await DriverEarningsPdfService.sharePdf(
+          driver: _driver,
+          finance: _stats,
+          orders: _completedOrders,
+        );
+      } else {
+        await DriverEarningsPdfService.previewAndPrint(
+          context,
+          driver: _driver,
+          finance: _stats,
+          orders: _completedOrders,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'کێشە لە دروستکردنی PDF: $e',
+              style: const TextStyle(fontFamily: 'Rabar'),
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isExportingPdf = false);
+    }
+  }
+
+  Widget _buildDriverMonthChip(
+    String label,
+    String monthCode,
+    String activeMonth,
+  ) {
+    final selected = activeMonth == monthCode;
+    return GestureDetector(
+      onTap: () {
+        if (_isMonthLoading || selected) return;
+        setState(() {
+          _selectedEarningsMonth = monthCode;
+          _isMonthLoading = true;
+        });
+        _loadDashboard(silent: true, month: monthCode);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected
+              ? const Color(0xFF2563EB)
+              : AppColors.getSurface(context),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected
+                ? const Color(0xFF2563EB)
+                : AppColors.getBorder(context),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 11.5,
+            fontWeight: FontWeight.bold,
+            color: selected ? Colors.white : AppColors.getTextTitle(context),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildEarningsTab(bool isDark) {
     final todayDeliveries =
         int.tryParse('${_stats['today_deliveries'] ?? 0}') ?? 0;
@@ -2502,20 +2596,55 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     final cashTotalCollected = hasServerCashStats
         ? (double.tryParse('${_stats['cash_total_collected'] ?? 0}') ?? 0)
         : sumField(unsettledCashList, 'total_price');
-    final cashTotalDeliveryFee = hasServerCashStats
-        ? (double.tryParse('${_stats['cash_total_delivery_fee'] ?? 0}') ?? 0)
+
+    final period = _stats['period_summary'] is Map
+        ? Map<String, dynamic>.from(_stats['period_summary'])
+        : <String, dynamic>{};
+    final availableMonths = _stats['available_months'] is List
+        ? List<dynamic>.from(_stats['available_months'])
+        : <dynamic>[];
+    final activeMonth =
+        _selectedEarningsMonth ??
+        _stats['selected_month']?.toString() ??
+        'all';
+    final periodLabel =
+        (period['label'] ?? _stats['selected_month_label'] ?? 'هەموو مانگەکان')
+            .toString();
+
+    final periodDeliveries = period.containsKey('deliveries')
+        ? (int.tryParse('${period['deliveries'] ?? 0}') ?? 0)
+        : _completedOrders.length;
+    final periodEarnings = period.containsKey('earnings')
+        ? (double.tryParse('${period['earnings'] ?? 0}') ?? 0)
+        : sumField(_completedOrders, 'delivery_fee');
+    final periodCashCount = period.containsKey('cash_count')
+        ? (int.tryParse('${period['cash_count'] ?? 0}') ?? 0)
+        : _completedOrders.where(_isCashPayment).length;
+    final periodCashCollected = period.containsKey('cash_collected')
+        ? (double.tryParse('${period['cash_collected'] ?? 0}') ?? 0)
+        : sumField(_completedOrders.where(_isCashPayment).toList(), 'total_price');
+    final periodCashFee = period.containsKey('cash_delivery_fee')
+        ? (double.tryParse('${period['cash_delivery_fee'] ?? 0}') ?? 0)
         : sumField(_completedOrders.where(_isCashPayment).toList(), 'delivery_fee');
-    final onlineTotalCount = hasServerCashStats
-        ? (int.tryParse('${_stats['online_total_count'] ?? 0}') ?? 0)
+    final periodOnlineCount = period.containsKey('online_count')
+        ? (int.tryParse('${period['online_count'] ?? 0}') ?? 0)
         : onlineList.length;
-    final onlineTotalDeliveryFee = hasServerCashStats
-        ? (double.tryParse('${_stats['online_total_delivery_fee'] ?? 0}') ?? 0)
+    final periodOnlineFee = period.containsKey('online_delivery_fee')
+        ? (double.tryParse('${period['online_delivery_fee'] ?? 0}') ?? 0)
         : sumField(onlineList, 'delivery_fee');
+    final periodLabCount = period.containsKey('lab_count')
+        ? (int.tryParse('${period['lab_count'] ?? 0}') ?? 0)
+        : _completedOrders.where((o) => o['is_lab'] == true).length;
+    final periodPharmacyCount = period.containsKey('pharmacy_count')
+        ? (int.tryParse('${period['pharmacy_count'] ?? 0}') ?? 0)
+        : (_completedOrders.length -
+            _completedOrders.where((o) => o['is_lab'] == true).length);
 
     final resetAtRaw =
         (_stats['earnings_reset_at'] ?? _driver['earnings_reset_at'])
             ?.toString();
-    final resetAt = resetAtRaw != null ? DateTime.tryParse(resetAtRaw)?.toLocal() : null;
+    final resetAt =
+        resetAtRaw != null ? DateTime.tryParse(resetAtRaw)?.toLocal() : null;
 
     final filteredCompleted = _completedOrders.where((o) {
       if (_earningsFilter == 1) return _isCashPayment(o);
@@ -2524,10 +2653,42 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     }).toList();
 
     return RefreshIndicator(
-      onRefresh: _loadDashboard,
+      onRefresh: () => _loadDashboard(month: activeMonth),
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (availableMonths.isNotEmpty) ...[
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildDriverMonthChip(
+                    'هەموو ($totalDeliveries)',
+                    'all',
+                    activeMonth,
+                  ),
+                  ...availableMonths.map((m) {
+                    final code = (m['month'] ?? '').toString();
+                    final label = (m['label'] ?? code).toString();
+                    final cnt = int.tryParse('${m['deliveries'] ?? 0}') ?? 0;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _buildDriverMonthChip(
+                        '$label ($cnt)',
+                        code,
+                        activeMonth,
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+            if (_isMonthLoading) ...[
+              const SizedBox(height: 8),
+              const LinearProgressIndicator(minHeight: 2.5),
+            ],
+            const SizedBox(height: 12),
+          ],
           if (resetAt != null) ...[
             Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -2562,7 +2723,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               ),
             ),
           ],
-          // Highlighted Cash Collected Card
+          // Highlighted Cash Collected Card (Unsettled Cash Owed)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -2593,10 +2754,10 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                     const SizedBox(width: 10),
                     const Expanded(
                       child: Text(
-                        'پارەی کاشی وەرگیراو (لە نەخۆش)',
+                        'پارەی کاشی وەرگیراو (چاوەڕوانی پاکتاو)',
                         style: TextStyle(
                           fontFamily: 'Rabar',
-                          fontSize: 13.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -2642,7 +2803,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'کۆی گشتی ($cashTotalCount داواکاری)',
+                            'سفرنەکراو ($cashTotalCount داواکاری)',
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 11,
@@ -2668,13 +2829,13 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           ),
           const SizedBox(height: 12),
 
-          // Driver Work & Delivery Fee Stats
+          // Selected Month / Period Earnings & Cash Summary
           Row(
             children: [
               Expanded(
                 child: _buildMiniStat(
-                  'داهاتی ئەمڕۆ ($todayDeliveries کار)',
-                  _formatIqd(todayEarnings),
+                  'داهاتی کرێ ($periodDeliveries کار)',
+                  _formatIqd(periodEarnings),
                   Iconsax.wallet_2,
                   const Color(0xFF2563EB),
                 ),
@@ -2682,9 +2843,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
               const SizedBox(width: 10),
               Expanded(
                 child: _buildMiniStat(
-                  'کۆی داهات ($totalDeliveries کار)',
-                  _formatIqd(totalEarnings),
-                  Iconsax.award,
+                  'کاشی ماوە ($periodCashCount کار)',
+                  _formatIqd(periodCashCollected),
+                  Iconsax.money_tick,
                   const Color(0xFFF59E0B),
                 ),
               ),
@@ -2692,7 +2853,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           ),
           const SizedBox(height: 12),
 
-          // Cash vs Online Breakdown Card
+          // Detailed Monthly Breakdown Card
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -2703,26 +2864,119 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'پوختەی کارەکان بەپێی پارەدان',
-                  style: TextStyle(
-                    fontFamily: 'Rabar',
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'پوختەی حیساباتی ماوە',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      periodLabel,
+                      style: const TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                  ],
                 ),
                 const Divider(height: 18),
                 _buildInfoRow(
-                  'داواکاری کاش ($cashTotalCount)',
-                  'وەرگیراو: ${_formatIqd(cashTotalCollected)} · کرێ: ${_formatIqd(cashTotalDeliveryFee)}',
+                  'گەیاندنەکان ($periodDeliveries کار)',
+                  'تاقیگە: $periodLabCount · دەرمانخانە: $periodPharmacyCount',
                 ),
                 const SizedBox(height: 8),
                 _buildInfoRow(
-                  'داواکاری ئۆنلاین ($onlineTotalCount)',
-                  'کرێی گەیاندن: ${_formatIqd(onlineTotalDeliveryFee)}',
+                  'داواکاری کاش ($periodCashCount)',
+                  'وەرگیراو: ${_formatIqd(periodCashCollected)} · کرێ: ${_formatIqd(periodCashFee)}',
+                ),
+                const SizedBox(height: 8),
+                _buildInfoRow(
+                  'داواکاری ئۆنلاین ($periodOnlineCount)',
+                  'کرێی گەیاندن: ${_formatIqd(periodOnlineFee)}',
+                ),
+                const SizedBox(height: 8),
+                _buildInfoRow(
+                  'داهاتی ئەمڕۆ ($todayDeliveries کار)',
+                  _formatIqd(todayEarnings),
+                ),
+                const SizedBox(height: 8),
+                _buildInfoRow(
+                  'کۆی گشتی مێژوویی ($totalDeliveries کار)',
+                  _formatIqd(totalEarnings),
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 12),
+
+          // Export PDF Buttons for Driver
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  onPressed: _isExportingPdf
+                      ? null
+                      : () => _exportDriverPdf(share: false),
+                  icon: _isExportingPdf
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Iconsax.document_download, size: 18),
+                  label: const Text(
+                    'سەیڤکردنی PDF',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _isExportingPdf
+                      ? null
+                      : () => _exportDriverPdf(share: true),
+                  icon: const Icon(Iconsax.share, size: 17),
+                  label: const Text(
+                    'ناردن',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF2563EB),
+                    side: const BorderSide(color: Color(0xFF2563EB)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
 
@@ -2761,7 +3015,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'هیچ کارێکی تەواوبوو لەم بەشەدا نییە',
+                    'هیچ کارێکی تەواوبوو لەم ماوەیەدا نییە',
                     style: TextStyle(
                       fontFamily: 'Rabar',
                       fontSize: 13,
@@ -2774,11 +3028,28 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
           else
             ...filteredCompleted.map((order) {
               final isCash = _isCashPayment(order);
+              final isCashSettled = isCash && order['is_settled'] == true;
               final isLab = order['is_lab'] == true;
               final patient =
                   (order['patient'] is Map) ? order['patient'] as Map : {};
               final orderNum =
                   (order['order_number'] ?? '#${order['id']}').toString();
+              final deliveredAt = (order['delivered_at_display'] ?? '')
+                  .toString()
+                  .trim();
+              final fallbackDt = deliveredAt.isNotEmpty
+                  ? deliveredAt
+                  : (() {
+                      final raw =
+                          (order['driver_delivered_at'] ?? order['created_at'])
+                              ?.toString();
+                      final parsed =
+                          raw != null ? DateTime.tryParse(raw)?.toLocal() : null;
+                      return parsed != null
+                          ? intl.DateFormat('yyyy-MM-dd HH:mm').format(parsed)
+                          : '';
+                    })();
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(14),
@@ -2816,35 +3087,57 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: (isCash
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFF2563EB))
+                            color: (isCashSettled
+                                    ? Colors.grey
+                                    : (isCash
+                                        ? const Color(0xFF10B981)
+                                        : const Color(0xFF2563EB)))
                                 .withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            isCash ? 'کاش (وەرگیراو)' : 'ئۆنلاین',
+                            isCashSettled
+                                ? 'کاش (سفرکراوە)'
+                                : (isCash ? 'کاش (وەرگیراو)' : 'ئۆنلاین'),
                             style: TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 10.5,
                               fontWeight: FontWeight.bold,
-                              color: isCash
-                                  ? const Color(0xFF059669)
-                                  : const Color(0xFF2563EB),
+                              color: isCashSettled
+                                  ? Colors.grey.shade700
+                                  : (isCash
+                                      ? const Color(0xFF059669)
+                                      : const Color(0xFF2563EB)),
                             ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      (patient['name'] ?? 'نەخۆش').toString(),
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.getTextTitle(context),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            (patient['name'] ?? 'نەخۆش').toString(),
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.getTextTitle(context),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (fallbackDt.isNotEmpty)
+                          Text(
+                            fallbackDt,
+                            style: GoogleFonts.poppins(
+                              fontSize: 10.5,
+                              color: AppColors.getTextSubtitle(context),
+                            ),
+                          ),
+                      ],
                     ),
                     const Divider(height: 16),
                     Row(

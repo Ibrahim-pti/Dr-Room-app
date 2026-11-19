@@ -7,6 +7,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/services/driver_earnings_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/utils/erbil_map_service.dart';
@@ -1501,9 +1502,12 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
     Map<String, dynamic>? profileData;
     String? loadErr;
     bool isLoading = true;
+    bool isMonthLoading = false;
     bool isResetting = false;
+    bool isExportingPdf = false;
     bool didLoad = false;
     int activeSheetTab = initialTab;
+    String? selectedMonth;
 
     await showModalBottomSheet(
       context: context,
@@ -1512,26 +1516,39 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
-            Future<void> fetchProfile() async {
+            Future<void> fetchProfile({String? month}) async {
               try {
-                final res = await ApiClient.get('/admin/drivers/$driverId/profile');
+                final m = month ?? selectedMonth;
+                final query = (m != null && m.isNotEmpty) ? '?month=$m' : '';
+                final res = await ApiClient.get(
+                  '/admin/drivers/$driverId/profile$query',
+                );
                 if (res.statusCode == 200) {
                   final decoded = jsonDecode(res.body);
+                  final data = Map<String, dynamic>.from(decoded['data'] ?? {});
+                  final fin = data['finance'] is Map
+                      ? Map<String, dynamic>.from(data['finance'])
+                      : <String, dynamic>{};
                   setSheetState(() {
-                    profileData = Map<String, dynamic>.from(decoded['data'] ?? {});
+                    profileData = data;
+                    selectedMonth =
+                        month ?? fin['selected_month']?.toString() ?? selectedMonth;
                     loadErr = null;
                     isLoading = false;
+                    isMonthLoading = false;
                   });
                 } else {
                   setSheetState(() {
                     loadErr = AdminUi.readError(res);
                     isLoading = false;
+                    isMonthLoading = false;
                   });
                 }
               } catch (e) {
                 setSheetState(() {
                   loadErr = '$e';
                   isLoading = false;
+                  isMonthLoading = false;
                 });
               }
             }
@@ -1806,299 +1823,60 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                                 driver: driver,
                                 scrollCtrl: scrollCtrl,
                               )
-                            : ListView(
-                                controller: scrollCtrl,
-                                padding: const EdgeInsets.all(16),
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFF059669),
-                                          Color(0xFF10B981),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'کاشی وەرگیراو (ئەم خولە)',
-                                                style: TextStyle(
-                                                  fontFamily: 'Rabar',
-                                                  fontSize: 11,
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.9),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                _formatIqd(
-                                                  finance['cash_total_collected'],
-                                                ),
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              Text(
-                                                '${finance['cash_total_count'] ?? 0} داواکاری کاش · ئەمڕۆ: ${_formatIqd(finance['cash_today_collected'])}',
-                                                style: TextStyle(
-                                                  fontFamily: 'Rabar',
-                                                  fontSize: 10.5,
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.85),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _profileStatBox(
-                                          'کۆی داهات (${finance['total_deliveries'] ?? 0} کار)',
-                                          _formatIqd(finance['total_earnings']),
-                                          const Color(0xFF2563EB),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: _profileStatBox(
-                                          'داهاتی ئەمڕۆ (${finance['today_deliveries'] ?? 0} کار)',
-                                          _formatIqd(finance['today_earnings']),
-                                          const Color(0xFFF59E0B),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.getBackground(context),
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: AppColors.getBorder(context),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        _profileRow(
-                                          'کارە کاشەکان',
-                                          '${finance['cash_all_time_count'] ?? finance['cash_total_count'] ?? 0} · کرێ: ${_formatIqd(finance['cash_total_delivery_fee'])}',
-                                        ),
-                                        const SizedBox(height: 6),
-                                        _profileRow(
-                                          'کارە ئۆنلاینەکان',
-                                          '${finance['online_total_count'] ?? 0} · کرێ: ${_formatIqd(finance['online_total_delivery_fee'])}',
-                                        ),
-                                        const SizedBox(height: 6),
-                                        _profileRow(
-                                          'کۆی کاشی وەرگیراو (مێژوویی)',
-                                          _formatIqd(
-                                            finance['lifetime_cash_collected'],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        _profileRow(
-                                          'دواین سفرکردنەوەی کاش',
-                                          resetAt != null
-                                              ? intl.DateFormat(
-                                                  'yyyy-MM-dd HH:mm',
-                                                ).format(resetAt)
-                                              : 'هێشتا سفر نەکراوەتەوە',
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                      onPressed: isResetting
-                                          ? null
-                                          : () => confirmAndReset(finance),
-                                      icon: isResetting
-                                          ? const SizedBox(
-                                              width: 16,
-                                              height: 16,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: Colors.white,
-                                              ),
-                                            )
-                                          : const Icon(
-                                              Iconsax.refresh,
-                                              size: 18,
-                                            ),
-                                      label: const Text(
-                                        'سفرکردنەوەی پارەی کاش',
-                                        style: TextStyle(
-                                          fontFamily: 'Rabar',
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xFFEF4444),
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 13,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  const Text(
-                                    'تۆماری گەیاندنە تەواوبووەکان',
-                                    style: TextStyle(
-                                      fontFamily: 'Rabar',
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (orders.isEmpty)
-                                    const Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 20),
-                                      child: Center(
-                                        child: Text(
-                                          'هیچ گەیاندنێکی تەواوبوو نییە',
-                                          style: TextStyle(
-                                            fontFamily: 'Rabar',
-                                            color: Color(0xFF64748B),
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    ...orders.map((o) {
-                                      final isCash = o['is_cash'] == true;
-                                      final isCashSettled =
-                                          isCash && o['is_settled'] == true;
-                                      return Container(
-                                        margin:
-                                            const EdgeInsets.only(bottom: 8),
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              AppColors.getBackground(context),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          border: Border.all(
-                                            color: AppColors.getBorder(context),
-                                          ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  '${o['order_number'] ?? '#${o['id']}'} · ${o['patient_name'] ?? ''}',
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Rabar',
-                                                    fontSize: 12.5,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                const Spacer(),
-                                                Container(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 7,
-                                                    vertical: 2,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: (isCashSettled
-                                                            ? Colors.grey
-                                                            : (isCash
-                                                                ? const Color(
-                                                                    0xFF10B981,
-                                                                  )
-                                                                : const Color(
-                                                                    0xFF2563EB,
-                                                                  )))
-                                                        .withValues(alpha: 0.12),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                      6,
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    isCashSettled
-                                                        ? 'کاش (سفرکراوە)'
-                                                        : (isCash
-                                                            ? 'کاش'
-                                                            : 'ئۆنلاین'),
-                                                    style: TextStyle(
-                                                      fontFamily: 'Rabar',
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: isCashSettled
-                                                          ? Colors.grey.shade700
-                                                          : (isCash
-                                                              ? const Color(
-                                                                  0xFF059669,
-                                                                )
-                                                              : const Color(
-                                                                  0xFF2563EB,
-                                                                )),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  isCash
-                                                      ? 'وەرگیراو: ${_formatIqd(o['total_price'])}'
-                                                      : 'پسوڵە: ${_formatIqd(o['total_price'])}',
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Rabar',
-                                                    fontSize: 11.5,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  'کرێ: ${_formatIqd(o['delivery_fee'])}',
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Rabar',
-                                                    fontSize: 11.5,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xFF2563EB),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
+                            : _buildDriverFinanceTab(
+                                sheetCtx: ctx,
+                                driver: driver,
+                                finance: finance,
+                                orders: orders,
+                                resetAt: resetAt,
+                                selectedMonth: selectedMonth ??
+                                    finance['selected_month']?.toString() ??
+                                    'all',
+                                isMonthLoading: isMonthLoading,
+                                isResetting: isResetting,
+                                isExportingPdf: isExportingPdf,
+                                scrollCtrl: scrollCtrl,
+                                onSelectMonth: (monthCode) {
+                                  if (isMonthLoading) return;
+                                  setSheetState(() {
+                                    selectedMonth = monthCode;
+                                    isMonthLoading = true;
+                                  });
+                                  fetchProfile(month: monthCode);
+                                },
+                                onResetCash: () => confirmAndReset(finance),
+                                onExportPdf: ({required bool share}) async {
+                                  if (isExportingPdf) return;
+                                  setSheetState(() => isExportingPdf = true);
+                                  try {
+                                    if (share) {
+                                      await DriverEarningsPdfService.sharePdf(
+                                        driver: driver,
+                                        finance: finance,
+                                        orders: orders,
                                       );
-                                    }),
-                                ],
+                                    } else {
+                                      await DriverEarningsPdfService.previewAndPrint(
+                                        ctx,
+                                        driver: driver,
+                                        finance: finance,
+                                        orders: orders,
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (mounted) {
+                                      AdminUi.toast(
+                                        context,
+                                        'کێشە لە دروستکردنی PDF: $e',
+                                        isError: true,
+                                      );
+                                    }
+                                  } finally {
+                                    if (ctx.mounted) {
+                                      setSheetState(() => isExportingPdf = false);
+                                    }
+                                  }
+                                },
                               ),
                       ),
                     ],
@@ -2109,6 +1887,480 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
           },
         );
       },
+    );
+  }
+
+  Widget _buildDriverFinanceTab({
+    required BuildContext sheetCtx,
+    required Map<String, dynamic> driver,
+    required Map<String, dynamic> finance,
+    required List<dynamic> orders,
+    required DateTime? resetAt,
+    required String selectedMonth,
+    required bool isMonthLoading,
+    required bool isResetting,
+    required bool isExportingPdf,
+    required ScrollController scrollCtrl,
+    required ValueChanged<String> onSelectMonth,
+    required VoidCallback onResetCash,
+    required Future<void> Function({required bool share}) onExportPdf,
+  }) {
+    final period = finance['period_summary'] is Map
+        ? Map<String, dynamic>.from(finance['period_summary'])
+        : <String, dynamic>{};
+    final availableMonths = finance['available_months'] is List
+        ? List<dynamic>.from(finance['available_months'])
+        : <dynamic>[];
+
+    final periodLabel =
+        (period['label'] ?? finance['selected_month_label'] ?? 'هەموو مانگەکان')
+            .toString();
+    final periodDeliveries =
+        int.tryParse('${period['deliveries'] ?? finance['total_deliveries'] ?? 0}') ?? 0;
+    final periodEarnings =
+        double.tryParse('${period['earnings'] ?? finance['total_earnings'] ?? 0}') ?? 0;
+    final periodCashCount =
+        int.tryParse('${period['cash_count'] ?? finance['cash_all_time_count'] ?? 0}') ?? 0;
+    final periodCashCollected =
+        double.tryParse('${period['cash_collected'] ?? finance['lifetime_cash_collected'] ?? 0}') ?? 0;
+    final periodCashFee =
+        double.tryParse('${period['cash_delivery_fee'] ?? finance['cash_total_delivery_fee'] ?? 0}') ?? 0;
+    final periodOnlineCount =
+        int.tryParse('${period['online_count'] ?? finance['online_total_count'] ?? 0}') ?? 0;
+    final periodOnlineFee =
+        double.tryParse('${period['online_delivery_fee'] ?? finance['online_total_delivery_fee'] ?? 0}') ?? 0;
+    final periodLabCount = int.tryParse('${period['lab_count'] ?? 0}') ?? 0;
+    final periodPharmacyCount =
+        int.tryParse('${period['pharmacy_count'] ?? 0}') ?? 0;
+
+    return ListView(
+      controller: scrollCtrl,
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Month Selector Strip
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _monthChip(
+                label: 'هەموو (${finance['lifetime_deliveries'] ?? finance['total_deliveries'] ?? 0})',
+                selected: selectedMonth == 'all',
+                onTap: () => onSelectMonth('all'),
+              ),
+              ...availableMonths.map((m) {
+                final code = (m['month'] ?? '').toString();
+                final label = (m['label'] ?? code).toString();
+                final cnt = int.tryParse('${m['deliveries'] ?? 0}') ?? 0;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _monthChip(
+                    label: '$label ($cnt)',
+                    selected: selectedMonth == code,
+                    onTap: () => onSelectMonth(code),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        if (isMonthLoading) ...[
+          const SizedBox(height: 8),
+          const LinearProgressIndicator(minHeight: 2.5),
+        ],
+        const SizedBox(height: 12),
+
+        // Unsettled Cash Card (Always live across unsettled orders)
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF059669), Color(0xFF10B981)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'کاشی وەرگیراو (چاوەڕوانی پاکتاو)',
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _formatIqd(finance['cash_total_collected']),
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                '${finance['cash_total_count'] ?? 0} داواکاری کاش سفرنەکراو · ئەمڕۆ: ${_formatIqd(finance['cash_today_collected'])}',
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 10.5,
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Selected Month / Period KPIs
+        Row(
+          children: [
+            Expanded(
+              child: _profileStatBox(
+                'داهاتی کرێ ($periodDeliveries کار)',
+                _formatIqd(periodEarnings),
+                const Color(0xFF2563EB),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _profileStatBox(
+                'کاشی ماوە ($periodCashCount کار)',
+                _formatIqd(periodCashCollected),
+                const Color(0xFFF59E0B),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Detailed Breakdown Card
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.getBackground(context),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.getBorder(context)),
+          ),
+          child: Column(
+            children: [
+              _profileRow('ماوەی هەڵبژێردراو', periodLabel),
+              const SizedBox(height: 6),
+              _profileRow(
+                'دابەشبوونی کارەکان',
+                'تاقیگە: $periodLabCount · دەرمانخانە: $periodPharmacyCount',
+              ),
+              const SizedBox(height: 6),
+              _profileRow(
+                'کارە کاشەکان',
+                '$periodCashCount کار · کرێ: ${_formatIqd(periodCashFee)}',
+              ),
+              const SizedBox(height: 6),
+              _profileRow(
+                'کارە ئۆنلاینەکان',
+                '$periodOnlineCount کار · کرێ: ${_formatIqd(periodOnlineFee)}',
+              ),
+              const SizedBox(height: 6),
+              _profileRow(
+                'داهاتی ئەمڕۆ (${finance['today_deliveries'] ?? 0} کار)',
+                _formatIqd(finance['today_earnings']),
+              ),
+              const SizedBox(height: 6),
+              _profileRow(
+                'کۆی گشتی مێژوویی',
+                '${finance['lifetime_deliveries'] ?? 0} کار · داهات: ${_formatIqd(finance['lifetime_earnings'])}',
+              ),
+              const SizedBox(height: 6),
+              _profileRow(
+                'دواین سفرکردنەوەی کاش',
+                resetAt != null
+                    ? intl.DateFormat('yyyy-MM-dd HH:mm').format(resetAt)
+                    : 'هێشتا سفر نەکراوەتەوە',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // PDF Export & Share Row
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: ElevatedButton.icon(
+                onPressed: isExportingPdf ? null : () => onExportPdf(share: false),
+                icon: isExportingPdf
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Iconsax.document_download, size: 18),
+                label: const Text(
+                  'سەیڤکردنی PDF',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: isExportingPdf ? null : () => onExportPdf(share: true),
+                icon: const Icon(Iconsax.share, size: 17),
+                label: const Text(
+                  'ناردن',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF2563EB),
+                  side: const BorderSide(color: Color(0xFF2563EB)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Reset Cash Only Button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: isResetting ? null : onResetCash,
+            icon: isResetting
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Iconsax.refresh, size: 18),
+            label: const Text(
+              'سفرکردنەوەی پارەی کاش',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'تۆماری گەیاندنە تەواوبووەکان',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              '${orders.length} گەیاندن',
+              style: const TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 11.5,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (orders.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text(
+                'هیچ گەیاندنێکی تەواوبوو لەم ماوەیەدا نییە',
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+          )
+        else
+          ...orders.map((o) {
+            final isCash = o['is_cash'] == true;
+            final isCashSettled = isCash && o['is_settled'] == true;
+            final isLab = o['is_lab'] == true;
+            final deliveredAt = (o['delivered_at'] ?? '').toString().trim();
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.getBackground(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.getBorder(context)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${o['order_number'] ?? '#${o['id']}'} · ${o['patient_name'] ?? ''}',
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (isCashSettled
+                                  ? Colors.grey
+                                  : (isCash
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFF2563EB)))
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          isCashSettled
+                              ? 'کاش (سفرکراوە)'
+                              : (isCash ? 'کاش' : 'ئۆنلاین'),
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isCashSettled
+                                ? Colors.grey.shade700
+                                : (isCash
+                                    ? const Color(0xFF059669)
+                                    : const Color(0xFF2563EB)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        isLab ? 'نموونەی تاقیگە' : 'گەیاندنی دەرمان',
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 10.5,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                      if (deliveredAt.isNotEmpty) ...[
+                        const Text(
+                          ' · ',
+                          style: TextStyle(color: Color(0xFF94A3B8)),
+                        ),
+                        Text(
+                          deliveredAt,
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.5,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isCash
+                            ? 'وەرگیراو: ${_formatIqd(o['total_price'])}'
+                            : 'پسوڵە: ${_formatIqd(o['total_price'])}',
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11.5,
+                        ),
+                      ),
+                      Text(
+                        'کرێ: ${_formatIqd(o['delivery_fee'])}',
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2563EB),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+      ],
+    );
+  }
+
+  Widget _monthChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected
+              ? const Color(0xFF2563EB)
+              : AppColors.getBackground(context),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected
+                ? const Color(0xFF2563EB)
+                : AppColors.getBorder(context),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 11.5,
+            fontWeight: FontWeight.bold,
+            color: selected ? Colors.white : AppColors.getTextTitle(context),
+          ),
+        ),
+      ),
     );
   }
 
