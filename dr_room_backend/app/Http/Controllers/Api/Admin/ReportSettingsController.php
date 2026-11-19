@@ -15,8 +15,8 @@ class ReportSettingsController extends Controller
             'header_subtitle' => AppSetting::get('report_header_subtitle', 'Dr. Room Healthcare System & Lab Diagnostics'),
             'footer_text' => AppSetting::get('report_footer_text', 'ئەم ڕاپۆرتە بە فەرمی لەلایەن تاقیگەی باوەڕپێکراو پەسەندکراوە و پارێزراوە بە مۆری ئەلیکترۆنی.'),
             'emergency_phone' => AppSetting::get('report_emergency_phone', '+964 750 000 0000'),
-            'show_watermark' => AppSetting::get('report_show_watermark', true),
-            'show_stamp' => AppSetting::get('report_show_stamp', true),
+            'show_watermark' => filter_var(AppSetting::get('report_show_watermark', true), FILTER_VALIDATE_BOOLEAN),
+            'show_stamp' => filter_var(AppSetting::get('report_show_stamp', true), FILTER_VALIDATE_BOOLEAN),
             'logo_url' => AppSetting::get('report_logo_url', null),
         ];
 

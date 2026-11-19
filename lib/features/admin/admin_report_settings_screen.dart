@@ -57,13 +57,13 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body)['data'] ?? {};
         setState(() {
-          _titleCtrl.text = data['header_title'] ?? 'دکتۆر ڕۆم - دۆسیەی پزیشکی و ئەنجامی پشکنین';
-          _subtitleCtrl.text = data['header_subtitle'] ?? 'Dr. Room Healthcare System & Lab Diagnostics';
-          _footerCtrl.text = data['footer_text'] ?? 'ئەم ڕاپۆرتە بە فەرمی لەلایەن تاقیگەی باوەڕپێکراو پەسەندکراوە و پارێزراوە بە مۆری ئەلیکترۆنی.';
+          _titleCtrl.text = (data['header_title'] ?? 'دکتۆر ڕۆم - دۆسیەی پزیشکی و ئەنجامی پشکنین').toString();
+          _subtitleCtrl.text = (data['header_subtitle'] ?? 'Dr. Room Healthcare System & Lab Diagnostics').toString();
+          _footerCtrl.text = (data['footer_text'] ?? 'ئەم ڕاپۆرتە بە فەرمی لەلایەن تاقیگەی باوەڕپێکراو پەسەندکراوە و پارێزراوە بە مۆری ئەلیکترۆنی.').toString();
           final rawPhone = (data['emergency_phone'] ?? '+964 750 000 0000').toString();
           _phoneCtrl.text = _cleanPhone(rawPhone);
-          _showWatermark = data['show_watermark'] ?? true;
-          _showStamp = data['show_stamp'] ?? true;
+          _showWatermark = _parseBool(data['show_watermark'], fallback: true);
+          _showStamp = _parseBool(data['show_stamp'], fallback: true);
           _logoUrl = data['logo_url']?.toString();
           _isLoading = false;
         });
@@ -76,6 +76,16 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
     } catch (e) {
       if (mounted) setState(() { _error = '$e'; _isLoading = false; });
     }
+  }
+
+  bool _parseBool(dynamic value, {bool fallback = false}) {
+    if (value == null) return fallback;
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    final s = value.toString().trim().toLowerCase();
+    if (s == 'true' || s == '1' || s == 'yes') return true;
+    if (s == 'false' || s == '0' || s == 'no') return false;
+    return fallback;
   }
 
   String _cleanPhone(String raw) {
