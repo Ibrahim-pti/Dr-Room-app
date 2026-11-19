@@ -53,6 +53,7 @@ Route::get('/doctors/{id}', [AppController::class, 'doctor']);
 Route::get('/doctors/{id}/reviews', [\App\Http\Controllers\Api\DoctorReviewController::class, 'index']);
 Route::get('/doctors/{id}/availability', [AppointmentBookingController::class, 'availability']);
 Route::get('/global-search', [GlobalSearchController::class, 'search']);
+Route::get('/coupons/availability', [\App\Http\Controllers\Api\CouponController::class, 'availability']);
 
 // ─── Medicine reference info (openFDA — free, no API key) ─────────────
 Route::get('/medicines/lookup', [\App\Http\Controllers\Api\MedicineInfoController::class, 'lookup']);

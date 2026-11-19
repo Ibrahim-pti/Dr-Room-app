@@ -9,6 +9,32 @@ use Illuminate\Http\Request;
 class CouponController extends Controller
 {
     /**
+     * Check whether at least one usable discount coupon is currently active.
+     */
+    public function availability()
+    {
+        $now = now();
+
+        $hasActive = Coupon::query()
+            ->where('is_active', true)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>=', $now);
+            })
+            ->where(function ($q) {
+                $q->whereNull('usage_limit')->orWhereColumn('used_count', '<', 'usage_limit');
+            })
+            ->exists();
+
+        return response()->json([
+            'success' => true,
+            'has_active_coupons' => $hasActive,
+        ]);
+    }
+
+    /**
      * Validate a promo code against an order amount
      */
     public function validateCoupon(Request $request)

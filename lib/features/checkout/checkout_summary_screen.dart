@@ -25,6 +25,34 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
   String? _appliedCouponCode;
   double _couponDiscount = 0.0;
   bool _isValidatingCoupon = false;
+  bool _hasActiveCoupons = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCouponAvailability();
+  }
+
+  @override
+  void dispose() {
+    _couponCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkCouponAvailability() async {
+    try {
+      final res = await ApiClient.get('/coupons/availability');
+      if (!mounted) return;
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
+        setState(() {
+          _hasActiveCoupons = decoded['has_active_coupons'] == true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Coupon availability check failed: $e');
+    }
+  }
 
   Future<void> _validateAndApplyCoupon(double orderAmount) async {
     final code = _couponCtrl.text.trim().toUpperCase();
@@ -352,92 +380,94 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                     },
                   ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.04),
 
-                  const SizedBox(height: 16),
+                  if (_hasActiveCoupons || _appliedCouponCode != null) ...[
+                    const SizedBox(height: 16),
 
-                  // ── Promo Code Card ──
-                  Consumer<CartProvider>(
-                    builder: (context, cartProvider, child) {
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: borderColor),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Iconsax.ticket_discount, color: Color(0xFF6366F1), size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'promo_code'.tr(),
-                                  style: _kStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            if (_appliedCouponCode != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 18),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'کۆدی $_appliedCouponCode چالاککرا (${NumberFormat('#,###').format(_couponDiscount)} د.ع)',
-                                      style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 13),
-                                    ),
-                                    const Spacer(),
-                                    IconButton(
-                                      icon: const Icon(Icons.close, size: 18, color: Colors.grey),
-                                      onPressed: _removeCoupon,
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
+                    // ── Promo Code Card ──
+                    Consumer<CartProvider>(
+                      builder: (context, cartProvider, child) {
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Row(
                                 children: [
-                                  Expanded(
-                                    child: TextField(
-                                      controller: _couponCtrl,
-                                      textCapitalization: TextCapitalization.characters,
-                                      decoration: InputDecoration(
-                                        hintText: 'enter_promo_code'.tr(),
-                                        hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
-                                        isDense: true,
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                      ),
-                                    ),
-                                  ),
+                                  const Icon(Iconsax.ticket_discount, color: Color(0xFF6366F1), size: 20),
                                   const SizedBox(width: 8),
-                                  ElevatedButton(
-                                    onPressed: _isValidatingCoupon ? null : () => _validateAndApplyCoupon(cartProvider.total),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF6366F1),
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    ),
-                                    child: _isValidatingCoupon
-                                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                        : Text('apply_coupon'.tr(), style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                                  Text(
+                                    'promo_code'.tr(),
+                                    style: _kStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                   ),
                                 ],
                               ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                              const SizedBox(height: 12),
+                              if (_appliedCouponCode != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 18),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'کۆدی $_appliedCouponCode چالاککرا (${NumberFormat('#,###').format(_couponDiscount)} د.ع)',
+                                        style: const TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold, color: Color(0xFF10B981), fontSize: 13),
+                                      ),
+                                      const Spacer(),
+                                      IconButton(
+                                        icon: const Icon(Icons.close, size: 18, color: Colors.grey),
+                                        onPressed: _removeCoupon,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _couponCtrl,
+                                        textCapitalization: TextCapitalization.characters,
+                                        decoration: InputDecoration(
+                                          hintText: 'enter_promo_code'.tr(),
+                                          hintStyle: const TextStyle(fontFamily: 'Rabar', fontSize: 13),
+                                          isDense: true,
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    ElevatedButton(
+                                      onPressed: _isValidatingCoupon ? null : () => _validateAndApplyCoupon(cartProvider.total),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF6366F1),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                      child: _isValidatingCoupon
+                                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                          : Text('apply_coupon'.tr(), style: const TextStyle(fontFamily: 'Rabar', fontSize: 13)),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
 
                   const SizedBox(height: 24),
 
