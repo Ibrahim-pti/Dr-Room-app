@@ -13,6 +13,7 @@ import 'admin_articles_screen.dart';
 import 'admin_banners_screen.dart';
 import 'admin_coupons_screen.dart';
 import 'admin_drivers_screen.dart';
+import 'admin_feedback_screen.dart';
 import 'admin_labs_screen.dart';
 import 'admin_notifications_screen.dart';
 import 'admin_nurses_screen.dart';
@@ -559,6 +560,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'color': const Color(0xFFD97706),
         'bg': const Color(0xFFFFFBEB),
         'screen': const AdminNotificationsScreen(),
+      },
+      {
+        'title': 'فیدباک و هەڵسەنگاندنی بەکارهێنەران',
+        'subtitle': 'پرسیاری ڕازیبوون، پێشنیار و بینینی وەڵامەکان',
+        'icon': Iconsax.message_favorite,
+        'color': const Color(0xFF4F46E5),
+        'bg': const Color(0xFFEEF2FF),
+        'screen': const AdminFeedbackScreen(),
       },
       {
         'title': 'فریاگوزاری و وتارەکان',

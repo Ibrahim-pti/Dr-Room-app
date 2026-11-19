@@ -153,6 +153,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // ─── Patient: Coupons & Discounts ──────────────────────────────────────
     Route::post('/coupons/validate', [\App\Http\Controllers\Api\CouponController::class, 'validateCoupon']);
 
+    // ─── Patient: Feedback Surveys ────────────────────────────────────────
+    Route::get('/feedback-surveys/active', [\App\Http\Controllers\Api\FeedbackSurveyController::class, 'active']);
+    Route::post('/feedback-surveys/{id}/respond', [\App\Http\Controllers\Api\FeedbackSurveyController::class, 'respond']);
+
     // ─── Patient: Support & Tickets ─────────────────────────────────────────
     Route::get('/support-tickets', [\App\Http\Controllers\Api\SupportTicketController::class, 'index']);
     Route::post('/support-tickets', [\App\Http\Controllers\Api\SupportTicketController::class, 'store']);
@@ -363,6 +367,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/coupons/{id}', [\App\Http\Controllers\Api\Admin\CouponController::class, 'update']);
         Route::patch('/coupons/{id}/toggle', [\App\Http\Controllers\Api\Admin\CouponController::class, 'toggleStatus']);
         Route::delete('/coupons/{id}', [\App\Http\Controllers\Api\Admin\CouponController::class, 'destroy']);
+
+        // ─── Feedback Surveys Management ──────────────────────────────────
+        Route::get('/feedback-surveys', [\App\Http\Controllers\Api\Admin\AdminFeedbackController::class, 'index']);
+        Route::post('/feedback-surveys', [\App\Http\Controllers\Api\Admin\AdminFeedbackController::class, 'store']);
+        Route::put('/feedback-surveys/{id}', [\App\Http\Controllers\Api\Admin\AdminFeedbackController::class, 'update']);
+        Route::patch('/feedback-surveys/{id}/toggle', [\App\Http\Controllers\Api\Admin\AdminFeedbackController::class, 'toggleStatus']);
+        Route::delete('/feedback-surveys/{id}', [\App\Http\Controllers\Api\Admin\AdminFeedbackController::class, 'destroy']);
+        Route::get('/feedback-surveys/{id}/responses', [\App\Http\Controllers\Api\Admin\AdminFeedbackController::class, 'responses']);
 
         // ─── Support Tickets Management ───────────────────────────────────
         Route::get('/tickets', [\App\Http\Controllers\Api\Admin\AdminTicketController::class, 'index']);

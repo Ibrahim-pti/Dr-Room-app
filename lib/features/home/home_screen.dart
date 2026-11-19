@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 import '../../core/providers/appointment_provider.dart';
 import '../../core/services/app_version_service.dart';
+import '../../core/services/feedback_survey_service.dart';
 import 'promo_carousel.dart';
 import 'widgets/home_header.dart';
 import 'widgets/emergency_sos_banner.dart';
@@ -42,6 +43,7 @@ class HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         context.read<AppointmentProvider>().fetchAppointments();
         AppVersionService.checkAppVersion(context);
+        FeedbackSurveyService.checkAndShow(context);
       }
     });
   }
