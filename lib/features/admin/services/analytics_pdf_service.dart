@@ -36,7 +36,6 @@ class AnalyticsPdfService {
     return switch (key) {
       'lab' => 'پشکنینی تاقیگە',
       'nursing' => 'پەرستاری ماڵەوە',
-      'pharmacy' => 'دەرمانخانە',
       _ => 'هەموو خزمەتگوزارییەکان',
     };
   }
@@ -486,7 +485,7 @@ class AnalyticsPdfService {
                 _ecoLine('تاقیگە پەسەندکراوەکان', '${ecosystem['total_labs'] ?? 0}'),
                 _ecoLine('پەرستارەکان', '${ecosystem['total_nurses'] ?? 0}'),
                 _ecoLine('کارمەندانی گەیاندن', '${ecosystem['total_drivers'] ?? 0} (${ecosystem['online_drivers'] ?? 0} لە هێڵ)'),
-                _ecoLine('دەرمانخانەکان', '${ecosystem['total_pharmacies'] ?? 0}'),
+                _ecoLine('نەخۆشە تۆمارکراوەکان', '${ecosystem['total_patients'] ?? 0}'),
                 _ecoLine('ئەنجامی تاقیگەیی', '${ecosystem['total_lab_results'] ?? 0}'),
                 _ecoLine('تیکێتی کراوە', '${ecosystem['open_tickets'] ?? 0}'),
               ],
