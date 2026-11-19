@@ -20,10 +20,6 @@ class AdminCommissionScreen extends StatefulWidget {
 
 class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
   static const _green = Color(0xFF10B981);
-  static const _kurdishMonths = [
-    'کانوونی دووەم', 'شوبات', 'ئازار', 'نیسان', 'ئایار', 'حوزەیران',
-    'تەممووز', 'ئاب', 'ئەیلوول', 'تشرینی یەکەم', 'تشرینی دووەم', 'کانوونی یەکەم',
-  ];
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -43,7 +39,7 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
 
   bool get _isDark => ThemeProvider().isDarkMode;
   String get _periodQuery => 'year=${_period.year}&month=${_period.month}';
-  String get _periodLabel => '${_kurdishMonths[_period.month - 1]} ${_period.year}';
+  String get _periodLabel => '${_period.month.toString().padLeft(2, '0')} / ${_period.year}';
   bool get _isCurrentMonth {
     final now = DateTime.now();
     return _period.year == now.year && _period.month == now.month;
@@ -337,23 +333,30 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _isSaving ? null : _saveSettings,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _green,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: _green.withValues(alpha: 0.5),
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              icon: _isSaving
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Icon(Iconsax.tick_circle, size: 20),
-              label: const Text(
-                'پاشەکەوتکردنی ڕێژەکان',
-                style: TextStyle(fontFamily: 'Rabar', fontSize: 15, fontWeight: FontWeight.bold),
+          Material(
+            color: _isSaving ? _green.withValues(alpha: 0.6) : _green,
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              onTap: _isSaving ? null : _saveSettings,
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _isSaving
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Iconsax.tick_circle, size: 20, color: Colors.white),
+                    const SizedBox(width: 8),
+                    const Flexible(
+                      child: Text(
+                        'پاشەکەوتکردنی ڕێژەکان',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontFamily: 'Rabar', fontSize: 15, height: 1.5, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
