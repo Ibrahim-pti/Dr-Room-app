@@ -29,9 +29,16 @@ class AdminLabResultController extends Controller
         }
 
         $results = $query->latest()->paginate(20);
+        $results->getCollection()->transform(function (LabResult $item) {
+            $arr = $item->toArray();
+            $arr['file_url'] = $item->file_path ? url('storage/' . $item->file_path) : null;
+            $arr['official_report_url'] = \Illuminate\Support\Facades\URL::signedRoute('reports.lab.official', ['result' => $item->id]);
+            return $arr;
+        });
 
         return response()->json([
             'success' => true,
+            'branding' => \App\Services\ReportBrandingService::get(),
             'data' => $results,
         ]);
     }

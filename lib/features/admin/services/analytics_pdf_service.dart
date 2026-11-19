@@ -5,6 +5,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import '../../../core/services/medical_report_pdf_service.dart';
+
 /// Official Executive Monthly Analytics & Accounting PDF Generator for Dr. Room Admin.
 class AnalyticsPdfService {
   static const PdfColor primaryColor = PdfColor.fromInt(0xFF7C3AED); // Violet
@@ -74,6 +76,24 @@ class AnalyticsPdfService {
     } catch (_) {}
 
     final branding = (report['branding'] as Map?) ?? {};
+    final remoteLogoBytes = await MedicalReportPdfService.downloadImageBytes(
+      branding['logo_url']?.toString(),
+    );
+    if (remoteLogoBytes != null) {
+      try {
+        logoImage = pw.MemoryImage(remoteLogoBytes);
+      } catch (_) {}
+    }
+    pw.MemoryImage? signatureImage;
+    final remoteSigBytes = await MedicalReportPdfService.downloadImageBytes(
+      branding['signature_url']?.toString(),
+    );
+    if (remoteSigBytes != null) {
+      try {
+        signatureImage = pw.MemoryImage(remoteSigBytes);
+      } catch (_) {}
+    }
+
     final summary = (report['summary'] as Map?) ?? {};
     final overall = (report['overall'] as Map?) ?? {};
     final ecosystem = (report['ecosystem'] as Map?) ?? {};
@@ -107,6 +127,15 @@ class AnalyticsPdfService {
             ? branding['emergency_phone'].toString().trim()
             : '+964 750 000 0000';
     final showStamp = branding['show_stamp'] != false;
+    final showSignature = branding['show_signature'] != false;
+    final signatureName =
+        (branding['signature_name']?.toString().trim().isNotEmpty ?? false)
+            ? branding['signature_name'].toString().trim()
+            : 'بەڕێوەبەری پزیشکی و تاقیگە';
+    final signatureTitle =
+        (branding['signature_title']?.toString().trim().isNotEmpty ?? false)
+            ? branding['signature_title'].toString().trim()
+            : 'واژووی فەرمی پەسەندکردن';
 
     pdf.addPage(
       pw.MultiPage(
@@ -189,6 +218,10 @@ class AnalyticsPdfService {
                     footerText: footerText,
                     emergencyPhone: emergencyPhone,
                     showStamp: showStamp,
+                    showSignature: showSignature,
+                    signatureImage: signatureImage,
+                    signatureName: signatureName,
+                    signatureTitle: signatureTitle,
                   ),
                 ],
               ),
@@ -719,6 +752,10 @@ class AnalyticsPdfService {
     required String footerText,
     required String emergencyPhone,
     required bool showStamp,
+    required bool showSignature,
+    required pw.MemoryImage? signatureImage,
+    required String signatureName,
+    required String signatureTitle,
   }) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(10),
@@ -729,6 +766,7 @@ class AnalyticsPdfService {
       ),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
           pw.Expanded(
             child: pw.Column(
@@ -740,7 +778,28 @@ class AnalyticsPdfService {
               ],
             ),
           ),
-          if (showStamp)
+          if (showSignature) ...[
+            pw.SizedBox(width: 10),
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.white,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                border: pw.Border.all(color: borderColor),
+              ),
+              child: pw.Column(
+                children: [
+                  if (signatureImage != null)
+                    pw.Image(signatureImage, width: 80, height: 30, fit: pw.BoxFit.contain),
+                  pw.Text(signatureName, style: pw.TextStyle(font: ttfBold, fontSize: 7.5, color: textColor)),
+                  if (signatureTitle.isNotEmpty)
+                    pw.Text(signatureTitle, style: const pw.TextStyle(fontSize: 6.8, color: textMuted)),
+                ],
+              ),
+            ),
+          ],
+          if (showStamp) ...[
+            pw.SizedBox(width: 8),
             pw.Container(
               padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: pw.BoxDecoration(
@@ -752,6 +811,7 @@ class AnalyticsPdfService {
                 style: pw.TextStyle(font: ttfBold, fontSize: 8, color: primaryColor),
               ),
             ),
+          ],
         ],
       ),
     );

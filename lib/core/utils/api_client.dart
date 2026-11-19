@@ -206,6 +206,7 @@ class ApiClient {
     Map<String, String>? fields,
     String? fileField,
     String? filePath,
+    Map<String, String>? files,
   }) async {
     final prefs = await _getPrefs();
     final token = prefs.getString('auth_token');
@@ -224,6 +225,16 @@ class ApiClient {
 
     if (fileField != null && filePath != null && filePath.isNotEmpty) {
       request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
+    }
+
+    if (files != null) {
+      for (final entry in files.entries) {
+        if (entry.value.isNotEmpty) {
+          request.files.add(
+            await http.MultipartFile.fromPath(entry.key, entry.value),
+          );
+        }
+      }
     }
 
     final streamedResponse = await request.send().timeout(

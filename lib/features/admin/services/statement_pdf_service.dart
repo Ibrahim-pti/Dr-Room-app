@@ -5,6 +5,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import '../../../core/services/medical_report_pdf_service.dart';
+
 /// Professional Medical & Financial Statement / Invoice PDF Generator for Dr. Room
 class StatementPdfService {
   static const PdfColor primaryColor = PdfColor.fromInt(0xFF4F46E5); // Indigo
@@ -48,6 +50,24 @@ class StatementPdfService {
     final statementNo = data['statement_number']?.toString() ?? 'DR-STMT-2026';
     final generatedAt = data['generated_at']?.toString() ?? '';
 
+    final remoteLogoBytes = await MedicalReportPdfService.downloadImageBytes(
+      branding['logo_url']?.toString(),
+    );
+    if (remoteLogoBytes != null) {
+      try {
+        logoImage = pw.MemoryImage(remoteLogoBytes);
+      } catch (_) {}
+    }
+    pw.MemoryImage? signatureImage;
+    final remoteSigBytes = await MedicalReportPdfService.downloadImageBytes(
+      branding['signature_url']?.toString(),
+    );
+    if (remoteSigBytes != null) {
+      try {
+        signatureImage = pw.MemoryImage(remoteSigBytes);
+      } catch (_) {}
+    }
+
     final headerTitle = (branding['header_title']?.toString().trim().isNotEmpty ?? false)
         ? branding['header_title'].toString().trim()
         : 'دکتۆر ڕۆم - Dr. Room';
@@ -61,6 +81,13 @@ class StatementPdfService {
         ? branding['emergency_phone'].toString().trim()
         : '+964 750 000 0000';
     final showStamp = branding['show_stamp'] != false;
+    final showSignature = branding['show_signature'] != false;
+    final signatureName = (branding['signature_name']?.toString().trim().isNotEmpty ?? false)
+        ? branding['signature_name'].toString().trim()
+        : 'بەڕێوەبەری پزیشکی و دارایی';
+    final signatureTitle = (branding['signature_title']?.toString().trim().isNotEmpty ?? false)
+        ? branding['signature_title'].toString().trim()
+        : 'واژووی فەرمی پەسەندکردن';
 
     pdf.addPage(
       pw.MultiPage(
@@ -123,6 +150,10 @@ class StatementPdfService {
                     footerText: footerText,
                     emergencyPhone: emergencyPhone,
                     showStamp: showStamp,
+                    showSignature: showSignature,
+                    signatureImage: signatureImage,
+                    signatureName: signatureName,
+                    signatureTitle: signatureTitle,
                   ),
                 ],
               ),
@@ -519,6 +550,10 @@ class StatementPdfService {
     required String footerText,
     required String emergencyPhone,
     required bool showStamp,
+    required bool showSignature,
+    required pw.MemoryImage? signatureImage,
+    required String signatureName,
+    required String signatureTitle,
   }) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(12),
@@ -529,21 +564,58 @@ class StatementPdfService {
       ),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
-          // Provider Acceptance
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                'ئیمزا و پەسەندکردنی دابینکار',
-                style: pw.TextStyle(font: ttfBold, fontSize: 8.5, color: textColor),
+          // Official Admin/Medical Director Signature or Provider line
+          if (showSignature)
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.white,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                border: pw.Border.all(color: borderColor),
               ),
-              pw.SizedBox(height: 22),
-              pw.Container(width: 120, height: 1, color: borderColor),
-              pw.SizedBox(height: 2),
-              pw.Text('بەروار: ____ / ____ / ٢٠٢٦', style: const pw.TextStyle(fontSize: 7.5, color: textMuted)),
-            ],
-          ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  if (signatureImage != null)
+                    pw.Image(
+                      signatureImage,
+                      width: 95,
+                      height: 36,
+                      fit: pw.BoxFit.contain,
+                    )
+                  else ...[
+                    pw.SizedBox(height: 18),
+                    pw.Container(width: 110, height: 1, color: borderColor),
+                  ],
+                  pw.SizedBox(height: 3),
+                  pw.Text(
+                    signatureName,
+                    style: pw.TextStyle(font: ttfBold, fontSize: 8.5, color: textColor),
+                  ),
+                  if (signatureTitle.isNotEmpty)
+                    pw.Text(
+                      signatureTitle,
+                      style: const pw.TextStyle(fontSize: 7.5, color: textMuted),
+                    ),
+                ],
+              ),
+            )
+          else
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'ئیمزا و پەسەندکردنی دابینکار',
+                  style: pw.TextStyle(font: ttfBold, fontSize: 8.5, color: textColor),
+                ),
+                pw.SizedBox(height: 22),
+                pw.Container(width: 120, height: 1, color: borderColor),
+                pw.SizedBox(height: 2),
+                pw.Text('بەروار: ____ / ____ / ٢٠٢٦', style: const pw.TextStyle(fontSize: 7.5, color: textMuted)),
+              ],
+            ),
 
           // Platform Official Seal
           pw.Expanded(

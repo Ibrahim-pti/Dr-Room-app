@@ -255,13 +255,7 @@ class AdminAnalyticsController extends Controller
         ];
 
         // Branding for PDF export
-        $branding = [
-            'header_title' => AppSetting::get('report_header_title', 'دکتۆر ڕۆم - Dr. Room'),
-            'header_subtitle' => AppSetting::get('report_header_subtitle', 'سیستەمی تەندروستی و پزیشکی ماڵەوە'),
-            'footer_text' => AppSetting::get('report_footer_text', 'پەسەندکراوە لەلایەن بەڕێوەبەرایەتی Dr. Room'),
-            'emergency_phone' => AppSetting::get('report_emergency_phone', '+964 750 000 0000'),
-            'show_stamp' => (bool) AppSetting::get('report_show_stamp', true),
-        ];
+        $branding = \App\Services\ReportBrandingService::get();
 
         // Period ledger (latest 60 orders)
         $ledgerOrders = $periodOrders->take(60)->map(function (Order $order) {

@@ -58,13 +58,16 @@
 
                             <!-- File Link -->
                             <td class="px-6 py-4">
-                                @if($result->file_path)
-                                    <a href="{{ Storage::url($result->file_path) }}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition-colors">
-                                        📄 بینینی ڕاپۆرت
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <a href="{{ route('lab.results.official', $result) }}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold hover:bg-indigo-600 hover:text-white transition-colors">
+                                        🛡️ ڕاپۆرتی فەرمی
                                     </a>
-                                @else
-                                    <span class="text-xs text-slate-400">فایل نییە</span>
-                                @endif
+                                    @if($result->file_path)
+                                        <a href="{{ Storage::url($result->file_path) }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition-colors">
+                                            📄 فایل
+                                        </a>
+                                    @endif
+                                </div>
                             </td>
 
                             <!-- Status -->

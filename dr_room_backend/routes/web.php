@@ -176,6 +176,7 @@ Route::prefix('lab')->middleware(['auth', \App\Http\Middleware\IsLab::class])->g
         Route::resource('/packages', \App\Http\Controllers\Web\LabPackageController::class, ['as' => 'lab']);
         
         // Results
+        Route::get('/results/{result}/official', [\App\Http\Controllers\Web\LabResultController::class, 'officialReport'])->name('lab.results.official');
         Route::resource('/results', \App\Http\Controllers\Web\LabResultController::class, ['as' => 'lab']);
         
         // Reviews & Feedback
@@ -258,6 +259,11 @@ Route::prefix('delivery')->group(function () {
 Route::get('/privacy-policy', function () {
     return view('privacy');
 })->name('privacy.policy');
+
+// Signed Official Branded Lab Report (viewable/printable with logo, stamp, watermark & signature)
+Route::get('/reports/lab/{result}/official', [\App\Http\Controllers\Web\LabResultController::class, 'officialReport'])
+    ->name('reports.lab.official')
+    ->middleware('signed');
 
 // Public Platform Engineering & Infrastructure News Page
 Route::get('/news/ibrahim-software', function () {

@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/services/medical_report_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 import 'patient_emr_screen.dart';
@@ -21,6 +22,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   bool _isLoading = true;
   List<dynamic> _labResults = [];
   List<dynamic> _nurseCares = [];
+  Map<String, dynamic> _branding = {};
   String _selectedCategory = 'all';
 
   TextStyle _kStyle({
@@ -55,6 +57,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       if (responses[0].statusCode == 200) {
         final labData = jsonDecode(responses[0].body);
         _labResults = labData['data'] ?? [];
+        if (labData['branding'] is Map) {
+          _branding = Map<String, dynamic>.from(labData['branding']);
+        }
       }
 
       if (responses[1].statusCode == 200) {
@@ -498,12 +503,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     final notes = item['notes'] ?? '';
     final rawFileUrl = (item['file_url'] ?? item['file_path'] ?? '').toString();
     final fullFileUrl = rawFileUrl.isNotEmpty ? ApiClient.getImageUrl(rawFileUrl) : '';
+    bool isGeneratingPdf = false;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Container(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.88,
         ),
@@ -802,6 +809,173 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 const SizedBox(height: 20),
               ],
 
+              // Official Branded PDF Card (Logo + Stamp + Watermark + Signature)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4F46E5).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: const Color(0xFF4F46E5).withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4F46E5).withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Iconsax.verify,
+                            color: Color(0xFF4F46E5),
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ڕاپۆرتی فەرمی پشکنین (بە مۆر و تەوقیح)',
+                                style: _kStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'لۆگۆ، مۆری پەسەندکردن و واژووی فەرمی Dr. Room لەسەرە',
+                                style: _kStyle(
+                                  fontSize: 11,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton.icon(
+                            onPressed: isGeneratingPdf
+                                ? null
+                                : () async {
+                                    setSheetState(() => isGeneratingPdf = true);
+                                    try {
+                                      await MedicalReportPdfService.previewAndPrint(
+                                        ctx,
+                                        result: Map<String, dynamic>.from(
+                                          item as Map,
+                                        ),
+                                        branding: _branding,
+                                      );
+                                    } catch (e) {
+                                      if (ctx.mounted) {
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          SnackBar(
+                                            content: Text('کێشە لە PDF: $e'),
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (ctx.mounted) {
+                                        setSheetState(
+                                          () => isGeneratingPdf = false,
+                                        );
+                                      }
+                                    }
+                                  },
+                            icon: isGeneratingPdf
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Iconsax.document_download, size: 17),
+                            label: Text(
+                              'سەیڤ / بینینی PDF',
+                              style: _kStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4F46E5),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: isGeneratingPdf
+                                ? null
+                                : () async {
+                                    setSheetState(() => isGeneratingPdf = true);
+                                    try {
+                                      await MedicalReportPdfService.shareReport(
+                                        result: Map<String, dynamic>.from(
+                                          item as Map,
+                                        ),
+                                        branding: _branding,
+                                      );
+                                    } finally {
+                                      if (ctx.mounted) {
+                                        setSheetState(
+                                          () => isGeneratingPdf = false,
+                                        );
+                                      }
+                                    }
+                                  },
+                            icon: const Icon(Iconsax.share, size: 16),
+                            label: Text(
+                              'ناردن',
+                              style: _kStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF4F46E5),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF4F46E5),
+                              side: const BorderSide(color: Color(0xFF4F46E5)),
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Safe and clean Close Button
               Padding(
                 padding: EdgeInsets.only(
@@ -850,6 +1024,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

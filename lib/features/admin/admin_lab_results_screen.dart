@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/services/medical_report_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
@@ -18,7 +19,9 @@ class AdminLabResultsScreen extends StatefulWidget {
 
 class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
   List<dynamic> _results = [];
+  Map<String, dynamic> _branding = {};
   bool _isLoading = true;
+  bool _isExporting = false;
   String? _error;
   String _filter = '';
 
@@ -44,6 +47,9 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
         final data = body['data'];
         setState(() {
           _results = data is Map ? (data['data'] ?? []) : (data ?? []);
+          if (body['branding'] is Map) {
+            _branding = Map<String, dynamic>.from(body['branding']);
+          }
           _isLoading = false;
         });
       } else {
@@ -54,6 +60,24 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
       }
     } catch (e) {
       if (mounted) setState(() { _error = '$e'; _isLoading = false; });
+    }
+  }
+
+  Future<void> _openOfficialPdf(dynamic item) async {
+    if (_isExporting) return;
+    setState(() => _isExporting = true);
+    try {
+      await MedicalReportPdfService.previewAndPrint(
+        context,
+        result: Map<String, dynamic>.from(item as Map),
+        branding: _branding,
+      );
+    } catch (e) {
+      if (mounted) {
+        AdminUi.toast(context, 'کێشە لە دروستکردنی PDF: $e', isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
     }
   }
 
@@ -182,14 +206,26 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
                                       const SizedBox(height: 12),
                                       Row(
                                         children: [
-                                          OutlinedButton.icon(
-                                            onPressed: hasFile ? () => _openFile(r['file_path']) : null,
-                                            icon: Icon(hasFile ? Iconsax.document_download : Iconsax.document, size: 16),
-                                            label: Text(hasFile ? 'بینینی فایلی PDF' : 'فایل بارنەکراوە', style: const TextStyle(fontFamily: 'Rabar', fontSize: 12)),
-                                            style: OutlinedButton.styleFrom(
-                                              foregroundColor: hasFile ? const Color(0xFF0284C7) : Colors.grey,
+                                          ElevatedButton.icon(
+                                            onPressed: _isExporting ? null : () => _openOfficialPdf(r),
+                                            icon: const Icon(Iconsax.verify, size: 15),
+                                            label: const Text('ڕاپۆرتی فەرمی (PDF)', style: TextStyle(fontFamily: 'Rabar', fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF4F46E5),
+                                              foregroundColor: Colors.white,
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                              elevation: 0,
                                             ),
                                           ),
+                                          if (hasFile) ...[
+                                            const SizedBox(width: 6),
+                                            IconButton(
+                                              tooltip: 'فایلی بنەڕەتی',
+                                              onPressed: () => _openFile(r['file_path']),
+                                              icon: const Icon(Iconsax.document_download, size: 18, color: Color(0xFF0284C7)),
+                                            ),
+                                          ],
                                           const Spacer(),
                                           if (!isCompleted)
                                             ElevatedButton(

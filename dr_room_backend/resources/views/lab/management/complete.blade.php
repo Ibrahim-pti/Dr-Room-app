@@ -36,11 +36,12 @@
                         <span>{{ $result->result_value ?? '-' }}</span>
                     </td>
                     <td class="py-3 px-6 text-center">
-                        @if($result->file_path)
-                            <a href="{{ Storage::url($result->file_path) }}" target="_blank" class="text-blue-500 hover:underline">بینین</a>
-                        @else
-                            -
-                        @endif
+                        <div class="flex items-center justify-center gap-2">
+                            <a href="{{ route('lab.results.official', $result) }}" target="_blank" class="text-indigo-600 font-bold hover:underline">ڕاپۆرتی فەرمی</a>
+                            @if($result->file_path)
+                                <a href="{{ Storage::url($result->file_path) }}" target="_blank" class="text-blue-500 hover:underline">· فایل</a>
+                            @endif
+                        </div>
                     </td>
                     <td class="py-3 px-6 text-center">
                         <div class="flex item-center justify-center gap-4">

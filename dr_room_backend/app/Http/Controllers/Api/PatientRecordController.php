@@ -18,28 +18,35 @@ class PatientRecordController extends Controller
         $patient = Auth::user();
         $patientId = $patient ? $patient->id : null;
         
-        $results = LabResult::with(['lab', 'test'])
+        $results = LabResult::with(['lab.user', 'test'])
             ->where('patient_id', $patientId)
             ->latest()
             ->get()
-            ->map(function ($result) {
+            ->map(function ($result) use ($patient) {
+                $labName = $result->lab->user->name ?? $result->lab->name ?? 'تاقیگەی گشتی';
                 return [
                     'id' => $result->id,
-                    'lab_name' => $result->lab->name ?? 'General Lab',
-                    'test_name' => $result->test->name ?? 'Lab Test',
+                    'lab_name' => $labName,
+                    'lab_phone' => $result->lab->phone ?? ($result->lab->user->phone ?? null),
+                    'lab_location' => $result->lab->location ?? null,
+                    'patient_name' => $patient?->name ?? 'نەخۆش',
+                    'patient_phone' => $patient?->phone ?? null,
+                    'test_name' => $result->test->name ?? 'پشکنینی تاقیگە',
                     'test_type' => $result->test->type ?? null,
                     'result_value' => $result->result_value,
                     'status' => $result->status,
                     'file_url' => $result->file_path ? url('storage/' . $result->file_path) : null,
+                    'official_report_url' => \Illuminate\Support\Facades\URL::signedRoute('reports.lab.official', ['result' => $result->id]),
                     'notes' => $result->notes,
-                    'created_at' => $result->created_at ? $result->created_at->toDateTimeString() : now()->toDateTimeString(),
+                    'created_at' => $result->created_at ? $result->created_at->timezone('Asia/Baghdad')->format('Y-m-d H:i') : now('Asia/Baghdad')->format('Y-m-d H:i'),
                     'created_at_human' => $result->created_at ? $result->created_at->diffForHumans() : 'Recently',
                 ];
             });
 
         return response()->json([
             'success' => true,
-            'data' => $results
+            'branding' => \App\Services\ReportBrandingService::get(),
+            'data' => $results,
         ]);
     }
 

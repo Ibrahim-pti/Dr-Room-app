@@ -161,4 +161,17 @@ class LabResultController extends Controller
         $result->delete();
         return redirect()->route('lab.results.index')->with('success', 'ئەنجام سڕایەوە.');
     }
+
+    public function officialReport(LabResult $result)
+    {
+        // When accessed via authenticated lab route, ensure lab owns this result
+        if (Auth::check() && Auth::user()->role === 'lab' && Auth::user()->lab && $result->lab_id !== Auth::user()->lab->id) {
+            abort(403);
+        }
+
+        $result->load(['lab.user', 'patient', 'test']);
+        $branding = \App\Services\ReportBrandingService::get();
+
+        return view('lab.results.official_report', compact('result', 'branding'));
+    }
 }

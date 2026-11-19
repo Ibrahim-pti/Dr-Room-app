@@ -4,25 +4,24 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
+use App\Services\ReportBrandingService;
 use Illuminate\Http\Request;
 
 class ReportSettingsController extends Controller
 {
     public function index()
     {
-        $settings = [
-            'header_title' => AppSetting::get('report_header_title', 'دکتۆر ڕۆم - دۆسیەی پزیشکی و ئەنجامی پشکنین'),
-            'header_subtitle' => AppSetting::get('report_header_subtitle', 'Dr. Room Healthcare System & Lab Diagnostics'),
-            'footer_text' => AppSetting::get('report_footer_text', 'ئەم ڕاپۆرتە بە فەرمی لەلایەن تاقیگەی باوەڕپێکراو پەسەندکراوە و پارێزراوە بە مۆری ئەلیکترۆنی.'),
-            'emergency_phone' => AppSetting::get('report_emergency_phone', '+964 750 000 0000'),
-            'show_watermark' => filter_var(AppSetting::get('report_show_watermark', true), FILTER_VALIDATE_BOOLEAN),
-            'show_stamp' => filter_var(AppSetting::get('report_show_stamp', true), FILTER_VALIDATE_BOOLEAN),
-            'logo_url' => AppSetting::get('report_logo_url', null),
-        ];
-
         return response()->json([
             'success' => true,
-            'data' => $settings,
+            'data' => ReportBrandingService::get(),
+        ]);
+    }
+
+    public function publicBranding()
+    {
+        return response()->json([
+            'success' => true,
+            'data' => ReportBrandingService::get(),
         ]);
     }
 
@@ -33,38 +32,67 @@ class ReportSettingsController extends Controller
             'header_subtitle' => 'nullable|string|max:255',
             'footer_text' => 'nullable|string',
             'emergency_phone' => 'nullable|string|max:50',
-            'show_watermark' => 'nullable|boolean',
-            'show_stamp' => 'nullable|boolean',
+            'show_watermark' => 'nullable',
+            'show_stamp' => 'nullable',
+            'show_signature' => 'nullable',
+            'signature_name' => 'nullable|string|max:120',
+            'signature_title' => 'nullable|string|max:120',
             'logo' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'signature' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'clear_logo' => 'nullable',
+            'clear_signature' => 'nullable',
         ]);
 
         AppSetting::set('report_header_title', $validated['header_title'], 'report_branding');
-        if (isset($validated['header_subtitle'])) {
-            AppSetting::set('report_header_subtitle', $validated['header_subtitle'], 'report_branding');
+
+        if ($request->has('header_subtitle')) {
+            AppSetting::set('report_header_subtitle', (string) ($validated['header_subtitle'] ?? ''), 'report_branding');
         }
-        if (isset($validated['footer_text'])) {
-            AppSetting::set('report_footer_text', $validated['footer_text'], 'report_branding');
+        if ($request->has('footer_text')) {
+            AppSetting::set('report_footer_text', (string) ($validated['footer_text'] ?? ''), 'report_branding');
         }
-        if (isset($validated['emergency_phone'])) {
-            AppSetting::set('report_emergency_phone', $validated['emergency_phone'], 'report_branding');
+        if ($request->has('emergency_phone')) {
+            AppSetting::set('report_emergency_phone', (string) ($validated['emergency_phone'] ?? ''), 'report_branding');
         }
-        if (isset($validated['show_watermark'])) {
-            AppSetting::set('report_show_watermark', $validated['show_watermark'], 'report_branding');
+        if ($request->has('show_watermark')) {
+            $val = filter_var($request->input('show_watermark'), FILTER_VALIDATE_BOOLEAN);
+            AppSetting::set('report_show_watermark', $val ? '1' : '0', 'report_branding');
         }
-        if (isset($validated['show_stamp'])) {
-            AppSetting::set('report_show_stamp', $validated['show_stamp'], 'report_branding');
+        if ($request->has('show_stamp')) {
+            $val = filter_var($request->input('show_stamp'), FILTER_VALIDATE_BOOLEAN);
+            AppSetting::set('report_show_stamp', $val ? '1' : '0', 'report_branding');
+        }
+        if ($request->has('show_signature')) {
+            $val = filter_var($request->input('show_signature'), FILTER_VALIDATE_BOOLEAN);
+            AppSetting::set('report_show_signature', $val ? '1' : '0', 'report_branding');
+        }
+        if ($request->has('signature_name')) {
+            AppSetting::set('report_signature_name', (string) ($validated['signature_name'] ?? ''), 'report_branding');
+        }
+        if ($request->has('signature_title')) {
+            AppSetting::set('report_signature_title', (string) ($validated['signature_title'] ?? ''), 'report_branding');
         }
 
+        if (filter_var($request->input('clear_logo', false), FILTER_VALIDATE_BOOLEAN)) {
+            AppSetting::where('key', 'report_logo_url')->delete();
+        }
         if ($request->hasFile('logo')) {
             $logoPath = $request->file('logo')->store('report_branding', 'public');
             AppSetting::set('report_logo_url', url('storage/' . $logoPath), 'report_branding');
         }
 
+        if (filter_var($request->input('clear_signature', false), FILTER_VALIDATE_BOOLEAN)) {
+            AppSetting::where('key', 'report_signature_url')->delete();
+        }
+        if ($request->hasFile('signature')) {
+            $sigPath = $request->file('signature')->store('report_branding', 'public');
+            AppSetting::set('report_signature_url', url('storage/' . $sigPath), 'report_branding');
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'دیزاین و ڕێکخستنی ڕاپۆرتەکان بە سەرکەوتوویی نوێکرایەوە',
-            'data' => $this->index()->original['data'],
+            'message' => 'دیزاین و واژوو و ڕێکخستنی ڕاپۆرتەکان بە سەرکەوتوویی نوێکرایەوە',
+            'data' => ReportBrandingService::get(),
         ]);
     }
 }
-

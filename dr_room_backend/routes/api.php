@@ -29,6 +29,7 @@ Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/translate', [\App\Http\Controllers\Api\TranslateController::class, 'translate']);
+Route::get('/report-branding', [\App\Http\Controllers\Api\Admin\ReportSettingsController::class, 'publicBranding']);
 
 // App Version & Force Update Config
 Route::get('/app-version', function () {
