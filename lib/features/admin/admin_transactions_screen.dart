@@ -10,7 +10,8 @@ import 'admin_app_bar.dart';
 import 'admin_ui.dart';
 import 'services/statement_pdf_service.dart';
 
-/// Revenue summary, filters, and full financial ledger matching Analytics UI.
+/// Complete financial accounting screen: incoming payments, provider payouts,
+/// platform commission, expenses, net profit, and read-only transaction ledger.
 class AdminTransactionsScreen extends StatefulWidget {
   const AdminTransactionsScreen({super.key});
 
@@ -28,7 +29,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
 
   static const _statusFilters = [
     (value: '', label: 'هەمووی'),
-    (value: 'completed', label: 'سەرکەوتوو'),
+    (value: 'completed', label: 'هاتوو / سەرکەوتوو'),
     (value: 'pending', label: 'چاوەڕوان'),
     (value: 'failed', label: 'شکستخواردوو'),
     (value: 'refunded', label: 'گەڕێندراوە'),
@@ -47,7 +48,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
 
   final TextEditingController _searchCtrl = TextEditingController();
 
-  List<Map<String, dynamic>> _allTransactions = [];
+  List<Map<String, dynamic>> _allRecords = [];
+  List<Map<String, dynamic>> _allExpenses = [];
   Map<int, Map<String, dynamic>> _ordersById = {};
   List<String> _availableMonths = [];
   List<int> _availableYears = [];
@@ -85,11 +87,21 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
         : parsed.toUtc().add(const Duration(hours: 3));
   }
 
-  DateTime? _txDate(Map<String, dynamic> tx) =>
+  DateTime? _recordDate(Map<String, dynamic> tx) =>
       _parseBaghdadDate(tx['paid_at'] ?? tx['created_at']);
 
-  String? _txMonth(Map<String, dynamic> tx) {
-    final dt = _txDate(tx);
+  String? _recordMonth(Map<String, dynamic> tx) {
+    final dt = _recordDate(tx);
+    return dt != null ? _formatMonth(dt) : null;
+  }
+
+  String? _expenseMonth(Map<String, dynamic> e) {
+    final raw = (e['expense_date'] ?? e['created_at'])?.toString().trim();
+    if (raw == null || raw.isEmpty) return null;
+    if (RegExp(r'^\d{4}-\d{2}').hasMatch(raw)) {
+      return raw.substring(0, 7);
+    }
+    final dt = _parseBaghdadDate(raw);
     return dt != null ? _formatMonth(dt) : null;
   }
 
@@ -105,6 +117,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
         ApiClient.get('/admin/orders')
             .then<dynamic>((r) => r)
             .catchError((_) => null),
+        _fetchAllExpenses(),
       ]);
 
       if (!mounted) return;
@@ -112,6 +125,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
       final List<Map<String, dynamic>> rawTxs =
           results[0] as List<Map<String, dynamic>>;
       final dynamic ordersRes = results[1];
+      final List<Map<String, dynamic>> expenses =
+          results[2] as List<Map<String, dynamic>>;
 
       final Map<int, Map<String, dynamic>> ordersById = {};
       if (ordersRes != null && ordersRes.statusCode == 200) {
@@ -130,25 +145,95 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
         } catch (_) {}
       }
 
+      // Track which orders already have a Transaction row so we don't double-count,
+      // and include any orphan orders that lack a Transaction row so nothing is missed.
+      final Set<int> seenOrderIds = {};
+      final List<Map<String, dynamic>> unified = [];
+
+      for (final tx in rawTxs) {
+        final payableType = (tx['payable_type'] ?? '').toString();
+        final payableId = int.tryParse('${tx['payable_id']}');
+        if (payableId != null &&
+            (payableType.isEmpty || payableType.contains('Order'))) {
+          seenOrderIds.add(payableId);
+        }
+        unified.add(tx);
+      }
+
+      for (final entry in ordersById.entries) {
+        if (seenOrderIds.contains(entry.key)) continue;
+        final o = entry.value;
+        final orderStatus = (o['status'] ?? 'pending').toString().toLowerCase();
+        final paymentStatus =
+            (o['payment_status'] ?? '').toString().toLowerCase();
+        final String mappedStatus;
+        if (orderStatus == 'completed' || paymentStatus == 'paid') {
+          mappedStatus = 'completed';
+        } else if (paymentStatus == 'refunded') {
+          mappedStatus = 'refunded';
+        } else if (orderStatus == 'cancelled' || orderStatus == 'rejected') {
+          mappedStatus = 'failed';
+        } else {
+          mappedStatus = 'pending';
+        }
+
+        final method =
+            (o['payment_method'] ?? 'cash').toString().toLowerCase().trim();
+        final orderNo =
+            (o['order_number'] ?? '#${o['id']}').toString();
+        unified.add({
+          'id': 'ord_${o['id']}',
+          'reference': orderNo,
+          'description': '${_serviceLabel(_classifyOrderService(o))} $orderNo',
+          'amount': o['total_price'] ?? 0,
+          'status': mappedStatus,
+          'method': method.isEmpty ? 'cash' : method,
+          'payable_type': 'Order',
+          'payable_id': o['id'],
+          'user_id': o['patient_id'],
+          'user': o['patient'],
+          'coupon_code': o['coupon_code'],
+          'discount_amount': o['discount_amount'] ?? 0,
+          'created_at': o['created_at'],
+          'paid_at': mappedStatus == 'completed'
+              ? (o['updated_at'] ?? o['created_at'])
+              : null,
+        });
+      }
+
+      // Sort newest first
+      unified.sort((a, b) {
+        final da = _recordDate(a);
+        final db = _recordDate(b);
+        if (da == null && db == null) return 0;
+        if (da == null) return 1;
+        if (db == null) return -1;
+        return db.compareTo(da);
+      });
+
       final nowBaghdad = _nowBaghdad();
       final currentMonth = _formatMonth(nowBaghdad);
       final Set<String> monthSet = {currentMonth};
       final Set<int> yearSet = {nowBaghdad.year};
       final Set<String> methodSet = {};
 
-      for (final tx in rawTxs) {
-        final dt = _txDate(tx);
+      for (final rec in unified) {
+        final dt = _recordDate(rec);
         if (dt != null) {
           monthSet.add(_formatMonth(dt));
           yearSet.add(dt.year);
         }
-        final m = (tx['method'] ?? '').toString().toLowerCase().trim();
+        final m = (rec['method'] ?? '').toString().toLowerCase().trim();
         if (m.isNotEmpty) methodSet.add(m);
       }
 
-      for (final o in ordersById.values) {
-        final dt = _parseBaghdadDate(o['created_at']);
-        if (dt != null) yearSet.add(dt.year);
+      for (final e in expenses) {
+        final em = _expenseMonth(e);
+        if (em != null) {
+          monthSet.add(em);
+          final yr = int.tryParse(em.split('-').first);
+          if (yr != null) yearSet.add(yr);
+        }
       }
 
       final months = monthSet.toList()..sort((a, b) => b.compareTo(a));
@@ -160,7 +245,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
         if (_selectedMonth != 'all' && !months.contains(_selectedMonth)) {
           _selectedMonth = currentMonth;
         }
-        _allTransactions = rawTxs;
+        _allRecords = unified;
+        _allExpenses = expenses;
         _ordersById = ordersById;
         _availableMonths = months;
         _availableYears = years;
@@ -182,7 +268,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchAllTransactions() async {
-    final firstRes = await ApiClient.get('/admin/transactions?per_page=200&page=1');
+    final firstRes =
+        await ApiClient.get('/admin/transactions?per_page=200&page=1');
     if (firstRes.statusCode != 200) {
       throw Exception(AdminUi.readError(firstRes));
     }
@@ -230,12 +317,91 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     return all;
   }
 
+  Future<List<Map<String, dynamic>>> _fetchAllExpenses() async {
+    final List<Map<String, dynamic>> all = [];
+    try {
+      final firstRes = await ApiClient.get('/admin/expenses?page=1');
+      if (firstRes.statusCode != 200) return all;
+      final decoded = jsonDecode(firstRes.body);
+      final data = decoded is Map ? decoded['data'] : null;
+      if (data is Map) {
+        if (data['data'] is List) {
+          all.addAll(
+            (data['data'] as List)
+                .whereType<Map>()
+                .map((e) => Map<String, dynamic>.from(e)),
+          );
+        }
+        final lastPage =
+            (int.tryParse('${data['last_page'] ?? 1}') ?? 1).clamp(1, 15);
+        if (lastPage > 1) {
+          final more = await Future.wait(
+            List.generate(
+              lastPage - 1,
+              (idx) => ApiClient.get('/admin/expenses?page=${idx + 2}')
+                  .then<dynamic>((r) => r)
+                  .catchError((_) => null),
+            ),
+          );
+          for (final res in more) {
+            if (res != null && res.statusCode == 200) {
+              final d = jsonDecode(res.body);
+              if (d is Map && d['data'] is Map && d['data']['data'] is List) {
+                all.addAll(
+                  (d['data']['data'] as List)
+                      .whereType<Map>()
+                      .map((e) => Map<String, dynamic>.from(e)),
+                );
+              }
+            }
+          }
+        }
+      } else if (data is List) {
+        all.addAll(
+          data.whereType<Map>().map((e) => Map<String, dynamic>.from(e)),
+        );
+      }
+    } catch (_) {}
+    return all;
+  }
+
   Map<String, dynamic>? _matchedOrder(Map<String, dynamic> tx) {
     final payableType = (tx['payable_type'] ?? '').toString();
     final payableId = int.tryParse('${tx['payable_id']}');
     if (payableId == null) return null;
     if (payableType.isNotEmpty && !payableType.contains('Order')) return null;
     return _ordersById[payableId];
+  }
+
+  String _classifyOrderService(Map<String, dynamic>? order) {
+    if (order == null) return 'other';
+    final st = (order['service_type'] ?? '').toString().toLowerCase().trim();
+    if (st.contains('lab') ||
+        st.contains('تاقیگە') ||
+        order['assigned_lab_id'] != null) {
+      return 'lab';
+    }
+    if (st.contains('nurs') ||
+        st.contains('پەرستار') ||
+        order['assigned_nurse_id'] != null) {
+      return 'nursing';
+    }
+    if (st.contains('pharmac') ||
+        st.contains('medic') ||
+        st.contains('دەرمان') ||
+        order['assigned_pharmacy_id'] != null) {
+      return 'pharmacy';
+    }
+    return 'other';
+  }
+
+  String _serviceLabel(String key) {
+    return switch (key) {
+      'lab' => 'تاقیگە',
+      'nursing' => 'ناوەندی تەندروستی',
+      'pharmacy' => 'دەرمانخانە',
+      _ => 'خزمەتگوزاری تر',
+    };
   }
 
   String _patientName(Map<String, dynamic> tx, Map<String, dynamic>? order) {
@@ -313,15 +479,16 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     Map<String, dynamic>? order,
     double commission,
   ) {
-    if (order != null && order['provider_net_amount'] != null) {
-      return _toDouble(order['provider_net_amount']).clamp(0.0, double.infinity);
+    if (order != null) {
+      final stored = _toDouble(order['provider_net_amount']);
+      if (stored > 0) return stored;
     }
     final amount = _toDouble(tx['amount']);
     return (amount - commission).clamp(0.0, double.infinity);
   }
 
-  _TransactionsMetrics _computeMetrics({
-    required List<Map<String, dynamic>> periodTransactions,
+  _AccountingMetrics _computeMetrics({
+    required List<Map<String, dynamic>> periodRecords,
   }) {
     final nowBaghdad = _nowBaghdad();
     final todayKey =
@@ -329,9 +496,9 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
 
     double allTimeCompletedRevenue = 0;
     int allTimeCompletedCount = 0;
-    for (final tx in _allTransactions) {
-      if ((tx['status'] ?? '').toString().toLowerCase() == 'completed') {
-        allTimeCompletedRevenue += _toDouble(tx['amount']);
+    for (final rec in _allRecords) {
+      if ((rec['status'] ?? '').toString().toLowerCase() == 'completed') {
+        allTimeCompletedRevenue += _toDouble(rec['amount']);
         allTimeCompletedCount++;
       }
     }
@@ -345,6 +512,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     double refundedAmount = 0;
     double completedCommission = 0;
     double completedProviderNet = 0;
+    double completedDeliveryFees = 0;
     double discountTotal = 0;
 
     int completedCount = 0;
@@ -356,7 +524,11 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     int discountedCount = 0;
     final Set<dynamic> discountedUserIds = {};
 
-    for (final tx in periodTransactions) {
+    final Map<String, ({int count, double amount})> methodTotals = {};
+    final Map<String, ({int count, double revenue, double commission})>
+        sectorTotals = {};
+
+    for (final tx in periodRecords) {
       final status = (tx['status'] ?? 'pending').toString().toLowerCase();
       final method = (tx['method'] ?? 'cash').toString().toLowerCase();
       final amount = _toDouble(tx['amount']);
@@ -377,7 +549,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
           completedCount++;
           completedRevenue += amount;
 
-          final dt = _txDate(tx);
+          final dt = _recordDate(tx);
           if (dt != null) {
             final dKey =
                 '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
@@ -394,9 +566,27 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
             onlineCount++;
           }
 
+          final prevM = methodTotals[method];
+          methodTotals[method] = (
+            count: (prevM?.count ?? 0) + 1,
+            amount: (prevM?.amount ?? 0.0) + amount,
+          );
+
           final comm = _orderCommission(tx, order);
+          final pNet = _orderProviderNet(tx, order, comm);
+          final dFee = order != null ? _toDouble(order['delivery_fee']) : 0.0;
+
           completedCommission += comm;
-          completedProviderNet += _orderProviderNet(tx, order, comm);
+          completedProviderNet += pNet;
+          completedDeliveryFees += dFee;
+
+          final sector = _classifyOrderService(order);
+          final prevS = sectorTotals[sector];
+          sectorTotals[sector] = (
+            count: (prevS?.count ?? 0) + 1,
+            revenue: (prevS?.revenue ?? 0.0) + amount,
+            commission: (prevS?.commission ?? 0.0) + comm,
+          );
           break;
 
         case 'pending':
@@ -416,14 +606,21 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
       }
     }
 
-    final totalCount = periodTransactions.length;
+    final periodExpenses = _selectedMonth == 'all'
+        ? _allExpenses
+        : _allExpenses.where((e) => _expenseMonth(e) == _selectedMonth).toList();
+    final double expensesTotal =
+        periodExpenses.fold<double>(0.0, (s, e) => s + _toDouble(e['amount']));
+    final double netPlatformProfit = completedCommission - expensesTotal;
+
+    final totalCount = periodRecords.length;
     final successRate = totalCount > 0
         ? double.parse(((completedCount / totalCount) * 100).toStringAsFixed(1))
         : 0.0;
     final avgCompletedAmount =
         completedCount > 0 ? completedRevenue / completedCount : 0.0;
 
-    return _TransactionsMetrics(
+    return _AccountingMetrics(
       totalCount: totalCount,
       completedCount: completedCount,
       pendingCount: pendingCount,
@@ -439,6 +636,10 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
       successRate: successRate,
       completedCommission: completedCommission,
       completedProviderNet: completedProviderNet,
+      completedDeliveryFees: completedDeliveryFees,
+      expensesTotal: expensesTotal,
+      expensesCount: periodExpenses.length,
+      netPlatformProfit: netPlatformProfit,
       cashRevenue: cashRevenue,
       onlineRevenue: onlineRevenue,
       pendingAmount: pendingAmount,
@@ -447,12 +648,14 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
       discountTotal: discountTotal,
       discountedCount: discountedCount,
       discountedUsersCount: discountedUserIds.length,
+      methodTotals: methodTotals,
+      sectorTotals: sectorTotals,
     );
   }
 
-  List<Map<String, dynamic>> _periodScopedTransactions() {
-    return _allTransactions.where((tx) {
-      if (_selectedMonth != 'all' && _txMonth(tx) != _selectedMonth) {
+  List<Map<String, dynamic>> _periodScopedRecords() {
+    return _allRecords.where((tx) {
+      if (_selectedMonth != 'all' && _recordMonth(tx) != _selectedMonth) {
         return false;
       }
       if (_methodFilter != 'all') {
@@ -463,7 +666,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     }).toList();
   }
 
-  List<Map<String, dynamic>> _ledgerTransactions(
+  List<Map<String, dynamic>> _ledgerRecords(
     List<Map<String, dynamic>> periodList,
   ) {
     final q = _searchQuery.trim().toLowerCase();
@@ -501,46 +704,292 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     }).toList();
   }
 
-  Future<void> _changeStatus(Map<String, dynamic> transaction) async {
-    String selected = (transaction['status'] ?? 'pending').toString();
+  /// Read-only financial breakdown modal when tapping any ledger entry.
+  void _showTransactionDetails(Map<String, dynamic> tx) {
+    final order = _matchedOrder(tx);
+    final status = (tx['status'] ?? 'pending').toString().toLowerCase();
+    final method = (tx['method'] ?? 'cash').toString().toLowerCase();
+    final amount = _toDouble(tx['amount']);
+    final disc = _extractDiscount(tx, order);
+    final comm = _orderCommission(tx, order);
+    final pNet = _orderProviderNet(tx, order, comm);
+    final dFee = order != null ? _toDouble(order['delivery_fee']) : 0.0;
+    final subtotal = order != null ? _toDouble(order['subtotal']) : 0.0;
+    final extraFee = order != null ? _toDouble(order['extra_fee']) : 0.0;
+    final patientName = _patientName(tx, order);
+    final providerName = _providerName(order);
+    final dt = _recordDate(tx);
+    final dateStr = dt != null
+        ? '${intl.DateFormat('yyyy-MM-dd').format(dt)}  •  ${intl.DateFormat('hh:mm a').format(dt)}'
+        : '';
 
-    await AdminUi.formSheet(
+    final sColor = switch (status) {
+      'completed' => _emerald,
+      'pending' => _amber,
+      'refunded' => _violet,
+      _ => _rose,
+    };
+    final sLabel = switch (status) {
+      'completed' => 'هاتوو / سەرکەوتوو',
+      'pending' => 'چاوەڕوان',
+      'refunded' => 'گەڕێندراوە',
+      _ => 'شکستخواردوو',
+    };
+
+    final items = (order != null && order['items'] is List)
+        ? (order['items'] as List).whereType<Map>().toList()
+        : const <Map>[];
+
+    showModalBottomSheet(
       context: context,
-      title: 'گۆڕینی دۆخی مامەڵە',
-      subtitle: (transaction['reference'] ?? transaction['description'] ?? '')
-          .toString(),
-      submitLabel: 'پاشەکەوتکردن',
-      builder: (setSheetState, setError) => [
-        AdminUi.label('دۆخی نوێ'),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _statusFilters
-              .where((s) => s.value.isNotEmpty)
-              .map<Widget>(
-                (s) => GestureDetector(
-                  onTap: () => setSheetState(() => selected = s.value),
-                  child: AdminUi.selectChip(s.label, selected == s.value),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 14,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF475569)
+                          : const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                 ),
-              )
-              .toList(),
-        ),
-      ],
-      onSubmit: (setError) async {
-        final res = await ApiClient.patch(
-          '/admin/transactions/${transaction['id']}/status',
-          body: {'status': selected},
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: sColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Iconsax.receipt_2, color: sColor, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (tx['description'] ?? tx['reference'] ?? '')
+                                .toString(),
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.getTextTitle(ctx),
+                            ),
+                          ),
+                          if (dateStr.isNotEmpty)
+                            Text(
+                              dateStr,
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 11,
+                                color: AppColors.getTextSubtitle(ctx),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: sColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        sLabel,
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: sColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.getBackground(ctx),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.getBorder(ctx)),
+                  ),
+                  child: Column(
+                    children: [
+                      _detailRow(ctx, 'کۆدی مامەڵە',
+                          (tx['reference'] ?? '-').toString()),
+                      _detailRow(ctx, 'نەخۆش / بەکارهێنەر', patientName),
+                      if (providerName.isNotEmpty)
+                        _detailRow(ctx, 'دابینکار', providerName),
+                      _detailRow(ctx, 'ڕێگای پارەدان', _methodLabel(method)),
+                      if (subtotal > 0)
+                        _detailRow(ctx, 'نرخی خزمەتگوزاری', _formatIqd(subtotal)),
+                      if (extraFee > 0)
+                        _detailRow(ctx, 'کرێی سەردان / زیادە', _formatIqd(extraFee)),
+                      if (disc.hasDiscount)
+                        _detailRow(
+                          ctx,
+                          disc.couponCode.isNotEmpty
+                              ? 'داشکاندن (${disc.couponCode})'
+                              : 'داشکاندن',
+                          '- ${_formatIqd(disc.discountAmount)}',
+                          valueColor: _rose,
+                        ),
+                      if (dFee > 0)
+                        _detailRow(ctx, 'کرێی گەیاندن (شۆفێر)', _formatIqd(dFee)),
+                      const Divider(height: 16),
+                      _detailRow(
+                        ctx,
+                        'کۆی گشتی پارەدان',
+                        _formatIqd(amount),
+                        isBold: true,
+                        valueColor: sColor,
+                      ),
+                      if (order != null) ...[
+                        const SizedBox(height: 4),
+                        _detailRow(
+                          ctx,
+                          'پشکی دابینکار',
+                          _formatIqd(pNet),
+                          valueColor: _indigo,
+                        ),
+                        _detailRow(
+                          ctx,
+                          'کۆمیسیۆنی سەکۆ',
+                          _formatIqd(comm),
+                          valueColor: _violet,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (items.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'ناوەڕۆکی خزمەتگوزارییەکان',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.getTextTitle(ctx),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.getBackground(ctx),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.getBorder(ctx)),
+                    ),
+                    child: Column(
+                      children: items.map((item) {
+                        final name =
+                            (item['item_name'] ?? 'خزمەتگوزاری').toString();
+                        final qty = int.tryParse('${item['quantity'] ?? 1}') ?? 1;
+                        final price = _toDouble(item['price']) * qty;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 3),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  qty > 1 ? '$name (×$qty)' : name,
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 11.5,
+                                    color: AppColors.getTextTitle(ctx),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                _formatIqd(price),
+                                style: TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.getTextSubtitle(ctx),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         );
-
-        if (res.statusCode == 200) {
-          await _load();
-          return true;
-        }
-
-        setError(AdminUi.readError(res));
-        return false;
       },
+    );
+  }
+
+  Widget _detailRow(
+    BuildContext ctx,
+    String label,
+    String value, {
+    bool isBold = false,
+    Color? valueColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: isBold ? 12.5 : 11.5,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: AppColors.getTextSubtitle(ctx),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: isBold ? 13.5 : 12,
+                fontWeight: isBold ? FontWeight.w900 : FontWeight.bold,
+                color: valueColor ?? AppColors.getTextTitle(ctx),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -582,55 +1031,19 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final periodTransactions = _periodScopedTransactions();
-    final metrics = _computeMetrics(periodTransactions: periodTransactions);
-    final ledgerItems = _ledgerTransactions(periodTransactions);
+    final periodRecords = _periodScopedRecords();
+    final metrics = _computeMetrics(periodRecords: periodRecords);
+    final ledgerItems = _ledgerRecords(periodRecords);
 
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       appBar: AdminAppBar(
         title: 'مامەڵە و داهات',
-        subtitle: 'تۆماری دارایی و وردەکاری پارەدانەکان',
+        subtitle: 'حیساباتی گشتی، پارەدان و داهاتی هاتوو',
         icon: Iconsax.wallet_3,
         iconColor: _emerald,
         iconBackgroundColor: _emerald.withValues(alpha: 0.12),
         showBackButton: true,
-        actions: [
-          if (!_isLoading && _error == null) ...[
-            IconButton(
-              tooltip: 'ناردنی پسوڵەی PDF',
-              onPressed: () => _openExportReportModal(preferShare: true),
-              icon: Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: AppColors.getSurface(context),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.getBorder(context)),
-                ),
-                child: const Icon(Iconsax.export_1, color: _indigo, size: 18),
-              ),
-            ),
-            IconButton(
-              tooltip: 'دەرهێنانی پسوڵەی PDF',
-              onPressed: () => _openExportReportModal(preferShare: false),
-              icon: Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: _emerald.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _emerald.withValues(alpha: 0.25)),
-                ),
-                child: const Icon(
-                  Iconsax.document_download,
-                  color: _emerald,
-                  size: 18,
-                ),
-              ),
-            ),
-            const SizedBox(width: 4),
-          ],
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: _emerald))
@@ -650,8 +1063,10 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                         _buildPrimaryKpisGrid(metrics),
                         const SizedBox(height: 12),
                         _buildFinancialStrip(metrics),
-                        const SizedBox(height: 18),
-                        _buildTransactionsLedgerCard(ledgerItems, isDark),
+                        const SizedBox(height: 16),
+                        _buildAccountingBreakdownCard(metrics),
+                        const SizedBox(height: 16),
+                        _buildTransactionsLedgerCard(ledgerItems),
                       ],
                     ),
                   ),
@@ -695,7 +1110,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     );
   }
 
-  // ── 1. Header, Month, Status & Payment Filters + PDF Statement Actions ──
+  // ── 1. Header & Period / Status / Method Filters + PDF Statement ──
   Widget _buildHeaderFilterCard() {
     final periodLabel =
         _selectedMonth == 'all' ? 'هەموو مانگەکان' : _selectedMonth;
@@ -720,7 +1135,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: _emerald.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -731,7 +1147,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                     const Icon(Iconsax.calendar_1, size: 13, color: _emerald),
                     const SizedBox(width: 5),
                     const Text(
-                      'تۆماری دارایی • ',
+                      'حیسابات و پارەدان • ',
                       style: TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: 11,
@@ -762,7 +1178,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                     _visibleLimit = 30;
                   }),
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -780,7 +1197,6 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Month selector chips (dynamically populated from real data)
           const Text(
             'فلتەری مانگ',
             style: TextStyle(
@@ -825,9 +1241,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Transaction status + discount filter chips
           const Text(
-            'دۆخی مامەڵە',
+            'دۆخی پارەدان',
             style: TextStyle(
               fontFamily: 'Rabar',
               fontSize: 11,
@@ -868,7 +1283,6 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
             ),
           ),
 
-          // Dynamic payment method filter (only shown when > 1 method exists)
           if (_availableMethods.length > 1) ...[
             const SizedBox(height: 12),
             const Text(
@@ -902,7 +1316,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                       padding: const EdgeInsetsDirectional.only(end: 6),
                       child: _buildFilterPill(
                         label: _methodLabel(m),
-                        icon: m == 'cash' ? Iconsax.money_send : Iconsax.card_pos,
+                        icon:
+                            m == 'cash' ? Iconsax.money_send : Iconsax.card_pos,
                         selected: _methodFilter == m,
                         color: _violet,
                         onTap: () => setState(() {
@@ -921,7 +1336,6 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
           const Divider(height: 1),
           const SizedBox(height: 10),
 
-          // Provider Statement PDF Export Row
           Row(
             children: [
               Expanded(
@@ -964,7 +1378,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: _indigo,
                   side: BorderSide(color: _indigo.withValues(alpha: 0.35)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -1026,26 +1441,27 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     );
   }
 
-  // ── 2. Primary 4 KPI Cards (2x2 Grid, matching Analytics screen) ──
-  Widget _buildPrimaryKpisGrid(_TransactionsMetrics m) {
+  // ── 2. Primary 4 KPI Cards (2x2 Grid) ──
+  Widget _buildPrimaryKpisGrid(_AccountingMetrics m) {
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _buildKpiCard(
-                label: 'کۆی داهاتی سەرکەوتوو',
+                label: 'پارەی هاتوو (سەرکەوتوو)',
                 value: _formatIqd(m.completedRevenue),
                 icon: Iconsax.wallet_3,
                 color: _emerald,
                 footerLeft: 'ئەمڕۆ: ${_formatCompact(m.todayCompletedRevenue)}',
-                footerRight: 'هەموو کات: ${_formatCompact(m.allTimeCompletedRevenue)}',
+                footerRight:
+                    'هەموو کات: ${_formatCompact(m.allTimeCompletedRevenue)}',
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: _buildKpiCard(
-                label: 'مامەڵە سەرکەوتووەکان',
+                label: 'پارەدانەکان (تەواوکراو)',
                 value:
                     '${_formatNum(m.completedCount)} / ${_formatNum(m.totalCount)}',
                 icon: Iconsax.tick_circle,
@@ -1061,12 +1477,14 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
           children: [
             Expanded(
               child: _buildKpiCard(
-                label: 'کۆمیسیۆنی سەکۆ',
+                label: 'پشکی سەکۆ (کۆمیسیۆن)',
                 value: _formatIqd(m.completedCommission),
                 icon: Iconsax.percentage_square,
                 color: _violet,
-                footerLeft: 'پوختی دابینکار: ${_formatCompact(m.completedProviderNet)}',
-                footerRight: 'تێکڕا: ${_formatCompact(m.avgCompletedAmount)}',
+                footerLeft:
+                    'پوختی دابینکار: ${_formatCompact(m.completedProviderNet)}',
+                footerRight:
+                    'قازانجی سافی: ${_formatCompact(m.netPlatformProfit)}',
               ),
             ),
             const SizedBox(width: 10),
@@ -1076,7 +1494,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                 value: _formatIqd(m.discountTotal),
                 icon: Iconsax.ticket_discount,
                 color: _rose,
-                footerLeft: '${_formatNum(m.discountedCount)} مامەڵە',
+                footerLeft: '${_formatNum(m.discountedCount)} داواکاری',
                 footerRight: '${_formatNum(m.discountedUsersCount)} بەکارهێنەر',
               ),
             ),
@@ -1194,25 +1612,31 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
   }
 
   // ── 3. Financial & Status Breakdown Strip ──
-  Widget _buildFinancialStrip(_TransactionsMetrics m) {
+  Widget _buildFinancialStrip(_AccountingMetrics m) {
     final cards = [
       (
-        label: 'داهاتی کاش (Cash)',
+        label: 'پارەی هاتوو (کاش)',
         value: _formatIqd(m.cashRevenue),
         tag: '${m.cashCount} مامەڵە',
         color: _emerald,
       ),
       (
-        label: 'داهاتی ئۆنلاین / کارت',
+        label: 'پارەی هاتوو (ئۆنلاین)',
         value: _formatIqd(m.onlineRevenue),
         tag: '${m.onlineCount} مامەڵە',
         color: _indigo,
       ),
       (
-        label: 'بڕی چاوەڕوانکراو',
+        label: 'پارەی چاوەڕوانکراو',
         value: _formatIqd(m.pendingAmount),
         tag: '${m.pendingCount} چاوەڕوان',
         color: _amber,
+      ),
+      (
+        label: 'خەرجییەکانی ماوەکە',
+        value: _formatIqd(m.expensesTotal),
+        tag: '${m.expensesCount} خەرجی',
+        color: _rose,
       ),
       (
         label: 'شکستخواردوو',
@@ -1227,9 +1651,9 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
         color: _violet,
       ),
       (
-        label: 'کۆی گشتی (هەموو کات)',
+        label: 'هەموو کات (سەرکەوتوو)',
         value: _formatIqd(m.allTimeCompletedRevenue),
-        tag: '${m.allTimeCompletedCount} سەرکەوتوو',
+        tag: '${m.allTimeCompletedCount} مامەڵە',
         color: const Color(0xFF0D9488),
       ),
     ];
@@ -1251,7 +1675,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: c.color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -1299,11 +1724,283 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     );
   }
 
-  // ── 4. Period Transactions Ledger Card ──
-  Widget _buildTransactionsLedgerCard(
-    List<Map<String, dynamic>> items,
-    bool isDark,
-  ) {
+  // ── 4. Complete System Accounting & Payment Reconciliation Card ──
+  Widget _buildAccountingBreakdownCard(_AccountingMetrics m) {
+    final methodEntries = m.methodTotals.entries.toList()
+      ..sort((a, b) => b.value.amount.compareTo(a.value.amount));
+    final sectorEntries = m.sectorTotals.entries.toList()
+      ..sort((a, b) => b.value.revenue.compareTo(a.value.revenue));
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.getSurface(context),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.getBorder(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _emerald.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Iconsax.calculator,
+                  color: _emerald,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'حیساباتی تەواوی سیستەم و دابەشبوون',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.getTextTitle(context),
+                      ),
+                    ),
+                    Text(
+                      'کۆی پارەی هاتوو، پشکی دابینکاران، خەرجی و قازانجی پوخت',
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 10.5,
+                        color: AppColors.getTextSubtitle(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Reconciliation rows
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.getBackground(context),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.getBorder(context)),
+            ),
+            child: Column(
+              children: [
+                _ledgerMathRow(
+                  'کۆی پارەی هاتوو (سەرکەوتوو)',
+                  _formatIqd(m.completedRevenue),
+                  valueColor: _emerald,
+                  isBold: true,
+                ),
+                _ledgerMathRow(
+                  'پشکی دابینکاران (تاقیگە / ناوەند / دەرمانخانە)',
+                  _formatIqd(m.completedProviderNet),
+                  valueColor: _indigo,
+                ),
+                if (m.completedDeliveryFees > 0)
+                  _ledgerMathRow(
+                    'کرێی گەیاندنی شۆفێرەکان',
+                    _formatIqd(m.completedDeliveryFees),
+                    valueColor: _amber,
+                  ),
+                _ledgerMathRow(
+                  'کۆمیسیۆنی سەکۆ (پێش خەرجی)',
+                  _formatIqd(m.completedCommission),
+                  valueColor: _violet,
+                ),
+                _ledgerMathRow(
+                  'خەرجییەکانی ماوەکە (${m.expensesCount})',
+                  '- ${_formatIqd(m.expensesTotal)}',
+                  valueColor: _rose,
+                ),
+                const Divider(height: 14),
+                _ledgerMathRow(
+                  'قازانجی پوختی سەکۆ (سافی)',
+                  _formatIqd(m.netPlatformProfit),
+                  valueColor: m.netPlatformProfit >= 0 ? _emerald : _rose,
+                  isBold: true,
+                ),
+              ],
+            ),
+          ),
+
+          if (methodEntries.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Text(
+              'پارە هاتووەکان بەپێی ڕێگای پارەدان',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.getTextTitle(context),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: methodEntries.map((entry) {
+                final isCash = entry.key == 'cash';
+                final color = isCash ? const Color(0xFF0D9488) : _indigo;
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: color.withValues(alpha: 0.2)),
+                  ),
+                  child: Text(
+                    '${_methodLabel(entry.key)} (${entry.value.count}): ${_formatIqd(entry.value.amount)}',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+
+          if (sectorEntries.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Text(
+              'داهات و کۆمیسیۆن بەپێی کەرتەکان',
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.getTextTitle(context),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...sectorEntries.map((entry) {
+              final label = _serviceLabel(entry.key);
+              final sColor = switch (entry.key) {
+                'lab' => _indigo,
+                'nursing' => _emerald,
+                'pharmacy' => _amber,
+                _ => _violet,
+              };
+              return Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.getBackground(context),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.getBorder(context)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: sColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '$label (${entry.value.count} مامەڵە)',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.getTextTitle(context),
+                        ),
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          _formatIqd(entry.value.revenue),
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: sColor,
+                          ),
+                        ),
+                        if (entry.value.commission > 0)
+                          Text(
+                            'کۆمیسیۆن: ${_formatIqd(entry.value.commission)}',
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 10,
+                              color: AppColors.getTextSubtitle(context),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _ledgerMathRow(
+    String label,
+    String value, {
+    Color? valueColor,
+    bool isBold = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: isBold ? 12 : 11.5,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                color: isBold
+                    ? AppColors.getTextTitle(context)
+                    : AppColors.getTextSubtitle(context),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: isBold ? 13 : 12,
+              fontWeight: isBold ? FontWeight.w900 : FontWeight.bold,
+              color: valueColor ?? AppColors.getTextTitle(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 5. Period Transactions Ledger Card (Read-only Breakdown on Tap) ──
+  Widget _buildTransactionsLedgerCard(List<Map<String, dynamic>> items) {
     final double filteredTotal = items.fold<double>(
       0.0,
       (sum, tx) => sum + _toDouble(tx['amount']),
@@ -1348,7 +2045,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: _emerald.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
@@ -1367,7 +2065,6 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Live search field
           TextField(
             controller: _searchCtrl,
             onChanged: (v) => setState(() {
@@ -1440,8 +2137,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
               const SizedBox(height: 6),
               Center(
                 child: TextButton.icon(
-                  onPressed: () =>
-                      setState(() => _visibleLimit += 30),
+                  onPressed: () => setState(() => _visibleLimit += 30),
                   icon: const Icon(Icons.expand_more_rounded, size: 18),
                   label: Text(
                     'پیشاندانی زیاتر (${items.length - visible.length} ماوە)',
@@ -1486,7 +2182,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     final disc = _extractDiscount(tx, order);
     final comm = status == 'completed' ? _orderCommission(tx, order) : 0.0;
 
-    final dt = _txDate(tx);
+    final dt = _recordDate(tx);
     final dateStr = dt != null
         ? '${intl.DateFormat('yyyy-MM-dd').format(dt)} • ${intl.DateFormat('hh:mm a').format(dt)}'
         : '';
@@ -1498,7 +2194,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     ];
 
     return GestureDetector(
-      onTap: () => _changeStatus(tx),
+      onTap: () => _showTransactionDetails(tx),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(12),
@@ -1673,7 +2369,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     ).animate().fadeIn(delay: ((index < 15 ? index : 15) * 20).ms);
   }
 
-  // ── 5. Provider Financial Statement PDF Modal (dynamic years) ──
+  // ── 6. Provider Financial Statement PDF Modal (dynamic years) ──
   Future<void> _openExportReportModal({bool preferShare = false}) async {
     final nowBaghdad = _nowBaghdad();
     int selectedYear = nowBaghdad.year;
@@ -1684,9 +2380,8 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
       selectedMonth = int.tryParse(parts[1]) ?? nowBaghdad.month;
     }
 
-    final List<int> years = _availableYears.isNotEmpty
-        ? _availableYears
-        : [nowBaghdad.year];
+    final List<int> years =
+        _availableYears.isNotEmpty ? [..._availableYears] : [nowBaghdad.year];
     if (!years.contains(selectedYear)) {
       years.insert(0, selectedYear);
       years.sort((a, b) => b.compareTo(a));
@@ -2277,7 +2972,7 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
   }
 }
 
-class _TransactionsMetrics {
+class _AccountingMetrics {
   final int totalCount;
   final int completedCount;
   final int pendingCount;
@@ -2293,6 +2988,10 @@ class _TransactionsMetrics {
   final double successRate;
   final double completedCommission;
   final double completedProviderNet;
+  final double completedDeliveryFees;
+  final double expensesTotal;
+  final int expensesCount;
+  final double netPlatformProfit;
   final double cashRevenue;
   final double onlineRevenue;
   final double pendingAmount;
@@ -2301,8 +3000,11 @@ class _TransactionsMetrics {
   final double discountTotal;
   final int discountedCount;
   final int discountedUsersCount;
+  final Map<String, ({int count, double amount})> methodTotals;
+  final Map<String, ({int count, double revenue, double commission})>
+      sectorTotals;
 
-  const _TransactionsMetrics({
+  const _AccountingMetrics({
     required this.totalCount,
     required this.completedCount,
     required this.pendingCount,
@@ -2318,6 +3020,10 @@ class _TransactionsMetrics {
     required this.successRate,
     required this.completedCommission,
     required this.completedProviderNet,
+    required this.completedDeliveryFees,
+    required this.expensesTotal,
+    required this.expensesCount,
+    required this.netPlatformProfit,
     required this.cashRevenue,
     required this.onlineRevenue,
     required this.pendingAmount,
@@ -2326,5 +3032,7 @@ class _TransactionsMetrics {
     required this.discountTotal,
     required this.discountedCount,
     required this.discountedUsersCount,
+    required this.methodTotals,
+    required this.sectorTotals,
   });
 }
