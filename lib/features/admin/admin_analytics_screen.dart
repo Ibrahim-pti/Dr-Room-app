@@ -135,6 +135,50 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
         iconColor: _violet,
         iconBackgroundColor: _violet.withValues(alpha: 0.12),
         showBackButton: true,
+        actions: [
+          if (!_isLoading && _error == null) ...[
+            IconButton(
+              tooltip: 'ناردنی PDF',
+              onPressed: _isExportingPdf ? null : () => _exportPdf(share: true),
+              icon: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: AppColors.getSurface(context),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.getBorder(context)),
+                ),
+                child: const Icon(Iconsax.export_1, color: _indigo, size: 18),
+              ),
+            ),
+            IconButton(
+              tooltip: 'پاشەکەوت / چاپکردنی PDF',
+              onPressed: _isExportingPdf ? null : () => _exportPdf(share: false),
+              icon: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: _violet.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: _violet.withValues(alpha: 0.25)),
+                ),
+                child: _isExportingPdf
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: _violet,
+                        ),
+                      )
+                    : const Icon(
+                        Iconsax.document_download,
+                        color: _violet,
+                        size: 18,
+                      ),
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: _violet))
@@ -211,24 +255,18 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
     );
   }
 
-  // ── 1. Header, Month Dropdown & 3-Way Service Filter + PDF Actions ──
+  // ── 1. Header, Month & Service Filters + PDF Action Bar ──
   Widget _buildHeaderFilterCard(bool isDark) {
-    final rawMonths = List<String>.from((_report['months'] as List?) ?? []);
+    final months = List<String>.from((_report['months'] as List?) ?? []);
     final currentMonth = (_report['current_month'] ?? '').toString();
-    if (_selectedMonth != 'all' &&
-        _selectedMonth.isNotEmpty &&
-        !rawMonths.contains(_selectedMonth)) {
-      rawMonths.add(_selectedMonth);
-      rawMonths.sort((a, b) => b.compareTo(a));
-    }
-
     final periodLabel =
-        _selectedMonth == 'all' ? 'هەموو مانگەکان' : '\u200E$_selectedMonth';
+        _selectedMonth == 'all' ? 'هەموو مانگەکان' : _selectedMonth;
 
     const serviceFilters = [
       (key: 'all', label: 'هەمووی', icon: Iconsax.category),
       (key: 'lab', label: 'تاقیگە', icon: Iconsax.microscope),
       (key: 'nursing', label: 'پەرستاری', icon: Iconsax.profile_2user),
+      (key: 'pharmacy', label: 'دەرمانخانە', icon: Iconsax.health),
     ];
 
     return Container(
@@ -246,9 +284,8 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row: active period badge + reset to current month
           Row(
             children: [
               Container(
@@ -262,31 +299,8 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                   children: [
                     const Icon(Iconsax.calendar_1, size: 13, color: _violet),
                     const SizedBox(width: 5),
-                    Text(
-                      'حسابات و ئامار • $periodLabel',
-                      style: const TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: _violet,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              if (_selectedMonth != currentMonth && currentMonth.isNotEmpty)
-                GestureDetector(
-                  onTap: () => _selectMonth(currentMonth),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppColors.getBackground(context),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: _violet.withValues(alpha: 0.3)),
-                    ),
-                    child: const Text(
-                      'ئەم مانگە',
+                    const Text(
+                      'حسابات و ئامار • ',
                       style: TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: 11,
@@ -294,114 +308,114 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                         color: _violet,
                       ),
                     ),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        periodLabel,
+                        style: const TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: _violet,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              if (_selectedMonth != currentMonth && currentMonth.isNotEmpty)
+                TextButton(
+                  onPressed: () => _selectMonth(currentMonth),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'ئەم مانگە',
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                      color: _violet,
+                    ),
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 12),
 
-          // Month Dropdown Selector (clean, never hides selected month)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.getBackground(context),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.getBorder(context)),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedMonth,
-                isExpanded: true,
-                dropdownColor: AppColors.getSurface(context),
-                icon: const Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: _violet,
-                ),
-                style: TextStyle(
-                  fontFamily: 'Rabar',
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.getTextTitle(context),
-                ),
-                items: [
-                  const DropdownMenuItem(
-                    value: 'all',
-                    child: Text(
-                      'هەموو مانگەکان (گشتی)',
-                      style: TextStyle(fontFamily: 'Rabar'),
-                    ),
-                  ),
-                  ...rawMonths.map((m) {
-                    final isCurrent = m == currentMonth;
-                    return DropdownMenuItem(
-                      value: m,
-                      child: Text(
-                        isCurrent ? '\u200E$m  (ئەم مانگە)' : '\u200E$m',
-                        style: const TextStyle(fontFamily: 'Rabar'),
-                      ),
-                    );
-                  }),
-                ],
-                onChanged: (val) {
-                  if (val != null) _selectMonth(val);
-                },
-              ),
+          // Month selector chips
+          const Text(
+            'فلتەری مانگ',
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF64748B),
             ),
           ),
-          const SizedBox(height: 10),
-
-          // 3-Segment Service Type Filter (All | Lab | Nursing)
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColors.getBackground(context),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.getBorder(context)),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterPill(
+                  label: 'هەموو کاتەکان',
+                  selected: _selectedMonth == 'all',
+                  color: _violet,
+                  onTap: () => _selectMonth('all'),
+                ),
+                ...months.map((m) {
+                  final isCurrent = m == currentMonth;
+                  return Padding(
+                    padding: const EdgeInsetsDirectional.only(start: 6),
+                    child: _buildFilterPill(
+                      label: isCurrent ? '$m (ئێستا)' : m,
+                      selected: _selectedMonth == m,
+                      color: _violet,
+                      ltrText: true,
+                      onTap: () => _selectMonth(m),
+                    ),
+                  );
+                }),
+              ],
             ),
+          ),
+          const SizedBox(height: 12),
+
+          // Service sector filter chips
+          const Text(
+            'جۆری خزمەتگوزاری',
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             child: Row(
               children: serviceFilters.map((f) {
-                final selected = _serviceType == f.key;
-                return Expanded(
-                  child: GestureDetector(
+                return Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 6),
+                  child: _buildFilterPill(
+                    label: f.label,
+                    icon: f.icon,
+                    selected: _serviceType == f.key,
+                    color: _indigo,
                     onTap: () => _selectServiceType(f.key),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: selected ? _indigo : Colors.transparent,
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            f.icon,
-                            size: 14,
-                            color: selected
-                                ? Colors.white
-                                : AppColors.getTextSubtitle(context),
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            f.label,
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: selected
-                                  ? Colors.white
-                                  : AppColors.getTextTitle(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 );
               }).toList(),
             ),
           ),
           const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
 
           // Save / Print & Share PDF buttons
           Row(
@@ -409,16 +423,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: _isExportingPdf ? null : () => _exportPdf(share: false),
-                  icon: _isExportingPdf
-                      ? const SizedBox(
-                          width: 15,
-                          height: 15,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Iconsax.document_download, size: 17),
+                  icon: const Icon(Iconsax.document_download, size: 17),
                   label: const Text(
                     'پاشەکەوت / چاپکردنی PDF',
                     style: TextStyle(
@@ -969,22 +974,19 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                         ],
                       ),
                     ),
-                    if (((_report['months'] as List?) ?? [])
-                            .contains(selectedPoint['month']) &&
-                        selectedPoint['month'] != _selectedMonth)
-                      TextButton(
-                        onPressed: () => _selectMonth(
-                            (selectedPoint['month'] ?? '').toString()),
-                        child: const Text(
-                          'فلتەرکردن',
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.bold,
-                            color: _violet,
-                          ),
+                    TextButton(
+                      onPressed: () =>
+                          _selectMonth((selectedPoint['month'] ?? '').toString()),
+                      child: const Text(
+                        'فلتەرکردن',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: _violet,
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -1313,10 +1315,10 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
         color: _violet,
       ),
       (
-        label: 'نەخۆشەکان',
-        val: '${eco['total_patients'] ?? 0}',
-        sub: 'تۆمارکراو لە ئەپ',
-        icon: Iconsax.user,
+        label: 'دەرمانخانەکان',
+        val: '${eco['total_pharmacies'] ?? 0}',
+        sub: 'چاوەڕوان: ${eco['pending_pharmacies'] ?? 0}',
+        icon: Iconsax.health,
         color: _amber,
       ),
       (
