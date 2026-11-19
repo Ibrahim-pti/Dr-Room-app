@@ -7,7 +7,6 @@ import '../../core/utils/admin_permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../../main.dart';
 import 'admin_reviews_screen.dart';
-import 'admin_transactions_screen.dart';
 import 'admin_emergency_screen.dart';
 import 'admin_app_bar.dart';
 import 'admin_service_fee_screen.dart';
@@ -17,7 +16,6 @@ import 'admin_lab_results_screen.dart';
 import 'admin_staff_schedule_screen.dart';
 import 'admin_report_settings_screen.dart';
 import 'admin_patients_screen.dart';
-import 'admin_drivers_screen.dart';
 import 'admin_recruitment_options_screen.dart';
 import 'admin_staff_screen.dart';
 import 'admin_activity_log_screen.dart';
@@ -138,14 +136,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'color': const Color(0xFFF97316),
             'screen': const AdminExpensesScreen(),
           },
-          {
-            'title': 'مامەڵە و داهات',
-            'permission': AdminPermissions.viewPayments,
-            'subtitle': 'تۆماری پارەدان و ڕاپۆرتی داهات',
-            'icon': Iconsax.wallet_3,
-            'color': const Color(0xFF059669),
-            'screen': const AdminTransactionsScreen(),
-          },
         ],
       },
       {
@@ -158,14 +148,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
             'icon': Iconsax.profile_2user,
             'color': const Color(0xFF0D9488),
             'screen': const AdminPatientsScreen(),
-          },
-          {
-            'title': 'کارمەندانی گەیاندن (دلیڤەری)',
-            'permission': AdminPermissions.manageProviders,
-            'subtitle': 'نەخشەی زیندوو، پەسەندکردنی شۆفێران و چاودێری',
-            'icon': Iconsax.truck_fast,
-            'color': const Color(0xFF10B981),
-            'screen': const AdminDriversScreen(),
           },
           {
             'title': 'بڕوانامە و شارەزایی تیمی گەڕۆک',

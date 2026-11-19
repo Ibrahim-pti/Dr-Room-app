@@ -159,74 +159,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               );
             },
           ),
-          IconButton(
-            tooltip: 'سکاڵا و پشتیوانی',
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: AppColors.getSurface(context),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.getBorder(context)),
-                  ),
-                  child: const Icon(
-                    Iconsax.message_question,
-                    color: Color(0xFF0F172A),
-                    size: 18,
-                  ),
-                ),
-                if ((_stats?['open_tickets'] ?? 0) > 0 ||
-                    (_stats?['unread_ticket_messages'] ?? 0) > 0)
-                  Positioned(
-                    top: -4,
-                    right: -4,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFEF4444),
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${(_stats?['open_tickets'] ?? 0) > 0 ? _stats!['open_tickets'] : _stats!['unread_ticket_messages']}',
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            onPressed: () => _openScreen(const AdminTicketsScreen()),
-          ),
-          IconButton(
-            tooltip: 'ئاگادارییەکان',
-            icon: Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.getBorder(context)),
-              ),
-              child: const Icon(
-                Iconsax.notification,
-                color: Color(0xFF0F172A),
-                size: 18,
-              ),
-            ),
-            onPressed: () => _openScreen(const AdminNotificationsScreen()),
-          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -394,8 +326,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   // ── 2. Essential Active Services Grid (Large & Clean) ──
   Widget _buildEssentialServicesGrid() {
-    final int totalOrders = int.tryParse('${_stats?['total_orders'] ?? 0}') ?? 0;
-    final int pendingOrders = int.tryParse('${_stats?['pending_orders'] ?? 0}') ?? 0;
+    final int totalOrders =
+        int.tryParse('${_stats?['total_orders'] ?? 0}') ?? 0;
+    final int pendingOrders =
+        int.tryParse('${_stats?['pending_orders'] ?? 0}') ?? 0;
 
     final int openTickets = (_stats?['open_tickets'] ?? 0) as int;
     final int unreadTicketMessages =
@@ -616,7 +550,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminBannersScreen(),
       },
       {
-        'title': 'ئاگاداری گشتی (Push Notification)',
+        'title': 'ئاگاداری گشتی ',
         'subtitle': 'ناردنی پەیامی ڕاستەوخۆ بۆ بەکارهێنەران',
         'icon': Iconsax.notification_bing,
         'color': const Color(0xFFD97706),
