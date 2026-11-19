@@ -27,22 +27,12 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
   static const _amber = Color(0xFFD97706);
   static const _rose = Color(0xFFE11D48);
 
-  static const _statusFilters = [
-    (value: '', label: 'هەمووی'),
-    (value: 'completed', label: 'هاتوو / سەرکەوتوو'),
-    (value: 'pending', label: 'چاوەڕوان'),
-    (value: 'failed', label: 'شکستخواردوو'),
-    (value: 'refunded', label: 'گەڕێندراوە'),
-  ];
-
   bool _isLoading = true;
   String? _error;
 
   late String _currentMonth;
   late String _selectedMonth;
-  String _statusFilter = '';
   String _methodFilter = 'all';
-  bool _onlyDiscounted = false;
   String _searchQuery = '';
   int _visibleLimit = 30;
 
@@ -670,37 +660,22 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
     List<Map<String, dynamic>> periodList,
   ) {
     final q = _searchQuery.trim().toLowerCase();
+    if (q.isEmpty) return periodList;
     return periodList.where((tx) {
-      if (_statusFilter.isNotEmpty) {
-        final st = (tx['status'] ?? '').toString().toLowerCase();
-        if (st != _statusFilter) return false;
-      }
-
       final order = _matchedOrder(tx);
       final disc = _extractDiscount(tx, order);
-
-      if (_onlyDiscounted && !disc.hasDiscount) {
-        return false;
-      }
-
-      if (q.isNotEmpty) {
-        final desc = (tx['description'] ?? '').toString().toLowerCase();
-        final ref = (tx['reference'] ?? '').toString().toLowerCase();
-        final patient = _patientName(tx, order).toLowerCase();
-        final provider = _providerName(order).toLowerCase();
-        final coupon = disc.couponCode.toLowerCase();
-        final orderNo = (order?['order_number'] ?? '').toString().toLowerCase();
-        if (!desc.contains(q) &&
-            !ref.contains(q) &&
-            !patient.contains(q) &&
-            !provider.contains(q) &&
-            !coupon.contains(q) &&
-            !orderNo.contains(q)) {
-          return false;
-        }
-      }
-
-      return true;
+      final desc = (tx['description'] ?? '').toString().toLowerCase();
+      final ref = (tx['reference'] ?? '').toString().toLowerCase();
+      final patient = _patientName(tx, order).toLowerCase();
+      final provider = _providerName(order).toLowerCase();
+      final coupon = disc.couponCode.toLowerCase();
+      final orderNo = (order?['order_number'] ?? '').toString().toLowerCase();
+      return desc.contains(q) ||
+          ref.contains(q) ||
+          patient.contains(q) ||
+          provider.contains(q) ||
+          coupon.contains(q) ||
+          orderNo.contains(q);
     }).toList();
   }
 
@@ -1236,49 +1211,6 @@ class _AdminTransactionsScreenState extends State<AdminTransactionsScreen> {
                     ),
                   );
                 }),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          const Text(
-            'دۆخی پارەدان',
-            style: TextStyle(
-              fontFamily: 'Rabar',
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF64748B),
-            ),
-          ),
-          const SizedBox(height: 6),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                ..._statusFilters.map((s) {
-                  return Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 6),
-                    child: _buildFilterPill(
-                      label: s.label,
-                      selected: _statusFilter == s.value,
-                      color: _indigo,
-                      onTap: () => setState(() {
-                        _statusFilter = s.value;
-                        _visibleLimit = 30;
-                      }),
-                    ),
-                  );
-                }),
-                _buildFilterPill(
-                  label: 'بە داشکاندن',
-                  icon: Iconsax.ticket_discount,
-                  selected: _onlyDiscounted,
-                  color: _rose,
-                  onTap: () => setState(() {
-                    _onlyDiscounted = !_onlyDiscounted;
-                    _visibleLimit = 30;
-                  }),
-                ),
               ],
             ),
           ),
