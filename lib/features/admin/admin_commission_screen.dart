@@ -10,6 +10,7 @@ import '../../core/theme/theme_provider.dart';
 import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
 import 'admin_ui.dart';
+import 'services/commission_pdf_service.dart';
 
 class AdminCommissionScreen extends StatefulWidget {
   const AdminCommissionScreen({super.key});
@@ -23,6 +24,8 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
 
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isExporting = false;
+  Map<String, dynamic> _summary = {};
   String? _error;
 
   late DateTime _period = DateTime(DateTime.now().year, DateTime.now().month);
@@ -82,6 +85,7 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
         final s = jsonDecode(results[0].body)['data'];
         final r = jsonDecode(results[1].body)['data'];
         setState(() {
+          _summary = Map<String, dynamic>.from(s as Map);
           _totalOrders = (s['total_orders'] as num?)?.toInt() ?? 0;
           _totalRevenue = _num(s['total_revenue']);
           _totalCommission = _num(s['total_commission']);
@@ -135,6 +139,77 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
     }
   }
 
+  Future<void> _exportPdf({required bool share}) async {
+    if (_summary.isEmpty || _isExporting) return;
+    setState(() => _isExporting = true);
+    try {
+      if (share) {
+        await CommissionPdfService.share(_summary);
+      } else {
+        await CommissionPdfService.preview(_summary);
+      }
+    } catch (e) {
+      if (mounted) AdminUi.toast(context, 'کێشە لە دروستکردنی PDF: $e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
+  Widget _buildPdfCard() {
+    Widget action(String label, IconData icon, Color color, VoidCallback onTap) => Expanded(
+          child: Material(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              onTap: _isExporting ? null : onTap,
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: color, size: 20),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(label,
+                          style: TextStyle(fontFamily: 'Rabar', fontSize: 14, height: 1.5, color: color)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+
+    return Container(
+      decoration: AdminUi.cardDecoration,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Iconsax.document_download, color: Color(0xFFEF4444), size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text('ڕاپۆرتی PDF ی مانگی $_periodLabel', style: AdminUi.title)),
+              if (_isExporting)
+                const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              action('پاشەکەوت / هاوبەشکردن', Iconsax.document_download, const Color(0xFFEF4444),
+                  () => _exportPdf(share: true)),
+              const SizedBox(width: 10),
+              action('پیشاندان / چاپ', Iconsax.printer, const Color(0xFF6366F1), () => _exportPdf(share: false)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _shiftMonth(int delta) {
     final next = DateTime(_period.year, _period.month + delta);
     final now = DateTime.now();
@@ -156,6 +231,13 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
         iconColor: _green,
         iconBackgroundColor: _green.withValues(alpha: 0.1),
         showBackButton: true,
+        actions: [
+          IconButton(
+            tooltip: 'PDF',
+            onPressed: _isLoading || _isExporting ? null : () => _exportPdf(share: true),
+            icon: const Icon(Iconsax.document_download, color: Color(0xFFEF4444)),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -175,6 +257,8 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
                             _buildRatesCard(),
                             const SizedBox(height: 20),
                             _buildBreakdown(),
+                            const SizedBox(height: 6),
+                            _buildPdfCard(),
                           ],
                         ),
                       ),

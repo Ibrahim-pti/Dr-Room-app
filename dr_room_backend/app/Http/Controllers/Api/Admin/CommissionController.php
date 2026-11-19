@@ -123,6 +123,8 @@ class CommissionController extends Controller
                 'total_commission' => round($totalCommission, 2),
                 'total_provider_payout' => round($totalRevenue - $totalCommission, 2),
                 'breakdown' => array_values($buckets),
+                'branding' => \App\Services\ReportBrandingService::get(),
+                'generated_at' => now()->format('Y-m-d H:i'),
             ],
         ]);
     }
