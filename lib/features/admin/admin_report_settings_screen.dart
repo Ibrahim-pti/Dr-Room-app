@@ -186,7 +186,11 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              content: Column(
+              // AlertDialog measures content via IntrinsicWidth, which
+              // LayoutBuilder doesn't support — a fixed width avoids that.
+              content: SizedBox(
+                width: 300,
+                child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
@@ -244,6 +248,7 @@ class _AdminReportSettingsScreenState extends State<AdminReportSettingsScreen> {
                     ),
                   ),
                 ],
+                ),
               ),
               actions: [
                 TextButton(
