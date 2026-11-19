@@ -24,7 +24,7 @@ class AdminAnalyticsController extends Controller
     {
         $selectedMonth = trim((string) $request->input('month', ''));
         $serviceFilter = trim((string) $request->input('service_type', 'all'));
-        if (!in_array($serviceFilter, ['all', 'lab', 'nursing', 'pharmacy'], true)) {
+        if (!in_array($serviceFilter, ['all', 'lab', 'nursing'], true)) {
             $serviceFilter = 'all';
         }
 
@@ -119,7 +119,6 @@ class AdminAnalyticsController extends Controller
         $serviceDefs = [
             'lab' => 'پشکنینی تاقیگە',
             'nursing' => 'پەرستاری ماڵەوە',
-            'pharmacy' => 'دەرمانخانە',
             'other' => 'خزمەتگوزاری تر',
         ];
         $serviceBreakdown = collect($serviceDefs)->map(function (string $label, string $key) use ($monthAllServiceOrders) {
@@ -162,7 +161,6 @@ class AdminAnalyticsController extends Controller
                     $fallbackName = match ($svc) {
                         'lab' => 'پشکنینی تاقیگە',
                         'nursing' => 'خزمەتگوزاری پەرستاری',
-                        'pharmacy' => 'داواکاری دەرمانخانە',
                         default => 'خزمەتگوزاری گشتی',
                     };
                     return [[
@@ -244,8 +242,6 @@ class AdminAnalyticsController extends Controller
             'pending_labs' => User::where('role', 'lab')->where('status', 'pending')->count(),
             'total_nurses' => User::where('role', 'nurse')->where('status', 'approved')->count(),
             'pending_nurses' => User::where('role', 'nurse')->where('status', 'pending')->count(),
-            'total_pharmacies' => User::where('role', 'pharmacy')->where('status', 'approved')->count(),
-            'pending_pharmacies' => User::where('role', 'pharmacy')->where('status', 'pending')->count(),
             'total_drivers' => User::where('role', 'driver')->where('status', 'approved')->count(),
             'pending_drivers' => User::where('role', 'driver')->where('status', 'pending')->count(),
             'online_drivers' => $this->safeCount(fn () => Driver::whereHas('user', fn ($q) => $q->where('role', 'driver')->where('status', 'approved'))
@@ -280,7 +276,6 @@ class AdminAnalyticsController extends Controller
                 : match ($svc) {
                     'lab' => 'پشکنینی تاقیگە',
                     'nursing' => 'پەرستاری ماڵەوە',
-                    'pharmacy' => 'دەرمانخانە',
                     default => 'خزمەتگوزاری پزیشکی',
                 };
             $localTime = $order->created_at
@@ -405,9 +400,6 @@ class AdminAnalyticsController extends Controller
         }
         if (str_contains($st, 'nurs') || str_contains($st, 'پەرستار') || !empty($order->assigned_nurse_id)) {
             return 'nursing';
-        }
-        if (str_contains($st, 'pharmac') || str_contains($st, 'medic') || str_contains($st, 'دەرمان') || !empty($order->assigned_pharmacy_id)) {
-            return 'pharmacy';
         }
         return 'other';
     }

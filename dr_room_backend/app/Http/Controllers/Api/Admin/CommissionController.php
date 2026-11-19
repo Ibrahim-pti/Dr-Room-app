@@ -57,7 +57,6 @@ class CommissionController extends Controller
         $totalRevenue = (clone $completedOrders)->sum('total_price');
         $totalCommission = (clone $completedOrders)->sum('commission_amount');
         $totalProviderPayout = (clone $completedOrders)->sum('provider_net_amount');
-
         // By service type breakdown
         $breakdown = Order::where('status', 'completed')
             ->selectRaw('service_type, COUNT(*) as total_orders, SUM(total_price) as total_amount, SUM(commission_amount) as total_commission, SUM(provider_net_amount) as provider_net')
