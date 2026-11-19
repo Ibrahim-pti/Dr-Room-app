@@ -371,13 +371,14 @@ class ServicesCategoryGrid extends StatelessWidget {
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 52,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF3B82F6),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(26),
                     ),
                     elevation: 0,
                   ),
@@ -388,6 +389,7 @@ class ServicesCategoryGrid extends StatelessWidget {
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
+                      height: 1.2,
                     ),
                   ),
                 ),
