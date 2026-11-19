@@ -48,6 +48,15 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   String? _labName;
   Map<String, dynamic>? _labDetails;
 
+  // Schedule & bookable time slots (lab / nursing)
+  bool _isLoadingSlots = true;
+  List<Map<String, dynamic>> _availabilityDays = [];
+  int _selectedSlotDayIdx = 0;
+  String? _selectedSlotDate;
+  String? _selectedSlotTime;
+  bool _showSlotError = false;
+  dynamic _slotProviderId;
+
   TextStyle _kStyle({
     double fontSize = 14,
     FontWeight fontWeight = FontWeight.normal,
@@ -97,6 +106,97 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
 
     // Auto fetch location on screen load
     _getCurrentLocation();
+
+    final isLab = cart.effectiveServiceType == 'lab' || cart.serviceType == 'lab';
+    dynamic pid;
+    if (isLab) {
+      for (final item in cart.items) {
+        pid = item.extraData?['lab_id'] ?? item.extraData?['lab_user_id'];
+        if (pid != null) break;
+      }
+    } else {
+      for (final item in cart.items) {
+        pid = item.extraData?['nurse_id'] ?? item.extraData?['staff_id'];
+        if (pid != null) break;
+      }
+    }
+    _slotProviderId = pid;
+    _fetchAvailability();
+  }
+
+  Future<void> _fetchAvailability() async {
+    if (!mounted) return;
+    setState(() => _isLoadingSlots = true);
+    final cart = context.read<CartProvider>();
+    final isLab = cart.effectiveServiceType == 'lab' || cart.serviceType == 'lab';
+    final type = isLab ? 'lab' : 'nurse';
+    final pid = _slotProviderId?.toString();
+    final qs = StringBuffer('type=$type&days=14');
+    if (pid != null && pid.isNotEmpty && pid != '0') {
+      qs.write('&provider_id=$pid');
+    }
+
+    try {
+      final res = await ApiClient.get('/schedules/availability?$qs');
+      if (!mounted) return;
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
+        final rawDays = decoded['data']?['days'] as List? ?? [];
+        final days = rawDays.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+
+        int firstAvailableDay = 0;
+        String? firstDate;
+        String? firstTime;
+        for (var i = 0; i < days.length; i++) {
+          final slots = (days[i]['slots'] as List? ?? []);
+          final open = slots.where((s) => s['past'] != true && s['taken'] != true).toList();
+          if (open.isNotEmpty) {
+            firstAvailableDay = i;
+            // Preserve previous choice if still open
+            if (_selectedSlotDate == days[i]['date']?.toString() && _selectedSlotTime != null) {
+              final stillOpen = open.any((s) => s['time']?.toString() == _selectedSlotTime);
+              if (stillOpen) {
+                firstDate = _selectedSlotDate;
+                firstTime = _selectedSlotTime;
+              }
+            }
+            break;
+          }
+        }
+
+        setState(() {
+          _availabilityDays = days;
+          _selectedSlotDayIdx = firstAvailableDay;
+          if (firstDate != null && firstTime != null) {
+            _selectedSlotDate = firstDate;
+            _selectedSlotTime = firstTime;
+          } else {
+            _selectedSlotDate = days.isNotEmpty ? days[firstAvailableDay]['date']?.toString() : null;
+            _selectedSlotTime = null;
+          }
+          _isLoadingSlots = false;
+        });
+      } else {
+        setState(() => _isLoadingSlots = false);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingSlots = false);
+    }
+  }
+
+  bool get _hasAnyBookableSlot {
+    for (final d in _availabilityDays) {
+      final slots = d['slots'] as List? ?? [];
+      if (slots.any((s) => s['past'] != true && s['taken'] != true)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  String? get _selectedScheduledAt {
+    if (_selectedSlotDate == null || _selectedSlotTime == null) return null;
+    return '$_selectedSlotDate $_selectedSlotTime';
   }
 
   Future<void> _fetchLabInfo(int labId) async {
@@ -420,6 +520,22 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
 
     final isLab = context.read<CartProvider>().serviceType == 'lab';
 
+    if (_hasAnyBookableSlot && _selectedScheduledAt == null) {
+      setState(() => _showSlotError = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'تکایە ڕۆژ و کاتی گونجاو هەڵبژێرە',
+            style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate() && _selectedGender != null) {
       // Find selected staff, nurse, or lab item
       CartItem? staffItem;
@@ -475,6 +591,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
         'location': finalLocation,
         'lat': _currentLatLng?.latitude,
         'lng': _currentLatLng?.longitude,
+        if (_selectedScheduledAt != null) 'scheduled_at': _selectedScheduledAt,
       };
 
       if (prescriptionUrl != null) {
@@ -928,6 +1045,11 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
                       ),
                     ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.05, end: 0),
 
+                    const SizedBox(height: 22),
+
+                    // ── Date & Time Slot Section ──
+                    _buildScheduleSlotSection(isDark, cardBg, borderColor),
+
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -1319,6 +1441,288 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildScheduleSlotSection(bool isDark, Color cardBg, Color borderColor) {
+    const dayLabels = {
+      'Sunday': 'یەکشەممە',
+      'Monday': 'دووشەممە',
+      'Tuesday': 'سێشەممە',
+      'Wednesday': 'چوارشەممە',
+      'Thursday': 'پێنجشەممە',
+      'Friday': 'هەینی',
+      'Saturday': 'شەممە',
+    };
+
+    final selectedDay = _availabilityDays.isNotEmpty
+        ? _availabilityDays[_selectedSlotDayIdx.clamp(0, _availabilityDays.length - 1)]
+        : null;
+    final rawSlots = (selectedDay?['slots'] as List? ?? [])
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .where((s) => s['past'] != true)
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: _showSlotError && _selectedScheduledAt == null
+              ? const Color(0xFFEF4444)
+              : borderColor,
+          width: _showSlotError && _selectedScheduledAt == null ? 1.5 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Iconsax.calendar_tick, color: Color(0xFF0D9488), size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'دیاریکردنی ڕۆژ و کات',
+                      style: _kStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      'کاتە پڕبووەکان بە (گیراوە) دیاریکراون',
+                      style: _kStyle(
+                        fontSize: 11.5,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: _isLoadingSlots ? null : _fetchAvailability,
+                icon: const Icon(Iconsax.refresh, size: 18, color: Color(0xFF0D9488)),
+                tooltip: 'نوێکردنەوە',
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (_isLoadingSlots)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2.2)),
+            )
+          else if (_availabilityDays.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Text(
+                'لە ئێستادا کاتی دیاریکراو تۆمار نەکراوە.',
+                style: _kStyle(
+                  fontSize: 12.5,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
+              ),
+            )
+          else ...[
+            SizedBox(
+              height: 68,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _availabilityDays.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (_, i) {
+                  final d = _availabilityDays[i];
+                  final selected = i == _selectedSlotDayIdx;
+                  final dateStr = (d['date'] ?? '').toString();
+                  final shortDate = dateStr.length >= 10 ? dateStr.substring(5) : dateStr;
+                  final dayName = i == 0
+                      ? 'ئەمڕۆ'
+                      : (dayLabels[d['day_of_week']] ?? d['day_of_week']?.toString() ?? '');
+                  final daySlots = (d['slots'] as List? ?? []);
+                  final hasOpen = daySlots.any((s) => s['past'] != true && s['taken'] != true);
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedSlotDayIdx = i;
+                        _selectedSlotDate = dateStr;
+                        _selectedSlotTime = null;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 160),
+                      width: 84,
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? const Color(0xFF0D9488)
+                            : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: selected
+                              ? const Color(0xFF0D9488)
+                              : (hasOpen ? borderColor : Colors.grey.withValues(alpha: 0.3)),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            dayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: _kStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: selected
+                                  ? Colors.white
+                                  : (hasOpen
+                                      ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                                      : const Color(0xFF94A3B8)),
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            hasOpen ? shortDate : 'پڕە / پشوو',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: _kStyle(
+                              fontSize: 10.5,
+                              color: selected
+                                  ? Colors.white70
+                                  : (hasOpen ? const Color(0xFF64748B) : const Color(0xFFEF4444)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 14),
+            if (rawSlots.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    'لەم ڕۆژەدا هیچ کاتێکی بەتاڵ نەماوە',
+                    style: _kStyle(
+                      fontSize: 12.5,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: rawSlots.map((slot) {
+                  final time = slot['time']?.toString() ?? '';
+                  final taken = slot['taken'] == true;
+                  final isSelected =
+                      !taken && _selectedSlotDate == selectedDay?['date']?.toString() && _selectedSlotTime == time;
+                  final remaining = (slot['remaining'] as num?)?.toInt() ?? 0;
+                  final capacity = (slot['capacity'] as num?)?.toInt() ?? 1;
+
+                  return GestureDetector(
+                    onTap: () {
+                      if (taken) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'ئەم کاتە پێشتر گیراوە، تکایە کاتێکی تر هەڵبژێرە',
+                              style: _kStyle(color: Colors.white),
+                            ),
+                            backgroundColor: const Color(0xFFEF4444),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        return;
+                      }
+                      setState(() {
+                        _selectedSlotDate = selectedDay?['date']?.toString();
+                        _selectedSlotTime = time;
+                        _showSlotError = false;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 160),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                      decoration: BoxDecoration(
+                        color: taken
+                            ? const Color(0xFFEF4444).withValues(alpha: 0.08)
+                            : (isSelected
+                                ? const Color(0xFF0D9488)
+                                : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC))),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: taken
+                              ? const Color(0xFFEF4444).withValues(alpha: 0.35)
+                              : (isSelected ? const Color(0xFF0D9488) : borderColor),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            taken ? Iconsax.lock_1 : Iconsax.clock,
+                            size: 14,
+                            color: taken
+                                ? const Color(0xFFDC2626)
+                                : (isSelected ? Colors.white : const Color(0xFF0D9488)),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            taken ? '$time • گیراوە' : (capacity > 1 ? '$time ($remaining)' : time),
+                            style: TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: taken
+                                  ? const Color(0xFFDC2626)
+                                  : (isSelected
+                                      ? Colors.white
+                                      : (isDark ? Colors.white : const Color(0xFF0F172A))),
+                              decoration: taken ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+          ],
+          if (_showSlotError && _selectedScheduledAt == null) ...[
+            const SizedBox(height: 10),
+            Text(
+              'تکایە ڕۆژ و کاتی گونجاو هەڵبژێرە',
+              style: _kStyle(color: const Color(0xFFEF4444), fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

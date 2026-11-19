@@ -120,6 +120,7 @@ class OrderModel {
   final List<dynamic>? items;
   final String? prescriptionImage;
   final double? serviceFee;
+  final DateTime? scheduledAt;
 
   /// Set only for orders built locally right after checkout, where the item
   /// names are known and more useful than the generic service name.
@@ -181,6 +182,7 @@ class OrderModel {
     this.items,
     this.prescriptionImage,
     this.serviceFee,
+    this.scheduledAt,
     this.customTitle,
   });
 
@@ -308,6 +310,9 @@ class OrderModel {
       items: json['items'] is List ? json['items'] : null,
       prescriptionImage: resolvedPrescription,
       serviceFee: double.tryParse(json['service_fee']?.toString() ?? ''),
+      scheduledAt: DateTime.tryParse(
+        (json['scheduled_at_iso'] ?? json['scheduled_at'] ?? '').toString().replaceFirst(' ', 'T'),
+      )?.toLocal(),
     );
   }
 
@@ -378,6 +383,7 @@ class OrderModel {
       items: items ?? this.items,
       prescriptionImage: prescriptionImage ?? this.prescriptionImage,
       serviceFee: serviceFee ?? this.serviceFee,
+      scheduledAt: scheduledAt,
       customTitle: customTitle,
     );
   }

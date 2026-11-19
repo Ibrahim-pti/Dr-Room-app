@@ -102,6 +102,10 @@ Route::get('/nurses/{id}/reviews', [\App\Http\Controllers\Api\NurseReviewControl
 Route::get('/nursing/services', [\App\Http\Controllers\Api\NurseApiController::class, 'getServices']);
 Route::get('/nursing/packages', [\App\Http\Controllers\Api\NurseApiController::class, 'packages']);
 
+// ─── Provider Schedules & Bookable Slots (Nurse, Lab, Driver) ─────────
+Route::get('/schedules/availability', [\App\Http\Controllers\Api\ProviderScheduleController::class, 'availability']);
+Route::post('/schedules/check-slot', [\App\Http\Controllers\Api\ProviderScheduleController::class, 'checkSlot']);
+
 // ─── Push notification device registration ────────────────────────────
 // Unauthenticated too: a guest device registers on first launch and the row
 // is claimed once they sign in.
@@ -197,6 +201,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // ─── Delivery Driver Mobile Dashboard API ───────────────────────────────
     Route::middleware('driver')->prefix('driver')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Api\DriverController::class, 'dashboard']);
+        Route::get('/schedule', [\App\Http\Controllers\Api\ProviderScheduleController::class, 'driverSchedule']);
+        Route::post('/schedule', [\App\Http\Controllers\Api\ProviderScheduleController::class, 'updateDriverSchedule']);
         Route::post('/duty', [\App\Http\Controllers\Api\DriverController::class, 'updateDuty']);
         Route::post('/location', [\App\Http\Controllers\Api\DriverController::class, 'updateLocation']);
         Route::post('/orders/{id}/claim', [\App\Http\Controllers\Api\DriverController::class, 'claimOrder']);
@@ -338,6 +344,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/drivers/{id}/reject', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'reject']);
         Route::patch('/drivers/{id}/toggle-block', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'toggleBlock']);
         Route::post('/drivers/{id}/reset-earnings', [\App\Http\Controllers\Api\Admin\AdminDriverController::class, 'resetEarnings']);
+
+        // Staff Schedules & Slots (nurse, lab, driver)
+        Route::get('/schedules/providers', [\App\Http\Controllers\Api\ProviderScheduleController::class, 'adminProviders']);
+        Route::get('/schedules/{type}/{userId}', [\App\Http\Controllers\Api\ProviderScheduleController::class, 'adminShow']);
+        Route::post('/schedules/{type}/{userId}', [\App\Http\Controllers\Api\ProviderScheduleController::class, 'adminUpdate']);
 
         // Dynamic Step-2 recruitment options (education levels & clinical skills)
         Route::post('/recruitment-options/reorder', [\App\Http\Controllers\Api\Admin\RecruitmentOptionController::class, 'reorder']);

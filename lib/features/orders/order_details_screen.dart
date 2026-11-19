@@ -1328,6 +1328,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       DateFormat('hh:mm a', 'en').format(_currentOrder.date),
                       isDark: isDark,
                     ),
+                    if (_currentOrder.scheduledAt != null) ...[
+                      const Divider(
+                        height: 24,
+                        thickness: 1,
+                        color: Color(0xFFF1F5F9),
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'کاتی سەردانی دیاریکراو',
+                        DateFormat('yyyy-MM-dd • HH:mm', 'en').format(_currentOrder.scheduledAt!),
+                        isDark: isDark,
+                      ),
+                    ],
                     if (_currentOrder.localizedEstimatedDuration(context) != null) ...[
                       const Divider(
                         height: 24,

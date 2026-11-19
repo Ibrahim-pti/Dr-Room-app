@@ -319,6 +319,17 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                         false,
                                       ),
                                     ],
+                                    if (patient?['scheduled_at'] != null &&
+                                        patient!['scheduled_at'].toString().trim().isNotEmpty) ...[
+                                      const SizedBox(height: 14),
+                                      _buildSummaryRow(
+                                        Iconsax.calendar_tick,
+                                        'کاتی دیاریکراو',
+                                        patient['scheduled_at'].toString(),
+                                        false,
+                                        customColor: const Color(0xFF0D9488),
+                                      ),
+                                    ],
                                     const SizedBox(height: 14),
                                     _buildSummaryRow(
                                       Iconsax.wallet_3,
@@ -647,6 +658,10 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                               if (orderId != null && context.mounted) {
                                 final serviceName = cartProvider.serviceType ?? 'lab';
                                 final itemsStr = cartProvider.items.map((e) => e.name).join('، ');
+                                final rawScheduled = cartProvider.patientDetails?['scheduled_at']?.toString();
+                                final parsedScheduled = rawScheduled != null
+                                    ? DateTime.tryParse(rawScheduled.replaceFirst(' ', 'T'))
+                                    : null;
 
                                 await context.read<OrderProvider>().addOrder(OrderModel(
                                   id: orderId,
@@ -656,6 +671,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                   price: effectiveTotal,
                                   serviceFee: cartProvider.serviceFee,
                                   date: DateTime.now(),
+                                  scheduledAt: parsedScheduled,
                                 ));
 
                                 if (context.mounted) {
@@ -668,6 +684,16 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                     (route) => false,
                                   );
                                 }
+                              } else if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      checkoutProvider.lastError ?? 'کێشە لە تۆمارکردنی داواکاری ڕوویدا',
+                                      style: _kStyle(color: Colors.white),
+                                    ),
+                                    backgroundColor: const Color(0xFFEF4444),
+                                  ),
+                                );
                               }
                             },
                       style: ElevatedButton.styleFrom(

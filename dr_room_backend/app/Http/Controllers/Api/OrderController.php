@@ -145,6 +145,30 @@ class OrderController extends Controller
                 $coupon->increment('used_count');
             }
 
+            // Scheduled slot check (lab & nursing). Rejects when the slot is already full.
+            $scheduledAt = null;
+            $rawScheduledAt = $request->input('scheduled_at') ?? ($patientDetails['scheduled_at'] ?? null);
+            if (!empty($rawScheduledAt)) {
+                try {
+                    $scheduledAt = \Carbon\Carbon::parse($rawScheduledAt);
+                } catch (\Throwable) {
+                    DB::rollBack();
+                    return response()->json(['message' => 'فۆرماتی کاتی دیاریکراو نادروستە'], 422);
+                }
+                $patientDetails['scheduled_at'] = $scheduledAt->format('Y-m-d H:i');
+
+                $slotType = \App\Services\ProviderSlotService::typeForService($request->service_type);
+                if ($slotType !== null) {
+                    $providerUserId = $slotType === 'lab' ? $assignedLabId : $assignedNurseId;
+                    if (!\App\Services\ProviderSlotService::isBookable($slotType, $providerUserId ? (int) $providerUserId : null, $scheduledAt)) {
+                        DB::rollBack();
+                        return response()->json([
+                            'message' => 'ئەم کاتە پڕبووەتەوە (گیراوە) یان لە دەرەوەی کاتی دەوامە، تکایە کاتێکی تر هەڵبژێرە',
+                        ], 422);
+                    }
+                }
+            }
+
             // Commission uses the current month's rate (nursing / lab only).
             $commRate = \App\Services\CommissionService::rateForService($request->service_type);
             [$commAmount, $providerNetAmount] = \App\Services\CommissionService::split($effectiveTotal, $commRate);
@@ -161,6 +185,7 @@ class OrderController extends Controller
                 'commission_amount' => $commAmount,
                 'provider_net_amount' => $providerNetAmount,
                 'status' => 'pending',
+                'scheduled_at' => $scheduledAt,
                 'payment_method' => $request->payment_method,
                 'assigned_pharmacy_id' => $assignedPharmacyId,
                 'assigned_nurse_id' => $assignedNurseId,
@@ -428,6 +453,8 @@ class OrderController extends Controller
             'extra_fee' => $order->extra_fee,
             'total_price' => $order->total_price,
             'status' => $order->status,
+            'scheduled_at' => $order->scheduled_at?->format('Y-m-d H:i'),
+            'scheduled_at_iso' => $order->scheduled_at?->toIso8601String(),
             'delivery_status' => $order->delivery_status ?? 'unassigned',
             'delivery_fee' => (float) ($order->delivery_fee ?? 0),
             'driver_assigned_at' => $order->driver_assigned_at?->toIso8601String(),

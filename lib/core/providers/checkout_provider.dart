@@ -6,9 +6,11 @@ import 'cart_provider.dart';
 class CheckoutProvider extends ChangeNotifier {
   String _selectedPaymentMethod = 'Cash on Delivery';
   bool _isProcessing = false;
+  String? _lastError;
 
   String get selectedPaymentMethod => _selectedPaymentMethod;
   bool get isProcessing => _isProcessing;
+  String? get lastError => _lastError;
 
   void selectPaymentMethod(String method) {
     _selectedPaymentMethod = method;
@@ -22,6 +24,7 @@ class CheckoutProvider extends ChangeNotifier {
     double discountAmount = 0.0,
   }) async {
     _isProcessing = true;
+    _lastError = null;
     notifyListeners();
 
     try {
@@ -66,6 +69,8 @@ class CheckoutProvider extends ChangeNotifier {
         'payment_method': _selectedPaymentMethod,
         'transaction_reference': transactionReference,
         'payment_status': transactionReference != null ? 'paid' : 'pending',
+        if (patientDetails['scheduled_at'] != null)
+          'scheduled_at': patientDetails['scheduled_at'],
         'patient_details': patientDetails,
         if (patientDetails['lat'] != null ||
             patientDetails['latitude'] != null ||
@@ -99,11 +104,19 @@ class CheckoutProvider extends ChangeNotifier {
         final data = jsonDecode(response.body);
         return data['order']?['id']?.toString();
       } else {
+        try {
+          final err = jsonDecode(response.body);
+          if (err is Map && err['message'] != null) {
+            _lastError = err['message'].toString();
+          }
+        } catch (_) {}
+        _lastError ??= 'کێشە لە تۆمارکردنی داواکاری ڕوویدا (${response.statusCode})';
         debugPrint('Checkout Failed: ${response.body}');
         return null;
       }
     } catch (e) {
       debugPrint('Checkout Error: $e');
+      _lastError = '$e';
       _isProcessing = false;
       notifyListeners();
       return null;

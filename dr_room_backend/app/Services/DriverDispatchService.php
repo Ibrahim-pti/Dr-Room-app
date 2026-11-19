@@ -151,6 +151,17 @@ class DriverDispatchService
             ->with('driver')
             ->get();
 
+        $targetAt = $order->scheduled_at ? \Carbon\Carbon::parse($order->scheduled_at) : \Carbon\Carbon::now();
+        $candidates = $candidates->filter(function (User $u) use ($order, $targetAt) {
+            if (!ProviderSlotService::isOnShift($u->id, $targetAt)) {
+                return false;
+            }
+            if ($order->scheduled_at !== null && !ProviderSlotService::isBookable('driver', $u->id, $targetAt)) {
+                return false;
+            }
+            return true;
+        })->values();
+
         if ($candidates->isEmpty()) {
             return null;
         }
@@ -238,6 +249,10 @@ class DriverDispatchService
                     return false;
                 }
                 if ($driver->service_scope === 'lab_sample' && !str_contains($st, 'lab')) {
+                    return false;
+                }
+                $targetAt = $o->scheduled_at ? \Carbon\Carbon::parse($o->scheduled_at) : \Carbon\Carbon::now();
+                if (!ProviderSlotService::isOnShift($driverUser->id, $targetAt)) {
                     return false;
                 }
                 return !in_array((int) $driverUser->id, $this->getDeclinedDriverIds($o), true);

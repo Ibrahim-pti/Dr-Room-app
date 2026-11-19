@@ -28,6 +28,7 @@ class Order extends Model
     protected $casts = [
         'patient_details' => 'array',
         'location_details' => 'array',
+        'scheduled_at' => 'datetime',
         'driver_assigned_at' => 'datetime',
         'driver_picked_up_at' => 'datetime',
         'driver_delivered_at' => 'datetime',
