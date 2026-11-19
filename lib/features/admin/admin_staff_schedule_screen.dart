@@ -434,13 +434,6 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         iconColor: section.color,
         iconBackgroundColor: section.color.withValues(alpha: 0.1),
         showBackButton: true,
-        actions: [
-          IconButton(
-            tooltip: 'نوێکردنەوە',
-            onPressed: _isLoadingProviders ? null : _loadProviders,
-            icon: Icon(Iconsax.refresh, color: section.color),
-          ),
-        ],
       ),
       body: Column(
         children: [
