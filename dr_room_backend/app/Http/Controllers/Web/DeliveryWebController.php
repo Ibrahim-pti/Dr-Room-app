@@ -256,6 +256,14 @@ class DeliveryWebController extends Controller
 
             Driver::create($driverData);
 
+            if (\Illuminate\Support\Facades\Schema::hasTable('provider_schedules')) {
+                \App\Services\ProviderSlotService::seedFromDriverProfile(
+                    $created->id,
+                    $availabilityShift,
+                    $workDays
+                );
+            }
+
             return $created;
         });
 

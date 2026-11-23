@@ -56,11 +56,30 @@ class ProviderScheduleController extends Controller
             return response()->json(['success' => false, 'message' => 'ستاف نەدۆزرایەوە'], 404);
         }
 
+        $profile = null;
+        if ($type === 'driver') {
+            $u = User::with('driver')->find($resolvedId);
+            if ($u) {
+                $fp = $u->driver?->resolvedFieldProfile() ?? [];
+                $profile = [
+                    'name' => $u->name,
+                    'phone' => $u->phone,
+                    'city' => $u->driver?->city ?? 'هەولێر',
+                    'duty_status' => $u->driver?->duty_status ?? 'offline',
+                    'applicant_role' => $fp['applicant_role'] ?? 'phlebotomist',
+                    'availability_shift' => $fp['availability_shift'] ?? 'full_flex',
+                    'work_days' => $fp['work_days'] ?? 'daily',
+                    'service_areas' => $fp['service_areas'] ?? null,
+                ];
+            }
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
                 'user_id' => $resolvedId,
                 'type' => $type,
+                'profile' => $profile,
                 'week' => ProviderSlotService::week($resolvedId, $type),
                 'availability' => ProviderSlotService::availability($type, $resolvedId, Carbon::today(), 7),
                 'upcoming' => ProviderSlotService::upcoming($resolvedId, $type, 14),

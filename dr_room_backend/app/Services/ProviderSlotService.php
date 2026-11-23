@@ -108,6 +108,49 @@ class ProviderSlotService
         return true;
     }
 
+    /** Map website registration shift + work_days to concrete weekly hours and open days. */
+    public static function driverScheduleTemplate(?string $shift, ?string $workDays): array
+    {
+        [$start, $end] = match ($shift) {
+            'morning' => ['08:00:00', '14:00:00'],
+            'evening' => ['14:00:00', '22:00:00'],
+            default => ['08:00:00', '22:00:00'],
+        };
+
+        $openDays = match ($workDays) {
+            'weekdays' => ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+            'part_time' => ['Thursday', 'Friday', 'Saturday'],
+            default => self::DAYS,
+        };
+
+        return [
+            'start_time' => $start,
+            'end_time' => $end,
+            'open_days' => $openDays,
+        ];
+    }
+
+    /** Seed provider_schedules rows for a driver right from their website application. */
+    public static function seedFromDriverProfile(int $userId, ?string $shift, ?string $workDays): void
+    {
+        $tpl = self::driverScheduleTemplate($shift, $workDays);
+        $d = self::DEFAULTS['driver'];
+        foreach (self::DAYS as $day) {
+            ProviderSchedule::updateOrCreate(
+                ['user_id' => $userId, 'day_of_week' => $day],
+                [
+                    'provider_type' => 'driver',
+                    'start_time' => $tpl['start_time'],
+                    'end_time' => $tpl['end_time'],
+                    'is_available' => in_array($day, $tpl['open_days'], true),
+                    'slot_minutes' => $d['slot_minutes'],
+                    'slot_capacity' => $d['slot_capacity'],
+                    'max_daily_orders' => $d['max_daily_orders'],
+                ]
+            );
+        }
+    }
+
     /** Providers with quick schedule + upcoming order counts for the admin screen. */
     public static function providerSummaries(string $type, ?string $category = null): Collection
     {
@@ -120,12 +163,10 @@ class ProviderSlotService
         }
 
         $ids = $providers->pluck('id')->all();
-        $scheduleCounts = ProviderSchedule::whereIn('user_id', $ids)
+        $savedRows = ProviderSchedule::whereIn('user_id', $ids)
             ->where('provider_type', $type)
-            ->selectRaw('user_id, SUM(CASE WHEN is_available = 1 THEN 1 ELSE 0 END) as active_days, COUNT(*) as saved_days')
-            ->groupBy('user_id')
             ->get()
-            ->keyBy('user_id');
+            ->groupBy('user_id');
 
         $col = self::orderColumn($type);
         $upcomingCounts = Order::whereIn($col, $ids)
@@ -136,48 +177,96 @@ class ProviderSlotService
             ->groupBy($col)
             ->pluck('cnt', 'provider_id');
 
-        return $providers->map(function ($u) use ($scheduleCounts, $upcomingCounts, $type) {
-            $sc = $scheduleCounts->get($u->id);
-            $item = [
+        return $providers->map(function ($u) use ($savedRows, $upcomingCounts, $type) {
+            $rows = $savedRows->get($u->id);
+            $hasCustom = $rows !== null && $rows->isNotEmpty();
+
+            if ($type === 'driver') {
+                $profile = $u->driver?->resolvedFieldProfile() ?? [];
+                $shift = $profile['availability_shift'] ?? 'full_flex';
+                $workDays = $profile['work_days'] ?? 'daily';
+                $week = self::week($u->id, 'driver', $u->driver);
+                $openRows = array_values(array_filter($week, fn ($r) => $r['is_available']));
+                $firstOpen = $openRows[0] ?? ($week[0] ?? null);
+
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'phone' => $u->phone,
+                    'city' => $u->driver?->city ?? 'هەولێر',
+                    'duty_status' => $u->driver?->duty_status ?? 'offline',
+                    'applicant_role' => $profile['applicant_role'] ?? 'phlebotomist',
+                    'service_scope' => $u->driver?->service_scope ?? 'both',
+                    'availability_shift' => $shift,
+                    'work_days' => $workDays,
+                    'service_areas' => $profile['service_areas'] ?? null,
+                    'start_time' => $firstOpen['start_time'] ?? '08:00',
+                    'end_time' => $firstOpen['end_time'] ?? '22:00',
+                    'slot_minutes' => $firstOpen['slot_minutes'] ?? 60,
+                    'slot_capacity' => $firstOpen['slot_capacity'] ?? 2,
+                    'max_daily_orders' => $firstOpen['max_daily_orders'] ?? 20,
+                    'active_days' => count($openRows),
+                    'days_summary' => array_map(fn ($r) => [
+                        'day_of_week' => $r['day_of_week'],
+                        'is_available' => $r['is_available'],
+                        'start_time' => $r['start_time'],
+                        'end_time' => $r['end_time'],
+                    ], $week),
+                    'has_custom_schedule' => $hasCustom,
+                    'upcoming_count' => (int) ($upcomingCounts->get($u->id) ?? 0),
+                ];
+            }
+
+            $activeDays = $hasCustom ? $rows->where('is_available', true)->count() : 7;
+            return [
                 'id' => $u->id,
                 'name' => $u->name,
                 'phone' => $u->phone,
-                'has_custom_schedule' => $sc !== null && (int) $sc->saved_days > 0,
-                'active_days' => $sc ? (int) $sc->active_days : 7,
+                'has_custom_schedule' => $hasCustom,
+                'active_days' => $activeDays,
                 'upcoming_count' => (int) ($upcomingCounts->get($u->id) ?? 0),
             ];
-            if ($type === 'driver') {
-                $profile = $u->driver?->resolvedFieldProfile() ?? [];
-                $item['applicant_role'] = $profile['applicant_role'] ?? 'phlebotomist';
-                $item['service_scope'] = $u->driver?->service_scope ?? 'both';
-            }
-            return $item;
         })->values();
     }
 
     // ─── Weekly schedule ────────────────────────────────────────────────────
 
-    /** The 7-day week for a provider, filling missing days with defaults. */
-    public static function week(int $userId, string $type): array
+    /** The 7-day week for a provider, filling missing days from website profile / defaults. */
+    public static function week(int $userId, string $type, ?Driver $driver = null): array
     {
         $existing = ProviderSchedule::where('user_id', $userId)->get()->keyBy('day_of_week');
+        $driverTemplate = null;
+        if ($type === 'driver') {
+            $driver ??= Driver::where('user_id', $userId)->first();
+            if ($driver) {
+                $profile = $driver->resolvedFieldProfile();
+                $driverTemplate = self::driverScheduleTemplate(
+                    $profile['availability_shift'] ?? null,
+                    $profile['work_days'] ?? null
+                );
+            }
+        }
 
-        return array_map(function (string $day) use ($existing, $userId, $type) {
+        return array_map(function (string $day) use ($existing, $userId, $type, $driverTemplate) {
             $row = $existing->get($day);
-            return self::normalizeRow($row ? $row->toArray() : null, $day, $userId, $type);
+            return self::normalizeRow($row ? $row->toArray() : null, $day, $userId, $type, $driverTemplate);
         }, self::DAYS);
     }
 
-    private static function normalizeRow(?array $row, string $day, int $userId, string $type): array
+    private static function normalizeRow(?array $row, string $day, int $userId, string $type, ?array $driverTemplate = null): array
     {
         $d = self::DEFAULTS[$type];
+        $defaultStart = $driverTemplate['start_time'] ?? $d['start_time'];
+        $defaultEnd = $driverTemplate['end_time'] ?? $d['end_time'];
+        $defaultAvail = $driverTemplate ? in_array($day, $driverTemplate['open_days'], true) : true;
+
         return [
             'user_id' => $userId,
             'provider_type' => $type,
             'day_of_week' => $day,
-            'start_time' => substr((string) ($row['start_time'] ?? $d['start_time']), 0, 5),
-            'end_time' => substr((string) ($row['end_time'] ?? $d['end_time']), 0, 5),
-            'is_available' => (bool) ($row['is_available'] ?? true),
+            'start_time' => substr((string) ($row['start_time'] ?? $defaultStart), 0, 5),
+            'end_time' => substr((string) ($row['end_time'] ?? $defaultEnd), 0, 5),
+            'is_available' => (bool) ($row['is_available'] ?? $defaultAvail),
             'slot_minutes' => (int) ($row['slot_minutes'] ?? $d['slot_minutes']),
             'slot_capacity' => (int) ($row['slot_capacity'] ?? $d['slot_capacity']),
             'max_daily_orders' => (int) ($row['max_daily_orders'] ?? $d['max_daily_orders']),
@@ -328,20 +417,17 @@ class ProviderSlotService
         return false;
     }
 
-    /** Is the provider working right now? No saved schedule = always on. */
+    /** Is the provider working right now? Uses saved schedule or website shift/work_days. */
     public static function isOnShift(int $userId, ?Carbon $at = null): bool
     {
         $at ??= Carbon::now();
-        $rows = ProviderSchedule::where('user_id', $userId)->get();
-        if ($rows->isEmpty()) {
-            return true;
-        }
-        $row = $rows->firstWhere('day_of_week', $at->format('l'));
-        if (!$row || !$row->is_available) {
+        $week = collect(self::week($userId, 'driver'));
+        $row = $week->firstWhere('day_of_week', $at->format('l'));
+        if (!$row || !$row['is_available']) {
             return false;
         }
-        $start = $at->copy()->setTimeFromTimeString($row->start_time);
-        $end = $at->copy()->setTimeFromTimeString($row->end_time);
+        $start = $at->copy()->setTimeFromTimeString($row['start_time']);
+        $end = $at->copy()->setTimeFromTimeString($row['end_time']);
         if ($end->lessThanOrEqualTo($start)) {
             return $at->greaterThanOrEqualTo($start) || $at->lessThan($end);
         }
