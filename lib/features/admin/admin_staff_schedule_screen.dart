@@ -19,27 +19,26 @@ class AdminStaffScheduleScreen extends StatefulWidget {
 }
 
 class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
-  static const _sections = [
+  static const _accent = Color(0xFF2563EB);
+
+  static const _filters = [
     (
-      type: 'nurse',
+      key: 'all',
+      labelKey: 'admin_staff_schedule_filter_all',
+      icon: Iconsax.truck_fast,
+      color: Color(0xFF2563EB),
+    ),
+    (
+      key: 'nurse',
       labelKey: 'admin_staff_schedule_section_nurses',
-      singularKey: 'admin_staff_schedule_section_nurse_single',
       icon: Iconsax.health,
       color: Color(0xFF0D9488),
     ),
     (
-      type: 'lab',
+      key: 'lab',
       labelKey: 'admin_staff_schedule_section_labs',
-      singularKey: 'admin_staff_schedule_section_lab_single',
       icon: Iconsax.microscope,
       color: Color(0xFF8B5CF6),
-    ),
-    (
-      type: 'driver',
-      labelKey: 'admin_staff_schedule_section_drivers',
-      singularKey: 'admin_staff_schedule_section_driver_single',
-      icon: Iconsax.truck_fast,
-      color: Color(0xFF2563EB),
     ),
   ];
 
@@ -53,7 +52,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     'Saturday': 'admin_staff_schedule_day_saturday',
   };
 
-  String _activeType = 'nurse';
+  String _activeFilter = 'all'; // all | nurse | lab (all inside Delivery)
   int _innerTab = 0; // 0: weekly schedule, 1: slots & upcoming bookings
   int _selectedDayIndex = 0;
 
@@ -61,7 +60,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
   bool _isLoadingDetail = false;
   String? _error;
 
-  List<Map<String, dynamic>> _providers = [];
+  List<Map<String, dynamic>> _allDrivers = [];
   int? _selectedProviderId;
 
   List<Map<String, dynamic>> _week = [];
@@ -70,14 +69,35 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
 
   bool get _isDark => ThemeProvider().isDarkMode;
 
-  ({
-    String type,
-    String labelKey,
-    String singularKey,
-    IconData icon,
-    Color color,
-  }) get _currentSection =>
-      _sections.firstWhere((s) => s.type == _activeType);
+  ({String key, String labelKey, IconData icon, Color color})
+      get _currentFilter =>
+          _filters.firstWhere((f) => f.key == _activeFilter);
+
+  List<Map<String, dynamic>> get _filteredDrivers {
+    if (_activeFilter == 'all') return _allDrivers;
+    return _allDrivers.where((d) {
+      final role = (d['applicant_role'] ?? 'phlebotomist').toString().toLowerCase();
+      final scope = (d['service_scope'] ?? 'both').toString().toLowerCase();
+      if (_activeFilter == 'nurse') {
+        return role == 'mobile_nurse' || role == 'both';
+      }
+      if (_activeFilter == 'lab') {
+        return role == 'phlebotomist' || role == 'both' || scope == 'lab_sample';
+      }
+      return true;
+    }).toList();
+  }
+
+  String _roleLabel(Map<String, dynamic> d) {
+    final role = (d['applicant_role'] ?? 'phlebotomist').toString().toLowerCase();
+    return switch (role) {
+      'mobile_nurse' => 'admin_staff_schedule_role_nurse'.tr(),
+      'phlebotomist' => 'admin_staff_schedule_role_lab'.tr(),
+      'both' => 'admin_staff_schedule_role_both'.tr(),
+      'courier' => 'admin_staff_schedule_role_courier'.tr(),
+      _ => 'admin_staff_schedule_delivery_badge'.tr(),
+    };
+  }
 
   String _dayLabel(dynamic dayOfWeek) {
     final key = _dayTranslationKeys[dayOfWeek?.toString() ?? ''];
@@ -94,7 +114,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     setState(() {
       _isLoadingProviders = true;
       _error = null;
-      _providers = [];
+      _allDrivers = [];
       _selectedProviderId = null;
       _week = [];
       _availability = [];
@@ -102,8 +122,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     });
 
     try {
-      final res =
-          await ApiClient.get('/admin/schedules/providers?type=$_activeType');
+      final res = await ApiClient.get('/admin/schedules/providers?type=driver');
       if (!mounted) return;
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
@@ -111,14 +130,10 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
         setState(() {
-          _providers = list;
-          _selectedProviderId =
-              list.isNotEmpty ? (list.first['id'] as num?)?.toInt() : null;
+          _allDrivers = list;
           _isLoadingProviders = false;
         });
-        if (_selectedProviderId != null) {
-          await _loadProviderDetail(_selectedProviderId!);
-        }
+        _syncSelectedWithFilter();
       } else {
         setState(() {
           _error = AdminUi.readError(res);
@@ -135,10 +150,31 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     }
   }
 
+  void _syncSelectedWithFilter() {
+    final visible = _filteredDrivers;
+    final stillValid = visible.any((d) => (d['id'] as num?)?.toInt() == _selectedProviderId);
+    final nextId = stillValid
+        ? _selectedProviderId
+        : (visible.isNotEmpty ? (visible.first['id'] as num?)?.toInt() : null);
+
+    setState(() {
+      _selectedProviderId = nextId;
+      if (nextId == null) {
+        _week = [];
+        _availability = [];
+        _upcoming = [];
+      }
+    });
+
+    if (nextId != null) {
+      _loadProviderDetail(nextId);
+    }
+  }
+
   Future<void> _loadProviderDetail(int userId) async {
     setState(() => _isLoadingDetail = true);
     try {
-      final res = await ApiClient.get('/admin/schedules/$_activeType/$userId');
+      final res = await ApiClient.get('/admin/schedules/driver/$userId');
       if (!mounted) return;
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body)['data'] as Map<String, dynamic>? ?? {};
@@ -187,16 +223,16 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     TimeOfDay start =
         _parseTime(dayRow['start_time']?.toString(), const TimeOfDay(hour: 8, minute: 0));
     TimeOfDay end =
-        _parseTime(dayRow['end_time']?.toString(), const TimeOfDay(hour: 20, minute: 0));
+        _parseTime(dayRow['end_time']?.toString(), const TimeOfDay(hour: 23, minute: 0));
     bool isAvail = dayRow['is_available'] == true || dayRow['is_available'] == 1;
     int slotMinutes = (dayRow['slot_minutes'] as num?)?.toInt() ?? 60;
-    int slotCapacity = (dayRow['slot_capacity'] as num?)?.toInt() ?? 1;
+    int slotCapacity = (dayRow['slot_capacity'] as num?)?.toInt() ?? 2;
     final maxDailyCtrl = TextEditingController(
-      text: ((dayRow['max_daily_orders'] ?? 6)).toString(),
+      text: ((dayRow['max_daily_orders'] ?? 20)).toString(),
     );
     bool applyToAll = false;
 
-    final accent = _currentSection.color;
+    final accent = _currentFilter.color;
 
     await AdminUi.formSheet(
       context: context,
@@ -379,7 +415,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         ];
       },
       onSubmit: (setError) async {
-        final maxDaily = int.tryParse(maxDailyCtrl.text.trim()) ?? 6;
+        final maxDaily = int.tryParse(maxDailyCtrl.text.trim()) ?? 20;
         if (maxDaily < 1) {
           setError('admin_staff_schedule_max_daily_err'.tr());
           return false;
@@ -401,7 +437,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
 
         try {
           final res = await ApiClient.post(
-            '/admin/schedules/$_activeType/${_selectedProviderId!}',
+            '/admin/schedules/driver/${_selectedProviderId!}',
             body: {'schedules': _week},
           );
           if (!mounted) return true;
@@ -430,110 +466,118 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final section = _currentSection;
+    final filter = _currentFilter;
+    final visibleDrivers = _filteredDrivers;
 
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       appBar: AdminAppBar(
         title: 'admin_staff_schedule_title'.tr(),
         subtitle: 'admin_staff_schedule_screen_sub'.tr(),
-        icon: Iconsax.calendar_tick,
-        iconColor: section.color,
-        iconBackgroundColor: section.color.withValues(alpha: 0.1),
+        icon: Iconsax.truck_fast,
+        iconColor: _accent,
+        iconBackgroundColor: _accent.withValues(alpha: 0.1),
         showBackButton: true,
       ),
-      body: Column(
-        children: [
-          _buildSectionTabs(),
-          if (_isLoadingProviders)
-            const Expanded(child: Center(child: CircularProgressIndicator()))
-          else if (_error != null)
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+      body: _isLoadingProviders
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_error!, style: AdminUi.subtitle),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: _loadProviders,
+                        child: Text('admin_staff_schedule_retry'.tr(),
+                            style: const TextStyle(fontFamily: 'Rabar')),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
                   children: [
-                    Text(_error!, style: AdminUi.subtitle),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      onPressed: _loadProviders,
-                      child: Text('admin_staff_schedule_retry'.tr(),
-                          style: const TextStyle(fontFamily: 'Rabar')),
-                    ),
+                    // Delivery sub-filters: All | Nurses | Labs
+                    _buildDeliveryRoleTabs(),
+                    if (visibleDrivers.isEmpty)
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'admin_staff_schedule_no_providers'.tr(
+                              args: [
+                                (_activeFilter == 'nurse'
+                                        ? 'admin_staff_schedule_section_nurse_single'
+                                        : (_activeFilter == 'lab'
+                                            ? 'admin_staff_schedule_section_lab_single'
+                                            : 'admin_staff_schedule_section_driver_single'))
+                                    .tr(),
+                              ],
+                            ),
+                            style: AdminUi.subtitle,
+                          ),
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: Column(
+                          children: [
+                            _buildProviderPicker(visibleDrivers, filter.color),
+                            _buildInnerToggle(filter.color),
+                            Expanded(
+                              child: _isLoadingDetail
+                                  ? const Center(child: CircularProgressIndicator())
+                                  : (_innerTab == 0
+                                      ? _buildWeeklyList(filter.color)
+                                      : _buildSlotsAndBookings(filter.color)),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
-              ),
-            )
-          else if (_providers.isEmpty)
-            Expanded(
-              child: Center(
-                child: Text(
-                  'admin_staff_schedule_no_providers'
-                      .tr(args: [section.singularKey.tr()]),
-                  style: AdminUi.subtitle,
-                ),
-              ),
-            )
-          else
-            Expanded(
-              child: Column(
-                children: [
-                  _buildProviderPicker(section),
-                  _buildInnerToggle(section.color),
-                  Expanded(
-                    child: _isLoadingDetail
-                        ? const Center(child: CircularProgressIndicator())
-                        : (_innerTab == 0
-                            ? _buildWeeklyList(section.color)
-                            : _buildSlotsAndBookings(section.color)),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
     );
   }
 
-  Widget _buildSectionTabs() {
+  Widget _buildDeliveryRoleTabs() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
       child: Container(
         padding: const EdgeInsets.all(5),
         decoration: AdminUi.cardDecoration,
         child: Row(
-          children: _sections.map((s) {
-            final selected = _activeType == s.type;
+          children: _filters.map((f) {
+            final selected = _activeFilter == f.key;
             return Expanded(
               child: GestureDetector(
                 onTap: () {
-                  if (_activeType == s.type) return;
+                  if (_activeFilter == f.key) return;
                   setState(() {
-                    _activeType = s.type;
+                    _activeFilter = f.key;
                     _innerTab = 0;
                     _selectedDayIndex = 0;
                   });
-                  _loadProviders();
+                  _syncSelectedWithFilter();
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
                   decoration: BoxDecoration(
-                    color: selected ? s.color : Colors.transparent,
+                    color: selected ? f.color : Colors.transparent,
                     borderRadius: BorderRadius.circular(13),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        s.icon,
+                        f.icon,
                         size: 16,
                         color: selected ? Colors.white : AdminUi.subtitle.color,
                       ),
                       const SizedBox(width: 5),
                       Flexible(
                         child: Text(
-                          s.labelKey.tr(),
+                          f.labelKey.tr(),
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontFamily: 'Rabar',
@@ -554,18 +598,16 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     );
   }
 
-  Widget _buildProviderPicker(
-    ({String type, String labelKey, String singularKey, IconData icon, Color color}) section,
-  ) {
-    final singular = section.singularKey.tr();
+  Widget _buildProviderPicker(List<Map<String, dynamic>> drivers, Color accent) {
+    final driverLabel = 'admin_staff_schedule_section_driver_single'.tr();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       child: DropdownButtonFormField<int>(
         initialValue: _selectedProviderId,
         isExpanded: true,
         decoration: InputDecoration(
-          labelText: 'admin_staff_schedule_choose_provider'.tr(args: [singular]),
-          prefixIcon: Icon(section.icon, color: section.color, size: 20),
+          labelText: 'admin_staff_schedule_choose_provider'.tr(args: [driverLabel]),
+          prefixIcon: Icon(Iconsax.truck_fast, color: accent, size: 20),
           filled: true,
           fillColor: _isDark ? const Color(0xFF1E293B) : Colors.white,
           border: OutlineInputBorder(
@@ -581,10 +623,11 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
             ),
           ),
         ),
-        items: _providers.map((p) {
+        items: drivers.map((p) {
           final id = (p['id'] as num).toInt();
           final upcoming = (p['upcoming_count'] as num?)?.toInt() ?? 0;
-          final name = (p['name'] ?? singular).toString();
+          final name = (p['name'] ?? driverLabel).toString();
+          final roleText = _roleLabel(p);
           return DropdownMenuItem<int>(
             value: id,
             child: Row(
@@ -596,23 +639,42 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                     style: AdminUi.title.copyWith(fontSize: 13.5),
                   ),
                 ),
-                if (upcoming > 0)
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    roleText,
+                    style: TextStyle(
+                      fontFamily: 'Rabar',
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: accent,
+                    ),
+                  ),
+                ),
+                if (upcoming > 0) ...[
+                  const SizedBox(width: 5),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
-                      color: section.color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       'admin_staff_schedule_slot_count'.tr(args: ['$upcoming']),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Rabar',
-                        fontSize: 11,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.bold,
-                        color: section.color,
+                        color: Color(0xFF059669),
                       ),
                     ),
                   ),
+                ],
               ],
             ),
           );
@@ -688,8 +750,8 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         final dayName = _dayLabel(row['day_of_week']);
         final isAvail = row['is_available'] == true || row['is_available'] == 1;
         final slotMin = row['slot_minutes'] ?? 60;
-        final cap = row['slot_capacity'] ?? 1;
-        final maxDaily = row['max_daily_orders'] ?? 6;
+        final cap = row['slot_capacity'] ?? 2;
+        final maxDaily = row['max_daily_orders'] ?? 20;
 
         return InkWell(
           onTap: () => _editDay(row),
