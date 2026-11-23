@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +13,6 @@ import 'admin_service_fee_screen.dart';
 import 'admin_commission_screen.dart';
 import 'admin_expenses_screen.dart';
 import 'admin_lab_results_screen.dart';
-import 'admin_staff_schedule_screen.dart';
 import 'admin_report_settings_screen.dart';
 import 'admin_patients_screen.dart';
 import 'admin_recruitment_options_screen.dart';
@@ -90,16 +88,8 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         ],
       },
       {
-        'sectionTitle': 'دەوامی ستاف و چاودێری پشکنین',
+        'sectionTitle': 'چاودێری پشکنین و هەڵسەنگاندن',
         'items': [
-          {
-            'title': 'admin_staff_schedule_title'.tr(),
-            'permission': AdminPermissions.manageProviders,
-            'subtitle': 'admin_staff_schedule_subtitle'.tr(),
-            'icon': Iconsax.calendar_tick,
-            'color': const Color(0xFF0D9488),
-            'screen': const AdminStaffScheduleScreen(),
-          },
           {
             'title': 'چاودێری ئەنجامی پشکنینەکان',
             'permission': AdminPermissions.manageOrders,

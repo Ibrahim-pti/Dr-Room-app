@@ -11,7 +11,14 @@ import 'admin_app_bar.dart';
 import 'admin_ui.dart';
 
 class AdminStaffScheduleScreen extends StatefulWidget {
-  const AdminStaffScheduleScreen({super.key});
+  final bool embedded;
+  final int? initialDriverId;
+
+  const AdminStaffScheduleScreen({
+    super.key,
+    this.embedded = false,
+    this.initialDriverId,
+  });
 
   @override
   State<AdminStaffScheduleScreen> createState() =>
@@ -107,7 +114,26 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedProviderId = widget.initialDriverId;
     _loadProviders();
+  }
+
+  @override
+  void didUpdateWidget(covariant AdminStaffScheduleScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialDriverId != null &&
+        widget.initialDriverId != oldWidget.initialDriverId &&
+        widget.initialDriverId != _selectedProviderId) {
+      setState(() => _activeFilter = 'all');
+      final exists = _allDrivers
+          .any((d) => (d['id'] as num?)?.toInt() == widget.initialDriverId);
+      if (exists) {
+        setState(() => _selectedProviderId = widget.initialDriverId);
+        _loadProviderDetail(widget.initialDriverId!);
+      } else {
+        _selectedProviderId = widget.initialDriverId;
+      }
+    }
   }
 
   Future<void> _loadProviders() async {
@@ -115,7 +141,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
       _isLoadingProviders = true;
       _error = null;
       _allDrivers = [];
-      _selectedProviderId = null;
+      _selectedProviderId ??= widget.initialDriverId;
       _week = [];
       _availability = [];
       _upcoming = [];
@@ -469,6 +495,68 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     final filter = _currentFilter;
     final visibleDrivers = _filteredDrivers;
 
+    final body = _isLoadingProviders
+        ? const Center(child: CircularProgressIndicator())
+        : _error != null
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_error!, style: AdminUi.subtitle),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: _loadProviders,
+                      child: Text('admin_staff_schedule_retry'.tr(),
+                          style: const TextStyle(fontFamily: 'Rabar')),
+                    ),
+                  ],
+                ),
+              )
+            : Column(
+                children: [
+                  // Delivery sub-filters: All | Nurses | Labs
+                  _buildDeliveryRoleTabs(),
+                  if (visibleDrivers.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          'admin_staff_schedule_no_providers'.tr(
+                            args: [
+                              (_activeFilter == 'nurse'
+                                      ? 'admin_staff_schedule_section_nurse_single'
+                                      : (_activeFilter == 'lab'
+                                          ? 'admin_staff_schedule_section_lab_single'
+                                          : 'admin_staff_schedule_section_driver_single'))
+                                  .tr(),
+                            ],
+                          ),
+                          style: AdminUi.subtitle,
+                        ),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: Column(
+                        children: [
+                          _buildProviderPicker(visibleDrivers, filter.color),
+                          _buildInnerToggle(filter.color),
+                          Expanded(
+                            child: _isLoadingDetail
+                                ? const Center(child: CircularProgressIndicator())
+                                : (_innerTab == 0
+                                    ? _buildWeeklyList(filter.color)
+                                    : _buildSlotsAndBookings(filter.color)),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              );
+
+    if (widget.embedded) {
+      return body;
+    }
+
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       appBar: AdminAppBar(
@@ -479,63 +567,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         iconBackgroundColor: _accent.withValues(alpha: 0.1),
         showBackButton: true,
       ),
-      body: _isLoadingProviders
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_error!, style: AdminUi.subtitle),
-                      const SizedBox(height: 10),
-                      TextButton(
-                        onPressed: _loadProviders,
-                        child: Text('admin_staff_schedule_retry'.tr(),
-                            style: const TextStyle(fontFamily: 'Rabar')),
-                      ),
-                    ],
-                  ),
-                )
-              : Column(
-                  children: [
-                    // Delivery sub-filters: All | Nurses | Labs
-                    _buildDeliveryRoleTabs(),
-                    if (visibleDrivers.isEmpty)
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            'admin_staff_schedule_no_providers'.tr(
-                              args: [
-                                (_activeFilter == 'nurse'
-                                        ? 'admin_staff_schedule_section_nurse_single'
-                                        : (_activeFilter == 'lab'
-                                            ? 'admin_staff_schedule_section_lab_single'
-                                            : 'admin_staff_schedule_section_driver_single'))
-                                    .tr(),
-                              ],
-                            ),
-                            style: AdminUi.subtitle,
-                          ),
-                        ),
-                      )
-                    else
-                      Expanded(
-                        child: Column(
-                          children: [
-                            _buildProviderPicker(visibleDrivers, filter.color),
-                            _buildInnerToggle(filter.color),
-                            Expanded(
-                              child: _isLoadingDetail
-                                  ? const Center(child: CircularProgressIndicator())
-                                  : (_innerTab == 0
-                                      ? _buildWeeklyList(filter.color)
-                                      : _buildSlotsAndBookings(filter.color)),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
+      body: body,
     );
   }
 

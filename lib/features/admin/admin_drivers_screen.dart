@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -13,6 +14,7 @@ import '../../core/utils/api_client.dart';
 import '../../core/utils/erbil_map_service.dart';
 import 'admin_app_bar.dart';
 import 'admin_recruitment_options_screen.dart';
+import 'admin_staff_schedule_screen.dart';
 import 'admin_ui.dart';
 
 class AdminDriversScreen extends StatefulWidget {
@@ -37,6 +39,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
 
   String _search = '';
   String _dutyFilter = 'all'; // all, available, busy, offline, blocked
+  int? _scheduleDriverId;
   final TextEditingController _searchCtrl = TextEditingController();
   Timer? _debounce;
   Timer? _liveMapTimer;
@@ -45,7 +48,7 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 3, vsync: this);
+    _tabCtrl = TabController(length: 4, vsync: this);
     _tabCtrl.addListener(() {
       if (!_tabCtrl.indexIsChanging && _tabCtrl.index == 0) {
         _loadLiveMap();
@@ -565,9 +568,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
               indicatorColor: const Color(0xFF2563EB),
               labelStyle: const TextStyle(
                 fontFamily: 'Rabar',
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: FontWeight.bold,
               ),
+              labelPadding: const EdgeInsets.symmetric(horizontal: 4),
               tabs: [
                 const Tab(
                   icon: Icon(Iconsax.map_1, size: 18),
@@ -585,6 +589,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                   icon: Icon(Iconsax.people, size: 18),
                   text: 'هەموو شۆفێرەکان',
                 ),
+                Tab(
+                  icon: const Icon(Iconsax.calendar_tick, size: 18),
+                  text: 'admin_staff_schedule_title'.tr(),
+                ),
               ],
             ),
           ),
@@ -597,6 +605,10 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                 _buildLiveMapTab(),
                 _buildPendingTab(),
                 _buildRosterTab(),
+                AdminStaffScheduleScreen(
+                  embedded: true,
+                  initialDriverId: _scheduleDriverId,
+                ),
               ],
             ),
           ),
@@ -1360,6 +1372,25 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                         color: Color(0xFF10B981),
                       ),
                       tooltip: 'واتسئاپ',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _scheduleDriverId = int.tryParse('${d['id']}');
+                        });
+                        _tabCtrl.animateTo(3);
+                      },
+                      icon: const Icon(
+                        Iconsax.calendar_tick,
+                        size: 18,
+                        color: Color(0xFF0D9488),
+                      ),
+                      tooltip: 'admin_staff_schedule_title'.tr(),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
                         minWidth: 32,
