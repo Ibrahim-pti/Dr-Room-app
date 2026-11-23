@@ -388,25 +388,53 @@ class OrderModel {
     );
   }
 
+  String get _rawService => serviceType.toLowerCase().trim();
   String get _serviceKey => '$serviceType $customTitle $titleEn $titleCkb $titleAr $titleKmr'.toLowerCase();
 
-  bool get isLab =>
-      _serviceKey.contains('lab') ||
-      _serviceKey.contains('تاقیگە') ||
-      _serviceKey.contains('مختبر');
+  String get _resolvedCategory {
+    if (_rawService.contains('lab') ||
+        _rawService.contains('تاقیگە') ||
+        _rawService.contains('مختبر')) {
+      return 'lab';
+    }
+    if (_rawService.contains('nurs') ||
+        _rawService.contains('پەرستار') ||
+        _rawService.contains('تمريض')) {
+      return 'nursing';
+    }
+    if (_rawService.contains('pharmac') ||
+        _rawService.contains('medic') ||
+        _rawService.contains('دەرمان') ||
+        _rawService.contains('صيدل')) {
+      return 'pharmacy';
+    }
+    if (_serviceKey.contains('lab') ||
+        _serviceKey.contains('تاقیگە') ||
+        _serviceKey.contains('مختبر')) {
+      return 'lab';
+    }
+    if (_serviceKey.contains('nurs') ||
+        _serviceKey.contains('پەرستار') ||
+        _serviceKey.contains('تمريض')) {
+      return 'nursing';
+    }
+    if (assignedPharmacyName != null ||
+        _serviceKey.contains('pharmac') ||
+        _serviceKey.contains('دەرمان') ||
+        _serviceKey.contains('صيدل')) {
+      return 'pharmacy';
+    }
+    if (assignedNurseId != null || assignedNurseName != null) {
+      return 'nursing';
+    }
+    return 'other';
+  }
 
-  bool get isNursing =>
-      assignedNurseId != null ||
-      assignedNurseName != null ||
-      _serviceKey.contains('nurs') ||
-      _serviceKey.contains('پەرستار') ||
-      _serviceKey.contains('تمريض');
+  bool get isLab => _resolvedCategory == 'lab';
 
-  bool get isPharmacy =>
-      assignedPharmacyName != null ||
-      _serviceKey.contains('pharmac') ||
-      _serviceKey.contains('دەرمان') ||
-      _serviceKey.contains('صيدل');
+  bool get isNursing => _resolvedCategory == 'nursing';
+
+  bool get isPharmacy => _resolvedCategory == 'pharmacy';
 
   bool get _isLab => isLab;
   bool get _isNursing => isNursing;

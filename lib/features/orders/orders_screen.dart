@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -143,6 +144,8 @@ class OrdersScreenState extends State<OrdersScreen> {
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
+        systemOverlayStyle:
+            isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: Container(

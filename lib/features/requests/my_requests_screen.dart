@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'widgets/transaction_history_view.dart';
@@ -88,6 +89,8 @@ class MyRequestsScreenState extends State<MyRequestsScreen> {
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
+        systemOverlayStyle:
+            isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         leading: (widget.showBackButton && Navigator.canPop(context))
             ? IconButton(
                 icon: Container(
