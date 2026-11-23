@@ -78,16 +78,43 @@ class ProviderSlotService
     /** Approved users of a provider type, for pickers. */
     public static function providers(string $type): Collection
     {
-        return User::where('role', self::TYPES[$type]['role'])
+        $query = User::where('role', self::TYPES[$type]['role'])
             ->where(fn ($q) => $q->where('status', 'approved')->orWhereNull('status'))
-            ->orderBy('name')
-            ->get(['id', 'name', 'phone']);
+            ->orderBy('name');
+
+        if ($type === 'driver') {
+            $query->with('driver');
+        }
+
+        return $query->get(['id', 'name', 'phone']);
+    }
+
+    /** Whether a driver profile handles the requested category ('nurse' | 'lab' | 'all' | null). */
+    public static function driverMatchesCategory(?Driver $driver, ?string $category): bool
+    {
+        if (!$category || $category === 'all') {
+            return true;
+        }
+        $profile = $driver?->resolvedFieldProfile() ?? [];
+        $role = strtolower((string) ($profile['applicant_role'] ?? 'phlebotomist'));
+        $scope = strtolower((string) ($driver?->service_scope ?? 'both'));
+
+        if ($category === 'nurse') {
+            return in_array($role, ['mobile_nurse', 'both'], true);
+        }
+        if ($category === 'lab') {
+            return in_array($role, ['phlebotomist', 'both'], true) || $scope === 'lab_sample';
+        }
+        return true;
     }
 
     /** Providers with quick schedule + upcoming order counts for the admin screen. */
-    public static function providerSummaries(string $type): Collection
+    public static function providerSummaries(string $type, ?string $category = null): Collection
     {
         $providers = self::providers($type);
+        if ($type === 'driver' && $category && $category !== 'all') {
+            $providers = $providers->filter(fn ($u) => self::driverMatchesCategory($u->driver, $category))->values();
+        }
         if ($providers->isEmpty()) {
             return collect();
         }
@@ -109,9 +136,9 @@ class ProviderSlotService
             ->groupBy($col)
             ->pluck('cnt', 'provider_id');
 
-        return $providers->map(function ($u) use ($scheduleCounts, $upcomingCounts) {
+        return $providers->map(function ($u) use ($scheduleCounts, $upcomingCounts, $type) {
             $sc = $scheduleCounts->get($u->id);
-            return [
+            $item = [
                 'id' => $u->id,
                 'name' => $u->name,
                 'phone' => $u->phone,
@@ -119,6 +146,12 @@ class ProviderSlotService
                 'active_days' => $sc ? (int) $sc->active_days : 7,
                 'upcoming_count' => (int) ($upcomingCounts->get($u->id) ?? 0),
             ];
+            if ($type === 'driver') {
+                $profile = $u->driver?->resolvedFieldProfile() ?? [];
+                $item['applicant_role'] = $profile['applicant_role'] ?? 'phlebotomist';
+                $item['service_scope'] = $u->driver?->service_scope ?? 'both';
+            }
+            return $item;
         })->values();
     }
 
@@ -195,7 +228,13 @@ class ProviderSlotService
         $from = ($from ?? Carbon::today())->copy()->startOfDay();
         $to = $from->copy()->addDays($days)->endOfDay();
 
-        $providerIds = $userId ? collect([$userId]) : self::providers($type)->pluck('id');
+        $providerIds = $userId
+            ? collect([$userId])
+            : self::providers($type)->pluck('id')
+                ->when(
+                    $type === 'nurse' || $type === 'lab',
+                    fn ($c) => $c->merge(self::providerSummaries('driver', $type)->pluck('id'))->unique()->values()
+                );
         if ($providerIds->isEmpty()) {
             return [];
         }
@@ -322,8 +361,9 @@ class ProviderSlotService
             ->where(function ($q) use ($column, $providerIds, $includePool, $type) {
                 $q->whereIn($column, $providerIds);
                 if ($includePool && $type !== 'driver') {
+                    $q->orWhereIn('assigned_driver_id', $providerIds);
                     $q->orWhere(function ($q2) use ($column, $type) {
-                        $q2->whereNull($column);
+                        $q2->whereNull($column)->whereNull('assigned_driver_id');
                         if ($type === 'lab') {
                             $q2->forLab();
                         } else {
@@ -332,14 +372,14 @@ class ProviderSlotService
                     });
                 }
             })
-            ->get([$column, 'scheduled_at']);
+            ->get([$column, 'assigned_driver_id', 'scheduled_at']);
 
         $slot = [];
         $day = [];
         $pool = [];
         foreach ($orders as $o) {
             $at = Carbon::parse($o->scheduled_at);
-            $pid = $o->{$column};
+            $pid = $o->{$column} ?: ($includePool ? $o->assigned_driver_id : null);
             if ($pid) {
                 $slot["$pid|" . $at->format('Y-m-d H:i')] = ($slot["$pid|" . $at->format('Y-m-d H:i')] ?? 0) + 1;
                 $day["$pid|" . $at->toDateString()] = ($day["$pid|" . $at->toDateString()] ?? 0) + 1;

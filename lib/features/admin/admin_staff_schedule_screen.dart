@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -21,35 +22,35 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
   static const _sections = [
     (
       type: 'nurse',
-      label: 'پەرستاران',
-      singular: 'پەرستار',
+      labelKey: 'admin_staff_schedule_section_nurses',
+      singularKey: 'admin_staff_schedule_section_nurse_single',
       icon: Iconsax.health,
       color: Color(0xFF0D9488),
     ),
     (
       type: 'lab',
-      label: 'تاقیگەکان',
-      singular: 'تاقیگە',
+      labelKey: 'admin_staff_schedule_section_labs',
+      singularKey: 'admin_staff_schedule_section_lab_single',
       icon: Iconsax.microscope,
       color: Color(0xFF8B5CF6),
     ),
     (
       type: 'driver',
-      label: 'دلیڤەری',
-      singular: 'شۆفێری دلیڤەری',
+      labelKey: 'admin_staff_schedule_section_drivers',
+      singularKey: 'admin_staff_schedule_section_driver_single',
       icon: Iconsax.truck_fast,
       color: Color(0xFF2563EB),
     ),
   ];
 
-  static const _dayTranslations = {
-    'Sunday': 'یەکشەممە',
-    'Monday': 'دووشەممە',
-    'Tuesday': 'سێشەممە',
-    'Wednesday': 'چوارشەممە',
-    'Thursday': 'پێنجشەممە',
-    'Friday': 'هەینی',
-    'Saturday': 'شەممە',
+  static const _dayTranslationKeys = {
+    'Sunday': 'admin_staff_schedule_day_sunday',
+    'Monday': 'admin_staff_schedule_day_monday',
+    'Tuesday': 'admin_staff_schedule_day_tuesday',
+    'Wednesday': 'admin_staff_schedule_day_wednesday',
+    'Thursday': 'admin_staff_schedule_day_thursday',
+    'Friday': 'admin_staff_schedule_day_friday',
+    'Saturday': 'admin_staff_schedule_day_saturday',
   };
 
   String _activeType = 'nurse';
@@ -71,12 +72,17 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
 
   ({
     String type,
-    String label,
-    String singular,
+    String labelKey,
+    String singularKey,
     IconData icon,
     Color color,
   }) get _currentSection =>
       _sections.firstWhere((s) => s.type == _activeType);
+
+  String _dayLabel(dynamic dayOfWeek) {
+    final key = _dayTranslationKeys[dayOfWeek?.toString() ?? ''];
+    return key != null ? key.tr() : (dayOfWeek?.toString() ?? '');
+  }
 
   @override
   void initState() {
@@ -194,10 +200,10 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
 
     await AdminUi.formSheet(
       context: context,
-      title:
-          'خشتەی ${_dayTranslations[dayRow['day_of_week']] ?? dayRow['day_of_week']}',
-      subtitle: 'کاتەکانی کارکردن، ماوەی نۆرە و ژمارەی داواکاری لە هەر کاتێکدا',
-      submitLabel: 'پاشەکەوتکردن',
+      title: 'admin_staff_schedule_sheet_title'
+          .tr(args: [_dayLabel(dayRow['day_of_week'])]),
+      subtitle: 'admin_staff_schedule_sheet_sub'.tr(),
+      submitLabel: 'admin_staff_schedule_save'.tr(),
       builder: (setSheetState, setError) {
         Widget timeBox(String label, TimeOfDay value, ValueChanged<TimeOfDay> onPick) {
           return Expanded(
@@ -261,10 +267,10 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
               children: [
                 Icon(Iconsax.calendar_tick, size: 20, color: accent),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'بەردەستە بۆ وەرگرتنی داواکاری؟',
-                    style: TextStyle(
+                    'admin_staff_schedule_is_available'.tr(),
+                    style: const TextStyle(
                       fontFamily: 'Rabar',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -282,13 +288,13 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              timeBox('کاتی دەستپێک', start, (v) => start = v),
+              timeBox('admin_staff_schedule_start_time'.tr(), start, (v) => start = v),
               const SizedBox(width: 10),
-              timeBox('کاتی کۆتایی', end, (v) => end = v),
+              timeBox('admin_staff_schedule_end_time'.tr(), end, (v) => end = v),
             ],
           ),
           const SizedBox(height: 14),
-          Text('ماوەی هەر نۆرەیەک (خولەک)', style: AdminUi.subtitle),
+          Text('admin_staff_schedule_slot_duration'.tr(), style: AdminUi.subtitle),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -296,7 +302,8 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
             children: [15, 30, 45, 60, 90, 120].map((m) {
               final selected = slotMinutes == m;
               return ChoiceChip(
-                label: Text('$m خولەک', style: const TextStyle(fontFamily: 'Rabar', fontSize: 12)),
+                label: Text('$m ${'admin_staff_schedule_minutes'.tr()}',
+                    style: const TextStyle(fontFamily: 'Rabar', fontSize: 12)),
                 selected: selected,
                 selectedColor: accent.withValues(alpha: 0.16),
                 labelStyle: TextStyle(
@@ -323,12 +330,12 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'داواکاری لە هەر کاتێکدا',
-                        style: TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.w600),
+                      Text(
+                        'admin_staff_schedule_orders_per_slot'.tr(),
+                        style: const TextStyle(fontFamily: 'Rabar', fontSize: 13, fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        'دوای پڕبوونی، کاتەکە دەبێتە گیراوە',
+                        'admin_staff_schedule_orders_per_slot_sub'.tr(),
                         style: AdminUi.subtitle.copyWith(fontSize: 11),
                       ),
                     ],
@@ -354,8 +361,8 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
           TextField(
             controller: maxDailyCtrl,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'زۆرترین داواکاری لە ڕۆژێکدا',
+            decoration: InputDecoration(
+              labelText: 'admin_staff_schedule_max_daily'.tr(),
             ),
           ),
           const SizedBox(height: 8),
@@ -364,9 +371,9 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
             value: applyToAll,
             activeColor: accent,
             onChanged: (v) => setSheetState(() => applyToAll = v ?? false),
-            title: const Text(
-              'جێبەجێکردن بۆ هەموو ڕۆژەکانی هەفتە',
-              style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5),
+            title: Text(
+              'admin_staff_schedule_apply_all'.tr(),
+              style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5),
             ),
           ),
         ];
@@ -374,7 +381,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
       onSubmit: (setError) async {
         final maxDaily = int.tryParse(maxDailyCtrl.text.trim()) ?? 6;
         if (maxDaily < 1) {
-          setError('زۆرترین داواکاری دەبێت لانیکەم ١ بێت');
+          setError('admin_staff_schedule_max_daily_err'.tr());
           return false;
         }
 
@@ -408,7 +415,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                   .map((e) => Map<String, dynamic>.from(e as Map))
                   .toList();
             });
-            AdminUi.toast(context, 'خشتەی دەوام پاشەکەوتکرا');
+            AdminUi.toast(context, 'admin_staff_schedule_saved'.tr());
             return true;
           }
           setError(AdminUi.readError(res));
@@ -428,8 +435,8 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     return Scaffold(
       backgroundColor: AppColors.getBackground(context),
       appBar: AdminAppBar(
-        title: 'خشتەی دەوامی ستاف',
-        subtitle: 'ڕێکخستنی کات و نۆرە بۆ پەرستار، تاقیگە و دلیڤەری',
+        title: 'admin_staff_schedule_title'.tr(),
+        subtitle: 'admin_staff_schedule_screen_sub'.tr(),
         icon: Iconsax.calendar_tick,
         iconColor: section.color,
         iconBackgroundColor: section.color.withValues(alpha: 0.1),
@@ -450,8 +457,8 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                     const SizedBox(height: 10),
                     TextButton(
                       onPressed: _loadProviders,
-                      child: const Text('دووبارە هەوڵبدەرەوە',
-                          style: TextStyle(fontFamily: 'Rabar')),
+                      child: Text('admin_staff_schedule_retry'.tr(),
+                          style: const TextStyle(fontFamily: 'Rabar')),
                     ),
                   ],
                 ),
@@ -461,7 +468,8 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
             Expanded(
               child: Center(
                 child: Text(
-                  'هیچ ${section.singular}ێکی پەسەندکراو نەدۆزرایەوە',
+                  'admin_staff_schedule_no_providers'
+                      .tr(args: [section.singularKey.tr()]),
                   style: AdminUi.subtitle,
                 ),
               ),
@@ -525,7 +533,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                       const SizedBox(width: 5),
                       Flexible(
                         child: Text(
-                          s.label,
+                          s.labelKey.tr(),
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontFamily: 'Rabar',
@@ -547,15 +555,16 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
   }
 
   Widget _buildProviderPicker(
-    ({String type, String label, String singular, IconData icon, Color color}) section,
+    ({String type, String labelKey, String singularKey, IconData icon, Color color}) section,
   ) {
+    final singular = section.singularKey.tr();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       child: DropdownButtonFormField<int>(
         initialValue: _selectedProviderId,
         isExpanded: true,
         decoration: InputDecoration(
-          labelText: '${section.singular} هەڵبژێرە',
+          labelText: 'admin_staff_schedule_choose_provider'.tr(args: [singular]),
           prefixIcon: Icon(section.icon, color: section.color, size: 20),
           filled: true,
           fillColor: _isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -575,7 +584,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         items: _providers.map((p) {
           final id = (p['id'] as num).toInt();
           final upcoming = (p['upcoming_count'] as num?)?.toInt() ?? 0;
-          final name = (p['name'] ?? section.singular).toString();
+          final name = (p['name'] ?? singular).toString();
           return DropdownMenuItem<int>(
             value: id,
             child: Row(
@@ -595,7 +604,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '$upcoming نۆرە',
+                      'admin_staff_schedule_slot_count'.tr(args: ['$upcoming']),
                       style: TextStyle(
                         fontFamily: 'Rabar',
                         fontSize: 11,
@@ -661,9 +670,9 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Row(
         children: [
-          pill(0, 'خشتەی هەفتانە', Iconsax.clock),
+          pill(0, 'admin_staff_schedule_weekly_tab'.tr(), Iconsax.clock),
           const SizedBox(width: 10),
-          pill(1, 'کاتە گیراوەکان (${_upcoming.length})', Iconsax.calendar_1),
+          pill(1, '${'admin_staff_schedule_booked_tab'.tr()} (${_upcoming.length})', Iconsax.calendar_1),
         ],
       ),
     );
@@ -676,7 +685,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, i) {
         final row = _week[i];
-        final dayName = _dayTranslations[row['day_of_week']] ?? row['day_of_week'].toString();
+        final dayName = _dayLabel(row['day_of_week']);
         final isAvail = row['is_available'] == true || row['is_available'] == 1;
         final slotMin = row['slot_minutes'] ?? 60;
         final cap = row['slot_capacity'] ?? 1;
@@ -707,14 +716,15 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                       const SizedBox(height: 3),
                       Text(
                         isAvail
-                            ? '${row['start_time']} - ${row['end_time']}  •  $slotMin خولەک'
-                            : 'پشووە (ناچالاک)',
+                            ? '${row['start_time']} - ${row['end_time']}  •  $slotMin ${'admin_staff_schedule_minutes'.tr()}'
+                            : 'admin_staff_schedule_off_inactive'.tr(),
                         style: AdminUi.subtitle.copyWith(fontSize: 12),
                       ),
                       if (isAvail) ...[
                         const SizedBox(height: 4),
                         Text(
-                          'لە هەر کاتێکدا: $cap  •  زۆرترین لە ڕۆژێکدا: $maxDaily',
+                          'admin_staff_schedule_per_slot_max'
+                              .tr(args: ['$cap', '$maxDaily']),
                           style: AdminUi.subtitle.copyWith(fontSize: 11, color: accent),
                         ),
                       ],
@@ -751,7 +761,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
               itemBuilder: (_, i) {
                 final d = _availability[i];
                 final active = i == _selectedDayIndex;
-                final dayLabel = _dayTranslations[d['day_of_week']] ?? '';
+                final dayLabel = _dayLabel(d['day_of_week']);
                 final dateStr = (d['date'] ?? '').toString();
                 final shortDate = dateStr.length >= 10 ? dateStr.substring(5) : dateStr;
                 final closed = d['closed'] == true;
@@ -776,7 +786,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          i == 0 ? 'ئەمڕۆ' : dayLabel,
+                          i == 0 ? 'admin_staff_schedule_today'.tr() : dayLabel,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -788,7 +798,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          closed ? 'پشوو' : shortDate,
+                          closed ? 'admin_staff_schedule_off'.tr() : shortDate,
                           style: TextStyle(
                             fontFamily: 'Rabar',
                             fontSize: 11,
@@ -812,7 +822,8 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Text('لەم ڕۆژەدا هیچ کاتێک بەردەست نییە', style: AdminUi.subtitle),
+                      child: Text('admin_staff_schedule_no_slots_day'.tr(),
+                          style: AdminUi.subtitle),
                     ),
                   )
                 : Wrap(
@@ -830,11 +841,11 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                       if (past) {
                         bg = Colors.grey.withValues(alpha: 0.12);
                         fg = Colors.grey;
-                        tag = 'تێپەڕیوە';
+                        tag = 'admin_staff_schedule_past'.tr();
                       } else if (taken) {
                         bg = const Color(0xFFEF4444).withValues(alpha: 0.12);
                         fg = const Color(0xFFDC2626);
-                        tag = 'گیراوە';
+                        tag = 'admin_staff_schedule_taken'.tr();
                       } else {
                         bg = accent.withValues(alpha: 0.12);
                         fg = accent;
@@ -878,14 +889,15 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
           ),
           const SizedBox(height: 18),
         ],
-        Text('داواکارییە کات-دیاریکراوەکان', style: AdminUi.title),
+        Text('admin_staff_schedule_upcoming_title'.tr(), style: AdminUi.title),
         const SizedBox(height: 8),
         if (_upcoming.isEmpty)
           Container(
             decoration: AdminUi.cardDecoration,
             padding: const EdgeInsets.all(20),
             child: Center(
-              child: Text('هیچ داواکارییەکی داهاتوو بۆ ئەم ستافە نییە', style: AdminUi.subtitle),
+              child: Text('admin_staff_schedule_no_upcoming'.tr(),
+                  style: AdminUi.subtitle),
             ),
           )
         else
@@ -909,12 +921,13 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '#${o['id']}  •  ${o['patient_name'] ?? 'نەخۆش'}',
+                            '#${o['id']}  •  ${o['patient_name'] ?? 'admin_staff_schedule_patient_default'.tr()}',
                             style: AdminUi.title.copyWith(fontSize: 13.5),
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            'کات: ${o['scheduled_at'] ?? ''}',
+                            'admin_staff_schedule_time_label'
+                                .tr(args: ['${o['scheduled_at'] ?? ''}']),
                             style: AdminUi.subtitle.copyWith(
                               fontSize: 12,
                               color: accent,

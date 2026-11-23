@@ -29,15 +29,18 @@ class ProviderScheduleController extends Controller
 
     public function adminProviders(Request $request)
     {
-        $type = $this->normalizeType($request->query('type', 'nurse'));
+        $type = $this->normalizeType($request->query('type', 'driver'));
         if (!$type) {
             return response()->json(['success' => false, 'message' => 'جۆری ستاف نادروستە'], 422);
         }
 
+        $category = $request->query('category');
+        $normalizedCategory = $category ? $this->normalizeType($category) : null;
+
         return response()->json([
             'success' => true,
             'type' => $type,
-            'data' => ProviderSlotService::providerSummaries($type),
+            'data' => ProviderSlotService::providerSummaries($type, $normalizedCategory),
         ]);
     }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -92,9 +93,9 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         'sectionTitle': 'دەوامی ستاف و چاودێری پشکنین',
         'items': [
           {
-            'title': 'خشتەی دەوامی ستاف و پەرستاران',
+            'title': 'admin_staff_schedule_title'.tr(),
             'permission': AdminPermissions.manageProviders,
-            'subtitle': 'ڕێکخستنی کاتە بەتاڵەکان و ڕێگری لە تێکەڵبوونی کات',
+            'subtitle': 'admin_staff_schedule_subtitle'.tr(),
             'icon': Iconsax.calendar_tick,
             'color': const Color(0xFF0D9488),
             'screen': const AdminStaffScheduleScreen(),
