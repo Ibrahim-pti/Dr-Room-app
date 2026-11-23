@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -77,14 +78,21 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    final visibleCount = _selectedCategory == 'lab'
+        ? _labResults.length
+        : (_selectedCategory == 'nurse'
+            ? _nurseCares.length
+            : _labResults.length + _nurseCares.length);
 
+    return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
+        systemOverlayStyle:
+            isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         leading: widget.showBackButton
             ? IconButton(
                 icon: Icon(
@@ -112,7 +120,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
                 ),
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -246,7 +254,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           ),
                         ),
                         Text(
-                          'کۆی گشتی: ${_selectedCategory == 'lab' ? _labResults.length : (_selectedCategory == 'nurse' ? _nurseCares.length : _labResults.length + _nurseCares.length)}',
+                          'کۆی گشتی: $visibleCount',
                           style: _kStyle(
                             color: const Color(0xFF3B82F6),
                             fontSize: 13,
@@ -266,6 +274,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             item['status'] == 'completed' ? 'تەواوکراو' : (item['status'] ?? 'بەردەستە'),
                             Iconsax.document_text,
                             isDark: isDark,
+                            accentColor: const Color(0xFF3B82F6),
                             onTap: () => _showLabResultDetails(context, item, isDark),
                           )),
                     ],
@@ -274,16 +283,19 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     if (_selectedCategory == 'all' || _selectedCategory == 'nurse') ...[
                       ..._nurseCares.map((item) => _buildFileItem(
                             context,
-                            'چاودێری پەرستاری: ${item['nurse_name'] ?? 'پەرستار'}',
-                            'بەروار: ${item['date'] ?? item['created_at'] ?? ''}',
-                            'تۆمارکراو',
+                            (item['title']?.toString().trim().isNotEmpty ?? false)
+                                ? item['title'].toString()
+                                : 'چاودێری پەرستاری: ${item['nurse_name'] ?? 'پەرستار'}',
+                            '${item['nurse_name'] ?? 'پەرستار'} • ${item['date'] ?? item['created_at'] ?? ''}',
+                            (item['status'] ?? 'تۆمارکراو').toString(),
                             Iconsax.heart_tick,
                             isDark: isDark,
+                            accentColor: const Color(0xFF10B981),
                             onTap: () => _showNurseCareDetails(context, item, isDark),
                           )),
                     ],
 
-                    if (_labResults.isEmpty && _nurseCares.isEmpty)
+                    if (visibleCount == 0)
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 40),
@@ -292,14 +304,29 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                               Container(
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                                  color: (_selectedCategory == 'nurse'
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFF3B82F6))
+                                      .withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Iconsax.folder_open, color: Color(0xFF3B82F6), size: 40),
+                                child: Icon(
+                                  _selectedCategory == 'nurse'
+                                      ? Iconsax.health
+                                      : Iconsax.folder_open,
+                                  color: _selectedCategory == 'nurse'
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFF3B82F6),
+                                  size: 40,
+                                ),
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'هیچ تۆمارێکی پزیشکی بەردەست نییە',
+                                _selectedCategory == 'nurse'
+                                    ? 'هیچ تۆمارێکی پەرستاری بەردەست نییە'
+                                    : (_selectedCategory == 'lab'
+                                        ? 'هیچ ئەنجامێکی تاقیگە بەردەست نییە'
+                                        : 'هیچ تۆمارێکی پزیشکی بەردەست نییە'),
                                 style: _kStyle(
                                   color: AppColors.getTextTitle(context),
                                   fontSize: 16,
@@ -411,6 +438,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     String status,
     IconData icon, {
     required bool isDark,
+    Color accentColor = const Color(0xFF3B82F6),
     required VoidCallback onTap,
   }) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
@@ -436,10 +464,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                color: accentColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: const Color(0xFF3B82F6), size: 22),
+              child: Icon(icon, color: accentColor, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1032,12 +1060,19 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
   void _showNurseCareDetails(BuildContext context, dynamic item, bool isDark) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final nurseName = item['nurse_name'] ?? 'پەرستار';
-    final date = item['date'] ?? item['created_at'] ?? '';
-    final notes = item['notes'] ?? item['symptoms'] ?? '';
+    final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final subColor = isDark ? Colors.white70 : const Color(0xFF334155);
+    final title = (item['title'] ?? '').toString().trim();
+    final nurseName = (item['nurse_name'] ?? 'پەرستار').toString();
+    final date = (item['date'] ?? item['created_at'] ?? '').toString();
+    final symptoms = (item['symptoms'] ?? '').toString().trim();
+    final medication = (item['medication_given'] ?? '').toString().trim();
+    final notes = (item['notes'] ?? '').toString().trim();
+    final vitals = item['vitals'] is Map ? item['vitals'] as Map : null;
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         decoration: BoxDecoration(
@@ -1045,67 +1080,144 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(10),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'چاودێری پەرستاری: $nurseName',
-              style: _kStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text('بەروار: $date', style: _kStyle(fontSize: 12, color: const Color(0xFF94A3B8))),
-            const SizedBox(height: 16),
-            if (notes.isNotEmpty) ...[
-              Text('notes_instructions'.tr(), style: _kStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              Text(notes, style: _kStyle(fontSize: 13, color: isDark ? Colors.white70 : const Color(0xFF334155))),
-            ],
-            Padding(
-              padding: EdgeInsets.only(
-                top: 20,
-                bottom: MediaQuery.of(context).padding.bottom + 16,
+              const SizedBox(height: 16),
+              Text(
+                title.isNotEmpty ? title : 'چاودێری پەرستاری',
+                style: _kStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: titleColor,
+                ),
               ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => Navigator.pop(ctx),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.close_rounded, size: 20, color: Colors.white),
-                        const SizedBox(width: 8),
-                        Text(
-                          'close'.tr(),
-                          style: _kStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height: 1.1),
-                        ),
-                      ],
+              const SizedBox(height: 4),
+              Text(
+                '$nurseName • $date',
+                style: _kStyle(fontSize: 12, color: const Color(0xFF94A3B8)),
+              ),
+              if (symptoms.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Text('نیشانەکان',
+                    style: _kStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: titleColor)),
+                const SizedBox(height: 4),
+                Text(symptoms, style: _kStyle(fontSize: 13, color: subColor)),
+              ],
+              if (vitals != null && vitals.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Text('نیشانە زیندووەکان',
+                    style: _kStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: titleColor)),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (vitals['blood_pressure'] != null)
+                      _vitalChip('پەستانی خوێن: ${vitals['blood_pressure']}'),
+                    if (vitals['heart_rate'] != null)
+                      _vitalChip('لێدانی دڵ: ${vitals['heart_rate']}'),
+                    if (vitals['temperature'] != null)
+                      _vitalChip('پلەی گەرمی: ${vitals['temperature']}'),
+                  ],
+                ),
+              ],
+              if (medication.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Text('دەرمانی پێدراو',
+                    style: _kStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: titleColor)),
+                const SizedBox(height: 4),
+                Text(medication, style: _kStyle(fontSize: 13, color: subColor)),
+              ],
+              if (notes.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Text('notes_instructions'.tr(),
+                    style: _kStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: titleColor)),
+                const SizedBox(height: 4),
+                Text(notes, style: _kStyle(fontSize: 13, color: subColor)),
+              ],
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 20,
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(ctx),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.close_rounded,
+                              size: 20, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text(
+                            'close'.tr(),
+                            style: _kStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                height: 1.1),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _vitalChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10B981).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        style: _kStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFF059669),
         ),
       ),
     );
