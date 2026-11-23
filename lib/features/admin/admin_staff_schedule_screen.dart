@@ -27,27 +27,6 @@ class AdminStaffScheduleScreen extends StatefulWidget {
 class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
   static const _accent = Color(0xFF2563EB);
 
-  static const _filters = [
-    (
-      key: 'all',
-      labelKey: 'admin_staff_schedule_filter_all',
-      icon: Iconsax.truck_fast,
-      color: Color(0xFF2563EB),
-    ),
-    (
-      key: 'nurse',
-      labelKey: 'admin_staff_schedule_section_nurses',
-      icon: Iconsax.health,
-      color: Color(0xFF0D9488),
-    ),
-    (
-      key: 'lab',
-      labelKey: 'admin_staff_schedule_section_labs',
-      icon: Iconsax.microscope,
-      color: Color(0xFF8B5CF6),
-    ),
-  ];
-
   static const _dayTranslationKeys = {
     'Sunday': 'admin_staff_schedule_day_sunday',
     'Monday': 'admin_staff_schedule_day_monday',
@@ -68,33 +47,12 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     ('Friday', 'admin_staff_schedule_day_short_fri'),
   ];
 
-  String _activeFilter = 'all';
   bool _isLoading = true;
   String? _error;
   List<Map<String, dynamic>> _allDrivers = [];
   bool _openedInitial = false;
 
   bool get _isDark => ThemeProvider().isDarkMode;
-
-  ({String key, String labelKey, IconData icon, Color color})
-      get _currentFilter =>
-          _filters.firstWhere((f) => f.key == _activeFilter);
-
-  List<Map<String, dynamic>> get _filteredDrivers {
-    if (_activeFilter == 'all') return _allDrivers;
-    return _allDrivers.where((d) {
-      final role =
-          (d['applicant_role'] ?? 'phlebotomist').toString().toLowerCase();
-      final scope = (d['service_scope'] ?? 'both').toString().toLowerCase();
-      if (_activeFilter == 'nurse') {
-        return role == 'mobile_nurse' || role == 'both';
-      }
-      if (_activeFilter == 'lab') {
-        return role == 'phlebotomist' || role == 'both' || scope == 'lab_sample';
-      }
-      return true;
-    }).toList();
-  }
 
   String _roleLabel(Map<String, dynamic> d) {
     final role = (d['applicant_role'] ?? 'phlebotomist').toString().toLowerCase();
@@ -240,8 +198,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filter = _currentFilter;
-    final rows = _filteredDrivers;
+    final rows = _allDrivers;
 
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())
@@ -267,11 +224,10 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                   children: [
-                    _buildDeliveryRoleTabs(),
-                    const SizedBox(height: 12),
                     Row(
                       children: [
-                        Icon(Iconsax.calendar_tick, color: filter.color, size: 18),
+                        const Icon(Iconsax.calendar_tick,
+                            color: _accent, size: 18),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -285,16 +241,16 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: filter.color.withValues(alpha: 0.12),
+                            color: _accent.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             '${rows.length}',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontFamily: 'Rabar',
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: filter.color,
+                              color: _accent,
                             ),
                           ),
                         ),
@@ -309,11 +265,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                           child: Text(
                             'admin_staff_schedule_no_providers'.tr(
                               args: [
-                                (_activeFilter == 'nurse'
-                                        ? 'admin_staff_schedule_section_nurse_single'
-                                        : (_activeFilter == 'lab'
-                                            ? 'admin_staff_schedule_section_lab_single'
-                                            : 'admin_staff_schedule_section_driver_single'))
+                                'admin_staff_schedule_section_driver_single'
                                     .tr(),
                               ],
                             ),
@@ -322,7 +274,7 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                         ),
                       )
                     else
-                      _buildScheduleTable(rows, filter.color),
+                      _buildScheduleTable(rows, _accent),
                   ],
                 ),
               );
@@ -342,57 +294,6 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         showBackButton: true,
       ),
       body: body,
-    );
-  }
-
-  Widget _buildDeliveryRoleTabs() {
-    return Container(
-      padding: const EdgeInsets.all(5),
-      decoration: AdminUi.cardDecoration,
-      child: Row(
-        children: _filters.map((f) {
-          final selected = _activeFilter == f.key;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () {
-                if (_activeFilter == f.key) return;
-                setState(() => _activeFilter = f.key);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-                decoration: BoxDecoration(
-                  color: selected ? f.color : Colors.transparent,
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      f.icon,
-                      size: 16,
-                      color: selected ? Colors.white : AdminUi.subtitle.color,
-                    ),
-                    const SizedBox(width: 5),
-                    Flexible(
-                      child: Text(
-                        f.labelKey.tr(),
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: selected ? Colors.white : AdminUi.title.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
     );
   }
 
