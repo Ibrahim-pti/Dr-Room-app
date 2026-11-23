@@ -281,18 +281,22 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
                     // Nurse Cares List
                     if (_selectedCategory == 'all' || _selectedCategory == 'nurse') ...[
-                      ..._nurseCares.map((item) => _buildFileItem(
-                            context,
-                            (item['title']?.toString().trim().isNotEmpty ?? false)
-                                ? item['title'].toString()
-                                : 'چاودێری پەرستاری: ${item['nurse_name'] ?? 'پەرستار'}',
-                            '${item['nurse_name'] ?? 'پەرستار'} • ${item['date'] ?? item['created_at'] ?? ''}',
-                            (item['status'] ?? 'تۆمارکراو').toString(),
-                            Iconsax.heart_tick,
-                            isDark: isDark,
-                            accentColor: const Color(0xFF10B981),
-                            onTap: () => _showNurseCareDetails(context, item, isDark),
-                          )),
+                      ..._nurseCares.map((item) {
+                        final rawTitle = (item['title'] ?? '').toString().trim();
+                        final displayTitle = rawTitle.isNotEmpty
+                            ? _compactRecordTitle(rawTitle)
+                            : 'چاودێری پەرستاری: ${item['nurse_name'] ?? 'پەرستار'}';
+                        return _buildFileItem(
+                          context,
+                          displayTitle,
+                          '${item['nurse_name'] ?? 'پەرستار'} • ${item['date'] ?? item['created_at'] ?? ''}',
+                          (item['status'] ?? 'تۆمارکراو').toString(),
+                          Iconsax.heart_tick,
+                          isDark: isDark,
+                          accentColor: const Color(0xFF10B981),
+                          onTap: () => _showNurseCareDetails(context, item, isDark),
+                        );
+                      }),
                     ],
 
                     if (visibleCount == 0)
@@ -460,6 +464,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           ],
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(12),
@@ -478,43 +483,52 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     name,
                     style: _kStyle(
                       color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      fontSize: 14,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.bold,
+                      height: 1.45,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    date,
-                    style: _kStyle(
-                      color: const Color(0xFF94A3B8),
-                      fontSize: 11.5,
-                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          date,
+                          style: _kStyle(
+                            color: const Color(0xFF94A3B8),
+                            fontSize: 11.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color:
+                              const Color(0xFF10B981).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          status,
+                          style: _kStyle(
+                            color: const Color(0xFF10B981),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 13,
+                        color:
+                            isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                status,
-                style: _kStyle(
-                  color: const Color(0xFF10B981),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 14,
-              color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
             ),
           ],
         ),
@@ -1058,11 +1072,34 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
+  String _compactRecordTitle(String raw) {
+    final parts = raw
+        .split(RegExp(r'[،,]'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (parts.length > 1) {
+      return '${parts.first} (+${parts.length - 1})';
+    }
+    if (raw.length > 44) {
+      return '${raw.substring(0, 42)}…';
+    }
+    return raw;
+  }
+
   void _showNurseCareDetails(BuildContext context, dynamic item, bool isDark) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
     final subColor = isDark ? Colors.white70 : const Color(0xFF334155);
-    final title = (item['title'] ?? '').toString().trim();
+    final fullTitle = (item['full_title'] ?? item['title'] ?? '').toString().trim();
+    final services = item['services'] is List
+        ? (item['services'] as List).map((e) => e.toString()).toList()
+        : (fullTitle.contains('،')
+            ? fullTitle.split('،').map((e) => e.trim()).where((e) => e.isNotEmpty).toList()
+            : <String>[]);
+    final title = services.length > 1
+        ? 'خزمەتگوزارییە پەرستارییەکان (${services.length})'
+        : (fullTitle.isNotEmpty ? fullTitle : 'چاودێری پەرستاری');
     final nurseName = (item['nurse_name'] ?? 'پەرستار').toString();
     final date = (item['date'] ?? item['created_at'] ?? '').toString();
     final symptoms = (item['symptoms'] ?? '').toString().trim();
@@ -1109,6 +1146,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 '$nurseName • $date',
                 style: _kStyle(fontSize: 12, color: const Color(0xFF94A3B8)),
               ),
+              if (services.length > 1) ...[
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: services.map((s) => _vitalChip(s)).toList(),
+                ),
+              ],
               if (symptoms.isNotEmpty) ...[
                 const SizedBox(height: 14),
                 Text('نیشانەکان',

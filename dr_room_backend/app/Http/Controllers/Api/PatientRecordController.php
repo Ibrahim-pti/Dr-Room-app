@@ -100,7 +100,11 @@ class PatientRecordController extends Controller
             ->get();
 
         foreach ($nursingOrders as $order) {
-            $itemNames = $order->items?->pluck('item_name')->filter()->join('، ');
+            $names = $order->items?->pluck('item_name')->filter()->values() ?? collect();
+            $fullTitle = $names->isNotEmpty() ? $names->join('، ') : 'خزمەتگوزاری پەرستاری';
+            $shortTitle = $names->count() > 1
+                ? $names->first() . ' (+' . ($names->count() - 1) . ')'
+                : $fullTitle;
             $nurseName = $order->assignedNurse?->name
                 ?? $order->assignedDriver?->name
                 ?? ($order->patient_details['staff_name'] ?? 'پەرستاری گەڕۆک');
@@ -110,7 +114,9 @@ class PatientRecordController extends Controller
                 'id' => 'order_' . $order->id,
                 'order_id' => $order->id,
                 'source' => 'order',
-                'title' => !empty($itemNames) ? $itemNames : 'خزمەتگوزاری پەرستاری',
+                'title' => $shortTitle,
+                'full_title' => $fullTitle,
+                'services' => $names->all(),
                 'nurse_name' => $nurseName,
                 'date' => $refDate?->timezone('Asia/Baghdad')->format('Y-m-d H:i') ?? '',
                 'symptoms' => null,
