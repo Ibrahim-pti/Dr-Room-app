@@ -85,13 +85,24 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF0F172A)
+                : const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+            border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0)),
           ),
           child: Text(
             review['comment'] ?? '(بێ کۆمێنت)',
-            style: const TextStyle(fontFamily: 'Rabar', fontSize: 12.5, height: 1.5),
+            style: TextStyle(
+                fontFamily: 'Rabar',
+                fontSize: 12.5,
+                height: 1.5,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white70
+                    : const Color(0xFF0F172A)),
           ),
         ),
         const SizedBox(height: 14),
@@ -298,8 +309,7 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
             const SizedBox(height: 8),
             Text(
               (review['comment'] ?? '').toString().isEmpty ? '(بێ کۆمێنت)' : review['comment'],
-              style: const TextStyle(
-                  fontFamily: 'Rabar', fontSize: 12.5, height: 1.5, color: Color(0xFF334155)),
+              style: AdminUi.title.copyWith(fontSize: 12.5, fontWeight: FontWeight.normal, height: 1.5),
             ),
             const SizedBox(height: 8),
             Row(

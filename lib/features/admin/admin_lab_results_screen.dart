@@ -87,20 +87,27 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
       return;
     }
     final url = ApiClient.getImageUrl(path);
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (mounted) {
+      AdminUi.toast(context, 'نەتوانرا فایلەکە بکرێتەوە', isError: true);
     }
   }
 
   Future<void> _verifyResult(dynamic item) async {
     try {
       final res = await ApiClient.patch('/admin/lab-results/${item['id']}/verify');
+      if (!mounted) return;
       if (res.statusCode == 200) {
-        if (mounted) AdminUi.toast(context, 'ئەنجامەکە وەک تەواوکراو پشتڕاستکرایەوە');
+        AdminUi.toast(context, 'ئەنجامەکە وەک تەواوکراو پشتڕاستکرایەوە');
         _load();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(res), isError: true);
       }
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) AdminUi.toast(context, 'کێشەیەک ڕوویدا: $e', isError: true);
+    }
   }
 
   @override
@@ -130,22 +137,14 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(child: Text(_error!, style: AdminUi.subtitle))
-                    : _results.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Iconsax.document_code, size: 54, color: Color(0xFF94A3B8)),
-                                const SizedBox(height: 12),
-                                Text('هیچ تۆمارێکی پشکنین نەدۆزرایەوە', style: AdminUi.title),
-                              ],
-                            ),
-                          )
-                        : RefreshIndicator(
+            child: AdminUi.body(
+              isLoading: _isLoading,
+              error: _error,
+              isEmpty: _results.isEmpty,
+              emptyIcon: Iconsax.document_code,
+              emptyText: 'هیچ تۆمارێکی پشکنین نەدۆزرایەوە',
+              onRetry: _load,
+              child: RefreshIndicator(
                             onRefresh: _load,
                             child: ListView.separated(
                               padding: const EdgeInsets.all(16),
@@ -168,10 +167,15 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            test['name'] ?? 'پشکنینی تاقیگە',
-                                            style: AdminUi.title.copyWith(fontSize: 15),
+                                          Expanded(
+                                            child: Text(
+                                              test['name'] ?? 'پشکنینی تاقیگە',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: AdminUi.title.copyWith(fontSize: 15),
+                                            ),
                                           ),
+                                          const SizedBox(width: 8),
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                                             decoration: BoxDecoration(
@@ -196,11 +200,26 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
                                         children: [
                                           const Icon(Iconsax.microscope, size: 14, color: Color(0xFF0284C7)),
                                           const SizedBox(width: 4),
-                                          Text('تاقیگە: ${lab['user']?['name'] ?? lab['name'] ?? 'تاقیگەی گشتی'}', style: AdminUi.subtitle),
-                                          const Spacer(),
+                                          Expanded(
+                                            child: Text(
+                                              'تاقیگە: ${lab['user']?['name'] ?? lab['name'] ?? 'تاقیگەی گشتی'}',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: AdminUi.subtitle,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
                                           const Icon(Iconsax.user, size: 14, color: Color(0xFF64748B)),
                                           const SizedBox(width: 4),
-                                          Text('نەخۆش: ${patient['name'] ?? 'نەناسراو'}', style: AdminUi.subtitle),
+                                          Expanded(
+                                            child: Text(
+                                              'نەخۆش: ${patient['name'] ?? 'نەناسراو'}',
+                                              textAlign: TextAlign.end,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: AdminUi.subtitle,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                       const SizedBox(height: 12),
@@ -246,6 +265,7 @@ class _AdminLabResultsScreenState extends State<AdminLabResultsScreen> {
                               },
                             ),
                           ),
+            ),
           ),
         ],
       ),

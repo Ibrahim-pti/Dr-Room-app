@@ -145,7 +145,7 @@ class ServiceFeeService extends ChangeNotifier {
 
   Future<ServiceFeeModel?> fetchRemoteConfig() async {
     try {
-      final res = await ApiClient.get('/admin/service-fee');
+      final res = await ApiClient.get('/service-fee');
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
         final data = decoded['data'] ?? decoded;
@@ -158,25 +158,27 @@ class ServiceFeeService extends ChangeNotifier {
         }
       }
     } catch (_) {
-      // Offline or endpoint not yet deployed; SharedPreferences handles it.
+      // Offline or endpoint unreachable; SharedPreferences keeps cached config.
     }
     return _feeModel;
   }
 
   Future<bool> updateFee(ServiceFeeModel newModel) async {
     try {
-      _feeModel = newModel;
-      notifyListeners();
+      final res = await ApiClient.post('/admin/service-fee', body: newModel.toJson());
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final decoded = jsonDecode(res.body);
+        final data = decoded['data'];
+        _feeModel = data is Map
+            ? ServiceFeeModel.fromJson(Map<String, dynamic>.from(data))
+            : newModel;
+        notifyListeners();
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_storageKey, jsonEncode(newModel.toJson()));
-
-      // Send to server
-      try {
-        await ApiClient.post('/admin/service-fee', body: newModel.toJson());
-      } catch (_) {}
-
-      return true;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_storageKey, jsonEncode(_feeModel.toJson()));
+        return true;
+      }
+      return false;
     } catch (e) {
       debugPrint('Error updating service fee: $e');
       return false;

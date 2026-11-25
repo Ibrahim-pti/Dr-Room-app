@@ -102,7 +102,8 @@ Route::get('/nurses/{id}/reviews', [\App\Http\Controllers\Api\NurseReviewControl
 Route::get('/nursing/services', [\App\Http\Controllers\Api\NurseApiController::class, 'getServices']);
 Route::get('/nursing/packages', [\App\Http\Controllers\Api\NurseApiController::class, 'packages']);
 
-// ─── Provider Schedules & Bookable Slots (Nurse, Lab, Driver) ─────────
+// ─── Service Fee Public Config & Provider Schedules ───────────────────
+Route::get('/service-fee', [\App\Http\Controllers\Api\Admin\ServiceFeeController::class, 'show']);
 Route::get('/schedules/availability', [\App\Http\Controllers\Api\ProviderScheduleController::class, 'availability']);
 Route::post('/schedules/check-slot', [\App\Http\Controllers\Api\ProviderScheduleController::class, 'checkSlot']);
 
@@ -276,7 +277,12 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/emergency-contacts/{id}', [\App\Http\Controllers\Api\EmergencyContactController::class, 'update']);
             Route::patch('/emergency-contacts/{id}/toggle', [\App\Http\Controllers\Api\EmergencyContactController::class, 'toggle']);
             Route::delete('/emergency-contacts/{id}', [\App\Http\Controllers\Api\EmergencyContactController::class, 'destroy']);
+
+            // Service Fee Management
+            Route::post('/service-fee', [\App\Http\Controllers\Api\Admin\ServiceFeeController::class, 'update']);
         });
+
+        Route::get('/service-fee', [\App\Http\Controllers\Api\Admin\ServiceFeeController::class, 'show']);
 
         Route::middleware('permission:manage_orders')
             ->get('/appointments', [AppointmentController::class, 'index']);

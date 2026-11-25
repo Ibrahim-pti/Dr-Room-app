@@ -237,13 +237,20 @@ class AdminUi {
   }
 
   static Widget selectChip(String text, bool selected) {
+    final isDark = ThemeProvider().isDarkMode;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
       decoration: BoxDecoration(
-        color: selected ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+        color: selected
+            ? const Color(0xFF2563EB)
+            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
         borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: selected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: selected
+              ? const Color(0xFF2563EB)
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        ),
       ),
       child: Text(
         text,
@@ -251,30 +258,44 @@ class AdminUi {
           fontFamily: _font,
           fontSize: 12,
           fontWeight: selected ? FontWeight.bold : FontWeight.w600,
-          color: selected ? Colors.white : const Color(0xFF475569),
+          color: selected
+              ? Colors.white
+              : (isDark ? Colors.white70 : const Color(0xFF475569)),
         ),
       ),
     );
   }
 
-  static Widget label(String text) => Text(
-        text,
-        style: const TextStyle(
-            fontFamily: _font, fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
-      );
+  static Widget label(String text) {
+    final isDark = ThemeProvider().isDarkMode;
+    return Text(
+      text,
+      style: TextStyle(
+          fontFamily: _font,
+          fontSize: 12.5,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white70 : const Color(0xFF334155)),
+    );
+  }
 
-  static Widget notice(String text) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF2563EB).withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.2)),
-        ),
-        child: Text(text,
-            style: const TextStyle(
-                fontFamily: _font, fontSize: 11.5, height: 1.5, color: Color(0xFF1E40AF))),
-      );
+  static Widget notice(String text) {
+    final isDark = ThemeProvider().isDarkMode;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.14 : 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.25)),
+      ),
+      child: Text(text,
+          style: TextStyle(
+              fontFamily: _font,
+              fontSize: 11.5,
+              height: 1.5,
+              color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF))),
+    );
+  }
 
   static Widget input({
     required TextEditingController controller,
@@ -331,7 +352,10 @@ class AdminUi {
             ),
             Expanded(
               child: Text(label,
-                  style: const TextStyle(fontFamily: _font, fontSize: 12.5, color: Color(0xFF334155))),
+                  style: TextStyle(
+                      fontFamily: _font,
+                      fontSize: 12.5,
+                      color: ThemeProvider().isDarkMode ? Colors.white70 : const Color(0xFF334155))),
             ),
           ],
         ),
@@ -396,13 +420,22 @@ class AdminUi {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          border: Border.all(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFE2E8F0)),
                         ),
                         child: IconButton(
                           onPressed: () => Navigator.of(ctx).pop(),
-                          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Color(0xFF0F172A)),
+                          icon: Icon(Icons.arrow_back_ios_new,
+                              size: 16,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A)),
                           tooltip: 'گەڕانەوە',
                           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                           padding: EdgeInsets.zero,
@@ -414,15 +447,21 @@ class AdminUi {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontFamily: _font,
                                     fontSize: 17,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0F172A))),
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A))),
                             const SizedBox(height: 4),
                             Text(subtitle,
-                                style: const TextStyle(
-                                    fontFamily: _font, fontSize: 11.5, color: Color(0xFF64748B))),
+                                style: TextStyle(
+                                    fontFamily: _font,
+                                    fontSize: 11.5,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B))),
                           ],
                         ),
                       ),

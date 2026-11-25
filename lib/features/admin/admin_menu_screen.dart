@@ -18,6 +18,7 @@ import 'admin_patients_screen.dart';
 import 'admin_recruitment_options_screen.dart';
 import 'admin_staff_screen.dart';
 import 'admin_activity_log_screen.dart';
+import 'admin_ui.dart';
 
 class AdminMenuScreen extends StatefulWidget {
   const AdminMenuScreen({super.key});
@@ -29,7 +30,25 @@ class AdminMenuScreen extends StatefulWidget {
 class _AdminMenuScreenState extends State<AdminMenuScreen> {
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    if (!AdminPermissions.isLoaded) {
+      AdminPermissions.load().then((_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
   Future<void> _logout() async {
+    final confirmed = await AdminUi.confirm(
+      context,
+      title: 'چوونەدەرەوە لە هەژمار',
+      message: 'ئایا دڵنیایت دەتەوێت لە هەژماری ئەدمین بچیتە دەرەوە؟',
+      confirmLabel: 'بەڵێ، چوونەدەرەوە',
+    );
+    if (!confirmed || !mounted) return;
+
     setState(() => _isLoading = true);
     try {
       await ApiClient.post('/logout');
@@ -37,6 +56,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
       debugPrint('Logout api error: $e');
     }
 
+    AdminPermissions.clear();
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
 
@@ -158,7 +178,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
           },
           {
             'title': 'تۆماری چالاکییەکان',
-            'permission': AdminPermissions.manageStaff,
+            'permission': AdminPermissions.viewLogs,
             'subtitle': 'بینینی هەموو کردەوە و گۆڕانکارییەکانی ستاف',
             'icon': Iconsax.task,
             'color': const Color(0xFF8B5CF6),
@@ -254,11 +274,12 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                                   final action = item['action'] as Function;
                                   action();
                                 } else if (item.containsKey('screen')) {
+                                  final dir = Directionality.of(context);
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => Directionality(
-                                        textDirection: TextDirection.rtl,
+                                      builder: (_) => Directionality(
+                                        textDirection: dir,
                                         child: item['screen'] as Widget,
                                       ),
                                     ),

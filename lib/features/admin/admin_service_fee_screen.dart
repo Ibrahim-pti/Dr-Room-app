@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../core/services/service_fee_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -306,7 +305,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                   ),
                   Switch.adaptive(
                     value: _isEnabled,
-                    activeColor: const Color(0xFF10B981),
+                    activeThumbColor: const Color(0xFF10B981),
                     onChanged: (val) {
                       setState(() => _isEnabled = val);
                     },
@@ -609,7 +608,7 @@ class _AdminServiceFeeScreenState extends State<AdminServiceFeeScreen> {
                           ),
                           Switch.adaptive(
                             value: _hasDiscount,
-                            activeColor: const Color(0xFFF59E0B),
+                            activeThumbColor: const Color(0xFFF59E0B),
                             onChanged: (val) {
                               setState(() => _hasDiscount = val);
                             },

@@ -160,7 +160,11 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
                         fontFamily: 'Rabar',
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: isSel ? Colors.white : const Color(0xFF0F172A),
+                        color: isSel
+                            ? Colors.white
+                            : (Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white70
+                                : const Color(0xFF0F172A)),
                       ),
                     ),
                   ],
@@ -425,13 +429,16 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
                     children: [
                       const Icon(Icons.call, size: 14, color: Color(0xFFEF4444)),
                       const SizedBox(width: 6),
-                      Text(
-                        contact['phone'] ?? '',
-                        style: const TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFEF4444),
+                      Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(
+                          contact['phone'] ?? '',
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFEF4444),
+                          ),
                         ),
                       ),
                     ],

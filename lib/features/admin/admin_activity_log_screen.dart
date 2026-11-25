@@ -23,6 +23,9 @@ class _AdminActivityLogScreenState extends State<AdminActivityLogScreen> {
   List<dynamic> _logs = [];
   String _action = '';
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  int _currentPage = 1;
+  int _lastPage = 1;
   String? _error;
 
   static const _actionFilters = [
@@ -45,18 +48,25 @@ class _AdminActivityLogScreenState extends State<AdminActivityLogScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _load({bool loadMore = false}) async {
+    if (loadMore) {
+      if (_isLoadingMore || _currentPage >= _lastPage) return;
+      setState(() => _isLoadingMore = true);
+    } else {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
+    final targetPage = loadMore ? _currentPage + 1 : 1;
     final params = <String>[
+      'page=$targetPage',
       if (_action.isNotEmpty) 'action=$_action',
       if (_searchController.text.trim().isNotEmpty)
         'search=${Uri.encodeQueryComponent(_searchController.text.trim())}',
     ];
-    final query = params.isEmpty ? '' : '?${params.join('&')}';
+    final query = '?${params.join('&')}';
 
     try {
       final res = await ApiClient.get('/admin/activity-logs$query');
@@ -64,18 +74,29 @@ class _AdminActivityLogScreenState extends State<AdminActivityLogScreen> {
 
       if (res.statusCode == 200) {
         final page = jsonDecode(res.body);
+        final items = page is Map ? (page['data'] ?? []) : page;
         setState(() {
-          _logs = page is Map ? (page['data'] ?? []) : page;
+          _logs = loadMore ? [..._logs, ...items] : items;
+          _currentPage = page is Map ? ((page['current_page'] as num?)?.toInt() ?? targetPage) : 1;
+          _lastPage = page is Map ? ((page['last_page'] as num?)?.toInt() ?? 1) : 1;
           _isLoading = false;
+          _isLoadingMore = false;
         });
       } else {
         setState(() {
           _error = AdminUi.readError(res);
           _isLoading = false;
+          _isLoadingMore = false;
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _error = '$e'; _isLoading = false; });
+      if (mounted) {
+        setState(() {
+          _error = '$e';
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
+      }
     }
   }
 
@@ -98,7 +119,37 @@ class _AdminActivityLogScreenState extends State<AdminActivityLogScreen> {
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
             child: Column(
               children: [
-                AdminUi.input(controller: _searchController, hint: 'گەڕان بە ناوی ستاف یان بابەت...'),
+                TextField(
+                  controller: _searchController,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _load(),
+                  onChanged: (_) => setState(() {}),
+                  style: AdminUi.title.copyWith(fontSize: 13.5, fontWeight: FontWeight.normal),
+                  decoration: InputDecoration(
+                    hintText: 'گەڕان بە ناوی ستاف یان بابەت...',
+                    hintStyle: AdminUi.subtitle,
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.close, size: 17),
+                            onPressed: () {
+                              _searchController.clear();
+                              _load();
+                            },
+                          )
+                        : null,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -147,11 +198,24 @@ class _AdminActivityLogScreenState extends State<AdminActivityLogScreen> {
               emptyText: 'هیچ چالاکییەک تۆمار نەکراوە',
               onRetry: _load,
               child: RefreshIndicator(
-                onRefresh: _load,
+                onRefresh: () => _load(),
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: _logs.length,
-                  itemBuilder: (context, i) => _buildRow(_logs[i], i),
+                  itemCount: _logs.length + (_currentPage < _lastPage ? 1 : 0),
+                  itemBuilder: (context, i) {
+                    if (i == _logs.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: OutlinedButton(
+                          onPressed: _isLoadingMore ? null : () => _load(loadMore: true),
+                          child: _isLoadingMore
+                              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                              : const Text('پیشاندانی زیاتر', style: TextStyle(fontFamily: 'Rabar')),
+                        ),
+                      );
+                    }
+                    return _buildRow(_logs[i], i);
+                  },
                 ),
               ),
             ),
