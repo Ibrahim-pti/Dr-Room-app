@@ -406,6 +406,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/expenses/{id}', [\App\Http\Controllers\Api\Admin\AdminExpenseController::class, 'update']);
         Route::delete('/expenses/{id}', [\App\Http\Controllers\Api\Admin\AdminExpenseController::class, 'destroy']);
         Route::get('/expenses/summary', [\App\Http\Controllers\Api\Admin\AdminExpenseController::class, 'summary']);
+        Route::post('/expenses/budget', [\App\Http\Controllers\Api\Admin\AdminExpenseController::class, 'setBudget']);
 
         // ─── Lab Results Monitor ───────────────────────────────────────────
         Route::get('/lab-results', [\App\Http\Controllers\Api\Admin\AdminLabResultController::class, 'index']);
