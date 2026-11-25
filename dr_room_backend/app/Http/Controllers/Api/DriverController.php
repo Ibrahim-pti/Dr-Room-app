@@ -57,35 +57,53 @@ class DriverController extends Controller
             ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
             ->values();
 
-        // Fallback unassigned delivery pool sorted nearest-first for eligible orders
+        $fieldProfile = $driver->resolvedFieldProfile();
+        $isMobileNurse = in_array($fieldProfile['applicant_role'] ?? '', ['mobile_nurse', 'both'], true);
+
+        // Fallback unassigned delivery pool (plus unassigned nursing requests for mobile nurses)
         $poolQuery = Order::whereNull('assigned_driver_id')
             ->whereIn('status', ['pending', 'processing', 'accepted', 'confirmed', 'approved', 'in_progress'])
             ->with($withRelations)
             ->orderByDesc('id');
 
-        if ($driver->service_scope === 'pharmacy') {
-            $poolQuery->where(function ($q) {
-                $q->where('service_type', 'like', '%pharmac%')
-                  ->orWhere('service_type', 'like', '%medic%')
-                  ->orWhere('service_type', 'like', '%دەرمان%');
-            });
-        } elseif ($driver->service_scope === 'lab_sample') {
-            $poolQuery->where(function ($q) {
-                $q->where('service_type', 'like', '%lab%')
-                  ->orWhere('service_type', 'like', '%تاقیگە%');
-            });
-        } else {
-            $poolQuery->where(function ($q) {
-                $q->where('service_type', 'like', '%pharmac%')
-                  ->orWhere('service_type', 'like', '%lab%')
-                  ->orWhere('service_type', 'like', '%medic%')
-                  ->orWhere('service_type', 'like', '%تاقیگە%')
-                  ->orWhere('service_type', 'like', '%دەرمان%');
-            });
-        }
+        $poolQuery->where(function ($outer) use ($driver, $isMobileNurse) {
+            if ($driver->service_scope === 'pharmacy') {
+                $outer->where(function ($q) {
+                    $q->where('service_type', 'like', '%pharmac%')
+                      ->orWhere('service_type', 'like', '%medic%')
+                      ->orWhere('service_type', 'like', '%دەرمان%');
+                });
+            } elseif ($driver->service_scope === 'lab_sample') {
+                $outer->where(function ($q) {
+                    $q->where('service_type', 'like', '%lab%')
+                      ->orWhere('service_type', 'like', '%تاقیگە%');
+                });
+            } else {
+                $outer->where(function ($q) {
+                    $q->where('service_type', 'like', '%pharmac%')
+                      ->orWhere('service_type', 'like', '%lab%')
+                      ->orWhere('service_type', 'like', '%medic%')
+                      ->orWhere('service_type', 'like', '%تاقیگە%')
+                      ->orWhere('service_type', 'like', '%دەرمان%');
+                });
+            }
+            if ($isMobileNurse) {
+                $outer->orWhere(function ($nq) {
+                    $nq->whereNull('assigned_nurse_id')->forNursing();
+                });
+            }
+        });
 
         $availableOrders = $poolQuery->take(50)->get()
-            ->filter(fn ($o) => $o->needsDeliveryDriver() && !in_array((int) $user->id, $this->dispatch->getDeclinedDriverIds($o), true))
+            ->filter(function ($o) use ($user, $isMobileNurse) {
+                if (in_array((int) $user->id, $this->dispatch->getDeclinedDriverIds($o), true)) {
+                    return false;
+                }
+                if ($o->isNursingService() && empty($o->assigned_nurse_id)) {
+                    return $isMobileNurse;
+                }
+                return $o->needsDeliveryDriver();
+            })
             ->sortBy(fn ($o) => $this->dispatch->distanceForDriver($o, $driver) ?? 999999.0)
             ->take(25)
             ->map(fn ($o) => $this->formatDriverOrder($o, $driver))
@@ -339,17 +357,26 @@ class DriverController extends Controller
             ], 422);
         }
 
-        $claimed = DB::transaction(function () use ($id, $user, $driver) {
+        $isMobileNurse = in_array($driver->resolvedFieldProfile()['applicant_role'] ?? '', ['mobile_nurse', 'both'], true);
+
+        $claimed = DB::transaction(function () use ($id, $user, $driver, $isMobileNurse) {
             $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
 
             if ($order->assigned_driver_id !== null && (int) $order->assigned_driver_id !== (int) $user->id) {
                 return null;
             }
-            if (in_array($order->status, ['completed', 'cancelled'], true) || !$order->needsDeliveryDriver()) {
+            $isNursingPool = $isMobileNurse && $order->isNursingService();
+            if ($isNursingPool && $order->assigned_nurse_id !== null && (int) $order->assigned_nurse_id !== (int) $user->id) {
+                return null;
+            }
+            if (in_array($order->status, ['completed', 'cancelled'], true) || (!$order->needsDeliveryDriver() && !$isNursingPool)) {
                 return false;
             }
 
             $order->assigned_driver_id = $user->id;
+            if ($isNursingPool && $order->assigned_nurse_id === null) {
+                $order->assigned_nurse_id = $user->id;
+            }
             $order->delivery_status = 'accepted';
             $order->driver_assigned_at = $order->driver_assigned_at ?? now();
             if ($order->delivery_fee <= 0) {
@@ -372,7 +399,11 @@ class DriverController extends Controller
             return response()->json(['message' => 'ئەم داواکارییە چیتر بەردەست نییە یان بۆ دلیڤەری نییە.'], 422);
         }
 
-        OrderNotificationService::notifyDeliveryStage($claimed, 'accepted');
+        if ($claimed->isNursingService()) {
+            OrderNotificationService::notifyStatusChanged($claimed->fresh(['assignedNurse', 'assignedDriver']), 'processing');
+        } else {
+            OrderNotificationService::notifyDeliveryStage($claimed, 'accepted');
+        }
 
         return response()->json([
             'message' => 'داواکارییەکە بە سەرکەوتوویی وەرگیرا',
@@ -478,6 +509,7 @@ class DriverController extends Controller
 
         $serviceType = strtolower((string) $order->service_type);
         $isLab = str_contains($serviceType, 'lab');
+        $isNursing = $order->isNursingService();
 
         $pickupName = '';
         $pickupPhone = '';
@@ -485,7 +517,9 @@ class DriverController extends Controller
         $pickupLat = null;
         $pickupLng = null;
 
-        if ($isLab && $order->assignedLab) {
+        if ($isNursing) {
+            $pickupName = 'خزمەتگوزاری پەرستاری ماڵەوە';
+        } elseif ($isLab && $order->assignedLab) {
             $u = $order->assignedLab;
             $l = $u->lab;
             $pickupName = $u->name ?? 'تاقیگە';
@@ -521,6 +555,7 @@ class DriverController extends Controller
             'order_number' => '#' . $order->id,
             'service_type' => $order->service_type,
             'is_lab' => $isLab,
+            'is_nursing' => $isNursing,
             'distance_km' => $this->dispatch->distanceForDriver($order, $viewerDriver),
             'status' => $order->status,
             'scheduled_at' => $order->scheduled_at?->format('Y-m-d H:i'),

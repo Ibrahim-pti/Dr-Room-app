@@ -1306,5 +1306,7 @@
   "admin_staff_schedule_day_short_tue": "س",
   "admin_staff_schedule_day_short_wed": "چ",
   "admin_staff_schedule_day_short_thu": "پ",
-  "admin_staff_schedule_day_short_fri": "هـ"
+  "admin_staff_schedule_day_short_fri": "هـ",
+  "nurse_broadcast_title": "ناردن بۆ تیمی پەرستارانی دکتۆر ڕووم",
+  "nurse_broadcast_desc": "دوای ناردنی داواکاری، دەگاتە پەرستارەکان و لای خۆیانەوە وەریدەگرن و قبوڵی دەکەن، پاشان ڕاستەوخۆ نۆتیفیکەیشنت بۆ دێت کە داواکارییەکە وەرگیرا."
 }

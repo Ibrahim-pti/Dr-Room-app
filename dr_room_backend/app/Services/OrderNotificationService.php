@@ -44,14 +44,21 @@ class OrderNotificationService
                 $messageEn = "Your order #{$order->id} is now on the way.";
             }
         } elseif (in_array($newStatus, ['processing', 'accepted', 'approved', 'confirmed', 'in_progress'], true)) {
-            $titleKu = 'داواکارییەکەت قبوڵکرا ✅';
+            $titleKu = 'داواکارییەکەت وەرگیرا و قبوڵکرا ✅';
             $titleAr = 'تم قبول طلبك بنجاح ✅';
             $titleEn = 'Your Order Has Been Accepted ✅';
 
             if (str_contains($serviceType, 'nurse') || str_contains($serviceType, 'nursing')) {
-                $messageKu = 'داواکاری پەرستارەکەت قبوڵکرا و بەم زووانە پەرستار دەگاتە لات.';
-                $messageAr = 'تم قبول طلب الممرض وسيصل إليك في أقرب وقت.';
-                $messageEn = 'Your nursing request was accepted. The nurse is on their way.';
+                $nurseName = trim((string) ($order->assignedNurse?->name ?? $order->assignedDriver?->name ?? ''));
+                $messageKu = $nurseName !== ''
+                    ? "داواکاری پەرستاری #{$order->id} لەلایەن ({$nurseName}) وەرگیرا و بەم زووانە دەگاتە لات."
+                    : "داواکاری پەرستارەکەت (#{$order->id}) وەرگیرا و بەم زووانە پەرستار دەگاتە لات.";
+                $messageAr = $nurseName !== ''
+                    ? "تم قبول طلب التمريض #{$order->id} من قبل ({$nurseName}) وسيصل إليك في أقرب وقت."
+                    : 'تم قبول طلب الممرض وسيصل إليك في أقرب وقت.';
+                $messageEn = $nurseName !== ''
+                    ? "Your nursing request #{$order->id} was accepted by {$nurseName} and is on the way."
+                    : 'Your nursing request was accepted. The nurse is on their way.';
             } elseif (str_contains($serviceType, 'pharmacy') || str_contains($serviceType, 'medicine')) {
                 $messageKu = 'داواکاری دەرمانەکەت لە دەرمانخانە قبوڵکرا و ئێستا لە قۆناغی ئامادەکردندایە.';
                 $messageAr = 'تم قبول طلب الأدوية من الصيدلية وهو قيد التحضير الآن.';
@@ -460,6 +467,36 @@ class OrderNotificationService
                 'order_id' => (string) $order->id,
                 'type'     => 'provider_new_order',
             ]);
+        }
+
+        // 4. Broadcast unassigned nursing requests to all approved nurses (web + mobile)
+        if (!$isPharm && !$isLab && empty($order->assigned_nurse_id)) {
+            $webNurseIds = User::where('role', 'nurse')
+                ->where(fn ($q) => $q->where('status', 'approved')->orWhereNull('status'))
+                ->pluck('id')
+                ->all();
+            $mobileNurseIds = User::where('role', 'driver')
+                ->where('status', 'approved')
+                ->whereHas('driver', fn ($q) => $q->whereIn('applicant_role', ['mobile_nurse', 'both']))
+                ->pluck('id')
+                ->all();
+            $nursePoolIds = array_values(array_diff(array_merge($webNurseIds, $mobileNurseIds), $adminIds));
+
+            if ($nursePoolIds !== []) {
+                self::sendBatch($nursePoolIds, [
+                    'title'      => "داواکاری نوێی پەرستاری ({$orderNumber}) 🩺",
+                    'title_ar'   => "طلب تمريض جديد ({$orderNumber}) 🩺",
+                    'title_en'   => "New Nursing Request ({$orderNumber}) 🩺",
+                    'message'    => "نەخۆش {$patientName} داواکاری پەرستاری ناردووە. دەتوانیت داواکارییەکە وەربگریت و قبوڵی بکەیت.",
+                    'message_ar' => "أرسل المريض {$patientName} طلب تمريض جديداً. يمكنك قبوله الآن.",
+                    'message_en' => "Patient {$patientName} submitted a new nursing request. Open to accept it.",
+                    'type'       => 'nurse_pool_order',
+                ], [
+                    'order_id'     => (string) $order->id,
+                    'service_type' => $serviceType,
+                    'type'         => 'nurse_pool_order',
+                ]);
+            }
         }
     }
 }

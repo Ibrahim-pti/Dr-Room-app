@@ -106,7 +106,7 @@ class NurseAppointmentController extends Controller
             return back()->with('error', 'ئەم داواکارییە پێشتر لەلایەن پەرستارێکی ترەوە وەرگیراوە.');
         }
 
-        $appointment->refresh();
+        $appointment->refresh()->loadMissing('assignedNurse');
         \App\Services\OrderNotificationService::notifyStatusChanged($appointment, 'processing');
 
         return back()->with('success', 'داواکارییەکە بە سەرکەوتوویی وەرگیرا.');

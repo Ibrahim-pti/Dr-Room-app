@@ -1549,6 +1549,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
     final id = order['id'].toString();
     final isBusy = _busyOrderId == id;
     final isLab = order['is_lab'] == true;
+    final isNursing = order['is_nursing'] == true;
     final stage = (order['delivery_status'] ?? 'unassigned').toString();
     final orderStatus = (order['status'] ?? 'pending').toString();
     final pickup = (order['pickup'] is Map) ? order['pickup'] as Map : {};
@@ -1557,7 +1558,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
 
     final serviceColor = isLab
         ? const Color(0xFF8B5CF6)
-        : const Color(0xFF0D9488);
+        : (isNursing ? const Color(0xFF10B981) : const Color(0xFF0D9488));
     final isOffer = !isPool && stage == 'assigned';
     final pickupName = (pickup['name'] ?? '').toString().trim();
     final pickupAddressRaw = (pickup['address'] ?? '').toString().trim();
@@ -1636,7 +1637,9 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  isLab ? 'نموونەی تاقیگە' : 'گەیاندنی دەرمان',
+                  isLab
+                      ? 'نموونەی تاقیگە'
+                      : (isNursing ? 'پەرستاری ماڵەوە' : 'گەیاندنی دەرمان'),
                   style: TextStyle(
                     fontFamily: 'Rabar',
                     fontSize: 11,

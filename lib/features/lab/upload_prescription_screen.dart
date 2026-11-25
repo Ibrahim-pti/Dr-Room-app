@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:image_picker/image_picker.dart';
@@ -1048,7 +1049,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
       return;
     }
 
-    if (_selectedProvider == null) {
+    if (!widget.isNursing && _selectedProvider == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFFEF4444),
@@ -1057,9 +1058,7 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           content: Text(
-            widget.isNursing
-                ? 'please_select_nurse_first'.tr()
-                : 'please_select_lab_first'.tr(),
+            'please_select_lab_first'.tr(),
             style: const TextStyle(fontFamily: 'Rabar', fontSize: 13.5),
           ),
         ),
@@ -1102,13 +1101,12 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
     final finalPath = uploadedPath ?? _imageFile?.path;
 
     if (widget.isNursing) {
-      final fee = (_selectedProvider!['fee'] as num?)?.toDouble() ?? 15000.0;
-      final staffName = _selectedProvider!['name'] ?? '';
+      const fee = 15000.0;
       cart.setServiceType('nursing', extraFee: fee);
       cart.addItem(
         CartItem(
           id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',
-          name: '${'prescription_order_name'.tr()} ($staffName)',
+          name: 'prescription_order_name'.tr(),
           price: fee,
           quantity: 1,
           extraData: {
@@ -1117,12 +1115,6 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
             'prescription_image': finalUrl,
             'is_prescription': true,
             'type': 'nursing_prescription',
-            'nurse_id':
-                _selectedProvider!['nurse_id'] ?? _selectedProvider!['id'],
-            'staff_id': _selectedProvider!['id'],
-            'staff_name': staffName,
-            'staff_title':
-                _selectedProvider!['specialty'] ?? _selectedProvider!['title'],
           },
         ),
       );
@@ -1204,6 +1196,8 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle:
+            isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         leading: IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
@@ -1638,8 +1632,76 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
                         ],
                       ),
                     ),
+                  ] else if (widget.isNursing) ...[
+                    // Broadcast to all available nurses (accepted on nurse side)
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _themeColor.withValues(alpha: 0.3),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _themeColor.withValues(
+                              alpha: isDark ? 0.15 : 0.05,
+                            ),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: _themeColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Icon(
+                              Iconsax.people,
+                              color: _themeColor,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'nurse_broadcast_title'.tr(),
+                                  style: TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'nurse_broadcast_desc'.tr(),
+                                  style: const TextStyle(
+                                    fontFamily: 'Rabar',
+                                    fontSize: 12.5,
+                                    color: Color(0xFF64748B),
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ] else ...[
-                    // ── 2. Select Provider (Nurse or Lab) ──
+                    // ── 2. Select Provider (Lab) ──
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

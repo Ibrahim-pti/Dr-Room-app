@@ -1306,5 +1306,7 @@
   "admin_staff_schedule_day_short_tue": "س",
   "admin_staff_schedule_day_short_wed": "چ",
   "admin_staff_schedule_day_short_thu": "پ",
-  "admin_staff_schedule_day_short_fri": "ئە"
+  "admin_staff_schedule_day_short_fri": "ئە",
+  "nurse_broadcast_title": "هنارتن بۆ تیمێ پەرستارێن دکتۆر ڕووم",
+  "nurse_broadcast_desc": "پشتی هنارتنا داخوازیێ، دێ گەهیتە پەرستاران و ژ لایێ وان ڤە دێ هێتە وەرگرتن و پەسەندکرن، پاشان ڕاستەوخۆ ئاگەهداری دێ بۆ تە هێت کو هاتە وەرگرتن."
 }
