@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
+import 'admin_ui.dart';
 
 class AdminXRaysScreen extends StatefulWidget {
   const AdminXRaysScreen({super.key});
@@ -39,11 +40,16 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
     setState(() => _isLoading = true);
     try {
       final response = await ApiClient.get('/admin/xrays');
-      if (response.statusCode == 200 && mounted) {
-        setState(() {
-          _xrays = jsonDecode(response.body);
-          _isLoading = false;
-        });
+      if (mounted) {
+        if (response.statusCode == 200) {
+          setState(() {
+            _xrays = jsonDecode(response.body);
+            _isLoading = false;
+          });
+        } else {
+          setState(() => _isLoading = false);
+          AdminUi.toast(context, AdminUi.readError(response), isError: true);
+        }
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -53,27 +59,51 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
   Future<void> _approveXRay(int id) async {
     try {
       final response = await ApiClient.patch('/admin/xrays/$id/approve');
-      if (response.statusCode == 200) _fetchXRays();
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        AdminUi.toast(context, 'سەنتەر پەسەندکرا');
+        _fetchXRays();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
   Future<void> _rejectXRay(int id) async {
     try {
       final response = await ApiClient.patch('/admin/xrays/$id/reject');
-      if (response.statusCode == 200) _fetchXRays();
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        AdminUi.toast(context, 'داواکاری سەنتەر ڕەتکرایەوە');
+        _fetchXRays();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
   Future<void> _deleteXRay(int id) async {
+    final ok = await AdminUi.confirm(
+      context,
+      title: 'سڕینەوەی سەنتەر',
+      message: 'ئایا دڵنیایت لە سڕینەوەی ئەم سەنتەرە؟',
+    );
+    if (!ok) return;
     try {
       final response = await ApiClient.delete('/admin/xrays/$id');
-      if (response.statusCode == 204) _fetchXRays();
+      if (!mounted) return;
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        AdminUi.toast(context, 'سەنتەر سڕایەوە');
+        _fetchXRays();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
@@ -81,8 +111,9 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
     if (_searchQuery.trim().isEmpty) return list;
     final q = _searchQuery.toLowerCase().trim();
     return list.where((d) {
+      final xray = d['xray'] is Map ? d['xray'] as Map : const {};
       final name = (d['name'] ?? '').toString().toLowerCase();
-      final address = (d['address'] ?? '').toString().toLowerCase();
+      final address = (d['address'] ?? xray['address'] ?? '').toString().toLowerCase();
       final phone = (d['phone'] ?? '').toString().toLowerCase();
       return name.contains(q) || address.contains(q) || phone.contains(q);
     }).toList();
@@ -234,8 +265,8 @@ class _AdminXRaysScreenState extends State<AdminXRaysScreen>
                 const SizedBox(height: 16),
                 Text(
                   isPending
-                      ? 'هیچ پزیشکێکی چاوەڕێکراو نییە'
-                      : 'هیچ پزیشکێکی پەسەندکراو نییە',
+                      ? 'هیچ سەنتەرێکی تیشک و ئەشعەی چاوەڕێکراو نییە'
+                      : 'هیچ سەنتەرێکی تیشک و ئەشعەی پەسەندکراو نییە',
                   style: TextStyle(
                     fontFamily: 'Rabar',
                     color: const Color(0xFF94A3B8),

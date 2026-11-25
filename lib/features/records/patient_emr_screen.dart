@@ -151,6 +151,22 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
     _loadEmr();
   }
 
+  @override
+  void dispose() {
+    _heightCtrl.dispose();
+    _weightCtrl.dispose();
+    _emergencyNotesCtrl.dispose();
+    _newChronicCtrl.dispose();
+    _newAllergyCtrl.dispose();
+    _newMedCtrl.dispose();
+    _newSurgeryCtrl.dispose();
+    super.dispose();
+  }
+
+  static const List<String> _validBloodTypes = [
+    'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-',
+  ];
+
   Future<void> _loadEmr() async {
     setState(() => _isLoading = true);
     try {
@@ -162,9 +178,11 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body)['data'];
         final emr = (widget.patientId != null ? body['emr'] : body) ?? {};
+        final rawBlood = emr['blood_type']?.toString();
 
+        if (!mounted) return;
         setState(() {
-          _bloodType = emr['blood_type'];
+          _bloodType = _validBloodTypes.contains(rawBlood) ? rawBlood : null;
           _heightCtrl.text = emr['height_cm']?.toString() ?? '';
           _weightCtrl.text = emr['weight_kg']?.toString() ?? '';
           _emergencyNotesCtrl.text = emr['emergency_notes'] ?? '';
@@ -178,6 +196,8 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
 
           _isLoading = false;
         });
+      } else if (mounted) {
+        setState(() => _isLoading = false);
       }
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
@@ -199,21 +219,43 @@ class _PatientEmrScreenState extends State<PatientEmrScreen> {
       };
 
       final res = await ApiClient.post('/patient/emr', body: payload);
-      if (res.statusCode == 200) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: const Color(0xFF10B981),
-              content: Text(
-                'emr_saved_success'.tr(),
-                style: const TextStyle(fontFamily: 'Rabar'),
-              ),
+      if (!mounted) return;
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF10B981),
+            content: Text(
+              'emr_saved_success'.tr(),
+              style: const TextStyle(fontFamily: 'Rabar'),
             ),
-          );
-        }
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFEF4444),
+            content: Text(
+              'error_occurred'.tr(),
+              style: const TextStyle(fontFamily: 'Rabar'),
+            ),
+          ),
+        );
       }
-    } catch (_) {}
-    if (mounted) setState(() => _isSaving = false);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFEF4444),
+            content: Text(
+              'error_occurred'.tr(),
+              style: const TextStyle(fontFamily: 'Rabar'),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override

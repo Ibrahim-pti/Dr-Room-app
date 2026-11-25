@@ -1308,5 +1308,10 @@
   "admin_staff_schedule_day_short_thu": "خ",
   "admin_staff_schedule_day_short_fri": "ج",
   "nurse_broadcast_title": "إرسال إلى فريق التمريض في دكتور روم",
-  "nurse_broadcast_desc": "بعد إرسال الطلب سيصل إلى الممرضين المتاحين ليقوم أحدهم باختياره وقبوله، ثم سيصلك إشعار فوري بقبول طلبك."
+  "nurse_broadcast_desc": "بعد إرسال الطلب سيصل إلى الممرضين المتاحين ليقوم أحدهم باختياره وقبوله، ثم سيصلك إشعار فوري بقبول طلبك.",
+  "err_password_min_length": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+  "err_passwords_do_not_match": "كلمتا المرور غير متطابقتين",
+  "no_staff_available": "لا يوجد كادر متاح حالياً",
+  "pharmacy_title": "الصيدلية",
+  "unavailable": "غير متاح"
 }

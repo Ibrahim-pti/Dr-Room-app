@@ -73,29 +73,18 @@ class AiClinicalVisionService {
         }
       }
 
-      // 2. Intelligent Clinical Recognition Engine
-      final fallback = getIntelligentMedicineResult(
-        imageFile: imageFile,
-        query: userNote,
-        mode: mode,
-        language: language,
-      );
-      if (userNote != null && userNote.trim().isNotEmpty) {
-        fallback['user_note'] = userNote.trim();
-      }
-      return fallback;
+      return {
+        'is_error': true,
+        'mode': mode,
+        'error': 'نەتوانرا شیکردنەوەی وێنەکە بکرێت، تکایە دووبارە هەوڵبدەرەوە',
+      };
     } catch (e) {
       debugPrint('AiClinicalVisionService exception: $e');
-      final fallback = getIntelligentMedicineResult(
-        imageFile: imageFile,
-        query: userNote,
-        mode: mode,
-        language: language,
-      );
-      if (userNote != null && userNote.trim().isNotEmpty) {
-        fallback['user_note'] = userNote.trim();
-      }
-      return fallback;
+      return {
+        'is_error': true,
+        'mode': mode,
+        'error': 'کێشەی پەیوەندی بە خزمەتگوزاری AI ڕوویدا، تکایە دووبارە هەوڵبدەرەوە',
+      };
     }
   }
 
@@ -139,10 +128,20 @@ class AiClinicalVisionService {
         }
       }
 
-      return getIntelligentPrescriptionNursingFallback(imageFile: imageFile, language: language);
+      return {
+        'is_error': true,
+        'error': 'نەتوانرا ڕەچەتەکە لەم کاتەدا بخوێنرێتەوە، تکایە دووبارە هەوڵبدەرەوە',
+        'nurse_services': [],
+        'self_medications': [],
+      };
     } catch (e) {
       debugPrint('parsePrescriptionForNursing exception: $e');
-      return getIntelligentPrescriptionNursingFallback(imageFile: imageFile, language: language);
+      return {
+        'is_error': true,
+        'error': 'کێشەی پەیوەندی بە خزمەتگوزاری AI ڕوویدا، تکایە دووبارە هەوڵبدەرەوە',
+        'nurse_services': [],
+        'self_medications': [],
+      };
     }
   }
 
@@ -441,18 +440,18 @@ Return ONLY strict valid JSON:
         }
       }
 
-      return getIntelligentMedicineResult(
-        query: query,
-        mode: mode,
-        language: language,
-      );
+      return {
+        'is_error': true,
+        'mode': mode,
+        'error': 'نەتوانرا گەڕان بەدوای دەرمانەکەدا ئەنجام بدرێت، تکایە دووبارە هەوڵبدەرەوە',
+      };
     } catch (e) {
       debugPrint('searchMedicineByName exception: $e');
-      return getIntelligentMedicineResult(
-        query: query,
-        mode: mode,
-        language: language,
-      );
+      return {
+        'is_error': true,
+        'mode': mode,
+        'error': 'کێشەی پەیوەندی بە خزمەتگوزاری AI ڕوویدا، تکایە دووبارە هەوڵبدەرەوە',
+      };
     }
   }
 

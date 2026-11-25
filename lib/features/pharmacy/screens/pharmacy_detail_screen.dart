@@ -1196,11 +1196,29 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                             });
 
                             final comment = commentController.text.trim();
-                            await _repository.addReview(
+                            final ok = await _repository.addReview(
                               widget.pharmacy.id,
                               rating: selectedStars.toDouble(),
                               comment: comment,
                             );
+
+                            if (!ok) {
+                              if (ctx.mounted) {
+                                setModalState(() => isSubmitting = false);
+                                ScaffoldMessenger.of(ctx).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: const Color(0xFFEF4444),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    content: Text(
+                                      'error_occurred'.tr(),
+                                      style: _kStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return;
+                            }
 
                             if (mounted) {
                               setState(() {
@@ -2613,6 +2631,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                                           .updateQuantity(
                                                             med.id,
                                                             qty - 1,
+                                                            unit: inCartItem?.unit,
                                                           );
                                                     },
                                                     child: Container(
@@ -2652,6 +2671,19 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                                   ),
                                                   GestureDetector(
                                                     onTap: () {
+                                                      if (qty >= med.stock) {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          SnackBar(
+                                                            backgroundColor: const Color(0xFFF59E0B),
+                                                            behavior: SnackBarBehavior.floating,
+                                                            content: Text(
+                                                              'تەنها ${med.stock} دانە لە کۆگادا بەردەستە',
+                                                              style: _kStyle(color: Colors.white, fontSize: 12),
+                                                            ),
+                                                          ),
+                                                        );
+                                                        return;
+                                                      }
                                                       ref
                                                           .read(
                                                             cartProvider
@@ -2660,6 +2692,7 @@ class _PharmacyDetailScreenState extends ConsumerState<PharmacyDetailScreen> {
                                                           .updateQuantity(
                                                             med.id,
                                                             qty + 1,
+                                                            unit: inCartItem?.unit,
                                                           );
                                                     },
                                                     child: Container(

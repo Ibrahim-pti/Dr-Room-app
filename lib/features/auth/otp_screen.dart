@@ -87,6 +87,7 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   Future<void> _verifyOtp() async {
+    if (_isVerifying) return;
     final code = _pinController.text;
     if (code.length != 4) return;
 
@@ -117,6 +118,7 @@ class _OtpScreenState extends State<OtpScreen> {
         // Sync push notification token with authenticated user
         PushNotificationService.instance.reRegisterToken();
 
+        if (!mounted) return;
         widget.onVerified(role);
       } else {
         if (mounted) {
@@ -152,6 +154,7 @@ class _OtpScreenState extends State<OtpScreen> {
         body: {'phone': widget.phoneNumber, 'provider': provider},
       );
 
+      if (!mounted) return;
       if (response.statusCode == 200) {
         _pinController.clear();
         _startTimer();

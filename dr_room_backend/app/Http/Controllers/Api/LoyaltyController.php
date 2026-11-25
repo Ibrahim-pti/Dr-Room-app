@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use App\Models\Coupon;
 use App\Models\LoyaltyTransaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -54,57 +55,67 @@ class LoyaltyController extends Controller
 
     public function redeem(Request $request)
     {
-        $user = Auth::user();
-        $pointsAvailable = $user->loyalty_points ?? 0;
-
         $request->validate([
-            'points' => 'required|integer|min:200|max:' . $pointsAvailable,
+            'points' => 'required|integer|min:200',
         ], [
-            'points.max' => 'خاڵی پێویستت نییە بۆ ئەم گۆڕینەوەیە',
             'points.min' => 'کەمترین بڕی خاڵ بۆ گۆڕینەوە ٢٠٠ خاڵە',
         ]);
 
         $pointsToRedeem = (int) $request->points;
-        $pointValueIqd = AppSetting::get('loyalty_point_iqd_value', 10);
-        $discountAmount = $pointsToRedeem * $pointValueIqd;
 
-        // Deduct points
-        $user->loyalty_points -= $pointsToRedeem;
-        $user->save();
+        $result = \Illuminate\Support\Facades\DB::transaction(function () use ($pointsToRedeem) {
+            $user = User::lockForUpdate()->findOrFail(Auth::id());
+            $pointsAvailable = (int) ($user->loyalty_points ?? 0);
+            if ($pointsToRedeem > $pointsAvailable) {
+                return null;
+            }
 
-        // Generate unique coupon code for user
-        $couponCode = 'LOYAL-' . strtoupper(Str::random(6));
+            $pointValueIqd = (float) AppSetting::get('loyalty_point_iqd_value', 10);
+            $discountAmount = $pointsToRedeem * $pointValueIqd;
 
-        $coupon = Coupon::create([
-            'code' => $couponCode,
-            'title' => 'داشکاندنی خاڵەکانی دڵسۆزی (' . number_format($discountAmount) . ' د.ع)',
-            'description' => 'بە سەرکەوتوویی لە خاڵەکانتەوە گۆڕدرا بە داشکاندن',
-            'discount_type' => 'fixed',
-            'discount_value' => $discountAmount,
-            'min_order_amount' => $discountAmount,
-            'usage_limit' => 1,
-            'used_count' => 0,
-            'expires_at' => now()->addDays(30),
-            'is_active' => true,
-        ]);
+            $user->loyalty_points = $pointsAvailable - $pointsToRedeem;
+            $user->save();
 
-        // Record transaction
-        LoyaltyTransaction::create([
-            'user_id' => $user->id,
-            'points' => -$pointsToRedeem,
-            'type' => 'redeemed_coupon',
-            'description' => 'گۆڕینەوەی ' . $pointsToRedeem . ' خاڵ بۆ کۆدی ' . $couponCode,
-        ]);
+            $couponCode = 'LOYAL-' . strtoupper(Str::random(6));
+            $coupon = Coupon::create([
+                'code' => $couponCode,
+                'title' => 'داشکاندنی خاڵەکانی دڵسۆزی (' . number_format($discountAmount) . ' د.ع)',
+                'description' => 'بە سەرکەوتوویی لە خاڵەکانتەوە گۆڕدرا بە داشکاندن',
+                'discount_type' => 'fixed',
+                'discount_value' => $discountAmount,
+                'min_order_amount' => $discountAmount,
+                'usage_limit' => 1,
+                'used_count' => 0,
+                'expires_at' => now()->addDays(30),
+                'is_active' => true,
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'خاڵەکانت بە سەرکەوتوویی کران بە کۆدی داشکاندن!',
-            'data' => [
+            LoyaltyTransaction::create([
+                'user_id' => $user->id,
+                'points' => -$pointsToRedeem,
+                'type' => 'redeemed_coupon',
+                'description' => 'گۆڕینەوەی ' . $pointsToRedeem . ' خاڵ بۆ کۆدی ' . $couponCode,
+            ]);
+
+            return [
                 'coupon_code' => $couponCode,
                 'discount_amount' => $discountAmount,
                 'remaining_points' => $user->loyalty_points,
                 'expires_at' => $coupon->expires_at->toDateString(),
-            ]
+            ];
+        });
+
+        if ($result === null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خاڵی پێویستت نییە بۆ ئەم گۆڕینەوەیە',
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'خاڵەکانت بە سەرکەوتوویی کران بە کۆدی داشکاندن!',
+            'data' => $result,
         ]);
     }
 }

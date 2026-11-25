@@ -18,7 +18,9 @@ class PharmacyCustomerController extends Controller
             
         // Extract unique customers based on patient_id
         $customers = $orders->unique('patient_id')->map(function($order) {
-            $details = json_decode($order->patient_details, true);
+            $details = is_array($order->patient_details)
+                ? $order->patient_details
+                : (json_decode((string) $order->patient_details, true) ?: []);
             return [
                 'id' => $order->patient_id,
                 'name' => $details['name'] ?? 'نەزانراو',

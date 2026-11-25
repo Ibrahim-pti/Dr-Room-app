@@ -7,33 +7,44 @@ import '../providers/cart_provider.dart';
 import '../providers/favorite_provider.dart';
 import '../providers/order_provider.dart';
 import '../providers/payment_provider.dart';
+import '../utils/admin_permissions.dart';
+import '../utils/api_client.dart';
+import 'push_notification_service.dart';
 
-/// Ends a signed-in session.
-///
-/// Signing out has to clear two separate places, and missing either one leaks
-/// one patient's data to the next person holding the phone: the stored
-/// credentials on disk, and the providers that stay alive in memory above the
-/// login screen. Keeping both in one function means every exit — the logout
-/// button, an expired token — clears the same things.
+/// Ends a signed-in session cleanly across memory, local storage, and push token registration.
 class SessionService {
   SessionService._();
 
-  /// Everything written at login. Listed explicitly rather than wiping all of
-  /// SharedPreferences, which also holds the chosen language and theme.
   static const List<String> _sessionKeys = [
     'auth_token',
     'user_role',
     'user_name',
     'user_phone',
+    'user_profile_image',
+    'profile_image',
+    'user_dob',
+    'saved_user_addresses',
+    'submitted_feedback_survey_ids_v1',
+    'dr_room_pharmacy_cart_v1',
+    'user_health_gender',
+    'user_health_blood_type',
+    'user_health_age',
+    'payment_methods',
+    'transactions',
     'is_admin',
     'ai_medicine_scans',
   ];
 
   static Future<void> signOut(BuildContext context) async {
-    // Memory first, and synchronously: the widget tree is torn down right
-    // after this call, and an await in between would leave a frame where the
-    // previous patient's data is still on screen.
     clearProviders(context);
+    AdminPermissions.clear();
+
+    try {
+      final token = PushNotificationService.instance.currentToken;
+      if (token != null && token.isNotEmpty) {
+        await ApiClient.delete('/device-tokens');
+      }
+    } catch (_) {}
 
     final prefs = await SharedPreferences.getInstance();
     for (final key in _sessionKeys) {
@@ -48,5 +59,6 @@ class SessionService {
     context.read<FavoriteProvider>().clear();
     context.read<CartProvider>().clearCart();
     context.read<PaymentProvider>().clearPaymentIntent();
+    AdminPermissions.clear();
   }
 }

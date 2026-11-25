@@ -15,6 +15,8 @@ use Illuminate\Support\Collection;
  */
 class AppointmentSlotService
 {
+    public const TIMEZONE = 'Asia/Baghdad';
+
     /** How many days ahead patients may book. */
     public const HORIZON_DAYS = 14;
 
@@ -28,9 +30,6 @@ class AppointmentSlotService
      */
     public function availability(Doctor $doctor): array
     {
-        // When the caller eager-loads schedules (->with('schedules')), the
-        // property already holds them. Using the property instead of
-        // ->schedules()->get() avoids an extra query in that case.
         $schedules = $doctor->relationLoaded('schedules')
             ? $doctor->schedules->groupBy('day_of_week')
             : $doctor->schedules()->get()->groupBy('day_of_week');
@@ -39,7 +38,7 @@ class AppointmentSlotService
         }
 
         $taken = $this->takenTimes($doctor);
-        $today = Carbon::today();
+        $today = Carbon::today(self::TIMEZONE);
         $days = [];
 
         for ($offset = 0; $offset < self::HORIZON_DAYS; $offset++) {
@@ -72,24 +71,26 @@ class AppointmentSlotService
      */
     public function isBookable(Doctor $doctor, Carbon $dateTime): bool
     {
-        if ($dateTime->isPast()) {
+        $localDt = ProviderSlotService::parseWallClock($dateTime);
+        $now = Carbon::now(self::TIMEZONE);
+        if ($localDt->lessThanOrEqualTo($now)) {
             return false;
         }
-        if ($dateTime->greaterThan(Carbon::today()->addDays(self::HORIZON_DAYS))) {
+        if ($localDt->greaterThan(Carbon::today(self::TIMEZONE)->addDays(self::HORIZON_DAYS)->endOfDay())) {
             return false;
         }
 
         $daySchedules = $doctor->schedules()
-            ->where('day_of_week', $dateTime->format('l'))
+            ->where('day_of_week', $localDt->format('l'))
             ->get();
 
         if ($daySchedules->isEmpty()) {
             return false;
         }
 
-        $wanted = $dateTime->format('H:i');
+        $wanted = $localDt->format('H:i');
 
-        foreach ($this->slotsForDate($daySchedules, $dateTime->copy()->startOfDay(), $this->takenTimes($doctor)) as $slot) {
+        foreach ($this->slotsForDate($daySchedules, $localDt->copy()->startOfDay(), $this->takenTimes($doctor)) as $slot) {
             if ($slot['time'] === $wanted && ! $slot['taken']) {
                 return true;
             }
@@ -106,7 +107,7 @@ class AppointmentSlotService
      */
     private function slotsForDate(Collection $daySchedules, Carbon $date, Collection $taken): array
     {
-        $now = Carbon::now();
+        $now = Carbon::now(self::TIMEZONE);
         $slots = [];
 
         foreach ($daySchedules as $schedule) {
@@ -156,8 +157,8 @@ class AppointmentSlotService
     {
         return Appointment::where('doctor_id', $doctor->id)
             ->whereIn('status', self::BLOCKING_STATUSES)
-            ->where('appointment_date', '>=', Carbon::today())
+            ->where('appointment_date', '>=', Carbon::today(self::TIMEZONE)->format('Y-m-d H:i:s'))
             ->pluck('appointment_date')
-            ->map(fn ($value) => Carbon::parse($value)->format('Y-m-d H:i'));
+            ->map(fn ($value) => ProviderSlotService::parseWallClock($value)->format('Y-m-d H:i'));
     }
 }

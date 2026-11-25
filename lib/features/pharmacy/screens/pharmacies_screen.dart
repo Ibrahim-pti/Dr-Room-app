@@ -92,10 +92,17 @@ class _PharmaciesScreenState extends State<PharmaciesScreen> {
 
       // City filter
       if (_selectedCity != 'all_cities') {
+        final cityText = _getDisplayCity(pharmacy).toLowerCase();
+        final rawCity = (pharmacy.city ?? '').toLowerCase();
         final address = pharmacy.address?.toLowerCase() ?? '';
         final cityName = _selectedCity.tr().toLowerCase();
         final rawKey = _selectedCity.replaceAll('city_', '').toLowerCase();
-        if (!address.contains(cityName) && !address.contains(rawKey)) return false;
+        if (!cityText.contains(cityName) &&
+            !rawCity.contains(rawKey) &&
+            !address.contains(cityName) &&
+            !address.contains(rawKey)) {
+          return false;
+        }
       }
 
       // Rating filter

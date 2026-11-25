@@ -517,7 +517,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
 
   void _selectStaff(Map<String, dynamic> staff) {
     final cart = Provider.of<CartProvider>(context, listen: false);
-    cart.items.removeWhere((item) =>
+    cart.removeWhere((item) =>
         item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'));
 
     final fee = (staff['visit_fee'] as num?)?.toDouble() ?? 15000.0;
@@ -525,7 +525,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
     final staffTitle = _formatStaffSpecialty(staff['title']);
     final staffCity = _formatStaffCity(staff['city']);
 
-    cart.setServiceType('nursing', extraFee: fee);
+    cart.setServiceType('nursing', extraFee: 0.0);
     cart.addItem(CartItem(
       id: 'staff_${staff['id']}',
       name: '${'nursing_verified_nurse'.tr()} ($staffName)',
@@ -567,7 +567,7 @@ class _NursingHubScreenState extends State<NursingHubScreen> {
 
   void _removeStaff(Map<String, dynamic> staff) {
     final cart = Provider.of<CartProvider>(context, listen: false);
-    cart.items.removeWhere(
+    cart.removeWhere(
       (item) =>
           item.extraData?['type'] == 'staff' || item.id.startsWith('staff_'),
     );

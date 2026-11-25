@@ -60,7 +60,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4FD),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0F4FD),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -68,7 +68,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new,
-            color: Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -147,7 +147,7 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
                               ),
                             ],
                             border: Border.all(
-                              color: const Color(0xFFF1F5F9),
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                               width: 1.5,
                             ),
                           ),
@@ -160,11 +160,11 @@ class _AllDoctorsScreenState extends State<AllDoctorsScreen> {
                                 height: 88,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20),
-                                  color: const Color(0xFFF8FAFC),
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                                   image: DecorationImage(
-                                    image: doc['image_path'] != null 
-                                      ? NetworkImage(image) as ImageProvider
-                                      : AssetImage(image),
+                                    image: (image.startsWith('http://') || image.startsWith('https://'))
+                                        ? NetworkImage(image) as ImageProvider
+                                        : AssetImage(image),
                                     fit: BoxFit.cover,
                                   ),
                                 ),

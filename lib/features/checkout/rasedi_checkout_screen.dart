@@ -314,8 +314,10 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
     });
   }
 
+  bool _isCancelDialogOpen = false;
+
   Future<void> _checkStatusImmediately() async {
-    if (_hasCompleted || _referenceCode == null) return;
+    if (_hasCompleted || _referenceCode == null || _isCancelDialogOpen) return;
 
     try {
       final status = await _service.checkPaymentStatus(_referenceCode!);
@@ -355,6 +357,7 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
   Future<bool> _onWillPop() async {
     if (_hasCompleted) return true;
 
+    _isCancelDialogOpen = true;
     final shouldCancel = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -385,6 +388,7 @@ class _RasediCheckoutScreenState extends State<RasediCheckoutScreen> {
         ],
       ),
     );
+    _isCancelDialogOpen = false;
 
     if (shouldCancel == true) {
       if (_referenceCode != null) {

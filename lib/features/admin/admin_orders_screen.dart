@@ -1174,9 +1174,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
                                 child: Image.network(
-                                  prescriptionImage.toString().startsWith('http')
-                                      ? prescriptionImage.toString()
-                                      : '${ApiClient.baseUrl}/${prescriptionImage.toString().replaceAll(RegExp(r'^/+'), '')}',
+                                  ApiClient.getImageUrl(prescriptionImage.toString()),
                                   height: 200,
                                   width: double.infinity,
                                   fit: BoxFit.cover,

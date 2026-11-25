@@ -86,7 +86,7 @@ class _DoctorDetailsScreenState extends State<DoctorDetailsScreen> {
       _startVideo();
     }
 
-    if (handedOver == null) {
+    if (handedOver == null || handedOver['services'] == null) {
       _fetchDoctor();
     }
     _fetchAvailability();

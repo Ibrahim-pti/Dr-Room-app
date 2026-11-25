@@ -8,11 +8,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class IsNurse
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  Closure(Request): (Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
         if (!auth()->check() || !auth()->user()->is_nurse) {
@@ -22,7 +17,18 @@ class IsNurse
             return redirect('/staff/login');
         }
 
-        if (auth()->user()->status === 'pending') {
+        $status = auth()->user()->status;
+        if (in_array($status, ['blocked', 'rejected'], true)) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'هەژمارەکەت بلۆک کراوە.'], 403);
+            }
+            return redirect('/staff/login');
+        }
+
+        if ($status === 'pending') {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'هەژمارەکەت لەژێر پێداچوونەوەی ئەدمیندایە.'], 403);
+            }
             return redirect()->route('staff.waiting');
         }
 

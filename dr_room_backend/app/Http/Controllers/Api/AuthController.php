@@ -364,33 +364,13 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|unique:users,phone',
             'password' => 'required|string|min:6',
-            'role' => 'nullable|string|in:patient,doctor,nurse,lab,pharmacy,admin,driver',
+            'role' => 'nullable|string|in:patient,doctor,nurse,lab,pharmacy,driver',
             'provider' => 'nullable|string|in:auto,sms,whatsapp,telegram',
         ]);
 
         $role = $request->role ?? 'patient';
         $status = ($role === 'patient') ? 'approved' : 'pending';
         $provider = $request->input('provider', $request->input('channel', config('services.otpiq.provider', 'auto')));
-
-        // Special test accounts bypass OTP sending
-        if ($request->phone === '07501112222' || $request->phone === '07500000000') {
-            $user = User::updateOrCreate(
-                ['phone' => $request->phone],
-                [
-                    'name' => $request->name,
-                    'password' => Hash::make($request->password),
-                    'role' => $role,
-                    'status' => 'approved',
-                    'otp_code' => '1234',
-                    'otp_expires_at' => now()->addYears(1),
-                ]
-            );
-            return response()->json([
-                'message' => 'هەژمارەکەت دروستکرا، تکایە کۆدەکە بنووسە',
-                'phone' => $user->phone,
-                'provider' => $provider,
-            ], 201);
-        }
 
         $otpError = null;
         try {
@@ -429,68 +409,6 @@ class AuthController extends Controller
             'otp_code' => 'required|string'
         ]);
 
-        // Special Google / App Store Reviewer & Admin test account
-        if ($request->phone === '07500000000' && $request->otp_code === '1234') {
-            $user = User::firstOrCreate(
-                ['phone' => '07500000000'],
-                [
-                    'name' => 'Admin User',
-                    'email' => 'admin@drroom.com',
-                    'password' => Hash::make('admin123456'),
-                    'role' => 'admin',
-                    'status' => 'approved',
-                ]
-            );
-            $user->status = 'approved';
-            $user->save();
-
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'phone' => $user->phone,
-                    'role' => $user->role,
-                    'status' => $user->status,
-                    'is_admin' => $user->role === 'admin',
-                ]
-            ]);
-        }
-
-        // Special Patient test account (for testing while OTPiq balance is being funded)
-        if ($request->phone === '07501112222' && $request->otp_code === '1234') {
-            $user = User::firstOrCreate(
-                ['phone' => '07501112222'],
-                [
-                    'name' => 'نەخۆش / بەکارهێنەر',
-                    'email' => 'user@drroom.com',
-                    'password' => Hash::make('user123456'),
-                    'role' => 'patient',
-                    'status' => 'approved',
-                ]
-            );
-            $user->status = 'approved';
-            $user->save();
-
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'phone' => $user->phone,
-                    'role' => $user->role,
-                    'status' => $user->status,
-                    'is_admin' => false,
-                ]
-            ]);
-        }
-
         $normalizedPhone = $this->toLocalPhone($request->phone);
         $user = User::where('phone', $normalizedPhone)
             ->orWhere('phone', $request->phone)
@@ -508,7 +426,7 @@ class AuthController extends Controller
             ], 403);
         }
 
-        if ($user->status === 'blocked') {
+        if (in_array($user->status, ['blocked', 'rejected'], true)) {
             return response()->json([
                 'message' => 'هەژمارەکەت بلۆک کراوە.'
             ], 403);
@@ -603,11 +521,25 @@ class AuthController extends Controller
             'profile_image' => 'nullable|image|max:5120',
         ]);
 
-        if ($request->has('name')) $user->name = $request->name;
+        if ($request->filled('name')) $user->name = $request->name;
         if ($request->has('email')) $user->email = $request->email;
-        if ($request->has('gender')) $user->gender = $request->gender;
-        if ($request->has('dob')) $user->dob = $request->dob;
-        if ($request->has('blood_type')) $user->blood_type = $request->blood_type;
+        if ($request->filled('gender') && \Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
+            $user->gender = $request->gender;
+        }
+        if ($request->filled('dob') && \Illuminate\Support\Facades\Schema::hasColumn('users', 'dob')) {
+            $user->dob = $request->dob;
+        }
+        if ($request->filled('blood_type')) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'blood_type')) {
+                $user->blood_type = $request->blood_type;
+            }
+            if ($user->role === 'patient') {
+                $emr = \App\Models\PatientEmrRecord::firstOrCreate(['patient_id' => $user->id]);
+                $emr->blood_type = $request->blood_type;
+                $emr->last_updated_by = $user->id;
+                $emr->save();
+            }
+        }
 
         if ($request->hasFile('profile_image')) {
             $path = $request->file('profile_image')->store('profiles', 'public');
@@ -652,16 +584,16 @@ class AuthController extends Controller
             ], 404);
         }
 
-        if ($user->status === 'blocked') {
+        if (in_array($user->status, ['blocked', 'rejected'], true)) {
             return response()->json([
                 'message' => 'هەژمارەکەت بلۆک کراوە'
             ], 403);
         }
 
-        // Special test accounts
-        if (in_array($user->phone, ['07500000000', '07501112222'])) {
+        // Special patient demo account only in non-production
+        if ($user->phone === '07501112222' && !app()->environment('production')) {
             $user->otp_code = '1234';
-            $user->otp_expires_at = now()->addYears(1);
+            $user->otp_expires_at = now()->addMinutes(15);
             $user->save();
             return response()->json([
                 'message' => 'کۆدەکە نێردرا بۆ مۆبایلەکەت',
@@ -706,8 +638,10 @@ class AuthController extends Controller
             ], 404);
         }
 
-        // Special test accounts
-        $isTest = in_array($user->phone, ['07500000000', '07501112222']) && $request->otp_code === '1234';
+        // Test patient demo account only in non-production
+        $isTest = ($user->phone === '07501112222')
+            && $request->otp_code === '1234'
+            && !app()->environment('production');
 
         if (!$isTest) {
             if (!$user->otp_code || $user->otp_code !== $request->otp_code || now()->gt($user->otp_expires_at)) {

@@ -75,7 +75,9 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
   @override
   void initState() {
     super.initState();
-    _currentMode = 'medicine';
+    _currentMode = (widget.initialMode != null && widget.initialMode!.isNotEmpty)
+        ? widget.initialMode!
+        : 'medicine';
     _loadScans();
     if (widget.initialImage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -476,6 +478,20 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           );
 
       if (mounted) {
+        if (realResult['is_error'] == true) {
+          setState(() => _isAnalyzing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+              content: Text(
+                (realResult['error'] ?? 'کێشە لە شیکردنەوەی AI ڕوویدا').toString(),
+                style: _kStyle(color: Colors.white),
+              ),
+            ),
+          );
+          return;
+        }
         realResult['date'] = DateFormat(
           'yyyy-MM-dd hh:mm a',
         ).format(DateTime.now());
@@ -534,6 +550,20 @@ class _AiSymptomCheckerScreenState extends State<AiSymptomCheckerScreen>
           );
 
       if (mounted) {
+        if (realResult['is_error'] == true) {
+          setState(() => _isAnalyzing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+              content: Text(
+                (realResult['error'] ?? 'کێشە لە شیکردنەوەی AI ڕوویدا').toString(),
+                style: _kStyle(color: Colors.white),
+              ),
+            ),
+          );
+          return;
+        }
         realResult['date'] = DateFormat(
           'yyyy-MM-dd hh:mm a',
         ).format(DateTime.now());

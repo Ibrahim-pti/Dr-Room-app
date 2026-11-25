@@ -1400,20 +1400,23 @@ class _AdminDriversScreenState extends State<AdminDriversScreen>
                     if (d['current_lat'] != null && d['current_lng'] != null)
                       TextButton.icon(
                         onPressed: () {
+                          final lat = double.tryParse('${d['current_lat']}');
+                          final lng = double.tryParse('${d['current_lng']}');
                           _tabCtrl.animateTo(0);
                           setState(
                             () => _selectedMapDriver =
                                 Map<String, dynamic>.from(d),
                           );
-                          _mapCtrl?.animateCamera(
-                            CameraUpdate.newLatLngZoom(
-                              LatLng(
-                                double.parse('${d['current_lat']}'),
-                                double.parse('${d['current_lng']}'),
-                              ),
-                              15,
-                            ),
-                          );
+                          if (lat != null && lng != null) {
+                            _mapCtrl
+                                ?.animateCamera(
+                                  CameraUpdate.newLatLngZoom(
+                                    LatLng(lat, lng),
+                                    15,
+                                  ),
+                                )
+                                .catchError((_) {});
+                          }
                         },
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 5),

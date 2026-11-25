@@ -29,7 +29,13 @@ class NurseScheduleApiController extends Controller
 
     public function updateSchedule(Request $request)
     {
-        $rawId = $request->input('nurse_id');
+        $actor = Auth::user();
+        $isAdminOrStaff = in_array($actor->role, ['admin', 'staff', 'moderator'], true);
+        if (!$isAdminOrStaff && $actor->role !== 'nurse') {
+            return response()->json(['success' => false, 'message' => 'دەسەڵاتت نییە'], 403);
+        }
+
+        $rawId = $isAdminOrStaff ? $request->input('nurse_id') : null;
         $userId = $rawId
             ? ProviderSlotService::resolveUserId('nurse', $rawId)
             : Auth::id();
@@ -73,7 +79,7 @@ class NurseScheduleApiController extends Controller
         ]);
 
         $userId = ProviderSlotService::resolveUserId('nurse', $request->nurse_id) ?? Auth::id();
-        $targetTime = Carbon::parse($request->scheduled_time);
+        $targetTime = ProviderSlotService::parseWallClock($request->scheduled_time);
         $available = ProviderSlotService::isBookable('nurse', $userId, $targetTime);
 
         return response()->json([

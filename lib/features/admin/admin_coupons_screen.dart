@@ -281,9 +281,12 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen> {
                                     children: [
                                       Row(
                                         children: [
-                                          Text(
-                                            c['code'] ?? '',
-                                            style: AdminUi.title.copyWith(fontSize: 16, letterSpacing: 1),
+                                          Flexible(
+                                            child: Text(
+                                              c['code'] ?? '',
+                                              style: AdminUi.title.copyWith(fontSize: 16, letterSpacing: 1),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
                                           ),
                                           const SizedBox(width: 8),
                                           Container(
@@ -321,6 +324,10 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen> {
                                   value: isActive,
                                   activeThumbColor: const Color(0xFF6366F1),
                                   onChanged: (_) => _toggleStatus(c),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Iconsax.edit_2, color: Color(0xFF6366F1), size: 20),
+                                  onPressed: () => _openAddEditDialog(coupon: c),
                                 ),
                                 IconButton(
                                   icon: const Icon(Iconsax.trash, color: Colors.red, size: 20),

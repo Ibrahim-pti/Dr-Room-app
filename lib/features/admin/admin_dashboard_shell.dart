@@ -28,39 +28,41 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
     });
   }
 
-  final List<Widget> _screens = const [
-    AdminDashboardScreen(),
-    AdminOrdersScreen(isRoot: true),
-    AdminNursesScreen(isRoot: true),
-    AdminLabsScreen(isRoot: true),
-    AdminMenuScreen(),
-  ];
-
-  List<_NavItem> get _navItems => [
-    const _NavItem(icon: Iconsax.category_2, label: 'سەرەکی'),
-    const _NavItem(icon: Iconsax.box, label: 'داواکارییەکان'),
-    _NavItem(icon: Iconsax.profile_2user, label: 'admin_health_centers'.tr()),
-    const _NavItem(icon: Iconsax.microscope, label: 'تاقیگەکان'),
-    const _NavItem(icon: Iconsax.setting_2, label: 'ڕێکخستن'),
-  ];
+  List<_NavItem> get _visibleNavItems {
+    final all = <_NavItem>[
+      const _NavItem(icon: Iconsax.category_2, label: 'سەرەکی', screen: AdminDashboardScreen()),
+      if (AdminPermissions.can('manage_orders'))
+        const _NavItem(icon: Iconsax.box, label: 'داواکارییەکان', screen: AdminOrdersScreen(isRoot: true)),
+      if (AdminPermissions.can('manage_nurses'))
+        _NavItem(icon: Iconsax.profile_2user, label: 'admin_health_centers'.tr(), screen: const AdminNursesScreen(isRoot: true)),
+      if (AdminPermissions.can('manage_labs'))
+        const _NavItem(icon: Iconsax.microscope, label: 'تاقیگەکان', screen: AdminLabsScreen(isRoot: true)),
+      const _NavItem(icon: Iconsax.setting_2, label: 'ڕێکخستن', screen: AdminMenuScreen()),
+    ];
+    return all;
+  }
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
+
+    final navItems = _visibleNavItems;
+    final safeIndex = _currentIndex >= navItems.length ? 0 : _currentIndex;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF1F5F9),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
         body: Stack(
           children: [
             // Screen content
             IndexedStack(
-              index: _currentIndex,
-              children: _screens,
+              index: safeIndex,
+              children: navItems.map((e) => e.screen).toList(),
             ),
 
             // Floating nav bar
@@ -71,11 +73,11 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
               child: Container(
                 height: 70,
                 decoration: BoxDecoration(
-                  color: (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(35),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -84,8 +86,8 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(
-                    _navItems.length,
-                    (i) => _buildNavItem(i),
+                    navItems.length,
+                    (i) => _buildNavItem(i, navItems[i], safeIndex),
                   ),
                 ),
               ),
@@ -96,9 +98,8 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
     );
   }
 
-  Widget _buildNavItem(int index) {
-    final isActive = _currentIndex == index;
-    final item = _navItems[index];
+  Widget _buildNavItem(int index, _NavItem item, int safeIndex) {
+    final isActive = safeIndex == index;
 
     return GestureDetector(
       onTap: () => setState(() => _currentIndex = index),
@@ -144,5 +145,6 @@ class _AdminDashboardShellState extends State<AdminDashboardShell> {
 class _NavItem {
   final IconData icon;
   final String label;
-  const _NavItem({required this.icon, required this.label});
+  final Widget screen;
+  const _NavItem({required this.icon, required this.label, required this.screen});
 }

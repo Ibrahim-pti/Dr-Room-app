@@ -135,10 +135,11 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body)['data'];
-        final couponCode = body['coupon_code'];
+        final couponCode = (body['coupon_code'] ?? '').toString();
+        final serverValue = num.tryParse(body['discount_amount']?.toString() ?? '')?.toInt() ?? iqdValue;
 
         if (!mounted) return;
-        _showSuccessCouponDialog(couponCode, iqdValue);
+        _showSuccessCouponDialog(couponCode, serverValue);
         _load();
       } else {
         final msg = jsonDecode(res.body)['message'] ?? 'هەڵە ڕوویدا';
@@ -150,10 +151,18 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
           );
         }
       }
-    } catch (_) {}
-    if (mounted) setState(() => _isRedeeming = false);
-    if (mounted) {
-      setState(() => _isRedeeming = false);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('هەڵە لە پەیوەندیکردن: $e', style: const TextStyle(fontFamily: 'Rabar')),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRedeeming = false);
+      }
     }
   }
 
@@ -251,8 +260,9 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.getBackground(context),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
@@ -265,9 +275,9 @@ class _PatientLoyaltyScreenState extends State<PatientLoyaltyScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.getSurface(context),
         elevation: 0,
-        foregroundColor: const Color(0xFF0F172A),
+        foregroundColor: isDark ? Colors.white : const Color(0xFF0F172A),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

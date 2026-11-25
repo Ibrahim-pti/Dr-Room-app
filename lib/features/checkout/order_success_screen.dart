@@ -192,20 +192,19 @@ class OrderSuccessScreen extends StatelessWidget {
                       onPressed: () {
                         final orderProvider = context.read<OrderProvider>();
                         final orderList = orderProvider.orders.where((o) => o.id == orderId).toList();
+                        final navigator = Navigator.of(context);
 
-                        Navigator.pushAndRemoveUntil(
-                          context,
+                        navigator.pushAndRemoveUntil(
                           MaterialPageRoute(
-                            builder: (context) => const MainShell(),
+                            builder: (_) => const MainShell(),
                           ),
                           (route) => false,
                         );
 
                         if (orderList.isNotEmpty) {
-                          Navigator.push(
-                            context,
+                          navigator.push(
                             MaterialPageRoute(
-                              builder: (context) => OrderDetailsScreen(order: orderList.first),
+                              builder: (_) => OrderDetailsScreen(order: orderList.first),
                             ),
                           );
                         }

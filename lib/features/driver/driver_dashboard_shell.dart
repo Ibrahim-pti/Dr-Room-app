@@ -1910,42 +1910,11 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                   );
                 },
               ),
-            ] else if (stage == 'assigned') ...[
+            ] else if (stage != 'delivered' &&
+                stage != 'rejected' &&
+                stage != 'cancelled') ...[
               const SizedBox(height: 14),
               _buildProgressionActions(order, stage, isLab, isBusy),
-            ] else if (stage == 'accepted') ...[
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: isBusy
-                      ? null
-                      : () => _advanceOrderStatus(
-                          order,
-                          'rejected',
-                          confirm: true,
-                        ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFEF4444),
-                    side: const BorderSide(color: Color(0xFFEF4444)),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'ڕەتکردنەوە',
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ],
         ],
@@ -2447,7 +2416,7 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                   _fitLiveRouteCamera();
                 },
                 backgroundColor: AppColors.getSurface(context),
-                foregroundColor: const Color(0xFF0F172A),
+                foregroundColor: AppColors.getTextTitle(context),
                 elevation: 2,
                 child: const Icon(Icons.zoom_out_map, size: 18),
               ),

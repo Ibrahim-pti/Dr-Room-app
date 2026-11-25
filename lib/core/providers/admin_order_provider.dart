@@ -52,6 +52,7 @@ class AdminOrderProvider with ChangeNotifier {
   }
 
   Future<bool> assignNurse(int orderId, int nurseId) async {
+    _error = null;
     try {
       final response = await ApiClient.patch(
         '/admin/orders/$orderId/assign-nurse',
@@ -59,17 +60,21 @@ class AdminOrderProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        // Refresh orders
         await fetchOrders();
         return true;
       }
+      _error = _extractError(response.body, 'نەتوانرا پەرستار دیاری بکرێت (${response.statusCode})');
+      notifyListeners();
       return false;
     } catch (e) {
+      _error = 'کێشەی پەیوەندی: $e';
+      notifyListeners();
       return false;
     }
   }
 
   Future<bool> assignDriver(int orderId, int driverId, {double? deliveryFee}) async {
+    _error = null;
     try {
       final response = await ApiClient.patch(
         '/admin/orders/$orderId/assign-driver',
@@ -83,13 +88,18 @@ class AdminOrderProvider with ChangeNotifier {
         await fetchOrders();
         return true;
       }
+      _error = _extractError(response.body, 'نەتوانرا شۆفێر دیاری بکرێت (${response.statusCode})');
+      notifyListeners();
       return false;
-    } catch (_) {
+    } catch (e) {
+      _error = 'کێشەی پەیوەندی: $e';
+      notifyListeners();
       return false;
     }
   }
 
   Future<bool> updateStatus(int orderId, String status) async {
+    _error = null;
     try {
       final response = await ApiClient.patch(
         '/admin/orders/$orderId/status',
@@ -100,9 +110,23 @@ class AdminOrderProvider with ChangeNotifier {
         await fetchOrders();
         return true;
       }
+      _error = _extractError(response.body, 'نەتوانرا دۆخی داواکاری بگۆڕدرێت (${response.statusCode})');
+      notifyListeners();
       return false;
     } catch (e) {
+      _error = 'کێشەی پەیوەندی: $e';
+      notifyListeners();
       return false;
     }
+  }
+
+  String _extractError(String body, String fallback) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map && decoded['message'] != null && decoded['message'].toString().trim().isNotEmpty) {
+        return decoded['message'].toString();
+      }
+    } catch (_) {}
+    return fallback;
   }
 }

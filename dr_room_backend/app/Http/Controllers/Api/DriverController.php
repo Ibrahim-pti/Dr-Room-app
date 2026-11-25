@@ -258,7 +258,7 @@ class DriverController extends Controller
 
         foreach ($orders as $order) {
             $oldStage = (string) $order->delivery_status;
-            $isLab = str_contains(strtolower((string) $order->service_type), 'lab');
+            $isLab = $order->isLabService();
 
             $pickupLat = null;
             $pickupLng = null;
@@ -292,8 +292,12 @@ class DriverController extends Controller
                     } elseif ($oldStage === 'accepted' && $isMoving && ($distToPatientM === null || $distToPatientM > 150.0)) {
                         $nextStage = 'on_the_way';
                     }
-                } elseif ($oldStage === 'picked_up' && (($distToPatientM === null && $isMoving) || ($distToPatientM !== null && $distToPatientM > 200.0))) {
-                    $nextStage = 'on_the_way';
+                } else {
+                    if (in_array($oldStage, ['picked_up', 'on_the_way'], true) && $distToPickupM !== null && $distToPickupM <= 150.0) {
+                        $nextStage = 'arrived';
+                    } elseif ($oldStage === 'picked_up' && (($distToPatientM === null && $isMoving) || ($distToPatientM !== null && $distToPatientM > 200.0))) {
+                        $nextStage = 'on_the_way';
+                    }
                 }
             } else {
                 if ($oldStage === 'accepted') {
@@ -436,6 +440,9 @@ class DriverController extends Controller
             $this->dispatch->recordDeclinedDriver($order, $user->id);
 
             $order->assigned_driver_id = null;
+            if ($order->isNursingService() && (int) $order->assigned_nurse_id === (int) $user->id) {
+                $order->assigned_nurse_id = null;
+            }
             $order->delivery_status = 'unassigned';
             $order->driver_assigned_at = null;
             $order->driver_notes = $request->notes;
@@ -453,45 +460,60 @@ class DriverController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($order, $driver, $user, $next, $request) {
-            $order->delivery_status = $next;
+        $result = DB::transaction(function () use ($id, $driver, $user, $next, $request) {
+            $lockedOrder = Order::where('id', $id)
+                ->where('assigned_driver_id', $user->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (in_array($lockedOrder->status, ['completed', 'cancelled'], true) || $lockedOrder->delivery_status === 'delivered') {
+                return null;
+            }
+
+            $lockedOrder->delivery_status = $next;
             if ($request->filled('notes')) {
-                $order->driver_notes = $request->notes;
+                $lockedOrder->driver_notes = $request->notes;
             }
 
             if ($next === 'accepted') {
-                $order->driver_assigned_at = $order->driver_assigned_at ?? now();
-                if ($order->status === 'pending') {
-                    $order->status = 'processing';
+                $lockedOrder->driver_assigned_at = $lockedOrder->driver_assigned_at ?? now();
+                if ($lockedOrder->status === 'pending') {
+                    $lockedOrder->status = 'processing';
                 }
             } elseif ($next === 'picked_up') {
-                $order->driver_picked_up_at = $order->driver_picked_up_at ?? now();
-                $order->status = 'processing';
+                $lockedOrder->driver_picked_up_at = $lockedOrder->driver_picked_up_at ?? now();
+                $lockedOrder->status = 'processing';
             } elseif (in_array($next, ['on_the_way', 'arrived'], true)) {
-                $order->status = 'processing';
+                $lockedOrder->status = 'processing';
             } elseif ($next === 'delivered') {
-                $order->driver_delivered_at = now();
-                $fee = $order->resolveDeliveryFee();
-                $order->delivery_fee = $fee;
+                $lockedOrder->driver_delivered_at = now();
+                $fee = $lockedOrder->resolveDeliveryFee();
+                $lockedOrder->delivery_fee = $fee;
 
-                // Lab sample delivery ends the courier leg, while the lab order
-                // remains in_progress until the lab publishes results.
-                if ($order->isLabService()) {
-                    if (in_array($order->status, ['pending', 'accepted', 'confirmed', 'processing'], true)) {
-                        $order->status = 'in_progress';
+                if ($lockedOrder->isLabService()) {
+                    if (in_array($lockedOrder->status, ['pending', 'accepted', 'confirmed', 'processing'], true)) {
+                        $lockedOrder->status = 'in_progress';
                     }
                 } else {
-                    $order->markCompletedWithFinancials();
+                    $lockedOrder->markCompletedWithFinancials();
                 }
 
                 $driver->increment('completed_deliveries');
                 $driver->increment('total_earnings', $fee);
             }
 
-            $order->save();
+            $lockedOrder->save();
 
             Driver::syncDutyStatusForUser($user->id);
+
+            return $lockedOrder;
         });
+
+        if ($result === null) {
+            return response()->json(['message' => 'ئەم داواکارییە پێشتر داخراوە.'], 422);
+        }
+
+        $order = $result;
 
         OrderNotificationService::notifyDeliveryStage($order->fresh(), $next);
 
@@ -507,8 +529,7 @@ class DriverController extends Controller
             ? $order->patient_details
             : (json_decode((string) $order->patient_details, true) ?: []);
 
-        $serviceType = strtolower((string) $order->service_type);
-        $isLab = str_contains($serviceType, 'lab');
+        $isLab = $order->isLabService();
         $isNursing = $order->isNursingService();
 
         $pickupName = '';
@@ -559,7 +580,9 @@ class DriverController extends Controller
             'distance_km' => $this->dispatch->distanceForDriver($order, $viewerDriver),
             'status' => $order->status,
             'scheduled_at' => $order->scheduled_at?->format('Y-m-d H:i'),
-            'scheduled_at_iso' => $order->scheduled_at?->toIso8601String(),
+            'scheduled_at_iso' => $order->scheduled_at
+                ? \App\Services\ProviderSlotService::parseWallClock($order->scheduled_at)->toIso8601String()
+                : null,
             'is_scheduled' => $order->scheduled_at !== null,
             'delivery_status' => $order->delivery_status ?? 'unassigned',
             'total_price' => (float) $order->total_price,

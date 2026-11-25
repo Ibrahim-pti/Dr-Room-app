@@ -206,16 +206,20 @@ class _AdminPatientDetailScreenState extends State<AdminPatientDetailScreen> {
                               'message': msg,
                             });
 
-                            if (dCtx.mounted) Navigator.pop(dCtx);
-
                             if (res.statusCode == 200) {
+                              if (dCtx.mounted) Navigator.pop(dCtx);
                               if (mounted) AdminUi.toast(context, 'ئاگاداری بە سەرکەوتوویی بۆ نەخۆشەکە نێردرا');
                             } else {
-                              if (mounted) AdminUi.toast(context, AdminUi.readError(res), isError: true);
+                              if (dCtx.mounted) {
+                                setDialogState(() => isSending = false);
+                                AdminUi.toast(dCtx, AdminUi.readError(res), isError: true);
+                              }
                             }
                           } catch (e) {
-                            if (dCtx.mounted) Navigator.pop(dCtx);
-                            if (mounted) AdminUi.toast(context, '$e', isError: true);
+                            if (dCtx.mounted) {
+                              setDialogState(() => isSending = false);
+                              AdminUi.toast(dCtx, '$e', isError: true);
+                            }
                           }
                         },
                   icon: isSending

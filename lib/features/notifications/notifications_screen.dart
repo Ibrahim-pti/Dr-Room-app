@@ -55,17 +55,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _deleteNotification(int id, int index) async {
+    final removed = (index >= 0 && index < notifications.length) ? notifications[index] : null;
+    if (removed != null) {
+      setState(() {
+        notifications.removeAt(index);
+      });
+    }
     try {
       final response = await ApiClient.delete('/notifications/$id');
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        if (mounted) {
-          setState(() {
-            notifications.removeAt(index);
-          });
-        }
+      if (response.statusCode != 200 && response.statusCode != 204 && removed != null && mounted) {
+        setState(() {
+          final insertAt = index.clamp(0, notifications.length);
+          notifications.insert(insertAt, removed);
+        });
       }
     } catch (e) {
       debugPrint('Error deleting notification: $e');
+      if (removed != null && mounted) {
+        setState(() {
+          final insertAt = index.clamp(0, notifications.length);
+          notifications.insert(insertAt, removed);
+        });
+      }
     }
   }
 
@@ -75,6 +86,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
     if (langCode == 'ar' && notif['${field}_ar'] != null && notif['${field}_ar'].toString().isNotEmpty) {
       return notif['${field}_ar'];
+    }
+    if (langCode == 'kmr' && notif['${field}_kmr'] != null && notif['${field}_kmr'].toString().isNotEmpty) {
+      return notif['${field}_kmr'];
     }
     return notif[field] ?? '';
   }

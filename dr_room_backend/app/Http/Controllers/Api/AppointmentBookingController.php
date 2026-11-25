@@ -24,16 +24,14 @@ class AppointmentBookingController extends Controller
         $request->validate([
             'doctor_id'        => 'required|exists:doctors,id',
             'service_id'       => 'nullable|exists:doctor_services,id',
-            'appointment_date' => 'required|date|after:now',
+            'appointment_date' => 'required|date',
             'type'             => 'sometimes|in:in_person,online',
             'notes'            => 'nullable|string|max:500',
         ]);
 
         $doctor = Doctor::findOrFail($request->doctor_id);
-        $when = Carbon::parse($request->appointment_date)->seconds(0);
+        $when = \App\Services\ProviderSlotService::parseWallClock($request->appointment_date)->seconds(0);
 
-        // The client generates nothing on its own — the requested time has to
-        // be a slot this doctor actually offers, and still be free.
         if (! $slots->isBookable($doctor, $when)) {
             return response()->json([
                 'message' => 'This time is no longer available.',

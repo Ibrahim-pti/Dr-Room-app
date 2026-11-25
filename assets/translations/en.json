@@ -1308,5 +1308,10 @@
   "admin_staff_schedule_day_short_thu": "Th",
   "admin_staff_schedule_day_short_fri": "Fr",
   "nurse_broadcast_title": "Send to Dr. Room Nursing Team",
-  "nurse_broadcast_desc": "After submitting, your request is sent to available nurses so one can accept it, and you will receive a notification once accepted."
+  "nurse_broadcast_desc": "After submitting, your request is sent to available nurses so one can accept it, and you will receive a notification once accepted.",
+  "err_password_min_length": "Password must be at least 6 characters",
+  "err_passwords_do_not_match": "Passwords do not match",
+  "no_staff_available": "No staff available",
+  "pharmacy_title": "Pharmacy",
+  "unavailable": "Unavailable"
 }

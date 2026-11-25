@@ -311,18 +311,27 @@ class _TicketDetailSheetState extends State<_TicketDetailSheet> {
   Future<void> _fetch() async {
     try {
       final res = await ApiClient.get('/admin/tickets/${widget.ticketId}');
+      if (!mounted) return;
       if (res.statusCode == 200) {
         setState(() {
           _ticket = jsonDecode(res.body)['data'];
           _isLoading = false;
         });
+      } else {
+        setState(() => _isLoading = false);
+        AdminUi.toast(context, AdminUi.readError(res), isError: true);
       }
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        AdminUi.toast(context, '$e', isError: true);
+      }
+    }
   }
 
   Future<void> _sendReply() async {
     final text = _replyCtrl.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _isSending) return;
 
     setState(() => _isSending = true);
     try {
@@ -330,13 +339,19 @@ class _TicketDetailSheetState extends State<_TicketDetailSheet> {
         'message': text,
         'status': 'in_progress',
       });
+      if (!mounted) return;
       if (res.statusCode == 200) {
         _replyCtrl.clear();
         _fetch();
         widget.onUpdated();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(res), isError: true);
       }
-    } catch (_) {}
-    setState(() => _isSending = false);
+    } catch (e) {
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
   }
 
   Future<void> _changeStatus(String status) async {
@@ -344,11 +359,16 @@ class _TicketDetailSheetState extends State<_TicketDetailSheet> {
       final res = await ApiClient.patch('/admin/tickets/${widget.ticketId}/status', body: {
         'status': status,
       });
+      if (!mounted) return;
       if (res.statusCode == 200) {
         _fetch();
         widget.onUpdated();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(res), isError: true);
       }
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
+    }
   }
 
   @override
@@ -432,7 +452,9 @@ class _TicketDetailSheetState extends State<_TicketDetailSheet> {
                                 style: TextStyle(
                                   fontFamily: 'Rabar',
                                   fontSize: 13,
-                                  color: isAdmin ? Colors.white : const Color(0xFF0F172A),
+                                  color: isAdmin
+                                      ? Colors.white
+                                      : (isDark ? Colors.white : const Color(0xFF0F172A)),
                                 ),
                               ),
                             ],

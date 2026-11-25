@@ -263,6 +263,7 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
 
   @override
   void dispose() {
+    _mapController?.dispose();
     _nameController.dispose();
     _ageController.dispose();
     _phoneController.dispose();
@@ -518,7 +519,8 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
       return;
     }
 
-    final isLab = context.read<CartProvider>().serviceType == 'lab';
+    final cart = context.read<CartProvider>();
+    final isLab = cart.effectiveServiceType == 'lab' || cart.serviceType == 'lab';
 
     if (_hasAnyBookableSlot && _selectedScheduledAt == null) {
       setState(() => _showSlotError = true);
@@ -618,7 +620,8 @@ class _CheckoutDetailsScreenState extends State<CheckoutDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isLab = context.watch<CartProvider>().serviceType == 'lab';
+    final cart = context.watch<CartProvider>();
+    final isLab = cart.effectiveServiceType == 'lab' || cart.serviceType == 'lab';
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark
         ? const Color(0xFF334155)

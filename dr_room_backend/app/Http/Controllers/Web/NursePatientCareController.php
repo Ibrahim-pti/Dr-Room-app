@@ -48,15 +48,30 @@ class NursePatientCareController extends Controller
         return redirect()->route('nurse.patient_cares.index')->with('success', 'Care record added successfully.');
     }
 
-    public function edit(NursePatientCare $care)
+    public function show($patient_care)
     {
-        if ($care->nurse_id !== Auth::user()->nurse->id) { abort(403); }
+        $nurse = Auth::user()->nurse;
+        if (!$nurse) { abort(403); }
+        $care = NursePatientCare::findOrFail($patient_care);
+        if ((int) $care->nurse_id !== (int) $nurse->id) { abort(403); }
         return view('nurse.patient_cares.edit', compact('care'));
     }
 
-    public function update(Request $request, NursePatientCare $care)
+    public function edit($patient_care)
     {
-        if ($care->nurse_id !== Auth::user()->nurse->id) { abort(403); }
+        $nurse = Auth::user()->nurse;
+        if (!$nurse) { abort(403); }
+        $care = NursePatientCare::findOrFail($patient_care);
+        if ((int) $care->nurse_id !== (int) $nurse->id) { abort(403); }
+        return view('nurse.patient_cares.edit', compact('care'));
+    }
+
+    public function update(Request $request, $patient_care)
+    {
+        $nurse = Auth::user()->nurse;
+        if (!$nurse) { abort(403); }
+        $care = NursePatientCare::findOrFail($patient_care);
+        if ((int) $care->nurse_id !== (int) $nurse->id) { abort(403); }
 
         $validated = $request->validate([
             'symptoms' => 'nullable|string',
@@ -77,9 +92,12 @@ class NursePatientCareController extends Controller
         return redirect()->route('nurse.patient_cares.index')->with('success', 'Care record updated successfully.');
     }
 
-    public function destroy(NursePatientCare $care)
+    public function destroy($patient_care)
     {
-        if ($care->nurse_id !== Auth::user()->nurse->id) { abort(403); }
+        $nurse = Auth::user()->nurse;
+        if (!$nurse) { abort(403); }
+        $care = NursePatientCare::findOrFail($patient_care);
+        if ((int) $care->nurse_id !== (int) $nurse->id) { abort(403); }
         $care->delete();
         return redirect()->route('nurse.patient_cares.index')->with('success', 'Care record deleted successfully.');
     }

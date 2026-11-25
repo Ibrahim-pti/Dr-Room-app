@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
+import '../../core/utils/admin_permissions.dart';
 import '../../core/theme/app_colors.dart';
 import '../home/main_shell.dart';
 import 'admin_app_bar.dart';
@@ -45,11 +46,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
     try {
       final response = await ApiClient.get('/admin/dashboard');
-      if (response.statusCode == 200 && mounted) {
-        setState(() {
-          _stats = jsonDecode(response.body);
-          _isLoading = false;
-        });
+      if (mounted) {
+        if (response.statusCode == 200) {
+          setState(() {
+            _stats = jsonDecode(response.body);
+            _isLoading = false;
+          });
+        } else {
+          setState(() => _isLoading = false);
+        }
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -333,15 +338,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final int pendingOrders =
         int.tryParse('${_stats?['pending_orders'] ?? 0}') ?? 0;
 
-    final int openTickets = (_stats?['open_tickets'] ?? 0) as int;
+    final int openTickets =
+        int.tryParse('${_stats?['open_tickets'] ?? 0}') ?? 0;
     final int unreadTicketMessages =
-        (_stats?['unread_ticket_messages'] ?? 0) as int;
+        int.tryParse('${_stats?['unread_ticket_messages'] ?? 0}') ?? 0;
 
-    final int pendingLabs = (_stats?['pending_labs'] ?? 0) as int;
-    final int totalLabs = (_stats?['total_labs'] ?? 0) as int;
+    final int pendingLabs =
+        int.tryParse('${_stats?['pending_labs'] ?? 0}') ?? 0;
+    final int totalLabs =
+        int.tryParse('${_stats?['total_labs'] ?? 0}') ?? 0;
 
-    final int pendingNurses = (_stats?['pending_nurses'] ?? 0) as int;
-    final int totalNurses = (_stats?['total_nurses'] ?? 0) as int;
+    final int pendingNurses =
+        int.tryParse('${_stats?['pending_nurses'] ?? 0}') ?? 0;
+    final int totalNurses =
+        int.tryParse('${_stats?['total_nurses'] ?? 0}') ?? 0;
 
     final int pendingDrivers =
         int.tryParse('${_stats?['pending_drivers'] ?? 0}') ?? 0;
@@ -350,8 +360,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final int onlineDrivers =
         int.tryParse('${_stats?['online_drivers'] ?? 0}') ?? 0;
 
-    final List<Map<String, dynamic>> essentials = [
+    final essentials = <Map<String, dynamic>>[
       {
+        'perm': AdminPermissions.manageOrders,
         'title': 'داواکارییەکان',
         'subtitle': '$totalOrders کۆی ئۆردەرەکان',
         'icon': Iconsax.box,
@@ -361,6 +372,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminOrdersScreen(),
       },
       {
+        'perm': AdminPermissions.manageContent,
         'title': 'سکاڵا و پشتیوانی',
         'subtitle': openTickets > 0
             ? '$openTickets تیکێتی کراوە'
@@ -374,6 +386,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminTicketsScreen(),
       },
       {
+        'perm': AdminPermissions.viewPayments,
         'title': 'ئامار و ڕاپۆرت',
         'subtitle': 'گەشەکردن و داهات',
         'icon': Iconsax.chart_2,
@@ -383,6 +396,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminAnalyticsScreen(),
       },
       {
+        'perm': AdminPermissions.manageProviders,
         'title': 'admin_health_centers'.tr(),
         'subtitle': '$totalNurses ${'admin_health_centers_subtitle'.tr()}',
         'icon': Iconsax.profile_2user,
@@ -394,6 +408,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminNursesScreen(),
       },
       {
+        'perm': AdminPermissions.manageProviders,
         'title': 'تاقیگەکان',
         'subtitle': '$totalLabs تاقیگەی پزیشکی',
         'icon': Iconsax.microscope,
@@ -403,6 +418,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminLabsScreen(),
       },
       {
+        'perm': AdminPermissions.manageProviders,
         'title': 'کارمەندانی گەیاندن',
         'subtitle': '$onlineDrivers لە هێڵ · $totalDrivers شۆفێر',
         'icon': Iconsax.truck_fast,
@@ -412,6 +428,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminDriversScreen(),
       },
       {
+        'perm': AdminPermissions.manageContent,
         'title': 'کۆدەکانی داشکاندن',
         'subtitle': 'پڕۆمۆکۆدی داشکاندن',
         'icon': Iconsax.ticket_discount,
@@ -420,7 +437,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'badge': null,
         'screen': const AdminCouponsScreen(),
       },
-    ];
+    ].where((e) => AdminPermissions.can(e['perm'] as String)).toList();
 
     return GridView.builder(
       shrinkWrap: true,
@@ -536,8 +553,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   // ── 4. Management & Content Grid (Wide Cards) ──
   Widget _buildManagementGrid() {
-    final List<Map<String, dynamic>> items = [
+    final items = <Map<String, dynamic>>[
       {
+        'perm': AdminPermissions.viewPayments,
         'title': 'دارایی و داهاتی گشتی',
         'subtitle': 'تۆماری تراکنش و بزووتنەوە داراییەکان',
         'icon': Iconsax.wallet_3,
@@ -546,6 +564,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminTransactionsScreen(),
       },
       {
+        'perm': AdminPermissions.manageContent,
         'title': 'بانەر و ڕیکلامەکان',
         'subtitle': 'ڕیکلام و پۆستەری سەرەکی ئەپ',
         'icon': Iconsax.picture_frame,
@@ -554,6 +573,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminBannersScreen(),
       },
       {
+        'perm': AdminPermissions.manageContent,
         'title': 'ئاگاداری گشتی ',
         'subtitle': 'ناردنی پەیامی ڕاستەوخۆ بۆ بەکارهێنەران',
         'icon': Iconsax.notification_bing,
@@ -562,6 +582,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminNotificationsScreen(),
       },
       {
+        'perm': AdminPermissions.manageReviews,
         'title': 'فیدباک و هەڵسەنگاندنی بەکارهێنەران',
         'subtitle': 'پرسیاری ڕازیبوون، پێشنیار و بینینی وەڵامەکان',
         'icon': Iconsax.message_favorite,
@@ -570,6 +591,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminFeedbackScreen(),
       },
       {
+        'perm': AdminPermissions.manageContent,
         'title': 'فریاگوزاری و وتارەکان',
         'subtitle': 'ڕێنمایی پزیشکی و فریاگوزاری سەرەتایی',
         'icon': Iconsax.document_text,
@@ -578,7 +600,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'screen': const AdminArticlesScreen(),
         'disabled': true,
       },
-    ];
+    ].where((e) => AdminPermissions.can(e['perm'] as String)).toList();
 
     return Column(
       children: items.map((item) {

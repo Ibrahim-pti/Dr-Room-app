@@ -1095,14 +1095,26 @@ class _UploadPrescriptionScreenState extends State<UploadPrescriptionScreen> {
 
     if (!mounted) return;
 
-    final cart = context.read<CartProvider>();
+    if (uploadedUrl == null && uploadedPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFEF4444),
+          content: Text(
+            'error_occurred'.tr(),
+            style: const TextStyle(fontFamily: 'Rabar', color: Colors.white),
+          ),
+        ),
+      );
+      return;
+    }
 
-    final finalUrl = uploadedUrl ?? _imageFile?.path;
-    final finalPath = uploadedPath ?? _imageFile?.path;
+    final cart = context.read<CartProvider>();
+    final finalUrl = uploadedUrl ?? uploadedPath;
+    final finalPath = uploadedPath ?? uploadedUrl;
 
     if (widget.isNursing) {
       const fee = 15000.0;
-      cart.setServiceType('nursing', extraFee: fee);
+      cart.setServiceType('nursing', extraFee: 0.0);
       cart.addItem(
         CartItem(
           id: 'prescription_${DateTime.now().millisecondsSinceEpoch}',

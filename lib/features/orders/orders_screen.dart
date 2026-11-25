@@ -83,6 +83,8 @@ class OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
+  bool _isPollingInFlight = false;
+
   @override
   void initState() {
     super.initState();
@@ -92,9 +94,16 @@ class OrdersScreenState extends State<OrdersScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<OrderProvider>().fetchOrders();
     });
-    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (mounted) {
-        context.read<OrderProvider>().fetchOrders(silent: true);
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) async {
+      if (!mounted || _isPollingInFlight) return;
+      final provider = context.read<OrderProvider>();
+      final hasActive = provider.orders.any((o) => o.status.isActive);
+      if (!hasActive && provider.orders.isNotEmpty) return;
+      _isPollingInFlight = true;
+      try {
+        await provider.fetchOrders(silent: true);
+      } finally {
+        _isPollingInFlight = false;
       }
     });
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {

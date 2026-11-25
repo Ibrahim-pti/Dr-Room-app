@@ -103,10 +103,30 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     } catch (_) {}
   }
 
+  bool _isPollingRequestInFlight = false;
+
   void _startPolling() {
+    if (_currentOrder.status == OrderStatus.completed ||
+        _currentOrder.status == OrderStatus.cancelled) {
+      return;
+    }
     _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
-      if (!mounted) return;
-      await context.read<OrderProvider>().fetchOrders(silent: true);
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_currentOrder.status == OrderStatus.completed ||
+          _currentOrder.status == OrderStatus.cancelled) {
+        timer.cancel();
+        return;
+      }
+      if (_isPollingRequestInFlight) return;
+      _isPollingRequestInFlight = true;
+      try {
+        await context.read<OrderProvider>().fetchOrders(silent: true);
+      } finally {
+        _isPollingRequestInFlight = false;
+      }
 
       if (mounted) {
         final updatedOrder = context.read<OrderProvider>().orders.firstWhere(

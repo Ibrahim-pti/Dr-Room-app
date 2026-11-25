@@ -68,12 +68,15 @@ class PatientEmrController extends Controller
      */
     public function patientEmr($id)
     {
+        $viewer = Auth::user();
+        $isSelf = (int) $viewer->id === (int) $id;
+        $isPrivileged = in_array($viewer->role, ['admin', 'staff', 'moderator', 'doctor', 'nurse', 'lab'], true);
+        if (!$isSelf && !$isPrivileged) {
+            return response()->json(['success' => false, 'message' => 'دەسەڵاتت نییە بۆ بینینی دۆسیەی ئەم نەخۆشە'], 403);
+        }
+
         $patient = User::findOrFail($id);
         $emr = PatientEmrRecord::where('patient_id', $patient->id)->first();
-
-        // Also fetch recent lab results and nurse cares
-        $recentLabs = $patient->labResults ?? [];
-        $recentCares = $patient->nurseCares ?? [];
 
         return response()->json([
             'success' => true,

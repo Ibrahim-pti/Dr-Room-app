@@ -36,7 +36,7 @@ class DriverDispatchService
         $lng = null;
         $city = '';
 
-        if (str_contains($serviceType, 'lab') && $order->assignedLab?->lab) {
+        if ($order->isLabService() && $order->assignedLab?->lab) {
             $l = $order->assignedLab->lab;
             $lat = is_numeric($l->latitude) ? (float) $l->latitude : null;
             $lng = is_numeric($l->longitude) ? (float) $l->longitude : null;
@@ -125,8 +125,7 @@ class DriverDispatchService
             return null;
         }
 
-        $serviceType = strtolower((string) $order->service_type);
-        $isLab = str_contains($serviceType, 'lab');
+        $isLab = $order->isLabService();
         $allowedScopes = $isLab ? ['lab_sample', 'both'] : ['pharmacy', 'both'];
 
         $excludedIds = array_values(array_unique(array_merge(
@@ -246,11 +245,10 @@ class DriverDispatchService
                 if (!$o->needsDeliveryDriver()) {
                     return false;
                 }
-                $st = strtolower((string) $o->service_type);
-                if ($driver->service_scope === 'pharmacy' && !str_contains($st, 'pharmac') && !str_contains($st, 'medic')) {
+                if ($driver->service_scope === 'pharmacy' && !$o->isPharmacyService()) {
                     return false;
                 }
-                if ($driver->service_scope === 'lab_sample' && !str_contains($st, 'lab')) {
+                if ($driver->service_scope === 'lab_sample' && !$o->isLabService()) {
                     return false;
                 }
                 $targetAt = $o->scheduled_at

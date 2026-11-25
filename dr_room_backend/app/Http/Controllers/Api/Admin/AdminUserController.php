@@ -34,7 +34,6 @@ class AdminUserController extends Controller
 
         if ($request->filled('role')) {
             $user->role = $request->role;
-            $user->is_admin = ($request->role === 'admin');
         }
 
         if ($request->filled('status')) {
@@ -103,7 +102,6 @@ class AdminUserController extends Controller
             'password' => \Illuminate\Support\Facades\Hash::make($request->password),
             'role' => 'admin',
             'status' => 'approved',
-            'is_admin' => true,
         ]);
 
         return response()->json([

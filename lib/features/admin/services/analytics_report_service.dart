@@ -284,6 +284,7 @@ class AnalyticsReportService {
     const serviceLabels = {
       'lab': 'پشکنینی تاقیگە',
       'nursing': 'پەرستاری ماڵەوە',
+      'pharmacy': 'دەرمانخانە',
       'other': 'خزمەتگوزاری تر',
     };
     final List<Map<String, dynamic>> serviceBreakdown = [];
@@ -614,6 +615,9 @@ class AnalyticsReportService {
 
   static String _classifyService(Map<String, dynamic> o) {
     final st = (o['service_type'] ?? '').toString().toLowerCase().trim();
+    if (st.contains('pharm') || st.contains('دەرمان') || o['assigned_pharmacy_id'] != null) {
+      return 'pharmacy';
+    }
     if (st.contains('lab') || st.contains('تاقیگە') || o['assigned_lab_id'] != null) {
       return 'lab';
     }

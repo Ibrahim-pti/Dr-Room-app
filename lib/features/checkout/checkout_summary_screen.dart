@@ -25,6 +25,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
   String? _appliedCouponCode;
   double _couponDiscount = 0.0;
   bool _isValidatingCoupon = false;
+  bool _isSubmittingPayment = false;
   bool _hasActiveCoupons = false;
 
   @override
@@ -460,7 +461,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                     ),
                                     const SizedBox(width: 8),
                                     ElevatedButton(
-                                      onPressed: _isValidatingCoupon ? null : () => _validateAndApplyCoupon(cartProvider.total),
+                                      onPressed: _isValidatingCoupon ? null : () => _validateAndApplyCoupon(cartProvider.subtotal),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFF6366F1),
                                         foregroundColor: Colors.white,
@@ -598,7 +599,7 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                 child: Consumer<CheckoutProvider>(
                   builder: (context, checkoutProvider, child) {
                     return ElevatedButton(
-                      onPressed: checkoutProvider.isProcessing
+                      onPressed: (checkoutProvider.isProcessing || _isSubmittingPayment)
                           ? null
                           : () async {
                               final cartProvider = context.read<CartProvider>();
@@ -612,88 +613,93 @@ class _CheckoutSummaryScreenState extends State<CheckoutSummaryScreen> {
                                 return;
                               }
 
-                              // Calculate discounted total if coupon is applied
-                              final effectiveTotal = ((cartProvider.total - _couponDiscount) < 0 ? 0.0 : (cartProvider.total - _couponDiscount));
+                              setState(() => _isSubmittingPayment = true);
+                              try {
+                                // Calculate discounted total if coupon is applied
+                                final effectiveTotal = ((cartProvider.total - _couponDiscount) < 0 ? 0.0 : (cartProvider.total - _couponDiscount));
 
-                              // Check if selected payment method uses Rasedi Gateway
-                              final selectedMethod = checkoutProvider.selectedPaymentMethod;
-                              final gateway = RasediPaymentService.mapMethodToGateway(selectedMethod);
-                              String? transactionRef;
+                                // Check if selected payment method uses Rasedi Gateway
+                                final selectedMethod = checkoutProvider.selectedPaymentMethod;
+                                final gateway = RasediPaymentService.mapMethodToGateway(selectedMethod);
+                                String? transactionRef;
 
-                              if (gateway != null) {
-                                final result = await RasediCheckoutScreen.startPayment(
-                                  context,
-                                  amount: effectiveTotal,
-                                  title: 'DrRoom - ${cartProvider.serviceType ?? 'Medical'}',
-                                  description: cartProvider.items.map((e) => e.name).join('، '),
-                                  gateway: gateway,
-                                  customerPhone: cartProvider.patientDetails?['phone']?.toString(),
+                                if (gateway != null) {
+                                  final result = await RasediCheckoutScreen.startPayment(
+                                    context,
+                                    amount: effectiveTotal,
+                                    title: 'DrRoom - ${cartProvider.serviceType ?? 'Medical'}',
+                                    description: cartProvider.items.map((e) => e.name).join('، '),
+                                    gateway: gateway,
+                                    customerPhone: cartProvider.patientDetails?['phone']?.toString(),
+                                  );
+
+                                  if (result == null || !result.isSuccess) {
+                                    if (context.mounted && result?.isCancelled != true) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            result?.errorMessage ?? 'پرۆسەی پارەدان تەواو نەکرا',
+                                            style: _kStyle(color: Colors.white),
+                                          ),
+                                          backgroundColor: const Color(0xFFEF4444),
+                                        ),
+                                      );
+                                    }
+                                    return;
+                                  }
+                                  transactionRef = result.referenceCode;
+                                }
+
+                                // Process Order & Record Transaction
+                                final orderId = await checkoutProvider.processPayment(
+                                  cartProvider,
+                                  transactionReference: transactionRef,
+                                  couponCode: _appliedCouponCode,
+                                  discountAmount: _couponDiscount,
                                 );
 
-                                if (result == null || !result.isSuccess) {
-                                  if (context.mounted && result?.isCancelled != true) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          result?.errorMessage ?? 'پرۆسەی پارەدان تەواو نەکرا',
-                                          style: _kStyle(color: Colors.white),
-                                        ),
-                                        backgroundColor: const Color(0xFFEF4444),
+                                if (orderId != null && context.mounted) {
+                                  final serviceName = cartProvider.serviceType ?? 'lab';
+                                  final itemsStr = cartProvider.items.map((e) => e.name).join('، ');
+                                  final rawScheduled = cartProvider.patientDetails?['scheduled_at']?.toString();
+                                  final parsedScheduled = rawScheduled != null
+                                      ? DateTime.tryParse(rawScheduled.replaceFirst(' ', 'T'))
+                                      : null;
+
+                                  await context.read<OrderProvider>().addOrder(OrderModel(
+                                    id: orderId,
+                                    serviceType: serviceName,
+                                    customTitle: itemsStr.isEmpty ? null : itemsStr,
+                                    status: transactionRef != null ? OrderStatus.processing : OrderStatus.pending,
+                                    price: effectiveTotal,
+                                    serviceFee: cartProvider.serviceFee,
+                                    date: DateTime.now(),
+                                    scheduledAt: parsedScheduled,
+                                  ));
+
+                                  if (context.mounted) {
+                                    cartProvider.clearCart();
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => OrderSuccessScreen(orderId: orderId),
                                       ),
+                                      (route) => false,
                                     );
                                   }
-                                  return;
-                                }
-                                transactionRef = result.referenceCode;
-                              }
-
-                              // Process Order & Record Transaction
-                              final orderId = await checkoutProvider.processPayment(
-                                cartProvider,
-                                transactionReference: transactionRef,
-                                couponCode: _appliedCouponCode,
-                                discountAmount: _couponDiscount,
-                              );
-
-                              if (orderId != null && context.mounted) {
-                                final serviceName = cartProvider.serviceType ?? 'lab';
-                                final itemsStr = cartProvider.items.map((e) => e.name).join('، ');
-                                final rawScheduled = cartProvider.patientDetails?['scheduled_at']?.toString();
-                                final parsedScheduled = rawScheduled != null
-                                    ? DateTime.tryParse(rawScheduled.replaceFirst(' ', 'T'))
-                                    : null;
-
-                                await context.read<OrderProvider>().addOrder(OrderModel(
-                                  id: orderId,
-                                  serviceType: serviceName,
-                                  customTitle: itemsStr.isEmpty ? null : itemsStr,
-                                  status: transactionRef != null ? OrderStatus.processing : OrderStatus.pending,
-                                  price: effectiveTotal,
-                                  serviceFee: cartProvider.serviceFee,
-                                  date: DateTime.now(),
-                                  scheduledAt: parsedScheduled,
-                                ));
-
-                                if (context.mounted) {
-                                  cartProvider.clearCart();
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => OrderSuccessScreen(orderId: orderId),
+                                } else if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        checkoutProvider.lastError ?? 'کێشە لە تۆمارکردنی داواکاری ڕوویدا',
+                                        style: _kStyle(color: Colors.white),
+                                      ),
+                                      backgroundColor: const Color(0xFFEF4444),
                                     ),
-                                    (route) => false,
                                   );
                                 }
-                              } else if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      checkoutProvider.lastError ?? 'کێشە لە تۆمارکردنی داواکاری ڕوویدا',
-                                      style: _kStyle(color: Colors.white),
-                                    ),
-                                    backgroundColor: const Color(0xFFEF4444),
-                                  ),
-                                );
+                              } finally {
+                                if (mounted) setState(() => _isSubmittingPayment = false);
                               }
                             },
                       style: ElevatedButton.styleFrom(

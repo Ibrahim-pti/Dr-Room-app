@@ -197,18 +197,22 @@ class _AdminArticlesScreenState extends State<AdminArticlesScreen> {
     setState(() => _isLoading = true);
     try {
       final response = await ApiClient.get('/admin/articles');
-      if (response.statusCode == 200 && mounted) {
-        setState(() {
-          _articles = jsonDecode(response.body);
-          for (final a in _articles) {
-            final cat = (a['category'] ?? '').toString().trim();
-            if (cat.isNotEmpty && !_categories.contains(cat)) {
-              _categories.add(cat);
+      if (mounted) {
+        if (response.statusCode == 200) {
+          setState(() {
+            _articles = jsonDecode(response.body);
+            for (final a in _articles) {
+              final cat = (a['category'] ?? '').toString().trim();
+              if (cat.isNotEmpty && !_categories.contains(cat)) {
+                _categories.add(cat);
+              }
             }
-          }
-          _isLoading = false;
-        });
-        _saveCategories();
+            _isLoading = false;
+          });
+          _saveCategories();
+        } else {
+          setState(() => _isLoading = false);
+        }
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);

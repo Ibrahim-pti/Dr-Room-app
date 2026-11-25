@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
+import 'admin_ui.dart';
 
 class AdminNursesScreen extends StatefulWidget {
   final bool isRoot;
@@ -41,11 +42,16 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
     setState(() => _isLoading = true);
     try {
       final response = await ApiClient.get('/admin/nurses');
-      if (response.statusCode == 200 && mounted) {
-        setState(() {
-          _nurses = jsonDecode(response.body);
-          _isLoading = false;
-        });
+      if (mounted) {
+        if (response.statusCode == 200) {
+          setState(() {
+            _nurses = jsonDecode(response.body);
+            _isLoading = false;
+          });
+        } else {
+          setState(() => _isLoading = false);
+          AdminUi.toast(context, AdminUi.readError(response), isError: true);
+        }
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -55,27 +61,51 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
   Future<void> _approveNurse(int id) async {
     try {
       final response = await ApiClient.patch('/admin/nurses/$id/approve');
-      if (response.statusCode == 200) _fetchNurses();
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        AdminUi.toast(context, 'پەرستار پەسەندکرا');
+        _fetchNurses();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
   Future<void> _rejectNurse(int id) async {
     try {
       final response = await ApiClient.patch('/admin/nurses/$id/reject');
-      if (response.statusCode == 200) _fetchNurses();
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        AdminUi.toast(context, 'داواکاری پەرستار ڕەتکرایەوە');
+        _fetchNurses();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
   Future<void> _deleteNurse(int id) async {
+    final ok = await AdminUi.confirm(
+      context,
+      title: 'سڕینەوەی پەرستار',
+      message: 'ئایا دڵنیایت لە سڕینەوەی ئەم پەرستارە؟',
+    );
+    if (!ok) return;
     try {
       final response = await ApiClient.delete('/admin/nurses/$id');
-      if (response.statusCode == 204) _fetchNurses();
+      if (!mounted) return;
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        AdminUi.toast(context, 'پەرستار سڕایەوە');
+        _fetchNurses();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
@@ -83,9 +113,10 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
     if (_searchQuery.trim().isEmpty) return list;
     final q = _searchQuery.toLowerCase().trim();
     return list.where((n) {
+      final nurse = n['nurse'] is Map ? n['nurse'] as Map : const {};
       final name = (n['name'] ?? '').toString().toLowerCase();
       final phone = (n['phone'] ?? '').toString().toLowerCase();
-      final address = (n['address'] ?? '').toString().toLowerCase();
+      final address = (n['address'] ?? nurse['address'] ?? '').toString().toLowerCase();
       return name.contains(q) || phone.contains(q) || address.contains(q);
     }).toList();
   }
@@ -443,11 +474,11 @@ class _AdminNursesScreenState extends State<AdminNursesScreen>
                 children: [
                   Text(
                     'admin_health_center_profile_details'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Rabar',
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      color: Theme.of(ctx).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   IconButton(

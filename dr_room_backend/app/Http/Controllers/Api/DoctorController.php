@@ -57,6 +57,9 @@ class DoctorController extends Controller
     public function updateAppointmentStatus(Request $request, $id)
     {
         $doctor = Auth::user()->doctor;
+        if (!$doctor) {
+            return response()->json(['message' => 'Doctor profile not found.'], 404);
+        }
 
         $request->validate([
             'status' => 'required|in:pending,confirmed,cancelled,completed',
@@ -84,7 +87,7 @@ class DoctorController extends Controller
         }
 
         $patients = $doctor->appointments()
-            ->with('patient:id,name,email,profile_image,phone_number')
+            ->with('patient:id,name,email,profile_image,phone')
             ->select('patient_id')
             ->distinct()
             ->get()
@@ -158,6 +161,9 @@ class DoctorController extends Controller
     {
         $user   = Auth::user();
         $doctor = $user->doctor;
+        if (!$doctor) {
+            return response()->json(['message' => 'Doctor profile not found.'], 404);
+        }
 
         $request->validate([
             'specialty'        => 'sometimes|string|max:100',

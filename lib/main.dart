@@ -45,9 +45,10 @@ void main() async {
 
   // A rejected token used to fail silently on every subsequent call. Now it
   // tears the session down and returns the user to login.
+  bool isHandlingUnauthorized = false;
   ApiClient.onUnauthorized = () {
-    // The same wipe the logout button performs — an expired token must not
-    // leave the previous patient's orders sitting in memory either.
+    if (isHandlingUnauthorized) return;
+    isHandlingUnauthorized = true;
     final context = appNavigatorKey.currentContext;
     if (context != null) SessionService.clearProviders(context);
 
@@ -55,6 +56,9 @@ void main() async {
       MaterialPageRoute(builder: (_) => const AppFlow(startAtLogin: true)),
       (route) => false,
     );
+    Future.delayed(const Duration(seconds: 2), () {
+      isHandlingUnauthorized = false;
+    });
   };
 
   SystemChrome.setSystemUIOverlayStyle(

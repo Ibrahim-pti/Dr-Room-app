@@ -144,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ? 'password_required'.tr()
           : (RegExp(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]').hasMatch(password)
               ? 'password_english_only'.tr()
-              : null);
+              : (password.length < 6 ? 'err_password_min_length'.tr() : null));
       _confirmPasswordError = confirmPassword.isEmpty
           ? 'confirm_password_required'.tr()
           : (password != confirmPassword ? 'passwords_do_not_match'.tr() : null);
@@ -176,7 +176,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final phoneTaken = (errors is Map && errors.containsKey('phone')) ||
         message.toLowerCase().contains('already been taken');
 
-    return phoneTaken ? 'phone_already_exists'.tr() : 'register_failed'.tr();
+    if (phoneTaken) return 'phone_already_exists'.tr();
+    if (errors is Map && errors.containsKey('password')) {
+      final pwErr = errors['password'];
+      if (pwErr is List && pwErr.isNotEmpty) return pwErr.first.toString();
+      if (pwErr != null) return pwErr.toString();
+    }
+    if (message.trim().isNotEmpty) return message;
+    return 'register_failed'.tr();
   }
 
   Future<void> _submitRegistration(String normalizedPhone, String provider) async {
@@ -204,6 +211,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           await prefs.setString('saved_login_phone', normalizedPhone);
           await prefs.setString('user_phone', normalizedPhone);
         } catch (_) {}
+        if (!mounted) return;
         widget.onOtpSent(normalizedPhone);
       } else {
         final err = jsonDecode(response.body);

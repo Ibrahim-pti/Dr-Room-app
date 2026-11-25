@@ -159,8 +159,10 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
         if (existingProfile.age != null) 'age': existingProfile.age,
       };
 
+      bool savedOnServer = false;
+      String? errorMessage;
+
       if (_selectedImage != null) {
-        await prefs.setString('user_profile_image', _selectedImage!.path);
         try {
           final response = await ApiClient.uploadMultipart(
             '/user',
@@ -169,24 +171,51 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
             filePath: _selectedImage!.path,
           );
           if (response.statusCode == 200 || response.statusCode == 201) {
+            savedOnServer = true;
+            await prefs.setString('user_profile_image', _selectedImage!.path);
             final data = jsonDecode(response.body);
-            final user = data['user'];
-            if (user != null && user['profile_image'] != null) {
+            final user = data is Map ? data['user'] : null;
+            if (user is Map && user['profile_image'] != null) {
               await prefs.setString('user_profile_image', user['profile_image'].toString());
             }
+          } else {
+            final data = jsonDecode(response.body);
+            errorMessage = data is Map ? data['message']?.toString() : null;
           }
         } catch (e) {
           debugPrint('Upload profile error: $e');
+          errorMessage = e.toString();
         }
       } else {
         try {
-          await ApiClient.put('/user', body: apiBodyJson);
+          final response = await ApiClient.put('/user', body: apiBodyJson);
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            savedOnServer = true;
+          } else {
+            final data = jsonDecode(response.body);
+            errorMessage = data is Map ? data['message']?.toString() : null;
+          }
         } catch (e) {
           debugPrint('Update profile error: $e');
+          errorMessage = e.toString();
         }
       }
 
       if (mounted) {
+        if (!savedOnServer) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                errorMessage ?? 'هەڵەیەک ڕوویدا لە نوێکردنەوەی پڕۆفایل',
+                style: const TextStyle(fontFamily: 'Rabar', color: Colors.white),
+              ),
+              backgroundColor: const Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          );
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

@@ -37,8 +37,11 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
   bool _isLoading = false;
 
   Future<void> _submitOrder() async {
+    if (_isLoading) return;
     final cartState = ref.read(cartProvider);
     if (cartState.items.isEmpty || cartState.pharmacy == null) return;
+
+    setState(() => _isLoading = true);
 
     final serviceFee = ServiceFeeService.instance.currentFee;
     final finalTotal = cartState.total + serviceFee;
@@ -57,22 +60,21 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
       );
 
       if (result == null || !result.isSuccess) {
-        if (mounted && result?.isCancelled != true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result?.errorMessage ?? 'پرۆسەی پارەدان تەواو نەکرا'),
-              backgroundColor: const Color(0xFFEF4444),
-            ),
-          );
+        if (mounted) {
+          setState(() => _isLoading = false);
+          if (result?.isCancelled != true) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result?.errorMessage ?? 'پرۆسەی پارەدان تەواو نەکرا'),
+                backgroundColor: const Color(0xFFEF4444),
+              ),
+            );
+          }
         }
         return;
       }
       transactionRef = result.referenceCode;
     }
-
-    setState(() {
-      _isLoading = true;
-    });
 
     try {
       final orderData = {
@@ -150,10 +152,7 @@ class _PharmacyPaymentScreenState extends ConsumerState<PharmacyPaymentScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); 
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop(); 
+                  Navigator.of(context).popUntil((route) => route.isFirst);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B82F6),

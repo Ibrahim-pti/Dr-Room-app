@@ -31,9 +31,11 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
     setState(() => _isLoading = true);
     try {
       final response = await ApiClient.get('/admin/banners');
-      if (response.statusCode == 200 && mounted) {
+      if (mounted) {
         setState(() {
-          _banners = jsonDecode(response.body);
+          if (response.statusCode == 200) {
+            _banners = jsonDecode(response.body);
+          }
           _isLoading = false;
         });
       }
@@ -43,11 +45,45 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
   }
 
   Future<void> _deleteBanner(int id) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        title: const Text('سڕینەوەی بانەر', style: TextStyle(fontFamily: 'Rabar', fontWeight: FontWeight.bold)),
+        content: const Text('ئایا دڵنیایت لە سڕینەوەی ئەم بانەرە؟', style: TextStyle(fontFamily: 'Rabar')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dCtx, false),
+            child: const Text('پاشگەزبوونەوە', style: TextStyle(fontFamily: 'Rabar')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dCtx, true),
+            child: const Text('سڕینەوە', style: TextStyle(fontFamily: 'Rabar', color: Color(0xFFEF4444))),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
     try {
       final response = await ApiClient.delete('/admin/banners/$id');
-      if (response.statusCode == 204) _fetchBanners();
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        _fetchBanners();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Color(0xFFEF4444),
+            content: Text('نەتوانرا بانەرەکە بسڕدرێتەوە', style: TextStyle(fontFamily: 'Rabar')),
+          ),
+        );
+      }
     } catch (e) {
-      debugPrint('Error deleting banner: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFEF4444),
+            content: Text('هەڵە: $e', style: const TextStyle(fontFamily: 'Rabar')),
+          ),
+        );
+      }
     }
   }
 

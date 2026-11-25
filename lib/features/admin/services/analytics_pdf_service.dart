@@ -38,6 +38,7 @@ class AnalyticsPdfService {
     return switch (key) {
       'lab' => 'پشکنینی تاقیگە',
       'nursing' => 'پەرستاری ماڵەوە',
+      'pharmacy' => 'دەرمانخانە',
       _ => 'هەموو خزمەتگوزارییەکان',
     };
   }

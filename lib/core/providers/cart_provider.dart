@@ -133,6 +133,12 @@ class CartProvider extends ChangeNotifier {
     return _items.fold(0, (total, item) => total + (item.price * item.quantity));
   }
 
+  void removeWhere(bool Function(CartItem) test) {
+    _items.removeWhere(test);
+    notifyListeners();
+    _saveToStorage();
+  }
+
   double get serviceFee => _items.isEmpty ? 0.0 : ServiceFeeService.instance.currentFee;
 
   double get total => subtotal + _extraFee + serviceFee;

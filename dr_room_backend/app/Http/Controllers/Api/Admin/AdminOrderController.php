@@ -78,7 +78,7 @@ class AdminOrderController extends Controller
 
         return response()->json([
             'message' => 'Pharmacy assigned successfully',
-            'order' => $order->load(['items', 'patient', 'assignedNurse'])
+            'order' => $order->load(['items', 'patient', 'assignedPharmacy'])
         ]);
     }
 
@@ -143,6 +143,11 @@ class AdminOrderController extends Controller
         ]);
 
         $order = Order::findOrFail($id);
+        if (in_array($order->status, ['completed', 'cancelled'], true) && $order->status !== $request->status) {
+            return response()->json([
+                'message' => 'ناتوانرێت دۆخی داواکارییەکی تەواوکراو یان هەڵوەشاوە بگۆڕدرێت.',
+            ], 422);
+        }
         $order->status = $request->status;
 
         if ($request->status === 'completed') {

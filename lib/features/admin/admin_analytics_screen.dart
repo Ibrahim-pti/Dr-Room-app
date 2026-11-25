@@ -871,69 +871,73 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
               ),
             )
           else ...[
-            SizedBox(
-              height: 195,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return GestureDetector(
-                    onTapDown: (details) {
-                      final colWidth = constraints.maxWidth / series.length;
-                      final tapped =
-                          (details.localPosition.dx / colWidth).floor().clamp(0, series.length - 1);
-                      setState(() => _selectedChartIndex = tapped);
-                    },
-                    child: CustomPaint(
-                      size: Size(constraints.maxWidth, 195),
-                      painter: _SixMonthComboChartPainter(
-                        series: series,
-                        selectedIndex: _selectedChartIndex,
-                        isDark: isDark,
-                        barColor: _violet,
-                        lineColor: _emerald,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Month labels row (clickable)
-            Row(
-              children: series.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final m = (entry.value['month'] ?? '').toString();
-                final shortLabel = m.length >= 7 ? m.substring(2) : m;
-                final isSelected = idx == _selectedChartIndex;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedChartIndex = idx),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? _violet.withValues(alpha: 0.12)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Directionality(
-                        textDirection: TextDirection.ltr,
-                        child: Text(
-                          shortLabel,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 10.5,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            color: isSelected
-                                ? _violet
-                                : AppColors.getTextSubtitle(context),
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 195,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return GestureDetector(
+                          onTapDown: (details) {
+                            final colWidth = constraints.maxWidth / series.length;
+                            final tapped =
+                                (details.localPosition.dx / colWidth).floor().clamp(0, series.length - 1);
+                            setState(() => _selectedChartIndex = tapped);
+                          },
+                          child: CustomPaint(
+                            size: Size(constraints.maxWidth, 195),
+                            painter: _SixMonthComboChartPainter(
+                              series: series,
+                              selectedIndex: _selectedChartIndex,
+                              isDark: isDark,
+                              barColor: _violet,
+                              lineColor: _emerald,
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ),
-                );
-              }).toList(),
+                  const SizedBox(height: 8),
+                  // Month labels row (clickable)
+                  Row(
+                    children: series.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final m = (entry.value['month'] ?? '').toString();
+                      final shortLabel = m.length >= 7 ? m.substring(2) : m;
+                      final isSelected = idx == _selectedChartIndex;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedChartIndex = idx),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? _violet.withValues(alpha: 0.12)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              shortLabel,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 10.5,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                color: isSelected
+                                    ? _violet
+                                    : AppColors.getTextSubtitle(context),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
             if (selectedPoint != null) ...[
               const SizedBox(height: 10),

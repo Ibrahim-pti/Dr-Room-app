@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
+import 'admin_ui.dart';
 
 class AdminLabsScreen extends StatefulWidget {
   final bool isRoot;
@@ -40,11 +41,16 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
     setState(() => _isLoading = true);
     try {
       final response = await ApiClient.get('/admin/labs');
-      if (response.statusCode == 200 && mounted) {
-        setState(() {
-          _labs = jsonDecode(response.body);
-          _isLoading = false;
-        });
+      if (mounted) {
+        if (response.statusCode == 200) {
+          setState(() {
+            _labs = jsonDecode(response.body);
+            _isLoading = false;
+          });
+        } else {
+          setState(() => _isLoading = false);
+          AdminUi.toast(context, AdminUi.readError(response), isError: true);
+        }
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -54,27 +60,51 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
   Future<void> _approveLab(int id) async {
     try {
       final response = await ApiClient.patch('/admin/labs/$id/approve');
-      if (response.statusCode == 200) _fetchLabs();
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        AdminUi.toast(context, 'تاقیگە پەسەندکرا');
+        _fetchLabs();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
   Future<void> _rejectLab(int id) async {
     try {
       final response = await ApiClient.patch('/admin/labs/$id/reject');
-      if (response.statusCode == 200) _fetchLabs();
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        AdminUi.toast(context, 'داواکاری تاقیگە ڕەتکرایەوە');
+        _fetchLabs();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
   Future<void> _deleteLab(int id) async {
+    final ok = await AdminUi.confirm(
+      context,
+      title: 'سڕینەوەی تاقیگە',
+      message: 'ئایا دڵنیایت لە سڕینەوەی ئەم تاقیگەیە؟',
+    );
+    if (!ok) return;
     try {
       final response = await ApiClient.delete('/admin/labs/$id');
-      if (response.statusCode == 204) _fetchLabs();
+      if (!mounted) return;
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        AdminUi.toast(context, 'تاقیگە سڕایەوە');
+        _fetchLabs();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
@@ -82,8 +112,9 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
     if (_searchQuery.trim().isEmpty) return list;
     final q = _searchQuery.toLowerCase().trim();
     return list.where((d) {
+      final lab = d['lab'] is Map ? d['lab'] as Map : const {};
       final name = (d['name'] ?? '').toString().toLowerCase();
-      final address = (d['address'] ?? '').toString().toLowerCase();
+      final address = (d['address'] ?? lab['address'] ?? '').toString().toLowerCase();
       final phone = (d['phone'] ?? '').toString().toLowerCase();
       return name.contains(q) || address.contains(q) || phone.contains(q);
     }).toList();
@@ -452,13 +483,13 @@ class _AdminLabsScreenState extends State<AdminLabsScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'وردەکاریی تاقیگە',
                     style: TextStyle(
                       fontFamily: 'Rabar',
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      color: Theme.of(ctx).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   IconButton(

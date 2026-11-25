@@ -40,13 +40,14 @@ class OrderController extends Controller
     {
         $request->validate([
             'service_type' => 'required|string',
-            'subtotal' => 'required|numeric',
-            'extra_fee' => 'required|numeric',
-            'total_price' => 'required|numeric',
+            'subtotal' => 'required|numeric|min:0',
+            'extra_fee' => 'required|numeric|min:0',
+            'service_fee' => 'nullable|numeric|min:0',
+            'total_price' => 'required|numeric|min:0',
             'payment_method' => 'required|string',
-            'items' => 'required|array',
+            'items' => 'required|array|min:1',
             'items.*.name' => 'required|string',
-            'items.*.price' => 'required|numeric',
+            'items.*.price' => 'required|numeric|min:0',
             'items.*.quantity' => 'required|integer|min:1',
         ]);
 
@@ -93,28 +94,43 @@ class OrderController extends Controller
                 $assignedLabId = $request->patient_details['lab_id'];
             }
 
-            // If it's a pharmacy ID (pharmacies.id) instead of users.id, resolve user_id
-            if ($assignedPharmacyId && !\App\Models\User::where('id', $assignedPharmacyId)->where('role', 'pharmacy')->exists()) {
-                $pharmacyRecord = \App\Models\Pharmacy::find($assignedPharmacyId);
-                if ($pharmacyRecord && $pharmacyRecord->user_id) {
-                    $assignedPharmacyId = $pharmacyRecord->user_id;
+            // Resolve & verify assigned provider IDs safely
+            if ($assignedPharmacyId) {
+                if (!\App\Models\User::where('id', $assignedPharmacyId)->where('role', 'pharmacy')->where('status', 'approved')->exists()) {
+                    $pharmacyRecord = \App\Models\Pharmacy::find($assignedPharmacyId);
+                    $assignedPharmacyId = ($pharmacyRecord && $pharmacyRecord->user_id && \App\Models\User::where('id', $pharmacyRecord->user_id)->where('role', 'pharmacy')->where('status', 'approved')->exists())
+                        ? $pharmacyRecord->user_id
+                        : null;
+                }
+                if (!$assignedPharmacyId) {
+                    DB::rollBack();
+                    return response()->json(['message' => 'دەرمانخانەی دیاریکراو بەردەست نییە یان پەسەند نەکراوە'], 422);
                 }
             }
 
-            // If it's a lab service and assignedLabId corresponds to a Lab model ID instead of User ID, resolve user_id
-            if ($assignedLabId && !\App\Models\User::where('id', $assignedLabId)->where('role', 'lab')->exists()) {
-                $labRecord = \App\Models\Lab::find($assignedLabId);
-                if ($labRecord && $labRecord->user_id) {
-                    $assignedLabId = $labRecord->user_id;
+            if ($assignedLabId) {
+                if (!\App\Models\User::where('id', $assignedLabId)->where('role', 'lab')->where('status', 'approved')->exists()) {
+                    $labRecord = \App\Models\Lab::find($assignedLabId);
+                    $assignedLabId = ($labRecord && $labRecord->user_id && \App\Models\User::where('id', $labRecord->user_id)->where('role', 'lab')->where('status', 'approved')->exists())
+                        ? $labRecord->user_id
+                        : null;
+                }
+                if (!$assignedLabId) {
+                    DB::rollBack();
+                    return response()->json(['message' => 'تاقیگەی دیاریکراو بەردەست نییە یان پەسەند نەکراوە'], 422);
                 }
             }
 
-            // The app sends the Nurse model ID (from /nurses or /labs/staff), but
-            // orders.assigned_nurse_id references users.id — resolve it here.
-            if ($assignedNurseId && !\App\Models\User::where('id', $assignedNurseId)->where('role', 'nurse')->exists()) {
-                $nurseRecord = \App\Models\Nurse::find($assignedNurseId);
-                if ($nurseRecord && $nurseRecord->user_id) {
-                    $assignedNurseId = $nurseRecord->user_id;
+            if ($assignedNurseId) {
+                if (!\App\Models\User::where('id', $assignedNurseId)->where('role', 'nurse')->where('status', 'approved')->exists()) {
+                    $nurseRecord = \App\Models\Nurse::find($assignedNurseId);
+                    $assignedNurseId = ($nurseRecord && $nurseRecord->user_id && \App\Models\User::where('id', $nurseRecord->user_id)->where('role', 'nurse')->where('status', 'approved')->exists())
+                        ? $nurseRecord->user_id
+                        : null;
+                }
+                if (!$assignedNurseId) {
+                    DB::rollBack();
+                    return response()->json(['message' => 'پەرستاری دیاریکراو بەردەست نییە یان پەسەند نەکراوە'], 422);
                 }
             }
 
@@ -125,12 +141,17 @@ class OrderController extends Controller
                 $patientDetails['is_prescription'] = true;
             }
 
-            // Coupon & Commission Calculations
+            $serviceFee = max(0.0, (float) ($request->input('service_fee') ?? ($patientDetails['service_fee'] ?? 0)));
+            if ($serviceFee > 0) {
+                $patientDetails['service_fee'] = $serviceFee;
+            }
+
+            // Coupon & Commission Calculations (with row lock to prevent usage_limit race)
             $couponCode = $request->coupon_code ? strtoupper(trim($request->coupon_code)) : null;
             $discountAmount = max(0.0, (float) ($request->discount_amount ?? 0));
-            $effectiveTotal = (float) $request->total_price;
+            $effectiveTotal = max(0.0, round((float) $request->total_price, 2));
             if ($couponCode) {
-                $coupon = \App\Models\Coupon::where('code', $couponCode)->first();
+                $coupon = \App\Models\Coupon::where('code', $couponCode)->lockForUpdate()->first();
                 if (!$coupon) {
                     DB::rollBack();
                     return response()->json(['message' => 'کۆدی داشکاندن نادروستە یان بوونی نییە'], 422);
@@ -141,7 +162,7 @@ class OrderController extends Controller
                     return response()->json(['message' => $couponCheck['message']], 422);
                 }
                 $discountAmount = (float) $couponCheck['discount'];
-                $effectiveTotal = max(0.0, round((float) $request->subtotal + (float) $request->extra_fee - $discountAmount, 2));
+                $effectiveTotal = max(0.0, round((float) $request->subtotal + (float) $request->extra_fee + $serviceFee - $discountAmount, 2));
                 $coupon->increment('used_count');
             }
 
@@ -173,7 +194,7 @@ class OrderController extends Controller
             $commRate = \App\Services\CommissionService::rateForService($request->service_type);
             [$commAmount, $providerNetAmount] = \App\Services\CommissionService::split($effectiveTotal, $commRate);
 
-            $order = Order::create([
+            $orderData = [
                 'patient_id' => Auth::id(),
                 'service_type' => $request->service_type,
                 'subtotal' => $request->subtotal,
@@ -192,7 +213,11 @@ class OrderController extends Controller
                 'assigned_lab_id' => $assignedLabId,
                 'patient_details' => $patientDetails,
                 'location_details' => $request->location_details ?? [],
-            ]);
+            ];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'service_fee')) {
+                $orderData['service_fee'] = $serviceFee;
+            }
+            $order = Order::create($orderData);
 
             foreach ($request->items as $item) {
                 OrderItem::create([
@@ -451,10 +476,13 @@ class OrderController extends Controller
             'title_en' => $serviceTitles['en'],
             'subtotal' => $order->subtotal,
             'extra_fee' => $order->extra_fee,
+            'service_fee' => (float) ($order->service_fee ?? ($patientDetails['service_fee'] ?? 0)),
             'total_price' => $order->total_price,
             'status' => $order->status,
             'scheduled_at' => $order->scheduled_at?->format('Y-m-d H:i'),
-            'scheduled_at_iso' => $order->scheduled_at?->toIso8601String(),
+            'scheduled_at_iso' => $order->scheduled_at
+                ? \App\Services\ProviderSlotService::parseWallClock($order->scheduled_at)->toIso8601String()
+                : null,
             'delivery_status' => $order->delivery_status ?? 'unassigned',
             'delivery_fee' => (float) ($order->delivery_fee ?? 0),
             'driver_assigned_at' => $order->driver_assigned_at?->toIso8601String(),

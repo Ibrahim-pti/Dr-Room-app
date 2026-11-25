@@ -19,6 +19,8 @@ class PushNotificationService {
   static final PushNotificationService instance = PushNotificationService._();
 
   bool _initialized = false;
+  String? _currentToken;
+  String? get currentToken => _currentToken;
   static OverlayEntry? _currentBannerEntry;
 
   Future<void> init() async {
@@ -123,6 +125,7 @@ class PushNotificationService {
 
   /// Sends the device token to the Laravel backend
   Future<void> registerToken(String token) async {
+    _currentToken = token;
     try {
       final platform = kIsWeb
           ? 'web'

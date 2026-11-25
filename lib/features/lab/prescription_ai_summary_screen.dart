@@ -261,68 +261,15 @@ class _PrescriptionAiSummaryScreenState
           }
         }
 
-        if (parsedNurseServices.isEmpty && parsedSelfMeds.isEmpty) {
-          final fallback = AiClinicalVisionService.instance.getIntelligentPrescriptionNursingFallback(
-            imageFile: widget.prescriptionImage,
-            language: currentLang,
+        if (aiResult['is_error'] == true || (parsedNurseServices.isEmpty && parsedSelfMeds.isEmpty)) {
+          final errMsg = aiResult['error']?.toString() ?? 'نەتوانرا ڕەچەتەکە بخوێنرێتەوە، تکایە خزمەتگوزارییەکان خۆت هەڵبژێرە';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+              content: Text(errMsg, style: const TextStyle(fontFamily: 'Rabar', color: Colors.white)),
+            ),
           );
-          if (fallback['nurse_services'] is List) {
-            for (var item in fallback['nurse_services']) {
-              if (item is Map) {
-                final iconType = item['icon_type']?.toString().toLowerCase() ?? '';
-                IconData icon = Icons.medical_services_rounded;
-                if (iconType.contains('inj') || iconType.contains('needle')) {
-                  icon = Icons.vaccines_rounded;
-                } else if (iconType.contains('can') || iconType.contains('fluid') || iconType.contains('serum')) {
-                  icon = Icons.water_drop_rounded;
-                } else if (iconType.contains('wound') || iconType.contains('dress')) {
-                  icon = Icons.healing_rounded;
-                } else if (iconType.contains('vital')) {
-                  icon = Icons.favorite_rounded;
-                }
-
-                parsedNurseServices.add(
-                  NurseServiceItem(
-                    id: item['id']?.toString() ?? 'nurse_${parsedNurseServices.length}',
-                    title: item['title']?.toString() ?? 'لێدانی دەرزی',
-                    titleAr: item['title_ar']?.toString() ?? item['title']?.toString() ?? 'حقن إبرة',
-                    titleEn: item['title_en']?.toString() ?? item['title']?.toString() ?? 'Injection',
-                    titleKmr: item['title_kmr']?.toString() ?? item['title']?.toString() ?? 'لێدانا دەرزیێ',
-                    subtitle: item['subtitle']?.toString() ?? 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
-                    cost: (item['cost'] as num?)?.toDouble() ?? 5000.0,
-                    icon: icon,
-                    isSelected: true,
-                  ),
-                );
-              }
-            }
-          }
-          if (fallback['self_medications'] is List) {
-            for (var item in fallback['self_medications']) {
-              if (item is Map) {
-                final iconType = item['icon_type']?.toString().toLowerCase() ?? '';
-                IconData icon = Icons.medication_rounded;
-                if (iconType.contains('syrup') || iconType.contains('liquid')) {
-                  icon = Icons.liquor_rounded;
-                } else if (iconType.contains('drop')) {
-                  icon = Icons.opacity_rounded;
-                } else if (iconType.contains('cream') || iconType.contains('ointment')) {
-                  icon = Icons.sanitizer_rounded;
-                }
-
-                parsedSelfMeds.add(
-                  SelfMedicationItem(
-                    title: item['title']?.toString() ?? 'دەرمانی خۆبەکارھێنان',
-                    titleAr: item['title_ar']?.toString() ?? item['title']?.toString() ?? 'أدوية استخدام ذاتي',
-                    titleEn: item['title_en']?.toString() ?? item['title']?.toString() ?? 'Self Medication',
-                    titleKmr: item['title_kmr']?.toString() ?? item['title']?.toString() ?? 'دەرمانێن بخۆ بکارئینانێ',
-                    subtitle: item['subtitle']?.toString() ?? 'rx_no_nurse_needed'.tr(),
-                    icon: icon,
-                  ),
-                );
-              }
-            }
-          }
         }
 
         setState(() {
@@ -333,62 +280,16 @@ class _PrescriptionAiSummaryScreenState
     } catch (e) {
       debugPrint('Error analyzing prescription with AI: $e');
       if (mounted) {
-        final currentLang = context.locale.languageCode;
-        final fallback = AiClinicalVisionService.instance.getIntelligentPrescriptionNursingFallback(
-          imageFile: widget.prescriptionImage,
-          language: currentLang,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              'کێشە لە شیکردنەوەی ڕەچەتە ڕوویدا',
+              style: const TextStyle(fontFamily: 'Rabar', color: Colors.white),
+            ),
+          ),
         );
-        final List<NurseServiceItem> parsedNurseServices = [];
-        final List<SelfMedicationItem> parsedSelfMeds = [];
-
-        if (fallback['nurse_services'] is List) {
-          for (var item in fallback['nurse_services']) {
-            if (item is Map) {
-              final iconType = item['icon_type']?.toString().toLowerCase() ?? '';
-              IconData icon = Icons.medical_services_rounded;
-              if (iconType.contains('inj')) {
-                icon = Icons.vaccines_rounded;
-              } else if (iconType.contains('can') || iconType.contains('fluid')) {
-                icon = Icons.water_drop_rounded;
-              } else if (iconType.contains('vital')) {
-                icon = Icons.favorite_rounded;
-              }
-              parsedNurseServices.add(
-                NurseServiceItem(
-                  id: item['id']?.toString() ?? 'fallback_nurse',
-                  title: item['title']?.toString() ?? 'لێدانی دەرزی',
-                  titleAr: item['title_ar']?.toString() ?? 'حقن إبرة',
-                  titleEn: item['title_en']?.toString() ?? 'Injection',
-                  titleKmr: item['title_kmr']?.toString() ?? 'لێدانا دەرزیێ',
-                  subtitle: item['subtitle']?.toString() ?? 'تێچووی خزمەتگوزاری: ٥,٠٠٠ د.ع',
-                  cost: (item['cost'] as num?)?.toDouble() ?? 5000.0,
-                  icon: icon,
-                  isSelected: true,
-                ),
-              );
-            }
-          }
-        }
-        if (fallback['self_medications'] is List) {
-          for (var item in fallback['self_medications']) {
-            if (item is Map) {
-              parsedSelfMeds.add(
-                SelfMedicationItem(
-                  title: item['title']?.toString() ?? 'دەرمانی خۆبەکارھێنان',
-                  titleAr: item['title_ar']?.toString() ?? 'أدوية استخدام ذاتي',
-                  titleEn: item['title_en']?.toString() ?? 'Self Medication',
-                  titleKmr: item['title_kmr']?.toString() ?? 'دەرمانێن بخۆ بکارئینانێ',
-                  subtitle: item['subtitle']?.toString() ?? 'rx_no_nurse_needed'.tr(),
-                  icon: Icons.medication_rounded,
-                ),
-              );
-            }
-          }
-        }
-        setState(() {
-          _nurseServices = parsedNurseServices;
-          _selfMedications = parsedSelfMeds;
-        });
       }
     } finally {
       if (mounted) {
@@ -417,7 +318,7 @@ class _PrescriptionAiSummaryScreenState
     return _servicesTotal + _currentTransportFee;
   }
 
-  void _proceedToCheckout() {
+  Future<void> _proceedToCheckout() async {
     final selected = _nurseServices.where((s) => s.isSelected).toList();
     if (selected.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -453,8 +354,44 @@ class _PrescriptionAiSummaryScreenState
       return;
     }
 
+    String uploadedUrl = widget.prescriptionImage.path;
+    String uploadedPath = widget.prescriptionImage.path;
+    try {
+      final uploadRes = await ApiClient.uploadMultipart(
+        '/upload/prescription',
+        fileField: 'image',
+        filePath: widget.prescriptionImage.path,
+      );
+      if (uploadRes.statusCode == 200 || uploadRes.statusCode == 201) {
+        final decoded = jsonDecode(uploadRes.body);
+        if (decoded is Map) {
+          uploadedUrl = (decoded['url'] ?? decoded['path'] ?? uploadedUrl).toString();
+          uploadedPath = (decoded['path'] ?? uploadedUrl).toString();
+        }
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFEF4444),
+            content: Text('error_occurred'.tr(), style: const TextStyle(fontFamily: 'Rabar', color: Colors.white)),
+          ),
+        );
+        return;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFEF4444),
+          content: Text('error_occurred'.tr(), style: const TextStyle(fontFamily: 'Rabar', color: Colors.white)),
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
     final cart = context.read<CartProvider>();
-    cart.setServiceType('nursing', extraFee: _currentTransportFee);
+    cart.setServiceType('nursing', extraFee: 0.0);
 
     final staffName = _selectedNurse?['name'] ?? '';
     final staffId = _selectedNurse?['id'];
@@ -470,7 +407,9 @@ class _PrescriptionAiSummaryScreenState
           price: s.cost,
           quantity: 1,
           extraData: {
-            'prescription_path': widget.prescriptionImage.path,
+            'prescription_url': uploadedUrl,
+            'prescription_image': uploadedUrl,
+            'prescription_path': uploadedPath,
             'is_prescription': true,
             'service_type': 'nursing',
             'transport_fee': _currentTransportFee,

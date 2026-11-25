@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/utils/api_client.dart';
 import 'admin_app_bar.dart';
+import 'admin_ui.dart';
 
 class AdminDoctorsScreen extends StatefulWidget {
   const AdminDoctorsScreen({super.key});
@@ -39,11 +40,16 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
     setState(() => _isLoading = true);
     try {
       final response = await ApiClient.get('/admin/doctors');
-      if (response.statusCode == 200 && mounted) {
-        setState(() {
-          _doctors = jsonDecode(response.body);
-          _isLoading = false;
-        });
+      if (mounted) {
+        if (response.statusCode == 200) {
+          setState(() {
+            _doctors = jsonDecode(response.body);
+            _isLoading = false;
+          });
+        } else {
+          setState(() => _isLoading = false);
+          AdminUi.toast(context, AdminUi.readError(response), isError: true);
+        }
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -53,27 +59,51 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
   Future<void> _approveDoctor(int id) async {
     try {
       final response = await ApiClient.patch('/admin/doctors/$id/approve');
-      if (response.statusCode == 200) _fetchDoctors();
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        AdminUi.toast(context, 'پزیشک پەسەندکرا');
+        _fetchDoctors();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
   Future<void> _rejectDoctor(int id) async {
     try {
       final response = await ApiClient.patch('/admin/doctors/$id/reject');
-      if (response.statusCode == 200) _fetchDoctors();
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        AdminUi.toast(context, 'داواکاری پزیشک ڕەتکرایەوە');
+        _fetchDoctors();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
   Future<void> _deleteDoctor(int id) async {
+    final ok = await AdminUi.confirm(
+      context,
+      title: 'سڕینەوەی پزیشک',
+      message: 'ئایا دڵنیایت لە سڕینەوەی ئەم پزیشکە؟',
+    );
+    if (!ok) return;
     try {
       final response = await ApiClient.delete('/admin/doctors/$id');
-      if (response.statusCode == 204) _fetchDoctors();
+      if (!mounted) return;
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        AdminUi.toast(context, 'پزیشک سڕایەوە');
+        _fetchDoctors();
+      } else {
+        AdminUi.toast(context, AdminUi.readError(response), isError: true);
+      }
     } catch (e) {
-      debugPrint('Error: $e');
+      if (mounted) AdminUi.toast(context, '$e', isError: true);
     }
   }
 
@@ -81,8 +111,9 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
     if (_searchQuery.trim().isEmpty) return list;
     final q = _searchQuery.toLowerCase().trim();
     return list.where((d) {
+      final doctor = d['doctor'] is Map ? d['doctor'] as Map : const {};
       final name = (d['name'] ?? '').toString().toLowerCase();
-      final specialty = (d['specialty'] ?? '').toString().toLowerCase();
+      final specialty = (d['specialty'] ?? doctor['specialty'] ?? '').toString().toLowerCase();
       final phone = (d['phone'] ?? '').toString().toLowerCase();
       return name.contains(q) || specialty.contains(q) || phone.contains(q);
     }).toList();
@@ -456,13 +487,13 @@ class _AdminDoctorsScreenState extends State<AdminDoctorsScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'وردەکاریی پرۆفایلی پزیشک',
                     style: TextStyle(
                       fontFamily: 'Rabar',
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      color: Theme.of(ctx).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   IconButton(

@@ -56,60 +56,60 @@ class LabResultController extends Controller
         }
 
         $order = $request->order_id ? Order::with('items')->find($request->order_id) : null;
+        $userId = (int) Auth::id();
 
-        // If multiple tests submitted from order items
-        if ($request->has('test_results') && is_array($request->test_results)) {
-            foreach ($request->test_results as $testId => $val) {
+        if ($order && $order->assigned_lab_id !== null && (int) $order->assigned_lab_id !== $userId) {
+            abort(403);
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $lab, $filePath, $order, $userId) {
+            // If multiple tests submitted from order items
+            if ($request->has('test_results') && is_array($request->test_results)) {
+                foreach ($request->test_results as $testId => $val) {
+                    LabResult::create([
+                        'lab_id' => $lab->id,
+                        'patient_id' => $request->patient_id,
+                        'test_id' => $testId,
+                        'result_value' => $val,
+                        'status' => $request->status,
+                        'file_path' => $filePath,
+                        'notes' => $request->notes,
+                    ]);
+                }
+            } elseif ($request->filled('test_id')) {
                 LabResult::create([
                     'lab_id' => $lab->id,
                     'patient_id' => $request->patient_id,
-                    'test_id' => $testId,
-                    'result_value' => $val,
+                    'test_id' => $request->test_id,
+                    'result_value' => $request->result_value,
+                    'status' => $request->status,
+                    'file_path' => $filePath,
+                    'notes' => $request->notes,
+                ]);
+            } else {
+                $firstTest = LabTest::where('lab_id', $lab->id)->first();
+                LabResult::create([
+                    'lab_id' => $lab->id,
+                    'patient_id' => $request->patient_id,
+                    'test_id' => $firstTest?->id,
+                    'result_value' => $request->result_value ?? 'تەواوکراو',
                     'status' => $request->status,
                     'file_path' => $filePath,
                     'notes' => $request->notes,
                 ]);
             }
-        } elseif ($request->filled('test_id')) {
-            // Single test selection
-            LabResult::create([
-                'lab_id' => $lab->id,
-                'patient_id' => $request->patient_id,
-                'test_id' => $request->test_id,
-                'result_value' => $request->result_value,
-                'status' => $request->status,
-                'file_path' => $filePath,
-                'notes' => $request->notes,
-            ]);
-        } else {
-            // General lab result attached to first available test or null
-            $firstTest = LabTest::where('lab_id', $lab->id)->first();
-            LabResult::create([
-                'lab_id' => $lab->id,
-                'patient_id' => $request->patient_id,
-                'test_id' => $firstTest?->id,
-                'result_value' => $request->result_value ?? 'تەواوکراو',
-                'status' => $request->status,
-                'file_path' => $filePath,
-                'notes' => $request->notes,
-            ]);
-        }
 
-        // If linked to an order, verify ownership & automatically mark order completed with financials
-        if ($order) {
-            $userId = (int) Auth::id();
-            if ($order->assigned_lab_id !== null && (int) $order->assigned_lab_id !== $userId) {
-                abort(403);
+            if ($order) {
+                if ($order->assigned_lab_id === null && $order->isLabService()) {
+                    $order->assigned_lab_id = $userId;
+                }
+                if ($request->status === 'completed') {
+                    $order->markCompletedWithFinancials();
+                } else {
+                    $order->save();
+                }
             }
-            if ($order->assigned_lab_id === null && $order->isLabService()) {
-                $order->assigned_lab_id = $userId;
-            }
-            if ($request->status === 'completed') {
-                $order->markCompletedWithFinancials();
-            } else {
-                $order->save();
-            }
-        }
+        });
 
         // Send In-App notification to patient
         \App\Models\AppNotification::create([

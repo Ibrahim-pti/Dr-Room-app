@@ -24,7 +24,7 @@ class AdminAnalyticsController extends Controller
     {
         $selectedMonth = trim((string) $request->input('month', ''));
         $serviceFilter = trim((string) $request->input('service_type', 'all'));
-        if (!in_array($serviceFilter, ['all', 'lab', 'nursing'], true)) {
+        if (!in_array($serviceFilter, ['all', 'lab', 'nursing', 'pharmacy'], true)) {
             $serviceFilter = 'all';
         }
 
@@ -119,6 +119,7 @@ class AdminAnalyticsController extends Controller
         $serviceDefs = [
             'lab' => 'پشکنینی تاقیگە',
             'nursing' => 'پەرستاری ماڵەوە',
+            'pharmacy' => 'دەرمانخانە',
             'other' => 'خزمەتگوزاری تر',
         ];
         $serviceBreakdown = collect($serviceDefs)->map(function (string $label, string $key) use ($monthAllServiceOrders) {
@@ -270,6 +271,7 @@ class AdminAnalyticsController extends Controller
                 : match ($svc) {
                     'lab' => 'پشکنینی تاقیگە',
                     'nursing' => 'پەرستاری ماڵەوە',
+                    'pharmacy' => 'دەرمانخانە',
                     default => 'خزمەتگوزاری پزیشکی',
                 };
             $localTime = $order->created_at
@@ -389,6 +391,9 @@ class AdminAnalyticsController extends Controller
     private function classifyOrderService(Order $order): string
     {
         $st = strtolower(trim((string) ($order->service_type ?? '')));
+        if (str_contains($st, 'pharm') || str_contains($st, 'دەرمان') || !empty($order->assigned_pharmacy_id)) {
+            return 'pharmacy';
+        }
         if (str_contains($st, 'lab') || str_contains($st, 'تاقیگە') || !empty($order->assigned_lab_id)) {
             return 'lab';
         }

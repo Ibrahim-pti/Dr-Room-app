@@ -18,7 +18,7 @@ class AppController extends Controller
             ->whereNotNull('specialty')
             ->whereHas('services')
             ->whereHas('schedules')
-            ->with(['user:id,name,name_en,name_ar,email,is_doctor', 'services' => fn ($q) => $q->where('is_active', true), 'schedules'])
+            ->with(['user:id,name,name_kmr,name_en,name_ar,email', 'services' => fn ($q) => $q->where('is_active', true), 'schedules'])
             ->orderBy('rating', 'desc')
             ->take(5)
             ->get();
@@ -204,7 +204,7 @@ class AppController extends Controller
             ->whereNotNull('specialty')
             ->whereHas('services')
             ->whereHas('schedules')
-            ->with(['user:id,name,name_en,name_ar,email,is_doctor', 'services' => fn ($q) => $q->where('is_active', true), 'schedules']);
+            ->with(['user:id,name,name_kmr,name_en,name_ar,email', 'services' => fn ($q) => $q->where('is_active', true), 'schedules']);
 
         if ($request->has('specialty')) {
             $query->where('specialty', $request->specialty);
@@ -215,7 +215,7 @@ class AppController extends Controller
 
     public function doctor($id)
     {
-        $doctor = \App\Models\Doctor::with(['user:id,name,name_en,name_ar,email,is_doctor', 'services' => fn ($q) => $q->where('is_active', true), 'schedules'])->findOrFail($id);
+        $doctor = \App\Models\Doctor::with(['user:id,name,name_kmr,name_en,name_ar,email', 'services' => fn ($q) => $q->where('is_active', true), 'schedules'])->findOrFail($id);
         return response()->json($doctor);
     }
 }

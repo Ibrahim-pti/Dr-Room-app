@@ -100,29 +100,29 @@ class DriverEarningsResetTest extends TestCase
             ->assertJsonPath('data.stats.cash_total_collected', 13400)
             ->assertJsonPath('data.completed_orders.0.is_settled', false);
 
-        // 3. Admin resets driver earnings & cash
+        // 3. Admin settles cash (earnings & delivery counts never reset; only uncollected cash resets)
         $this->app['auth']->forgetGuards();
         $this->withToken($adminToken)
             ->postJson("/api/admin/drivers/{$driverUser->id}/reset-earnings")
             ->assertOk()
             ->assertJsonPath('reset_before.cash_total_collected', 13400)
-            ->assertJsonPath('finance.total_deliveries', 0)
-            ->assertJsonPath('finance.total_earnings', 0)
+            ->assertJsonPath('finance.total_deliveries', 2)
+            ->assertJsonPath('finance.total_earnings', 5500)
             ->assertJsonPath('finance.cash_total_collected', 0)
             ->assertJsonPath('finance.lifetime_deliveries', 2)
             ->assertJsonPath('finance.lifetime_cash_collected', 13400);
 
-        // 4. Driver dashboard immediately shows 0 and marks older orders settled
+        // 4. Driver dashboard immediately shows settled cash = 0 while preserving deliveries & earnings
         $this->app['auth']->forgetGuards();
         $this->withToken($driverToken)
             ->getJson('/api/driver/dashboard')
             ->assertOk()
-            ->assertJsonPath('data.stats.total_deliveries', 0)
-            ->assertJsonPath('data.stats.total_earnings', 0)
+            ->assertJsonPath('data.stats.total_deliveries', 2)
+            ->assertJsonPath('data.stats.total_earnings', 5500)
             ->assertJsonPath('data.stats.cash_total_collected', 0)
             ->assertJsonPath('data.completed_orders.0.is_settled', true);
 
-        // 5. A new cash order delivered after reset counts from 0
+        // 5. A new cash order delivered after settlement accumulates cleanly
         Carbon::setTestNow(now()->addSeconds(5));
         Order::create([
             'patient_id' => $patient->id,
@@ -143,8 +143,8 @@ class DriverEarningsResetTest extends TestCase
         $this->withToken($driverToken)
             ->getJson('/api/driver/dashboard')
             ->assertOk()
-            ->assertJsonPath('data.stats.total_deliveries', 1)
-            ->assertJsonPath('data.stats.total_earnings', 2500)
+            ->assertJsonPath('data.stats.total_deliveries', 3)
+            ->assertJsonPath('data.stats.total_earnings', 8000)
             ->assertJsonPath('data.stats.cash_total_collected', 17500);
     }
 }

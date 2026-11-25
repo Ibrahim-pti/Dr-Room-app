@@ -279,8 +279,7 @@ class PharmacyApiController extends Controller
 
         $userId = Auth::id();
         if (!$userId) {
-            $patient = User::where('role', 'patient')->first() ?? User::first();
-            $userId = $patient ? $patient->id : 1;
+            return response()->json(['success' => false, 'message' => 'تکایە سەرەتا بچۆ ژوورەوە'], 401);
         }
 
         $review = PharmacyReview::create([
