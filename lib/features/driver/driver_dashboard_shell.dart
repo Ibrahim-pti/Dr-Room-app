@@ -3502,15 +3502,18 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                                 .withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Text(
-                            taken
-                                ? '${s['time']} • گیراوە'
-                                : '${s['time']} ($booked/$cap)',
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: taken ? const Color(0xFFDC2626) : const Color(0xFF059669),
+                          child: Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text(
+                              taken
+                                  ? '${s['time']} • گیراوە'
+                                  : '${s['time']} ($booked/$cap)',
+                              style: TextStyle(
+                                fontFamily: 'Rabar',
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: taken ? const Color(0xFFDC2626) : const Color(0xFF059669),
+                              ),
                             ),
                           ),
                         );
@@ -3612,62 +3615,289 @@ class _DriverDashboardShellState extends State<DriverDashboardShell> {
                 )),
 
           const SizedBox(height: 18),
-          Text(
-            'خشتەی دەوامی هەفتانە',
-            style: TextStyle(
-              fontFamily: 'Rabar',
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.getTextTitle(context),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'خشتەی دەوامی هەفتانە',
+                  style: TextStyle(
+                    fontFamily: 'Rabar',
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.getTextTitle(context),
+                  ),
+                ),
+              ),
+              Text(
+                'داگرە بۆ گۆڕینی کات',
+                style: TextStyle(
+                  fontFamily: 'Rabar',
+                  fontSize: 11,
+                  color: AppColors.getTextSubtitle(context),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           ..._driverWeek.map((row) {
             final isAvail = row['is_available'] == true || row['is_available'] == 1;
             final dayName = dayTranslations[row['day_of_week']] ?? row['day_of_week'].toString();
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.getSurface(context),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.getBorder(context)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    isAvail ? Iconsax.clock : Iconsax.close_circle,
-                    size: 18,
-                    color: isAvail ? const Color(0xFF2563EB) : Colors.grey,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      dayName,
-                      style: TextStyle(
-                        fontFamily: 'Rabar',
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.getTextTitle(context),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    isAvail
-                        ? '${row['start_time']} - ${row['end_time']}'
-                        : 'پشووە',
-                    style: TextStyle(
-                      fontFamily: 'Rabar',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+            return InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => _editDriverScheduleDay(row, dayTranslations),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.getSurface(context),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.getBorder(context)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      isAvail ? Iconsax.clock : Iconsax.close_circle,
+                      size: 18,
                       color: isAvail ? const Color(0xFF2563EB) : Colors.grey,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        dayName,
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.getTextTitle(context),
+                        ),
+                      ),
+                    ),
+                    if (isAvail)
+                      Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(
+                          '${row['start_time']} - ${row['end_time']}',
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2563EB),
+                          ),
+                        ),
+                      )
+                    else
+                      const Text(
+                        'پشووە',
+                        style: TextStyle(
+                          fontFamily: 'Rabar',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                    const Icon(Iconsax.edit_2, size: 15, color: Color(0xFF2563EB)),
+                  ],
+                ),
               ),
             );
           }),
         ],
+      ),
+    );
+  }
+
+  Future<void> _editDriverScheduleDay(
+    Map<String, dynamic> dayRow,
+    Map<String, String> dayTranslations,
+  ) async {
+    TimeOfDay parseTime(String? raw, TimeOfDay fallback) {
+      if (raw == null || !raw.contains(':')) return fallback;
+      final parts = raw.split(':');
+      final h = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      if (h == null || m == null) return fallback;
+      return TimeOfDay(hour: h.clamp(0, 23), minute: m.clamp(0, 59));
+    }
+
+    String fmtTime(TimeOfDay t) =>
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+    TimeOfDay start = parseTime(
+      dayRow['start_time']?.toString(),
+      const TimeOfDay(hour: 8, minute: 0),
+    );
+    TimeOfDay end = parseTime(
+      dayRow['end_time']?.toString(),
+      const TimeOfDay(hour: 22, minute: 0),
+    );
+    bool isAvail = dayRow['is_available'] == true || dayRow['is_available'] == 1;
+    bool applyAll = false;
+    bool saving = false;
+    String? errMsg;
+    final dayTitle = dayTranslations[dayRow['day_of_week']] ?? dayRow['day_of_week'].toString();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          Widget timeCard(String label, TimeOfDay val, ValueChanged<TimeOfDay> onPick) {
+            return Expanded(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  final picked = await showTimePicker(
+                    context: context,
+                    initialTime: val,
+                    builder: (c, child) => MediaQuery(
+                      data: MediaQuery.of(c).copyWith(alwaysUse24HourFormat: true),
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  );
+                  if (picked != null) setSheetState(() => onPick(picked));
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.getBackground(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.getBorder(context)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: TextStyle(fontFamily: 'Rabar', fontSize: 11, color: AppColors.getTextSubtitle(context))),
+                      const SizedBox(height: 4),
+                      Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(
+                          fmtTime(val),
+                          style: const TextStyle(fontFamily: 'Rabar', fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            decoration: BoxDecoration(
+              color: AppColors.getSurface(context),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              14,
+              20,
+              MediaQuery.of(context).viewInsets.bottom + MediaQuery.viewPaddingOf(ctx).bottom + 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.35), borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'ڕێکخستنی دەوامی $dayTitle',
+                  style: TextStyle(fontFamily: 'Rabar', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.getTextTitle(context)),
+                ),
+                const SizedBox(height: 14),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  value: isAvail,
+                  activeTrackColor: const Color(0xFF2563EB),
+                  title: const Text('ئامادەبوون لەم ڕۆژەدا', style: TextStyle(fontFamily: 'Rabar', fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  onChanged: (v) => setSheetState(() => isAvail = v),
+                ),
+                if (isAvail) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      timeCard('کاتی دەستپێک', start, (v) => start = v),
+                      const SizedBox(width: 10),
+                      timeCard('کاتی کۆتایی', end, (v) => end = v),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 8),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: applyAll,
+                  activeColor: const Color(0xFF2563EB),
+                  onChanged: (v) => setSheetState(() => applyAll = v ?? false),
+                  title: const Text('جێبەجێکردن بۆ هەموو ڕۆژەکانی هەفتە', style: TextStyle(fontFamily: 'Rabar', fontSize: 12.5)),
+                ),
+                if (errMsg != null) ...[
+                  Text(errMsg!, style: const TextStyle(fontFamily: 'Rabar', fontSize: 12, color: Color(0xFFEF4444))),
+                  const SizedBox(height: 8),
+                ],
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: saving
+                        ? null
+                        : () async {
+                            setSheetState(() {
+                              saving = true;
+                              errMsg = null;
+                            });
+                            final updatedWeek = _driverWeek.map((r) => Map<String, dynamic>.from(r)).toList();
+                            final sStr = fmtTime(start);
+                            final eStr = fmtTime(end);
+                            for (final row in updatedWeek) {
+                              if (applyAll || row['day_of_week'] == dayRow['day_of_week']) {
+                                row['is_available'] = isAvail;
+                                row['start_time'] = sStr;
+                                row['end_time'] = eStr;
+                              }
+                            }
+                            try {
+                              final res = await ApiClient.post('/driver/schedule', body: {'schedules': updatedWeek});
+                              if (!ctx.mounted) return;
+                              if (res.statusCode == 200) {
+                                Navigator.pop(ctx);
+                                _loadDriverSchedule();
+                                _loadDashboard(silent: true);
+                              } else {
+                                setSheetState(() {
+                                  saving = false;
+                                  errMsg = 'نەتوانرا پاشەکەوت بکرێت';
+                                });
+                              }
+                            } catch (e) {
+                              if (ctx.mounted) {
+                                setSheetState(() {
+                                  saving = false;
+                                  errMsg = '$e';
+                                });
+                              }
+                            }
+                          },
+                    child: saving
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                        : const Text('پاشەکەوتکردن', style: TextStyle(fontFamily: 'Rabar', fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

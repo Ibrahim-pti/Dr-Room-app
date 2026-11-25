@@ -14,13 +14,12 @@ use Illuminate\Support\Collection;
 /**
  * Working hours + bookable time slots for field staff (nurses, labs, drivers).
  *
- * The admin weekly schedule, the patient slot picker, the booking validation
- * and the driver app all read from here, so "taken" means the same thing
- * everywhere: a slot is taken once the provider's capacity for it is used up
- * (or their daily maximum is reached).
+ * Uses Asia/Baghdad consistently so Admin Staff Schedule, Driver App, Patient
+ * checkout slot picker, and Auto-Dispatch agree on shifts and slot capacity.
  */
 class ProviderSlotService
 {
+    public const TIMEZONE = 'Asia/Baghdad';
     public const HORIZON_DAYS = 14;
 
     public const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -37,15 +36,49 @@ class ProviderSlotService
     private const DEFAULTS = [
         'nurse' => ['start_time' => '08:00:00', 'end_time' => '20:00:00', 'slot_minutes' => 60, 'slot_capacity' => 1, 'max_daily_orders' => 6],
         'lab' => ['start_time' => '08:00:00', 'end_time' => '20:00:00', 'slot_minutes' => 30, 'slot_capacity' => 2, 'max_daily_orders' => 30],
-        'driver' => ['start_time' => '08:00:00', 'end_time' => '23:00:00', 'slot_minutes' => 60, 'slot_capacity' => 2, 'max_daily_orders' => 20],
+        'driver' => ['start_time' => '08:00:00', 'end_time' => '22:00:00', 'slot_minutes' => 60, 'slot_capacity' => 2, 'max_daily_orders' => 20],
     ];
+
+    public static function nowLocal(): Carbon
+    {
+        return Carbon::now(self::TIMEZONE);
+    }
+
+    public static function todayLocal(): Carbon
+    {
+        return Carbon::today(self::TIMEZONE);
+    }
+
+    public static function parseLocal($dt): Carbon
+    {
+        if ($dt instanceof Carbon) {
+            return self::parseWallClock($dt);
+        }
+        return self::parseWallClock((string) $dt);
+    }
+
+    /**
+     * Parse wall-clock scheduled_at values ("Y-m-d H:i[:s]") in Asia/Baghdad without
+     * shifting +3h when loaded from a UTC-configured Eloquent datetime cast.
+     */
+    public static function parseWallClock($dt): Carbon
+    {
+        if ($dt instanceof Carbon) {
+            return Carbon::createFromFormat('Y-m-d H:i:s', $dt->format('Y-m-d H:i:s'), self::TIMEZONE);
+        }
+        $raw = trim((string) $dt);
+        if (preg_match('/(Z|[+-]\d{2}:?\d{2})$/i', $raw)) {
+            return Carbon::parse($raw)->timezone(self::TIMEZONE);
+        }
+        return Carbon::parse($raw, self::TIMEZONE);
+    }
 
     public static function isValidType(?string $type): bool
     {
         return isset(self::TYPES[$type]);
     }
 
-    /** nursing / lab service_type → nurse / lab provider type. */
+    /** nursing / lab service_type -> nurse / lab provider type. */
     public static function typeForService(?string $serviceType): ?string
     {
         return match (CommissionService::categoryFor($serviceType)) {
@@ -131,8 +164,12 @@ class ProviderSlotService
     }
 
     /** Seed provider_schedules rows for a driver right from their website application. */
-    public static function seedFromDriverProfile(int $userId, ?string $shift, ?string $workDays): void
+    public static function seedFromDriverProfile(int $userId, ?string $shift, ?string $workDays, bool $onlyIfEmpty = false): void
     {
+        if ($onlyIfEmpty && ProviderSchedule::where('user_id', $userId)->where('provider_type', 'driver')->exists()) {
+            return;
+        }
+
         $tpl = self::driverScheduleTemplate($shift, $workDays);
         $d = self::DEFAULTS['driver'];
         foreach (self::DAYS as $day) {
@@ -168,16 +205,46 @@ class ProviderSlotService
             ->get()
             ->groupBy('user_id');
 
+        $cutoff = self::nowLocal()->subHours(1)->format('Y-m-d H:i:s');
         $col = self::orderColumn($type);
-        $upcomingCounts = Order::whereIn($col, $ids)
-            ->whereNotNull('scheduled_at')
-            ->where('scheduled_at', '>=', Carbon::now()->subHours(1))
-            ->whereNotIn('status', array_merge(self::RELEASED_STATUSES, ['completed']))
-            ->selectRaw("$col as provider_id, COUNT(*) as cnt")
-            ->groupBy($col)
-            ->pluck('cnt', 'provider_id');
 
-        return $providers->map(function ($u) use ($savedRows, $upcomingCounts, $type) {
+        if ($type === 'driver') {
+            $upcomingByDriver = [];
+            $upcomingOrders = Order::where(function ($q) use ($ids) {
+                $q->whereIn('assigned_driver_id', $ids)
+                  ->orWhereIn('assigned_nurse_id', $ids);
+            })
+                ->whereNotNull('scheduled_at')
+                ->where('scheduled_at', '>=', $cutoff)
+                ->whereNotIn('status', array_merge(self::RELEASED_STATUSES, ['completed']))
+                ->get(['id', 'assigned_driver_id', 'assigned_nurse_id']);
+
+            foreach ($upcomingOrders as $o) {
+                $matched = [];
+                if ($o->assigned_driver_id && in_array((int) $o->assigned_driver_id, $ids, true)) {
+                    $matched[(int) $o->assigned_driver_id] = true;
+                }
+                if ($o->assigned_nurse_id && in_array((int) $o->assigned_nurse_id, $ids, true)) {
+                    $matched[(int) $o->assigned_nurse_id] = true;
+                }
+                foreach (array_keys($matched) as $uid) {
+                    $upcomingByDriver[$uid] = ($upcomingByDriver[$uid] ?? 0) + 1;
+                }
+            }
+            $upcomingCounts = collect($upcomingByDriver);
+        } else {
+            $upcomingCounts = Order::whereIn($col, $ids)
+                ->whereNotNull('scheduled_at')
+                ->where('scheduled_at', '>=', $cutoff)
+                ->whereNotIn('status', array_merge(self::RELEASED_STATUSES, ['completed']))
+                ->selectRaw("$col as provider_id, COUNT(*) as cnt")
+                ->groupBy($col)
+                ->pluck('cnt', 'provider_id');
+        }
+
+        $nowLocal = self::nowLocal();
+
+        return $providers->map(function ($u) use ($savedRows, $upcomingCounts, $type, $nowLocal) {
             $rows = $savedRows->get($u->id);
             $hasCustom = $rows !== null && $rows->isNotEmpty();
 
@@ -185,9 +252,27 @@ class ProviderSlotService
                 $profile = $u->driver?->resolvedFieldProfile() ?? [];
                 $shift = $profile['availability_shift'] ?? 'full_flex';
                 $workDays = $profile['work_days'] ?? 'daily';
+                $tpl = self::driverScheduleTemplate($shift, $workDays);
+                $tplStart = substr($tpl['start_time'], 0, 5);
+                $tplEnd = substr($tpl['end_time'], 0, 5);
+
                 $week = self::week($u->id, 'driver', $u->driver);
                 $openRows = array_values(array_filter($week, fn ($r) => $r['is_available']));
                 $firstOpen = $openRows[0] ?? ($week[0] ?? null);
+
+                // Detect if admin/driver customized hours or active days away from website template
+                $matchesWebsite = true;
+                foreach ($week as $r) {
+                    $expectedOpen = in_array($r['day_of_week'], $tpl['open_days'], true);
+                    if ((bool) $r['is_available'] !== $expectedOpen) {
+                        $matchesWebsite = false;
+                        break;
+                    }
+                    if ($r['is_available'] && ($r['start_time'] !== $tplStart || $r['end_time'] !== $tplEnd)) {
+                        $matchesWebsite = false;
+                        break;
+                    }
+                }
 
                 return [
                     'id' => $u->id,
@@ -195,10 +280,12 @@ class ProviderSlotService
                     'phone' => $u->phone,
                     'city' => $u->driver?->city ?? 'هەولێر',
                     'duty_status' => $u->driver?->duty_status ?? 'offline',
+                    'is_on_shift_now' => self::isOnShift($u->id, $nowLocal),
                     'applicant_role' => $profile['applicant_role'] ?? 'phlebotomist',
                     'service_scope' => $u->driver?->service_scope ?? 'both',
                     'availability_shift' => $shift,
                     'work_days' => $workDays,
+                    'schedule_matches_website' => $matchesWebsite,
                     'service_areas' => $profile['service_areas'] ?? null,
                     'start_time' => $firstOpen['start_time'] ?? '08:00',
                     'end_time' => $firstOpen['end_time'] ?? '22:00',
@@ -234,7 +321,15 @@ class ProviderSlotService
     /** The 7-day week for a provider, filling missing days from website profile / defaults. */
     public static function week(int $userId, string $type, ?Driver $driver = null): array
     {
-        $existing = ProviderSchedule::where('user_id', $userId)->get()->keyBy('day_of_week');
+        $existing = ProviderSchedule::where('user_id', $userId)
+            ->where('provider_type', $type)
+            ->get()
+            ->keyBy('day_of_week');
+
+        if ($existing->isEmpty()) {
+            $existing = ProviderSchedule::where('user_id', $userId)->get()->keyBy('day_of_week');
+        }
+
         $driverTemplate = null;
         if ($type === 'driver') {
             $driver ??= Driver::where('user_id', $userId)->first();
@@ -276,6 +371,7 @@ class ProviderSlotService
 
     public static function saveWeek(int $userId, string $type, array $days): void
     {
+        $d = self::DEFAULTS[$type] ?? self::DEFAULTS['driver'];
         foreach ($days as $item) {
             if (!in_array($item['day_of_week'] ?? null, self::DAYS, true)) {
                 continue;
@@ -284,12 +380,12 @@ class ProviderSlotService
                 ['user_id' => $userId, 'day_of_week' => $item['day_of_week']],
                 [
                     'provider_type' => $type,
-                    'start_time' => self::normalizeTime($item['start_time'] ?? '08:00'),
-                    'end_time' => self::normalizeTime($item['end_time'] ?? '20:00'),
+                    'start_time' => self::normalizeTime($item['start_time'] ?? $d['start_time']),
+                    'end_time' => self::normalizeTime($item['end_time'] ?? $d['end_time']),
                     'is_available' => filter_var($item['is_available'] ?? true, FILTER_VALIDATE_BOOLEAN),
-                    'slot_minutes' => max(10, min(240, (int) ($item['slot_minutes'] ?? 60))),
-                    'slot_capacity' => max(1, min(50, (int) ($item['slot_capacity'] ?? 1))),
-                    'max_daily_orders' => max(1, min(200, (int) ($item['max_daily_orders'] ?? 6))),
+                    'slot_minutes' => max(10, min(240, (int) ($item['slot_minutes'] ?? $d['slot_minutes']))),
+                    'slot_capacity' => max(1, min(50, (int) ($item['slot_capacity'] ?? $d['slot_capacity']))),
+                    'max_daily_orders' => max(1, min(200, (int) ($item['max_daily_orders'] ?? $d['max_daily_orders']))),
                 ]
             );
         }
@@ -308,30 +404,41 @@ class ProviderSlotService
 
     /**
      * Bookable days with their slots. With a provider id the slots are that
-     * provider's; without one they are pooled across every provider of the type.
+     * provider's; without one they are pooled across every provider of the type
+     * plus approved field staff handling that category.
      *
      * @return array<int, array{date: string, day_of_week: string, closed: bool, slots: array}>
      */
     public static function availability(string $type, ?int $userId = null, ?Carbon $from = null, int $days = self::HORIZON_DAYS): array
     {
-        $from = ($from ?? Carbon::today())->copy()->startOfDay();
+        $from = ($from ? self::parseLocal($from) : self::todayLocal())->copy()->startOfDay();
         $to = $from->copy()->addDays($days)->endOfDay();
 
-        $providerIds = $userId
-            ? collect([$userId])
-            : self::providers($type)->pluck('id')
-                ->when(
-                    $type === 'nurse' || $type === 'lab',
-                    fn ($c) => $c->merge(self::providerSummaries('driver', $type)->pluck('id'))->unique()->values()
-                );
+        $baseIds = $userId
+            ? collect([(int) $userId])
+            : self::providers($type)->pluck('id')->map(fn ($id) => (int) $id);
+
+        $driverPoolIds = collect();
+        if (!$userId && ($type === 'nurse' || $type === 'lab')) {
+            $driverPoolIds = self::providerSummaries('driver', $type)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id);
+        }
+
+        $providerIds = $baseIds->merge($driverPoolIds)->unique()->values();
         if ($providerIds->isEmpty()) {
             return [];
         }
 
-        $weeks = $providerIds->mapWithKeys(fn ($id) => [$id => collect(self::week((int) $id, $type))->keyBy('day_of_week')]);
+        $baseIdLookup = array_flip($baseIds->all());
+        $weeks = $providerIds->mapWithKeys(function ($id) use ($type, $baseIdLookup) {
+            $weekType = isset($baseIdLookup[(int) $id]) ? $type : 'driver';
+            return [(int) $id => collect(self::week((int) $id, $weekType))->keyBy('day_of_week')];
+        });
+
         [$slotBookings, $dayBookings, $poolBookings] = self::bookings($type, $providerIds->all(), $from, $to, !$userId);
 
-        $now = Carbon::now();
+        $now = self::nowLocal();
         $result = [];
 
         for ($i = 0; $i < $days; $i++) {
@@ -399,39 +506,123 @@ class ProviderSlotService
         return $result;
     }
 
-    /** True when $at is a real, still-free slot. */
+    /** True when $at is a real, still-free slot in Asia/Baghdad time. */
     public static function isBookable(string $type, ?int $userId, Carbon $at): bool
     {
-        if ($at->lessThanOrEqualTo(Carbon::now()) || $at->greaterThan(Carbon::today()->addDays(self::HORIZON_DAYS + 1))) {
+        $localAt = self::parseLocal($at);
+        $now = self::nowLocal();
+        $horizon = self::todayLocal()->addDays(self::HORIZON_DAYS + 1)->endOfDay();
+
+        if ($localAt->lessThanOrEqualTo($now) || $localAt->greaterThan($horizon)) {
             return false;
         }
-        $day = self::availability($type, $userId, $at->copy()->startOfDay(), 1)[0] ?? null;
+        $day = self::availability($type, $userId, $localAt->copy()->startOfDay(), 1)[0] ?? null;
         if (!$day) {
             return false;
         }
+        $targetHm = $localAt->format('H:i');
         foreach ($day['slots'] as $slot) {
-            if ($slot['time'] === $at->format('H:i')) {
+            if ($slot['time'] === $targetHm) {
                 return !$slot['taken'];
             }
         }
         return false;
     }
 
-    /** Is the provider working right now? Uses saved schedule or website shift/work_days. */
-    public static function isOnShift(int $userId, ?Carbon $at = null): bool
+    /**
+     * Check whether a driver can handle an order at $at (e.g. during auto-dispatch),
+     * matching arbitrary sub-hour scheduled slots (like 14:30) against the driver's
+     * hourly window [14:00, 15:00) and checking daily max + slot capacity.
+     */
+    public static function canDriverHandleAt(int $driverUserId, Carbon $at, ?int $excludeOrderId = null): bool
     {
-        $at ??= Carbon::now();
-        $week = collect(self::week($userId, 'driver'));
-        $row = $week->firstWhere('day_of_week', $at->format('l'));
+        $localAt = self::parseLocal($at);
+        $week = collect(self::week($driverUserId, 'driver'));
+        $row = $week->firstWhere('day_of_week', $localAt->format('l'));
         if (!$row || !$row['is_available']) {
             return false;
         }
-        $start = $at->copy()->setTimeFromTimeString($row['start_time']);
-        $end = $at->copy()->setTimeFromTimeString($row['end_time']);
-        if ($end->lessThanOrEqualTo($start)) {
-            return $at->greaterThanOrEqualTo($start) || $at->lessThan($end);
+
+        $dayStart = $localAt->copy()->startOfDay()->setTimeFromTimeString($row['start_time']);
+        $dayEnd = $localAt->copy()->startOfDay()->setTimeFromTimeString($row['end_time']);
+        if ($dayEnd->lessThanOrEqualTo($dayStart)) {
+            $dayEnd->addDay();
+            if ($localAt->lessThan($dayStart)) {
+                $dayStart->subDay();
+                $dayEnd->subDay();
+            }
         }
-        return $at->between($start, $end);
+
+        // Handle previous day's overnight shift if needed, otherwise verify within window
+        if ($localAt->lessThan($dayStart) || $localAt->greaterThanOrEqualTo($dayEnd)) {
+            return false;
+        }
+
+        $dateFrom = $localAt->copy()->startOfDay()->format('Y-m-d H:i:s');
+        $dateTo = $localAt->copy()->endOfDay()->format('Y-m-d H:i:s');
+
+        $dayOrders = Order::whereNotNull('scheduled_at')
+            ->whereBetween('scheduled_at', [$dateFrom, $dateTo])
+            ->whereNotIn('status', self::RELEASED_STATUSES)
+            ->when($excludeOrderId, fn ($q) => $q->where('id', '!=', $excludeOrderId))
+            ->where(function ($q) use ($driverUserId) {
+                $q->where('assigned_driver_id', $driverUserId)
+                  ->orWhere('assigned_nurse_id', $driverUserId);
+            })
+            ->get(['scheduled_at']);
+
+        if ($dayOrders->count() >= (int) $row['max_daily_orders']) {
+            return false;
+        }
+
+        // Find the containing slot window [slotStart, slotEnd)
+        $step = max(10, (int) $row['slot_minutes']);
+        $minutesSinceStart = max(0, (int) $dayStart->diffInMinutes($localAt, false));
+        $slotIndex = intdiv($minutesSinceStart, $step);
+        $slotStart = $dayStart->copy()->addMinutes($slotIndex * $step);
+        $slotEnd = $slotStart->copy()->addMinutes($step);
+
+        $inSlotCount = $dayOrders->filter(function (Order $o) use ($slotStart, $slotEnd) {
+            $oAt = self::parseLocal($o->scheduled_at);
+            return $oAt->greaterThanOrEqualTo($slotStart) && $oAt->lessThan($slotEnd);
+        })->count();
+
+        return $inSlotCount < (int) $row['slot_capacity'];
+    }
+
+    /** Is the provider working right now? Uses Asia/Baghdad time and saved schedule / website profile. */
+    public static function isOnShift(int $userId, ?Carbon $at = null): bool
+    {
+        $localAt = $at ? self::parseLocal($at) : self::nowLocal();
+        $week = collect(self::week($userId, 'driver'));
+
+        $row = $week->firstWhere('day_of_week', $localAt->format('l'));
+        if ($row && $row['is_available']) {
+            $start = $localAt->copy()->setTimeFromTimeString($row['start_time']);
+            $end = $localAt->copy()->setTimeFromTimeString($row['end_time']);
+            if ($end->lessThanOrEqualTo($start)) {
+                if ($localAt->greaterThanOrEqualTo($start)) {
+                    return true;
+                }
+            } elseif ($localAt->between($start, $end)) {
+                return true;
+            }
+        }
+
+        // Check if previous day's overnight shift spans into early hours of $localAt
+        $prevRow = $week->firstWhere('day_of_week', $localAt->copy()->subDay()->format('l'));
+        if ($prevRow && $prevRow['is_available']) {
+            $prevStart = $localAt->copy()->subDay()->setTimeFromTimeString($prevRow['start_time']);
+            $prevEnd = $localAt->copy()->subDay()->setTimeFromTimeString($prevRow['end_time']);
+            if ($prevEnd->lessThanOrEqualTo($prevStart)) {
+                $prevEnd->addDay();
+                if ($localAt->between($prevStart, $prevEnd)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -442,10 +633,13 @@ class ProviderSlotService
     {
         $column = self::orderColumn($type);
         $orders = Order::whereNotNull('scheduled_at')
-            ->whereBetween('scheduled_at', [$from, $to])
+            ->whereBetween('scheduled_at', [$from->format('Y-m-d H:i:s'), $to->format('Y-m-d H:i:s')])
             ->whereNotIn('status', self::RELEASED_STATUSES)
             ->where(function ($q) use ($column, $providerIds, $includePool, $type) {
                 $q->whereIn($column, $providerIds);
+                if ($type === 'driver') {
+                    $q->orWhereIn('assigned_nurse_id', $providerIds);
+                }
                 if ($includePool && $type !== 'driver') {
                     $q->orWhereIn('assigned_driver_id', $providerIds);
                     $q->orWhere(function ($q2) use ($column, $type) {
@@ -458,14 +652,16 @@ class ProviderSlotService
                     });
                 }
             })
-            ->get([$column, 'assigned_driver_id', 'scheduled_at']);
+            ->get([$column, 'assigned_driver_id', 'assigned_nurse_id', 'scheduled_at']);
 
         $slot = [];
         $day = [];
         $pool = [];
         foreach ($orders as $o) {
-            $at = Carbon::parse($o->scheduled_at);
-            $pid = $o->{$column} ?: ($includePool ? $o->assigned_driver_id : null);
+            $at = self::parseLocal($o->scheduled_at);
+            $pid = $o->{$column}
+                ?: ($type === 'driver' ? $o->assigned_nurse_id : null)
+                ?: ($includePool ? $o->assigned_driver_id : null);
             if ($pid) {
                 $slot["$pid|" . $at->format('Y-m-d H:i')] = ($slot["$pid|" . $at->format('Y-m-d H:i')] ?? 0) + 1;
                 $day["$pid|" . $at->toDateString()] = ($day["$pid|" . $at->toDateString()] ?? 0) + 1;
@@ -480,9 +676,20 @@ class ProviderSlotService
     /** Upcoming scheduled orders of a provider (for admin + driver views). */
     public static function upcoming(int $userId, string $type, int $days = 7): Collection
     {
-        return Order::where(self::orderColumn($type), $userId)
+        $now = self::nowLocal();
+        $col = self::orderColumn($type);
+
+        return Order::where(function ($q) use ($col, $type, $userId) {
+            $q->where($col, $userId);
+            if ($type === 'driver') {
+                $q->orWhere('assigned_nurse_id', $userId);
+            }
+        })
             ->whereNotNull('scheduled_at')
-            ->whereBetween('scheduled_at', [Carbon::now()->subHours(2), Carbon::now()->addDays($days)->endOfDay()])
+            ->whereBetween('scheduled_at', [
+                $now->copy()->subHours(2)->format('Y-m-d H:i:s'),
+                $now->copy()->addDays($days)->endOfDay()->format('Y-m-d H:i:s'),
+            ])
             ->whereNotIn('status', array_merge(self::RELEASED_STATUSES, ['completed']))
             ->with('patient:id,name,phone')
             ->orderBy('scheduled_at')
@@ -491,9 +698,9 @@ class ProviderSlotService
                 'id' => $o->id,
                 'service_type' => $o->service_type,
                 'status' => $o->status,
-                'scheduled_at' => Carbon::parse($o->scheduled_at)->format('Y-m-d H:i'),
+                'scheduled_at' => self::parseLocal($o->scheduled_at)->format('Y-m-d H:i'),
                 'patient_name' => $o->patient->name ?? null,
-                'address' => $o->location_details['address'] ?? null,
+                'address' => $o->resolvePatientLocation()['address'] ?: null,
             ]);
     }
 }

@@ -150,7 +150,7 @@ class OrderController extends Controller
             $rawScheduledAt = $request->input('scheduled_at') ?? ($patientDetails['scheduled_at'] ?? null);
             if (!empty($rawScheduledAt)) {
                 try {
-                    $scheduledAt = \Carbon\Carbon::parse($rawScheduledAt);
+                    $scheduledAt = \App\Services\ProviderSlotService::parseWallClock($rawScheduledAt);
                 } catch (\Throwable) {
                     DB::rollBack();
                     return response()->json(['message' => 'فۆرماتی کاتی دیاریکراو نادروستە'], 422);

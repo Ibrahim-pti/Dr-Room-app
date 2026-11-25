@@ -151,12 +151,14 @@ class DriverDispatchService
             ->with('driver')
             ->get();
 
-        $targetAt = $order->scheduled_at ? \Carbon\Carbon::parse($order->scheduled_at) : \Carbon\Carbon::now();
+        $targetAt = $order->scheduled_at
+            ? ProviderSlotService::parseLocal($order->scheduled_at)
+            : ProviderSlotService::nowLocal();
         $candidates = $candidates->filter(function (User $u) use ($order, $targetAt) {
             if (!ProviderSlotService::isOnShift($u->id, $targetAt)) {
                 return false;
             }
-            if ($order->scheduled_at !== null && !ProviderSlotService::isBookable('driver', $u->id, $targetAt)) {
+            if (!ProviderSlotService::canDriverHandleAt($u->id, $targetAt, (int) $order->id)) {
                 return false;
             }
             return true;
@@ -251,8 +253,13 @@ class DriverDispatchService
                 if ($driver->service_scope === 'lab_sample' && !str_contains($st, 'lab')) {
                     return false;
                 }
-                $targetAt = $o->scheduled_at ? \Carbon\Carbon::parse($o->scheduled_at) : \Carbon\Carbon::now();
+                $targetAt = $o->scheduled_at
+                    ? ProviderSlotService::parseLocal($o->scheduled_at)
+                    : ProviderSlotService::nowLocal();
                 if (!ProviderSlotService::isOnShift($driverUser->id, $targetAt)) {
+                    return false;
+                }
+                if ($o->scheduled_at !== null && !ProviderSlotService::canDriverHandleAt($driverUser->id, $targetAt, (int) $o->id)) {
                     return false;
                 }
                 return !in_array((int) $driverUser->id, $this->getDeclinedDriverIds($o), true);

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -47,12 +48,53 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
     ('Friday', 'admin_staff_schedule_day_short_fri'),
   ];
 
+  final _searchCtrl = TextEditingController();
+  String _filterMode = 'all'; // all | lab | nurse | on_shift | online
+
   bool _isLoading = true;
   String? _error;
   List<Map<String, dynamic>> _allDrivers = [];
   bool _openedInitial = false;
 
   bool get _isDark => ThemeProvider().isDarkMode;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<Map<String, dynamic>> get _filteredDrivers {
+    final q = _searchCtrl.text.trim().toLowerCase();
+    return _allDrivers.where((d) {
+      final role = (d['applicant_role'] ?? '').toString().toLowerCase();
+      final duty = (d['duty_status'] ?? '').toString().toLowerCase();
+      final onShift = d['is_on_shift_now'] == true;
+
+      if (_filterMode == 'lab' && role != 'phlebotomist' && role != 'both') {
+        return false;
+      }
+      if (_filterMode == 'nurse' && role != 'mobile_nurse' && role != 'both') {
+        return false;
+      }
+      if (_filterMode == 'on_shift' && !onShift) {
+        return false;
+      }
+      if (_filterMode == 'online' && duty != 'available') {
+        return false;
+      }
+
+      if (q.isNotEmpty) {
+        final name = (d['name'] ?? '').toString().toLowerCase();
+        final phone = (d['phone'] ?? '').toString().toLowerCase();
+        final areas = (d['service_areas'] ?? '').toString().toLowerCase();
+        if (!name.contains(q) && !phone.contains(q) && !areas.contains(q)) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+  }
 
   String _roleLabel(Map<String, dynamic> d) {
     final role = (d['applicant_role'] ?? 'phlebotomist').toString().toLowerCase();
@@ -198,7 +240,9 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final rows = _allDrivers;
+    final rows = _filteredDrivers;
+    final onShiftCount = _allDrivers.where((d) => d['is_on_shift_now'] == true).length;
+    final onlineCount = _allDrivers.where((d) => d['duty_status'] == 'available').length;
 
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())
@@ -235,26 +279,58 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                             style: AdminUi.title.copyWith(fontSize: 13.5),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _accent.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${rows.length}',
-                            style: const TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: _accent,
-                            ),
-                          ),
-                        ),
+                        _miniStatBadge('${_allDrivers.length} ستاف', _accent),
+                        const SizedBox(width: 6),
+                        _miniStatBadge('$onShiftCount لە دەوام', const Color(0xFF10B981)),
+                        const SizedBox(width: 6),
+                        _miniStatBadge('$onlineCount ئۆنلاین', const Color(0xFF0EA5E9)),
                       ],
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _searchCtrl,
+                      onChanged: (_) => setState(() {}),
+                      style: TextStyle(
+                        fontFamily: 'Rabar',
+                        fontSize: 12.5,
+                        color: AppColors.getTextTitle(context),
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'گەڕان بە ناو، ژمارە، یان ناوچە...',
+                        hintStyle: AdminUi.subtitle.copyWith(fontSize: 12),
+                        prefixIcon: const Icon(Iconsax.search_normal, size: 17),
+                        suffixIcon: _searchCtrl.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.close, size: 17),
+                                onPressed: () => setState(() => _searchCtrl.clear()),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: AppColors.getSurface(context),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: AppColors.getBorder(context)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: AppColors.getBorder(context)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 36,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          _filterChip('all', 'هەمووی'),
+                          _filterChip('on_shift', 'لە کاتی دەوامدا'),
+                          _filterChip('online', 'ئۆنلاین لە ئەپ'),
+                          _filterChip('lab', 'تاقیگە'),
+                          _filterChip('nurse', 'پەرستار'),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 10),
                     if (rows.isEmpty)
@@ -263,12 +339,14 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                         padding: const EdgeInsets.all(24),
                         child: Center(
                           child: Text(
-                            'admin_staff_schedule_no_providers'.tr(
-                              args: [
-                                'admin_staff_schedule_section_driver_single'
-                                    .tr(),
-                              ],
-                            ),
+                            _allDrivers.isEmpty
+                                ? 'admin_staff_schedule_no_providers'.tr(
+                                    args: [
+                                      'admin_staff_schedule_section_driver_single'
+                                          .tr(),
+                                    ],
+                                  )
+                                : 'هیچ ستافێک بەم فلتەرە نەدۆزرایەوە',
                             style: AdminUi.subtitle,
                           ),
                         ),
@@ -294,6 +372,48 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
         showBackButton: true,
       ),
       body: body,
+    );
+  }
+
+  Widget _miniStatBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Rabar',
+          fontSize: 10.5,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _filterChip(String id, String label) {
+    final selected = _filterMode == id;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 6),
+      child: ChoiceChip(
+        selected: selected,
+        label: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Rabar',
+            fontSize: 11,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+            color: selected ? Colors.white : AppColors.getTextTitle(context),
+          ),
+        ),
+        selectedColor: _accent,
+        backgroundColor: AppColors.getSurface(context),
+        side: BorderSide(color: selected ? _accent : AppColors.getBorder(context)),
+        onSelected: (_) => setState(() => _filterMode = id),
+      ),
     );
   }
 
@@ -356,8 +476,15 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                 _dutyInfo(d['duty_status']?.toString());
             final start = (d['start_time'] ?? '08:00').toString();
             final end = (d['end_time'] ?? '22:00').toString();
-            final shiftStr = _shiftLabel(d['availability_shift']?.toString());
-            final workDaysStr = _workDaysLabel(d['work_days']?.toString());
+            final matchesWebsite = d['schedule_matches_website'] != false;
+            final activeDaysCount = (d['active_days'] as num?)?.toInt() ?? 7;
+            final isOnShiftNow = d['is_on_shift_now'] == true;
+            final shiftStr = matchesWebsite
+                ? _shiftLabel(d['availability_shift']?.toString())
+                : 'کاتی ڕێکخراو ($activeDaysCount ڕۆژ)';
+            final workDaysStr = matchesWebsite
+                ? _workDaysLabel(d['work_days']?.toString())
+                : 'پشکنینی تایبەت لە خشتەدا';
             final upcoming = (d['upcoming_count'] as num?)?.toInt() ?? 0;
             final areas = (d['service_areas'] ?? '').toString().trim();
 
@@ -445,6 +572,33 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                                           color: dutyColor,
                                         ),
                                       ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: (isOnShiftNow
+                                                  ? const Color(0xFF10B981)
+                                                  : const Color(0xFF94A3B8))
+                                              .withValues(alpha: 0.12),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                        child: Text(
+                                          isOnShiftNow
+                                              ? 'لە دەوام'
+                                              : 'دەرەوەی کات',
+                                          style: TextStyle(
+                                            fontFamily: 'Rabar',
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: isOnShiftNow
+                                                ? const Color(0xFF059669)
+                                                : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   if (areas.isNotEmpty) ...[
@@ -468,11 +622,14 @@ class _AdminStaffScheduleScreenState extends State<AdminStaffScheduleScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    '$start - $end',
-                                    style: AdminUi.title.copyWith(
-                                      fontSize: 13,
-                                      color: accent,
+                                  Directionality(
+                                    textDirection: ui.TextDirection.ltr,
+                                    child: Text(
+                                      '$start - $end',
+                                      style: AdminUi.title.copyWith(
+                                        fontSize: 13,
+                                        color: accent,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -1179,15 +1336,18 @@ class _DriverScheduleDetailSheetState
                                                 style: AdminUi.title
                                                     .copyWith(fontSize: 13),
                                               ),
-                                              Text(
-                                                'admin_staff_schedule_time_label'
-                                                    .tr(args: [
-                                                  '${o['scheduled_at'] ?? ''}'
-                                                ]),
-                                                style: AdminUi.subtitle
-                                                    .copyWith(
-                                                        fontSize: 11.5,
-                                                        color: accent),
+                                              Directionality(
+                                                textDirection: ui.TextDirection.ltr,
+                                                child: Text(
+                                                  'admin_staff_schedule_time_label'
+                                                      .tr(args: [
+                                                    '${o['scheduled_at'] ?? ''}'
+                                                  ]),
+                                                  style: AdminUi.subtitle
+                                                      .copyWith(
+                                                          fontSize: 11.5,
+                                                          color: accent),
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -1229,14 +1389,17 @@ class _DriverScheduleDetailSheetState
                                               .copyWith(fontSize: 13),
                                         ),
                                       ),
-                                      Text(
-                                        isAvail
-                                            ? '${row['start_time']} - ${row['end_time']}'
-                                            : 'admin_staff_schedule_off_inactive'
-                                                .tr(),
-                                        style: AdminUi.subtitle.copyWith(
-                                          fontSize: 12,
-                                          color: isAvail ? accent : Colors.grey,
+                                      Directionality(
+                                        textDirection: ui.TextDirection.ltr,
+                                        child: Text(
+                                          isAvail
+                                              ? '${row['start_time']} - ${row['end_time']}'
+                                              : 'admin_staff_schedule_off_inactive'
+                                                  .tr(),
+                                          style: AdminUi.subtitle.copyWith(
+                                            fontSize: 12,
+                                            color: isAvail ? accent : Colors.grey,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 8),

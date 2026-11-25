@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Services\FcmService;
 use App\Services\OtpService;
+use App\Services\ProviderSlotService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -227,6 +228,8 @@ class AdminDriverController extends Controller
                 'duty_status' => 'offline',
             ]);
 
+            ProviderSlotService::seedFromDriverProfile($u->id, 'full_flex', 'daily', true);
+
             return $u;
         });
 
@@ -240,7 +243,14 @@ class AdminDriverController extends Controller
     {
         $user = User::where('role', 'driver')->findOrFail($id);
         $user->update(['status' => 'approved']);
-        Driver::firstOrCreate(['user_id' => $user->id]);
+        $driver = Driver::firstOrCreate(['user_id' => $user->id]);
+        $fp = $driver->resolvedFieldProfile();
+        ProviderSlotService::seedFromDriverProfile(
+            $user->id,
+            $fp['availability_shift'] ?? 'full_flex',
+            $fp['work_days'] ?? 'daily',
+            true
+        );
 
         try {
             $title = 'هەژماری گەیاندنەکەت پەسەندکرا 🎉';

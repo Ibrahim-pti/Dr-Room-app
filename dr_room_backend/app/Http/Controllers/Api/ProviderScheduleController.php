@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\ProviderSlotService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ProviderScheduleController extends Controller
@@ -66,6 +65,7 @@ class ProviderScheduleController extends Controller
                     'phone' => $u->phone,
                     'city' => $u->driver?->city ?? 'هەولێر',
                     'duty_status' => $u->driver?->duty_status ?? 'offline',
+                    'is_on_shift_now' => ProviderSlotService::isOnShift($resolvedId),
                     'applicant_role' => $fp['applicant_role'] ?? 'phlebotomist',
                     'availability_shift' => $fp['availability_shift'] ?? 'full_flex',
                     'work_days' => $fp['work_days'] ?? 'daily',
@@ -74,6 +74,8 @@ class ProviderScheduleController extends Controller
             }
         }
 
+        $today = ProviderSlotService::todayLocal();
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -81,7 +83,7 @@ class ProviderScheduleController extends Controller
                 'type' => $type,
                 'profile' => $profile,
                 'week' => ProviderSlotService::week($resolvedId, $type),
-                'availability' => ProviderSlotService::availability($type, $resolvedId, Carbon::today(), 7),
+                'availability' => ProviderSlotService::availability($type, $resolvedId, $today, 7),
                 'upcoming' => ProviderSlotService::upcoming($resolvedId, $type, 14),
             ],
         ]);
@@ -112,12 +114,14 @@ class ProviderScheduleController extends Controller
 
         ProviderSlotService::saveWeek($resolvedId, $type, $validated['schedules']);
 
+        $today = ProviderSlotService::todayLocal();
+
         return response()->json([
             'success' => true,
             'message' => 'خشتەی دەوام بە سەرکەوتوویی پاشەکەوتکرا',
             'data' => [
                 'week' => ProviderSlotService::week($resolvedId, $type),
-                'availability' => ProviderSlotService::availability($type, $resolvedId, Carbon::today(), 7),
+                'availability' => ProviderSlotService::availability($type, $resolvedId, $today, 7),
             ],
         ]);
     }
@@ -149,12 +153,14 @@ class ProviderScheduleController extends Controller
             }
         }
 
+        $today = ProviderSlotService::todayLocal();
+
         return response()->json([
             'success' => true,
             'data' => [
                 'type' => $type,
                 'provider_user_id' => $providerUserId,
-                'days' => ProviderSlotService::availability($type, $providerUserId, Carbon::today(), $days),
+                'days' => ProviderSlotService::availability($type, $providerUserId, $today, $days),
             ],
         ]);
     }
@@ -176,7 +182,7 @@ class ProviderScheduleController extends Controller
             ? ProviderSlotService::resolveUserId($type, $request->input('provider_id'))
             : null;
 
-        $at = Carbon::parse($request->input('scheduled_at'));
+        $at = ProviderSlotService::parseWallClock($request->input('scheduled_at'));
         $available = ProviderSlotService::isBookable($type, $providerUserId, $at);
 
         return response()->json([
@@ -192,14 +198,19 @@ class ProviderScheduleController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        $user->loadMissing('driver');
+        $fp = $user->driver?->resolvedFieldProfile() ?? [];
+        $today = ProviderSlotService::todayLocal();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'user_id' => $user->id,
                 'is_on_shift_now' => ProviderSlotService::isOnShift($user->id),
-                'week' => ProviderSlotService::week($user->id, 'driver'),
-                'availability' => ProviderSlotService::availability('driver', $user->id, Carbon::today(), 7),
+                'availability_shift' => $fp['availability_shift'] ?? 'full_flex',
+                'work_days' => $fp['work_days'] ?? 'daily',
+                'week' => ProviderSlotService::week($user->id, 'driver', $user->driver),
+                'availability' => ProviderSlotService::availability('driver', $user->id, $today, 7),
                 'upcoming' => ProviderSlotService::upcoming($user->id, 'driver', 14),
             ],
         ]);
@@ -222,6 +233,7 @@ class ProviderScheduleController extends Controller
         ]);
 
         ProviderSlotService::saveWeek($user->id, 'driver', $validated['schedules']);
+        $today = ProviderSlotService::todayLocal();
 
         return response()->json([
             'success' => true,
@@ -229,7 +241,7 @@ class ProviderScheduleController extends Controller
             'data' => [
                 'is_on_shift_now' => ProviderSlotService::isOnShift($user->id),
                 'week' => ProviderSlotService::week($user->id, 'driver'),
-                'availability' => ProviderSlotService::availability('driver', $user->id, Carbon::today(), 7),
+                'availability' => ProviderSlotService::availability('driver', $user->id, $today, 7),
                 'upcoming' => ProviderSlotService::upcoming($user->id, 'driver', 14),
             ],
         ]);
