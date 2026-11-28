@@ -60,10 +60,9 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
       _historyError = null;
     });
 
-    await Future.wait([
-      _loadCoupons(),
-      _loadHistory(),
-    ]);
+    await _loadCoupons();
+    if (!mounted) return;
+    await _loadHistory();
   }
 
   Future<void> _loadCoupons() async {

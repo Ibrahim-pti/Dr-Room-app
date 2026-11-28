@@ -142,6 +142,8 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
       ]);
 
       final providers = <String, Map<String, dynamic>>{};
+      final labRecordToUserId = <int, dynamic>{};
+      final nurseRecordToUserId = <int, dynamic>{};
 
       void seedList(dynamic decoded, String type, double rate) {
         final list = decoded is List ? decoded : (decoded is Map ? (decoded['data'] as List? ?? []) : []);
@@ -149,6 +151,14 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
           if (item is! Map) continue;
           final id = item['id'];
           if (id == null) continue;
+          if (type == 'lab' && item['lab'] is Map && item['lab']['id'] != null) {
+            final recId = int.tryParse('${item['lab']['id']}');
+            if (recId != null) labRecordToUserId[recId] = id;
+          }
+          if (type == 'nursing' && item['nurse'] is Map && item['nurse']['id'] != null) {
+            final recId = int.tryParse('${item['nurse']['id']}');
+            if (recId != null) nurseRecordToUserId[recId] = id;
+          }
           final key = '${type}_$id';
           providers[key] = {
             'id': id,
@@ -210,7 +220,35 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
           final net = double.parse((total - comm).toStringAsFixed(2));
 
           final providerUser = cat == 'nursing' ? raw['assigned_nurse'] : raw['assigned_lab'];
-          final providerId = cat == 'nursing' ? raw['assigned_nurse_id'] : raw['assigned_lab_id'];
+          dynamic providerId = cat == 'nursing' ? raw['assigned_nurse_id'] : raw['assigned_lab_id'];
+
+          if (cat == 'lab' && providerId == null) {
+            var items = raw['items'];
+            if (items is String) {
+              try {
+                items = jsonDecode(items);
+              } catch (_) {}
+            }
+            if (items is List && items.isNotEmpty && items.first is Map) {
+              var extra = items.first['extra_data'];
+              if (extra is String) {
+                try {
+                  extra = jsonDecode(extra);
+                } catch (_) {}
+              }
+              if (extra is Map && extra['lab_id'] != null) {
+                final recId = int.tryParse('${extra['lab_id']}');
+                if (recId != null) {
+                  providerId = labRecordToUserId[recId] ?? recId;
+                }
+              }
+            }
+          } else if (cat == 'nursing' && providerId != null) {
+            final rawInt = int.tryParse('$providerId');
+            if (rawInt != null && !providers.containsKey('nursing_$rawInt') && nurseRecordToUserId.containsKey(rawInt)) {
+              providerId = nurseRecordToUserId[rawInt];
+            }
+          }
 
           String key;
           if (providerId != null) {
