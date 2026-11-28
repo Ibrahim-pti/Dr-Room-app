@@ -23,7 +23,6 @@ class AdminOrdersScreen extends StatefulWidget {
 class _AdminOrdersScreenState extends State<AdminOrdersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _onlyDiscounted = false;
 
   bool _hasOrderDiscount(dynamic order) {
     final discountAmt = num.tryParse('${order['discount_amount'] ?? 0}') ?? 0;
@@ -264,26 +263,17 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
             );
           }
 
-          final discountedOrders = provider.orders.where(_hasOrderDiscount).toList();
-          final discountedUserCount = discountedOrders
-              .map((o) => o['patient_id'] ?? (o['patient'] is Map ? o['patient']['id'] : null))
-              .where((id) => id != null)
-              .toSet()
-              .length;
-
-          final baseOrders = _onlyDiscounted ? discountedOrders : provider.orders;
-
-          final pendingOrders = baseOrders.where((o) {
+          final pendingOrders = provider.orders.where((o) {
             final st = (o['status'] ?? '').toString().toLowerCase();
             return st == 'pending' || st == 'new' || st.isEmpty;
           }).toList();
 
-          final processingOrders = baseOrders.where((o) {
+          final processingOrders = provider.orders.where((o) {
             final st = (o['status'] ?? '').toString().toLowerCase();
             return st == 'processing' || st == 'accepted' || st == 'in_progress' || st == 'approved';
           }).toList();
 
-          final completedOrders = baseOrders.where((o) {
+          final completedOrders = provider.orders.where((o) {
             final st = (o['status'] ?? '').toString().toLowerCase();
             return st == 'completed' || st == 'delivered' || st == 'cancelled' || st == 'done';
           }).toList();
@@ -291,7 +281,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: Container(
                   height: 52,
                   padding: const EdgeInsets.all(4),
@@ -345,54 +335,6 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                child: GestureDetector(
-                  onTap: () => setState(() => _onlyDiscounted = !_onlyDiscounted),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _onlyDiscounted
-                          ? const Color(0xFFEC4899)
-                          : const Color(0xFFEC4899).withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFFEC4899).withValues(alpha: _onlyDiscounted ? 1.0 : 0.25),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Iconsax.ticket_discount,
-                          size: 16,
-                          color: _onlyDiscounted ? Colors.white : const Color(0xFFEC4899),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'بە داشکاندن: ${discountedOrders.length} داواکاری ($discountedUserCount کەس)',
-                            style: TextStyle(
-                              fontFamily: 'Rabar',
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: _onlyDiscounted ? Colors.white : const Color(0xFFEC4899),
-                            ),
-                          ),
-                        ),
-                        Text(
-                          _onlyDiscounted ? 'هەمووی پیشانبدە' : 'فلتەر',
-                          style: TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: _onlyDiscounted ? Colors.white70 : const Color(0xFFEC4899),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ),
@@ -716,22 +658,24 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                       children: [
                         const Icon(Iconsax.ticket_discount, size: 13, color: Color(0xFFEC4899)),
                         const SizedBox(width: 6),
-                        Text(
-                          () {
-                            final code = (order['coupon_code'] ?? '').toString().trim();
-                            final disc = num.tryParse('${order['discount_amount'] ?? 0}') ?? 0;
-                            if (code.isNotEmpty && disc > 0) {
-                              return 'کۆپۆن: $code (-${Currency.format(disc)})';
-                            } else if (code.isNotEmpty) {
-                              return 'کۆپۆن: $code';
-                            }
-                            return 'داشکاندن: -${Currency.format(disc)}';
-                          }(),
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFEC4899),
+                        Flexible(
+                          child: Text(
+                            () {
+                              final code = (order['coupon_code'] ?? '').toString().trim();
+                              final disc = num.tryParse('${order['discount_amount'] ?? 0}') ?? 0;
+                              if (code.isNotEmpty && disc > 0) {
+                                return 'کۆپۆن: $code (-${Currency.format(disc)})';
+                              } else if (code.isNotEmpty) {
+                                return 'کۆپۆن: $code';
+                              }
+                              return 'داشکاندن: -${Currency.format(disc)}';
+                            }(),
+                            style: const TextStyle(
+                              fontFamily: 'Rabar',
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFEC4899),
+                            ),
                           ),
                         ),
                       ],
