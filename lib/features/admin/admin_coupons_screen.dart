@@ -680,8 +680,20 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
                 ),
                 dividerColor: Colors.transparent,
                 tabs: [
-                  Tab(text: 'کۆدەکان (${_coupons.length})'),
-                  Tab(text: 'هیستۆری و ڕاپۆرت (${_history.length})'),
+                  Tab(
+                    child: Text(
+                      'کۆدەکان (${_coupons.length})',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Tab(
+                    child: Text(
+                      'مێژووی تۆمارکراوەکان (${_history.length})',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -868,49 +880,54 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
                 const SizedBox(height: 10),
                 const Divider(height: 1),
                 const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () => _openHistoryForCode(codeStr),
-                      icon: const Icon(Iconsax.clock, size: 16, color: Color(0xFF10B981)),
-                      label: const Text(
-                        'هیستۆری',
-                        style: TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 2,
+                    runSpacing: 2,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => _openHistoryForCode(codeStr),
+                        icon: const Icon(Iconsax.clock, size: 16, color: Color(0xFF10B981)),
+                        label: const Text(
+                          'مێژووی تۆمارکراوەکان',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF10B981),
+                          ),
                         ),
                       ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () => _openAddEditDialog(coupon: c),
-                      icon: const Icon(Iconsax.edit_2, size: 16, color: Color(0xFF6366F1)),
-                      label: const Text(
-                        'دەستکاری',
-                        style: TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF6366F1),
+                      TextButton.icon(
+                        onPressed: () => _openAddEditDialog(coupon: c),
+                        icon: const Icon(Iconsax.edit_2, size: 16, color: Color(0xFF6366F1)),
+                        label: const Text(
+                          'دەستکاری',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6366F1),
+                          ),
                         ),
                       ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () => _deleteCoupon(c),
-                      icon: const Icon(Iconsax.trash, size: 16, color: Color(0xFFEF4444)),
-                      label: const Text(
-                        'سڕینەوە',
-                        style: TextStyle(
-                          fontFamily: 'Rabar',
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFEF4444),
+                      TextButton.icon(
+                        onPressed: () => _deleteCoupon(c),
+                        icon: const Icon(Iconsax.trash, size: 16, color: Color(0xFFEF4444)),
+                        label: const Text(
+                          'سڕینەوە',
+                          style: TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFEF4444),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -1078,7 +1095,9 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
                     Expanded(
                       child: _summaryStatBox(
                         label: 'کۆدی بەکارهاتوو',
-                        value: '$uniqueCodesUsed / $totalCoupons',
+                        value: totalCoupons > 0
+                            ? '$uniqueCodesUsed لە $totalCoupons'
+                            : '$uniqueCodesUsed کۆد',
                         sub: '$uniqueUsers بەکارهێنەر',
                       ),
                     ),
@@ -1364,7 +1383,7 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'هیستۆری بەکارهێنان (${filtered.length})',
+                'مێژووی تۆمارکراوەکان (${filtered.length})',
                 style: AdminUi.title.copyWith(fontSize: 13.5),
               ),
               Text(
