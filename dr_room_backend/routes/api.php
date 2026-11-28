@@ -384,6 +384,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // ─── Coupons, Surveys, Tickets, Loyalty & Report Branding (Content) ────
         Route::middleware('permission:manage_content')->group(function () {
             Route::get('/coupons', [\App\Http\Controllers\Api\Admin\CouponController::class, 'index']);
+            Route::get('/coupons/history', [\App\Http\Controllers\Api\Admin\CouponController::class, 'history']);
             Route::post('/coupons', [\App\Http\Controllers\Api\Admin\CouponController::class, 'store']);
             Route::put('/coupons/{id}', [\App\Http\Controllers\Api\Admin\CouponController::class, 'update']);
             Route::patch('/coupons/{id}/toggle', [\App\Http\Controllers\Api\Admin\CouponController::class, 'toggleStatus']);

@@ -116,6 +116,23 @@ class SystemWorkflowTest extends TestCase
         $this->assertEquals(18000.0, (float) $order->total_price);
         $this->assertEquals(1, Coupon::where('code', 'SAVE20')->value('used_count'));
         $this->assertEquals($patient->id, $order->patient_id);
+
+        // Admin coupon history & report endpoint returns usage details and summary
+        $admin = $this->createAdmin();
+        $adminToken = $admin->createToken('admin-coupon-test')->plainTextToken;
+        $this->bearer($adminToken)
+            ->getJson('/api/admin/coupons/history')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('summary.total_usages', 1)
+            ->assertJsonPath('summary.unique_codes_used', 1)
+            ->assertJsonPath('summary.unique_users_count', 1)
+            ->assertJsonPath('summary.total_discount_amount', 4000)
+            ->assertJsonPath('by_code.0.code', 'SAVE20')
+            ->assertJsonPath('by_code.0.times_used', 1)
+            ->assertJsonPath('data.0.order_id', $orderId)
+            ->assertJsonPath('data.0.coupon_code', 'SAVE20')
+            ->assertJsonPath('data.0.patient.id', $patient->id);
     }
 
     public function test_driver_delivery_for_pharmacy_and_lab_sample_lifecycles(): void
