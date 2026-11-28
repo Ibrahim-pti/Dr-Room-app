@@ -266,7 +266,6 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
       (key: 'all', label: 'هەمووی', icon: Iconsax.category),
       (key: 'lab', label: 'تاقیگە', icon: Iconsax.microscope),
       (key: 'nursing', label: 'پەرستاری', icon: Iconsax.profile_2user),
-      (key: 'pharmacy', label: 'دەرمانخانە', icon: Iconsax.health),
     ];
 
     return Container(
