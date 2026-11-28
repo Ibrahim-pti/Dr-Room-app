@@ -23,11 +23,11 @@ class CommissionService
     /** Map an order service_type onto a commission category (or null = no commission category). */
     public static function categoryFor(?string $serviceType): ?string
     {
-        $s = strtolower((string) $serviceType);
-        if (str_contains($s, 'lab')) {
+        $s = mb_strtolower((string) $serviceType, 'UTF-8');
+        if (str_contains($s, 'lab') || str_contains($s, 'تاقیگە')) {
             return 'lab';
         }
-        if (str_contains($s, 'nurs')) {
+        if (str_contains($s, 'nurs') || str_contains($s, 'پەرستار')) {
             return 'nursing';
         }
         return null;

@@ -171,6 +171,7 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
             'total_amount': 0.0,
             'total_commission': 0.0,
             'provider_net': 0.0,
+            'orders': <Map<String, dynamic>>[],
           };
         }
       }
@@ -191,7 +192,8 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
           final status = (raw['status'] ?? '').toString().toLowerCase().trim();
           if (status != 'completed') continue;
 
-          final createdDt = DateTime.tryParse('${raw['created_at'] ?? ''}')?.toLocal();
+          // Compare in UTC to match backend CommissionController's `config('app.timezone') = 'UTC'`
+          final createdDt = DateTime.tryParse('${raw['created_at'] ?? ''}')?.toUtc();
           if (createdDt == null || createdDt.year != _period.year || createdDt.month != _period.month) {
             continue;
           }
@@ -266,6 +268,7 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
                 'total_amount': 0.0,
                 'total_commission': 0.0,
                 'provider_net': 0.0,
+                'orders': <Map<String, dynamic>>[],
               };
             }
           } else {
@@ -281,6 +284,7 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
                   'total_amount': 0.0,
                   'total_commission': 0.0,
                   'provider_net': 0.0,
+                  'orders': <Map<String, dynamic>>[],
                 });
           }
 
@@ -289,6 +293,23 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
           target['total_amount'] = (target['total_amount'] as double) + total;
           target['total_commission'] = (target['total_commission'] as double) + comm;
           target['provider_net'] = (target['provider_net'] as double) + net;
+
+          final patient = raw['patient'] is Map ? raw['patient'] as Map : const {};
+          var pDetails = raw['patient_details'];
+          if (pDetails is String) {
+            try {
+              pDetails = jsonDecode(pDetails);
+            } catch (_) {}
+          }
+          final pName = (patient['name'] ?? (pDetails is Map ? pDetails['name'] : null) ?? 'نەخۆش').toString();
+          (target['orders'] as List<Map<String, dynamic>>).add({
+            'id': raw['id'],
+            'patient_name': pName,
+            'total_price': total,
+            'commission_amount': comm,
+            'provider_net': net,
+            'created_at': raw['created_at'],
+          });
         }
       }
 
@@ -845,79 +866,222 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               decoration: AdminUi.cardDecoration,
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          isLab ? Iconsax.microscope : Iconsax.health,
-                          color: color,
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(18),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(18),
+                  onTap: () => _showProviderOrdersSheet(p),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              p['name']?.toString() ?? '',
-                              style: AdminUi.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                isLab ? Iconsax.microscope : Iconsax.health,
+                                color: color,
+                                size: 18,
+                              ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              phone.isNotEmpty
-                                  ? '${isLab ? 'تاقیگە' : 'پەرستاری'} • $phone • $orders داواکاری'
-                                  : '${isLab ? 'تاقیگە' : 'پەرستاری'} • $orders داواکاری',
-                              style: AdminUi.subtitle.copyWith(fontSize: 11),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    p['name']?.toString() ?? '',
+                                    style: AdminUi.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    phone.isNotEmpty
+                                        ? '${isLab ? 'تاقیگە' : 'پەرستاری'} • $phone • $orders داواکاری'
+                                        : '${isLab ? 'تاقیگە' : 'پەرستاری'} • $orders داواکاری',
+                                    style: AdminUi.subtitle.copyWith(fontSize: 11),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _green.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '${_fmtRate(p['rate'])}%',
+                                style: const TextStyle(
+                                  fontFamily: 'Rabar',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: _green,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _green.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            _breakdownCell('کۆی داهات', total, AdminUi.title.color!),
+                            _breakdownCell('کۆمیشن', comm, _green),
+                            _breakdownCell('پشکی پێشکەشکار', net, const Color(0xFF3B82F6)),
+                          ],
                         ),
-                        child: Text(
-                          '${_fmtRate(p['rate'])}%',
-                          style: const TextStyle(
-                            fontFamily: 'Rabar',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: _green,
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      _breakdownCell('کۆی داهات', total, AdminUi.title.color!),
-                      _breakdownCell('کۆمیشن', comm, _green),
-                      _breakdownCell('پشکی پێشکەشکار', net, const Color(0xFF3B82F6)),
-                    ],
-                  ),
-                ],
+                ),
               ),
             );
           }),
       ],
+    );
+  }
+
+  void _showProviderOrdersSheet(Map<String, dynamic> provider) {
+    final isLab = provider['service_type'] == 'lab';
+    final color = isLab ? const Color(0xFF8B5CF6) : const Color(0xFFEC4899);
+    final orders = ((provider['orders'] as List?) ?? [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.78),
+        decoration: BoxDecoration(
+          color: AppColors.getSurface(ctx),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.getBorder(ctx),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(isLab ? Iconsax.microscope : Iconsax.health, color: color, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(provider['name']?.toString() ?? '', style: AdminUi.title),
+                      Text(
+                        '${isLab ? 'تاقیگە' : 'پەرستاری ماڵەوە'} • مانگی $_periodLabel • ${orders.length} داواکاری',
+                        style: AdminUi.subtitle.copyWith(fontSize: 11.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+              decoration: BoxDecoration(
+                color: AppColors.getBackground(ctx),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.getBorder(ctx)),
+              ),
+              child: Row(
+                children: [
+                  _breakdownCell('کۆی داهات', _num(provider['total_amount']), AdminUi.title.color!),
+                  _breakdownCell('کۆمیشن', _num(provider['total_commission']), _green),
+                  _breakdownCell('پشکی پێشکەشکار', _num(provider['provider_net']), const Color(0xFF3B82F6)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            if (orders.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 28),
+                child: Text(
+                  'لەم مانگەدا هیچ داواکارییەکی تەواوکراو تۆمار نەکراوە',
+                  style: AdminUi.subtitle,
+                  textAlign: TextAlign.center,
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: orders.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (_, idx) {
+                    final o = orders[idx];
+                    final dt = DateTime.tryParse('${o['created_at'] ?? ''}')?.toLocal();
+                    final dateStr = dt != null ? DateFormat('yyyy/MM/dd • HH:mm').format(dt) : '-';
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.getBackground(ctx),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.getBorder(ctx)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('#${o['id']} • ${o['patient_name'] ?? 'نەخۆش'}',
+                                  style: AdminUi.title.copyWith(fontSize: 13)),
+                              Text(dateStr, style: AdminUi.subtitle.copyWith(fontSize: 10.5)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              _breakdownCell('نرخ', _num(o['total_price']), AdminUi.title.color!),
+                              _breakdownCell('کۆمیشن', _num(o['commission_amount']), _green),
+                              _breakdownCell('پشکی پێشکەشکار', _num(o['provider_net']), const Color(0xFF3B82F6)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 

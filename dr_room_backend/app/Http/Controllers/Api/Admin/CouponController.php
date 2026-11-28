@@ -126,6 +126,10 @@ class CouponController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->has('code')) {
+            $request->merge(['code' => strtoupper(trim((string) $request->input('code')))]);
+        }
+
         $validated = $request->validate([
             'code' => 'required|string|unique:coupons,code|max:50',
             'title' => 'nullable|string|max:255',
@@ -153,6 +157,10 @@ class CouponController extends Controller
     public function update(Request $request, $id)
     {
         $coupon = Coupon::findOrFail($id);
+
+        if ($request->has('code')) {
+            $request->merge(['code' => strtoupper(trim((string) $request->input('code')))]);
+        }
 
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:coupons,code,' . $coupon->id,

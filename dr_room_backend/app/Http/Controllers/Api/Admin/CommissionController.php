@@ -73,17 +73,20 @@ class CommissionController extends Controller
         $start = Carbon::create($year, $month, 1)->startOfMonth();
         $end = (clone $start)->endOfMonth();
 
-        $orders = Order::with(['assignedNurse:id,name,phone', 'assignedLab:id,name,phone', 'items'])
+        $orders = Order::with(['patient:id,name,phone', 'assignedNurse:id,name,phone', 'assignedLab:id,name,phone', 'items'])
             ->where('status', 'completed')
             ->whereBetween('created_at', [$start, $end])
+            ->orderByDesc('created_at')
             ->get([
                 'id',
+                'patient_id',
                 'service_type',
                 'total_price',
                 'commission_rate',
                 'commission_amount',
                 'assigned_nurse_id',
                 'assigned_lab_id',
+                'patient_details',
                 'created_at',
             ]);
 
@@ -121,6 +124,7 @@ class CommissionController extends Controller
                 'total_amount' => 0.0,
                 'total_commission' => 0.0,
                 'provider_net' => 0.0,
+                'orders' => [],
             ];
         }
 
@@ -175,6 +179,7 @@ class CommissionController extends Controller
                         'total_amount' => 0.0,
                         'total_commission' => 0.0,
                         'provider_net' => 0.0,
+                        'orders' => [],
                     ];
                 }
             } else {
@@ -191,6 +196,7 @@ class CommissionController extends Controller
                         'total_amount' => 0.0,
                         'total_commission' => 0.0,
                         'provider_net' => 0.0,
+                        'orders' => [],
                     ];
                 }
             }
@@ -199,6 +205,16 @@ class CommissionController extends Controller
             $providers[$key]['total_amount'] += $total;
             $providers[$key]['total_commission'] += $comm;
             $providers[$key]['provider_net'] += $net;
+
+            $pDetails = is_array($order->patient_details) ? $order->patient_details : [];
+            $providers[$key]['orders'][] = [
+                'id' => $order->id,
+                'patient_name' => $order->patient?->name ?? ($pDetails['name'] ?? 'نەخۆش'),
+                'total_price' => round($total, 2),
+                'commission_amount' => round($comm, 2),
+                'provider_net' => round($net, 2),
+                'created_at' => $order->created_at?->toIso8601String(),
+            ];
         }
 
         foreach ($buckets as &$b) {

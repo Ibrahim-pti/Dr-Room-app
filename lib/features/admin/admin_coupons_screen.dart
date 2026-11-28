@@ -1002,6 +1002,39 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
       return st != 'cancelled' && st != 'rejected';
     }).toList();
 
+    final dateFiltered = _history.where((item) => _matchesDateFilter(item['created_at'])).toList();
+    final dateFilteredActive = dateFiltered.where((h) {
+      final st = (h['status'] ?? '').toString().toLowerCase();
+      return st != 'cancelled' && st != 'rejected';
+    }).toList();
+
+    List<Map<String, dynamic>> byCodeForView;
+    if (_datePreset == 'all') {
+      byCodeForView = _byCode;
+    } else {
+      final grouped = <String, List<Map<String, dynamic>>>{};
+      for (final item in dateFilteredActive) {
+        final code = (item['coupon_code'] ?? '').toString().trim().toUpperCase();
+        if (code.isNotEmpty) {
+          grouped.putIfAbsent(code, () => []).add(item);
+        }
+      }
+      byCodeForView = grouped.entries.map((entry) {
+        final items = entry.value;
+        final users = items.map((i) => (i['patient'] as Map?)?['id']).where((id) => id != null).toSet().length;
+        final discSum = items.fold<double>(0, (sum, i) => sum + ((i['discount_amount'] as num?)?.toDouble() ?? 0));
+        items.sort((a, b) => (b['created_at'] ?? '').toString().compareTo((a['created_at'] ?? '').toString()));
+        return <String, dynamic>{
+          'code': entry.key,
+          'times_used': items.length,
+          'unique_users': users,
+          'total_discount': discSum,
+          'last_used_at': items.first['created_at'],
+        };
+      }).toList()
+        ..sort((a, b) => (b['times_used'] as int).compareTo(a['times_used'] as int));
+    }
+
     final totalUsages = isFilteredView
         ? filteredActive.length
         : ((_summary['total_usages'] as num?)?.toInt() ?? 0);
@@ -1137,7 +1170,7 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
           ),
 
           // ── Per-Code Breakdown ──
-          if (_byCode.isNotEmpty) ...[
+          if (byCodeForView.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(
               'ڕاپۆرت بەپێی هەر کۆدێک',
@@ -1148,7 +1181,7 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
               height: 106,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: _byCode.length + 1,
+                itemCount: byCodeForView.length + 1,
                 separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (context, idx) {
                   if (idx == 0) {
@@ -1190,7 +1223,7 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
                               ),
                             ),
                             Text(
-                              '${_history.length} تۆمار',
+                              '${dateFiltered.length} تۆمار',
                               style: TextStyle(
                                 fontFamily: 'Rabar',
                                 fontSize: 11,
@@ -1205,7 +1238,7 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
                     );
                   }
 
-                  final item = _byCode[idx - 1];
+                  final item = byCodeForView[idx - 1];
                   final code = (item['code'] ?? '').toString();
                   final selected = _selectedCodeFilter == code;
                   final timesUsed = (item['times_used'] as num?)?.toInt() ?? 0;
@@ -1267,11 +1300,11 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
                             ],
                           ),
                           Text(
-                            '-${Currency.format(discSum)}',
+                            Currency.format(discSum),
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: selected ? Colors.white : AppColors.getTextTitle(context),
+                              color: selected ? Colors.white : const Color(0xFFEC4899),
                             ),
                           ),
                           Text(
@@ -1576,7 +1609,7 @@ class _AdminCouponsScreenState extends State<AdminCouponsScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _priceColumn('نرخی سەرەتایی', Currency.format(subtotal), AppColors.getTextSubtitle(context)),
-              _priceColumn('داشکاندن', '-${Currency.format(discountAmt)}', const Color(0xFFEC4899)),
+              _priceColumn('داشکاندن', Currency.format(discountAmt), const Color(0xFFEC4899)),
               _priceColumn('کۆی گشتی', Currency.format(totalPrice), const Color(0xFF10B981)),
             ],
           ),
