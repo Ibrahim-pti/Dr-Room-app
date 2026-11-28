@@ -312,4 +312,84 @@ class ProviderReportsTest extends TestCase
             ->assertSee('پشکنینی بۆماوەیی')
             ->assertSee('بۆماوەیی و جینات');
     }
+
+    public function test_admin_commission_summary_lists_all_nurses_and_labs_individually(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Commission',
+            'phone' => '07509990011',
+            'role' => 'admin',
+            'status' => 'approved',
+            'password' => Hash::make('password123'),
+        ]);
+        $nurse = User::create([
+            'name' => 'پەرستار سارا',
+            'phone' => '07509990012',
+            'role' => 'nurse',
+            'status' => 'approved',
+            'password' => Hash::make('password123'),
+        ]);
+        $lab = User::create([
+            'name' => 'تاقیگەی ڕۆژ',
+            'phone' => '07509990013',
+            'role' => 'lab',
+            'status' => 'approved',
+            'password' => Hash::make('password123'),
+        ]);
+        $patient = User::create([
+            'name' => 'Patient C',
+            'phone' => '07509990014',
+            'role' => 'patient',
+            'status' => 'approved',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $now = now();
+        Order::create([
+            'patient_id' => $patient->id,
+            'assigned_nurse_id' => $nurse->id,
+            'service_type' => 'nursing',
+            'subtotal' => 50000,
+            'extra_fee' => 0,
+            'total_price' => 50000,
+            'commission_rate' => 10,
+            'commission_amount' => 5000,
+            'provider_net_amount' => 45000,
+            'status' => 'completed',
+            'payment_method' => 'cash',
+        ]);
+        Order::create([
+            'patient_id' => $patient->id,
+            'assigned_lab_id' => $lab->id,
+            'service_type' => 'lab',
+            'subtotal' => 80000,
+            'extra_fee' => 0,
+            'total_price' => 80000,
+            'commission_rate' => 15,
+            'commission_amount' => 12000,
+            'provider_net_amount' => 68000,
+            'status' => 'completed',
+            'payment_method' => 'cash',
+        ]);
+
+        $res = $this->actingAs($admin)
+            ->getJson("/api/admin/commission/summary?year={$now->year}&month={$now->month}")
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $providers = collect($res->json('data.providers'));
+        $this->assertCount(2, $providers);
+
+        $labRow = $providers->firstWhere('id', $lab->id);
+        $this->assertSame('lab', $labRow['service_type']);
+        $this->assertEquals(80000, $labRow['total_amount']);
+        $this->assertEquals(12000, $labRow['total_commission']);
+        $this->assertEquals(68000, $labRow['provider_net']);
+
+        $nurseRow = $providers->firstWhere('id', $nurse->id);
+        $this->assertSame('nursing', $nurseRow['service_type']);
+        $this->assertEquals(50000, $nurseRow['total_amount']);
+        $this->assertEquals(5000, $nurseRow['total_commission']);
+        $this->assertEquals(45000, $nurseRow['provider_net']);
+    }
 }

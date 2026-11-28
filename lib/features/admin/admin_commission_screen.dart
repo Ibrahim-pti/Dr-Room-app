@@ -36,9 +36,13 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
   double _totalProviderPayout = 0;
   bool _isCustomMonth = false;
   List<dynamic> _breakdown = [];
+  List<Map<String, dynamic>> _providers = [];
+  String _providerFilter = 'all';
+  String _providerSearch = '';
 
   final _nursingRateCtrl = TextEditingController();
   final _labRateCtrl = TextEditingController();
+  final _providerSearchCtrl = TextEditingController();
 
   bool get _isDark => ThemeProvider().isDarkMode;
   String get _periodQuery => 'year=${_period.year}&month=${_period.month}';
@@ -58,6 +62,7 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
   void dispose() {
     _nursingRateCtrl.dispose();
     _labRateCtrl.dispose();
+    _providerSearchCtrl.dispose();
     super.dispose();
   }
 
@@ -84,15 +89,31 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
       if (results[0].statusCode == 200 && results[1].statusCode == 200) {
         final s = jsonDecode(results[0].body)['data'];
         final r = jsonDecode(results[1].body)['data'];
+        final nursingRate = _num(r['nursing_rate'] ?? 10);
+        final labRate = _num(r['lab_rate'] ?? 15);
+        final rawProviders = s['providers'];
+
+        List<Map<String, dynamic>> providersList = [];
+        if (rawProviders is List) {
+          providersList = rawProviders.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        } else {
+          providersList = await _loadProvidersFallback(nursingRate: nursingRate, labRate: labRate);
+          if (!mounted) return;
+        }
+
+        final summaryMap = Map<String, dynamic>.from(s as Map);
+        summaryMap['providers'] = providersList;
+
         setState(() {
-          _summary = Map<String, dynamic>.from(s as Map);
+          _summary = summaryMap;
           _totalOrders = (s['total_orders'] as num?)?.toInt() ?? 0;
           _totalRevenue = _num(s['total_revenue']);
           _totalCommission = _num(s['total_commission']);
           _totalProviderPayout = _num(s['total_provider_payout']);
           _breakdown = s['breakdown'] ?? [];
-          _nursingRateCtrl.text = _fmtRate(r['nursing_rate'] ?? 10);
-          _labRateCtrl.text = _fmtRate(r['lab_rate'] ?? 15);
+          _providers = providersList;
+          _nursingRateCtrl.text = _fmtRate(nursingRate);
+          _labRateCtrl.text = _fmtRate(labRate);
           _isCustomMonth = r['is_custom'] == true;
           _isLoading = false;
         });
@@ -104,6 +125,147 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
       }
     } catch (e) {
       if (mounted) setState(() { _error = '$e'; _isLoading = false; });
+    }
+  }
+
+  /// Builds the per-nurse & per-lab list client-side when the server hasn't
+  /// yet deployed the `providers` field on `/admin/commission/summary`.
+  Future<List<Map<String, dynamic>>> _loadProvidersFallback({
+    required double nursingRate,
+    required double labRate,
+  }) async {
+    try {
+      final resList = await Future.wait([
+        ApiClient.get('/admin/nurses'),
+        ApiClient.get('/admin/labs'),
+        ApiClient.get('/admin/orders'),
+      ]);
+
+      final providers = <String, Map<String, dynamic>>{};
+
+      void seedList(dynamic decoded, String type, double rate) {
+        final list = decoded is List ? decoded : (decoded is Map ? (decoded['data'] as List? ?? []) : []);
+        for (final item in list) {
+          if (item is! Map) continue;
+          final id = item['id'];
+          if (id == null) continue;
+          final key = '${type}_$id';
+          providers[key] = {
+            'id': id,
+            'name': (item['name'] ?? (type == 'lab' ? 'تاقیگە' : 'پەرستار')).toString(),
+            'phone': (item['phone'] ?? '').toString(),
+            'service_type': type,
+            'status': (item['status'] ?? 'approved').toString(),
+            'rate': rate,
+            'total_orders': 0,
+            'total_amount': 0.0,
+            'total_commission': 0.0,
+            'provider_net': 0.0,
+          };
+        }
+      }
+
+      if (resList[0].statusCode == 200) {
+        seedList(jsonDecode(resList[0].body), 'nursing', nursingRate);
+      }
+      if (resList[1].statusCode == 200) {
+        seedList(jsonDecode(resList[1].body), 'lab', labRate);
+      }
+
+      if (resList[2].statusCode == 200) {
+        final ordersBody = jsonDecode(resList[2].body);
+        final orders = (ordersBody['orders'] as List?) ?? (ordersBody['data'] as List?) ?? [];
+
+        for (final raw in orders) {
+          if (raw is! Map) continue;
+          final status = (raw['status'] ?? '').toString().toLowerCase().trim();
+          if (status != 'completed') continue;
+
+          final createdDt = DateTime.tryParse('${raw['created_at'] ?? ''}')?.toLocal();
+          if (createdDt == null || createdDt.year != _period.year || createdDt.month != _period.month) {
+            continue;
+          }
+
+          final st = (raw['service_type'] ?? '').toString().toLowerCase();
+          String? cat;
+          if (st.contains('lab') || st.contains('تاقیگە')) {
+            cat = 'lab';
+          } else if (st.contains('nurs') || st.contains('پەرستار')) {
+            cat = 'nursing';
+          }
+          if (cat == null) continue;
+
+          final total = _num(raw['total_price']).clamp(0.0, double.infinity);
+          final storedRate = _num(raw['commission_rate']);
+          final storedComm = _num(raw['commission_amount']);
+          final rate = cat == 'nursing' ? nursingRate : labRate;
+          double comm;
+          if (storedComm > 0) {
+            comm = storedComm > total ? total : storedComm;
+          } else if (storedRate > 0) {
+            comm = double.parse((total * storedRate / 100.0).toStringAsFixed(2));
+          } else {
+            comm = double.parse((total * rate / 100.0).toStringAsFixed(2));
+          }
+          final net = double.parse((total - comm).toStringAsFixed(2));
+
+          final providerUser = cat == 'nursing' ? raw['assigned_nurse'] : raw['assigned_lab'];
+          final providerId = cat == 'nursing' ? raw['assigned_nurse_id'] : raw['assigned_lab_id'];
+
+          String key;
+          if (providerId != null) {
+            key = '${cat}_$providerId';
+            if (!providers.containsKey(key)) {
+              final pMap = providerUser is Map ? providerUser : const {};
+              providers[key] = {
+                'id': providerId,
+                'name': (pMap['name'] ?? (cat == 'lab' ? 'تاقیگە' : 'پەرستار')).toString(),
+                'phone': (pMap['phone'] ?? '').toString(),
+                'service_type': cat,
+                'status': (pMap['status'] ?? 'approved').toString(),
+                'rate': rate,
+                'total_orders': 0,
+                'total_amount': 0.0,
+                'total_commission': 0.0,
+                'provider_net': 0.0,
+              };
+            }
+          } else {
+            key = 'unassigned_$cat';
+            providers.putIfAbsent(key, () => {
+                  'id': null,
+                  'name': cat == 'lab' ? 'تاقیگەی دیارینەکراو' : 'پەرستاری دیارینەکراو',
+                  'phone': '',
+                  'service_type': cat,
+                  'status': 'unassigned',
+                  'rate': rate,
+                  'total_orders': 0,
+                  'total_amount': 0.0,
+                  'total_commission': 0.0,
+                  'provider_net': 0.0,
+                });
+          }
+
+          final target = providers[key]!;
+          target['total_orders'] = (target['total_orders'] as int) + 1;
+          target['total_amount'] = (target['total_amount'] as double) + total;
+          target['total_commission'] = (target['total_commission'] as double) + comm;
+          target['provider_net'] = (target['provider_net'] as double) + net;
+        }
+      }
+
+      final result = providers.values.toList()
+        ..sort((a, b) {
+          final amtCmp = (b['total_amount'] as double).compareTo(a['total_amount'] as double);
+          if (amtCmp != 0) return amtCmp;
+          final ordCmp = (b['total_orders'] as int).compareTo(a['total_orders'] as int);
+          if (ordCmp != 0) return ordCmp;
+          return (a['name'] as String).compareTo(b['name'] as String);
+        });
+
+      return result;
+    } catch (_) {
+      return [];
     }
   }
 
@@ -257,7 +419,9 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
                             _buildRatesCard(),
                             const SizedBox(height: 20),
                             _buildBreakdown(),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 16),
+                            _buildProvidersSection(),
+                            const SizedBox(height: 16),
                             _buildPdfCard(),
                           ],
                         ),
@@ -507,6 +671,214 @@ class _AdminCommissionScreenState extends State<AdminCommissionScreen> {
             ),
           );
         }),
+      ],
+    );
+  }
+
+  Widget _buildProvidersSection() {
+    final nursingCount = _providers.where((p) => p['service_type'] == 'nursing').length;
+    final labCount = _providers.where((p) => p['service_type'] == 'lab').length;
+
+    final filtered = _providers.where((p) {
+      if (_providerFilter != 'all' && p['service_type'] != _providerFilter) {
+        return false;
+      }
+      if (_providerSearch.trim().isNotEmpty) {
+        final q = _providerSearch.trim().toLowerCase();
+        final name = (p['name'] ?? '').toString().toLowerCase();
+        final phone = (p['phone'] ?? '').toString().toLowerCase();
+        if (!name.contains(q) && !phone.contains(q)) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+
+    Widget filterPill(String key, String label) {
+      final selected = _providerFilter == key;
+      return GestureDetector(
+        onTap: () => setState(() => _providerFilter = key),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: selected ? _green : AppColors.getSurface(context),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected ? _green : AppColors.getBorder(context),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Rabar',
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              color: selected ? Colors.white : AdminUi.subtitle.color,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('پەرستارەکان و تاقیگەکان (${filtered.length})', style: AdminUi.title),
+            Text(
+              'مانگی $_periodLabel',
+              style: AdminUi.subtitle.copyWith(fontSize: 11),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              filterPill('all', 'هەمووی (${_providers.length})'),
+              const SizedBox(width: 8),
+              filterPill('nursing', 'پەرستاری ماڵەوە ($nursingCount)'),
+              const SizedBox(width: 8),
+              filterPill('lab', 'تاقیگەکان ($labCount)'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _providerSearchCtrl,
+          onChanged: (v) => setState(() => _providerSearch = v),
+          decoration: InputDecoration(
+            hintText: 'گەڕان بەپێی ناوی پەرستار یان تاقیگە یان مۆبایل...',
+            hintStyle: AdminUi.subtitle.copyWith(fontSize: 11.5),
+            prefixIcon: const Icon(Iconsax.search_normal_1, size: 17),
+            suffixIcon: _providerSearch.isNotEmpty
+                ? IconButton(
+                    onPressed: () {
+                      _providerSearchCtrl.clear();
+                      setState(() => _providerSearch = '');
+                    },
+                    icon: const Icon(Icons.close, size: 17),
+                  )
+                : null,
+            filled: true,
+            fillColor: AppColors.getSurface(context),
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.getBorder(context)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.getBorder(context)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (filtered.isEmpty)
+          Container(
+            decoration: AdminUi.cardDecoration,
+            padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+            child: Column(
+              children: [
+                const Icon(Iconsax.profile_2user, size: 36, color: Color(0xFF94A3B8)),
+                const SizedBox(height: 8),
+                Text(
+                  'هیچ پەرستار یان تاقیگەیەک نەدۆزرایەوە',
+                  style: AdminUi.subtitle,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          )
+        else
+          ...filtered.map((p) {
+            final isLab = p['service_type'] == 'lab';
+            final color = isLab ? const Color(0xFF8B5CF6) : const Color(0xFFEC4899);
+            final total = _num(p['total_amount']);
+            final comm = _num(p['total_commission']);
+            final net = _num(p['provider_net']);
+            final orders = (p['total_orders'] as num?)?.toInt() ?? 0;
+            final phone = (p['phone'] ?? '').toString().trim();
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: AdminUi.cardDecoration,
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          isLab ? Iconsax.microscope : Iconsax.health,
+                          color: color,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              p['name']?.toString() ?? '',
+                              style: AdminUi.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              phone.isNotEmpty
+                                  ? '${isLab ? 'تاقیگە' : 'پەرستاری'} • $phone • $orders داواکاری'
+                                  : '${isLab ? 'تاقیگە' : 'پەرستاری'} • $orders داواکاری',
+                              style: AdminUi.subtitle.copyWith(fontSize: 11),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _green.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${_fmtRate(p['rate'])}%',
+                          style: const TextStyle(
+                            fontFamily: 'Rabar',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: _green,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _breakdownCell('کۆی داهات', total, AdminUi.title.color!),
+                      _breakdownCell('کۆمیشن', comm, _green),
+                      _breakdownCell('پشکی پێشکەشکار', net, const Color(0xFF3B82F6)),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
       ],
     );
   }

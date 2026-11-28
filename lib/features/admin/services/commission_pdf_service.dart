@@ -61,6 +61,9 @@ class CommissionPdfService {
     final title = brand('header_title', 'دکتۆر ڕۆم - Dr. Room');
     final footer = brand('footer_text', 'پەسەندکراوە لەلایەن بەشی دارایی Dr. Room');
     final breakdown = (data['breakdown'] as List?) ?? [];
+    final providers = ((data['providers'] as List?) ?? [])
+        .where((p) => p is Map && ((num.tryParse('${p['total_orders'] ?? 0}') ?? 0) > 0))
+        .toList();
     final revenue = _num(data['total_revenue']);
     final commission = _num(data['total_commission']);
     final payout = _num(data['total_provider_payout']);
@@ -70,85 +73,139 @@ class CommissionPdfService {
 
     final pdf = pw.Document();
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(28),
         theme: pw.ThemeData.withFont(base: ttf, bold: ttfBold),
         textDirection: pw.TextDirection.rtl,
-        build: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+        footer: (context) => pw.Column(
           children: [
-            // Header
-            pw.Container(
-              padding: const pw.EdgeInsets.all(14),
-              decoration: pw.BoxDecoration(
-                color: _bg,
-                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
-                border: pw.Border.all(color: _border),
-              ),
-              child: pw.Row(
-                children: [
-                  if (logo != null)
-                    pw.ClipRRect(
-                      horizontalRadius: 8,
-                      verticalRadius: 8,
-                      child: pw.Image(logo, width: 46, height: 46, fit: pw.BoxFit.cover),
-                    ),
-                  pw.SizedBox(width: 12),
-                  pw.Expanded(
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(title, style: pw.TextStyle(font: ttfBold, fontSize: 15, color: _primary)),
-                        pw.SizedBox(height: 2),
-                        pw.Text('ڕاپۆرتی کۆمیشنی مانگانە', style: const pw.TextStyle(fontSize: 11, color: _text)),
-                      ],
-                    ),
-                  ),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: const pw.BoxDecoration(
-                          color: _primary,
-                          borderRadius: pw.BorderRadius.all(pw.Radius.circular(6)),
-                        ),
-                        child: pw.Text('مانگ: ${_period(data)}',
-                            style: pw.TextStyle(font: ttfBold, fontSize: 10, color: PdfColors.white)),
-                      ),
-                      pw.SizedBox(height: 4),
-                      pw.Text(generatedAt, style: const pw.TextStyle(fontSize: 8.5, color: _muted)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 18),
-
-            // KPIs
+            pw.Divider(color: _border),
+            pw.SizedBox(height: 4),
             pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                _kpi('کۆی داهات', _iqd(revenue), '${data['total_orders'] ?? 0} داواکاری', _indigo, ttfBold),
-                pw.SizedBox(width: 10),
-                _kpi('قازانجی ئەپ (کۆمیشن)', _iqd(commission), '${share.toStringAsFixed(1)}%', _primary, ttfBold),
-                pw.SizedBox(width: 10),
-                _kpi('پشکی پێشکەشکاران', _iqd(payout), '${(revenue > 0 ? 100 - share : 0).toStringAsFixed(1)}%',
-                    _blue, ttfBold),
+                pw.Text(footer, style: const pw.TextStyle(fontSize: 8.5, color: _muted)),
+                pw.Text('لاپەڕە ${context.pageNumber} لە ${context.pagesCount}',
+                    style: const pw.TextStyle(fontSize: 8.5, color: _muted)),
               ],
             ),
-            pw.SizedBox(height: 22),
+          ],
+        ),
+        build: (context) => [
+          // Header
+          pw.Container(
+            padding: const pw.EdgeInsets.all(14),
+            decoration: pw.BoxDecoration(
+              color: _bg,
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
+              border: pw.Border.all(color: _border),
+            ),
+            child: pw.Row(
+              children: [
+                if (logo != null)
+                  pw.ClipRRect(
+                    horizontalRadius: 8,
+                    verticalRadius: 8,
+                    child: pw.Image(logo, width: 46, height: 46, fit: pw.BoxFit.cover),
+                  ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(title, style: pw.TextStyle(font: ttfBold, fontSize: 15, color: _primary)),
+                      pw.SizedBox(height: 2),
+                      pw.Text('ڕاپۆرتی کۆمیشنی مانگانە', style: const pw.TextStyle(fontSize: 11, color: _text)),
+                    ],
+                  ),
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: const pw.BoxDecoration(
+                        color: _primary,
+                        borderRadius: pw.BorderRadius.all(pw.Radius.circular(6)),
+                      ),
+                      child: pw.Text('مانگ: ${_period(data)}',
+                          style: pw.TextStyle(font: ttfBold, fontSize: 10, color: PdfColors.white)),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(generatedAt, style: const pw.TextStyle(fontSize: 8.5, color: _muted)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 18),
 
-            pw.Text('پوختە بەپێی بەشەکان', style: pw.TextStyle(font: ttfBold, fontSize: 12, color: _text)),
+          // KPIs
+          pw.Row(
+            children: [
+              _kpi('کۆی داهات', _iqd(revenue), '${data['total_orders'] ?? 0} داواکاری', _indigo, ttfBold),
+              pw.SizedBox(width: 10),
+              _kpi('قازانجی ئەپ (کۆمیشن)', _iqd(commission), '${share.toStringAsFixed(1)}%', _primary, ttfBold),
+              pw.SizedBox(width: 10),
+              _kpi('پشکی پێشکەشکاران', _iqd(payout), '${(revenue > 0 ? 100 - share : 0).toStringAsFixed(1)}%',
+                  _blue, ttfBold),
+            ],
+          ),
+          pw.SizedBox(height: 22),
+
+          pw.Text('پوختە بەپێی بەشەکان', style: pw.TextStyle(font: ttfBold, fontSize: 12, color: _text)),
+          pw.SizedBox(height: 8),
+
+          // Table
+          pw.Table(
+            border: pw.TableBorder.all(color: _border, width: 0.8),
+            columnWidths: const {
+              0: pw.FlexColumnWidth(2.2),
+              1: pw.FlexColumnWidth(1),
+              2: pw.FlexColumnWidth(1.2),
+              3: pw.FlexColumnWidth(2),
+              4: pw.FlexColumnWidth(2),
+              5: pw.FlexColumnWidth(2),
+            },
+            children: [
+              pw.TableRow(
+                decoration: const pw.BoxDecoration(color: _primaryLight),
+                children: ['بەش', 'ڕێژە', 'داواکاری', 'کۆی داهات', 'کۆمیشن', 'پشکی پێشکەشکار']
+                    .map((h) => _cell(h, bold: ttfBold))
+                    .toList(),
+              ),
+              ...breakdown.map((b) => pw.TableRow(children: [
+                    _cell(b['label']?.toString() ?? ''),
+                    _cell(_rate(b['rate'])),
+                    _cell('${b['total_orders'] ?? 0}'),
+                    _cell(_iqd(b['total_amount'])),
+                    _cell(_iqd(b['total_commission']), color: _primary),
+                    _cell(_iqd(b['provider_net']), color: _blue),
+                  ])),
+              pw.TableRow(
+                decoration: const pw.BoxDecoration(color: _bg),
+                children: [
+                  _cell('کۆی گشتی', bold: ttfBold),
+                  _cell('-'),
+                  _cell('${data['total_orders'] ?? 0}', bold: ttfBold),
+                  _cell(_iqd(revenue), bold: ttfBold),
+                  _cell(_iqd(commission), bold: ttfBold, color: _primary),
+                  _cell(_iqd(payout), bold: ttfBold, color: _blue),
+                ],
+              ),
+            ],
+          ),
+          if (providers.isNotEmpty) ...[
+            pw.SizedBox(height: 20),
+            pw.Text('پەرستارەکان و تاقیگەکان', style: pw.TextStyle(font: ttfBold, fontSize: 12, color: _text)),
             pw.SizedBox(height: 8),
-
-            // Table
             pw.Table(
               border: pw.TableBorder.all(color: _border, width: 0.8),
               columnWidths: const {
-                0: pw.FlexColumnWidth(2.2),
-                1: pw.FlexColumnWidth(1),
-                2: pw.FlexColumnWidth(1.2),
+                0: pw.FlexColumnWidth(2.4),
+                1: pw.FlexColumnWidth(1.4),
+                2: pw.FlexColumnWidth(1.1),
                 3: pw.FlexColumnWidth(2),
                 4: pw.FlexColumnWidth(2),
                 5: pw.FlexColumnWidth(2),
@@ -156,41 +213,27 @@ class CommissionPdfService {
               children: [
                 pw.TableRow(
                   decoration: const pw.BoxDecoration(color: _primaryLight),
-                  children: ['بەش', 'ڕێژە', 'داواکاری', 'کۆی داهات', 'کۆمیشن', 'پشکی پێشکەشکار']
+                  children: ['پێشکەشکار', 'بەش', 'داواکاری', 'کۆی داهات', 'کۆمیشن', 'پشکی پێشکەشکار']
                       .map((h) => _cell(h, bold: ttfBold))
                       .toList(),
                 ),
-                ...breakdown.map((b) => pw.TableRow(children: [
-                      _cell(b['label']?.toString() ?? ''),
-                      _cell(_rate(b['rate'])),
-                      _cell('${b['total_orders'] ?? 0}'),
-                      _cell(_iqd(b['total_amount'])),
-                      _cell(_iqd(b['total_commission']), color: _primary),
-                      _cell(_iqd(b['provider_net']), color: _blue),
+                ...providers.map((p) => pw.TableRow(children: [
+                      _cell(p['name']?.toString() ?? ''),
+                      _cell(p['service_type'] == 'lab' ? 'تاقیگە' : 'پەرستاری'),
+                      _cell('${p['total_orders'] ?? 0}'),
+                      _cell(_iqd(p['total_amount'])),
+                      _cell(_iqd(p['total_commission']), color: _primary),
+                      _cell(_iqd(p['provider_net']), color: _blue),
                     ])),
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: _bg),
-                  children: [
-                    _cell('کۆی گشتی', bold: ttfBold),
-                    _cell('-'),
-                    _cell('${data['total_orders'] ?? 0}', bold: ttfBold),
-                    _cell(_iqd(revenue), bold: ttfBold),
-                    _cell(_iqd(commission), bold: ttfBold, color: _primary),
-                    _cell(_iqd(payout), bold: ttfBold, color: _blue),
-                  ],
-                ),
               ],
             ),
-            pw.SizedBox(height: 12),
-            pw.Text(
-              'تێبینی: تەنها داواکارییە تەواوکراوەکانی پەرستاری ماڵەوە و تاقیگەکان لەم ڕاپۆرتەدا حیساب کراون.',
-              style: const pw.TextStyle(fontSize: 9, color: _muted),
-            ),
-            pw.Spacer(),
-            pw.Divider(color: _border),
-            pw.Text(footer, style: const pw.TextStyle(fontSize: 8.5, color: _muted)),
           ],
-        ),
+          pw.SizedBox(height: 12),
+          pw.Text(
+            'تێبینی: تەنها داواکارییە تەواوکراوەکانی پەرستاری ماڵەوە و تاقیگەکان لەم ڕاپۆرتەدا حیساب کراون.',
+            style: const pw.TextStyle(fontSize: 9, color: _muted),
+          ),
+        ],
       ),
     );
     return pdf;
